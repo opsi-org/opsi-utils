@@ -1,0 +1,768 @@
+#!/bin/bash
+## - erstellt volles Backup mittels (ufs)dump
+#    sowie ein Script zum zurueckschreiben.
+#
+#       1.2.95  G. Weick
+#      21.4.95  Testet ob die Files auf dem Tape lesbar sind
+#  Mai/Juni 95  Restorescript fragt fuer jedes Filesystem nach ob es 
+#                 zurueckgeschrieben werden soll.
+#                 Variable EXCLUDEFS, welche die Namen der Filesysteme, die
+#                 nicht gesichert werden, enthaelt.
+#        1998?  Erstellt Log-Datei in /var/*/sysbackup.log
+#     8.8.2000  Karen Bade und Kristian Jahnke
+#                Erweiterung, so dass Solaris u. Linux unterstuetzt werden.
+#                Lesbarkeitstest unter Linux ist so nicht gegeben :-...
+#    6.10.2000  G.Weick
+#                Lesen der /etc/(v)fstab neu gemacht.
+#    7.11.2000  Variable REBOOT eingefuehrt, damit am Ende auch wirklich
+#                rebootet wird.
+#    30.1.2001  verschiedene Bugs (dsk/rdsk Dreher, no filesystem found,
+#                echo -n im restore) gefixed.
+#    21.2.2001  Linux Kram um fsf 1 korrigiert, ECHONNL (Echo no newline)
+#                fuers restore eingefuehrt, df -k Ausgabe fuers restore,
+#                cd / im Linuxteil nun ausserhalb der if $3 = / Schleife
+#                greppen der 1. Zeile fuers restore-script verbessert
+#    05.3.2001  Erweiterung der lilo Hilfe bei Linux Systemen.
+#                PATH2SCRIPT eingefuehrt, f. 1. Zeile des restore-scripts
+#    21.3.2001  Nochmal Lilo Hilfe erweitert.
+#    10.9.2001  Diverse Tippfehler korrigiert
+#    31.1.2002  Install-mbr und mkswap fuer Linux eingebaut    KK
+#    09.6.2003  Erweiterung fuer Linux ext3, und keine Abfrage zum Editieren
+#                von /mnt/etc/fstab und /mnt/etc/lilo.conf mehr
+#    15.6.2003  sysrestore fuer solaris erstellt dev devices und path_to_inst
+#                jedesmal neu
+#    27.6.2003  sysbackup -d erstellt ein Sysbackup ins aktuelle Verzeichnis
+#                alle (ausgewaehlten) werden gedumpt und bzip2-komprimiert
+#                das root filesystem heisst root.bz2
+#                Empfehlung: ungenutztes fs nach /mnt mounten u. dort aufrufen
+#     4.7.2003  Anpassung TESTCMD sodass unter Linux ein Vergleich des
+#                Archives mit den Filesystemen durchgefuehrt wird.
+#                Aenderungen u. Loeschungen werden erkannt. Neue Dateien
+#                nicht.
+#   11.12.2003  Neuer Parameter -q (in Kombination mit -d), Komprimierung
+#                ausgeschaltet, wirkt sich auch aufs sysrestore aus.
+#                path_to_inst korrigiert, WDIR=... wird wirklich ins sysrestore
+#                geschrieben.
+#    15.1.2004  Rechnername wird ins sysrestore geschrieben, (sysrestore -i)
+#     4.2.2004  Ergaenzende Schalter fuer Verwendung von gnutar und reiserfs
+#    21.2.2004  sysrestore korrigiert, sodass Filesystemtyp immer korrekt
+#                beim fsck und beim mount genutzt wird
+#    10.4.2004  mt -f ... im sysrestore, damit unter Linux beim Tape wieder
+#                vorgespult wird
+#    10.6.2004  umount /mnt/boot jetzt nur noch bei /
+#                ext3 bleibt ext3 (FSTYPE wird ext3 zugewiesen)
+#                erneut umount ../boot test geaendert
+#   30.11.2004  G. Weick
+#               ueberschreibt keine Dateien mehr bei Option -d
+#               Option -d erlaubt die Angabe des Verzeichnisses
+#               als folgenden Parameter
+#               Fehlermeldung, wenn das Verzeichnis in welches das Backup
+#               geschrieben werden soll, mitgesichert werden soll
+#   14.11.2004  G. Weick
+#               mt -f fsf 1 in linux beim testen und restorescript 
+#               beim Lesen zum Ueberspringende der EOF Marke wieder eingefuehrt
+#   21.03.06    d. oertel
+#               Options for XFS file system added (Version 3.63)
+##########################################################################
+
+
+# Erstellen der Parameter fuer das entsprechende Betriebsystem
+case `uname -s` in
+   Linux)
+            FSTAB=/etc/fstab
+	    FSTYPE="ext2 ext3"
+	    FORMATCMD=mke2fs
+	    REISERFORMATCMD="mkreiserfs -f"
+	    XFSFORMATCMD="mkfs.xfs -f"
+            FSCKCMD="fsck -t"
+	    MKBOOTCMD="chroot /mnt lilo"
+	    MOUNTCMD="mount -t"
+            DUMPCMD="dump -0ab 32 -f"
+            if [ -f "${0}.excludedir" ] ; then
+             TARDUMPCMD="tar -c -b 32 --one-file-system --exclude-from=${PATH2SCRIPT}.excludedir -f"
+            else
+             TARDUMPCMD="tar -c -b 32 --one-file-system -f"
+            fi
+    	    RESTORECMD="restore -ryb 32 -f"
+            TARRESTORECMD="tar -x -b 32 -f"
+            COMPRESSCMD="bzip2 -f -9"
+            UNCOMPRESSCMD="bunzip2 -c"
+            TAG=".bz2"
+	    	TAPEDEV=/dev/nst0
+            PATH=/bin:/usr/bin:/sbin:/usr/sbin:/opt/bin:/usr/local/bin
+	    	LOGDATEI=/var/log/sysbackup.log
+	    	RUNLEVEL=`runlevel | awk ' { print $2 } '`
+            TESTCMD="restore -Cb 32 -f"
+            TARTESTCMD="tar -tb 32 -f"
+            ECHONNL="echo -n"
+           ;;
+   SunOS)
+            FSTAB=/etc/vfstab
+	    	FSTYPE=ufs
+	    	FORMATCMD="echo y | newfs"
+            FSCKCMD="fsck -F"
+            MKBOOTCMD="installboot /usr/platform/`uname -m`/lib/fs/ufs/bootblk \$2"
+	    	MOUNTCMD="mount -F"
+            DUMPCMD="ufsdump 0bf 32"
+	    	RESTORECMD="ufsrestore yrbf 32"
+            COMPRESSCMD="bzip2 -f -9"
+            UNCOMPRESSCMD="bunzip2 -c"
+            TAG=".bz2"
+	    	TAPEDEV=/dev/rmt/0n
+            PATH=/bin:/usr/bin:/usr/ucb:/sbin:/usr/sbin:/opt/bin:/usr/ccs/bin:/usr/local/bin
+            LOGDATEI=/var/adm/sysbackup.log
+	    	RUNLEVEL=`who -r | awk ' { print $3 } '`
+            TESTCMD="ufsrestore tbf 32"
+            ECHONNL="printf"
+           ;;
+   *)           echo "Nix erkannt..."
+                exit 1
+           ;;
+esac
+
+# Erstelle AWK Variable mit dem "richtigen" awk Programm
+if [ -x "`which gawk`" ] ; then AWK=gawk
+   else if [ -x "`which nawk`" ] ; then AWK=nawk
+      else AWK=awk
+   fi
+fi
+
+export AWK FSTAB
+# Sicherung des Pfades zum Skripts (dient zum Erzeugen der 1. Zeile)
+#   vom Restore
+if [ `echo $0 | cut -c1` != / ] ; then
+   PATH2SCRIPT=`pwd`/`basename $0`
+else
+   PATH2SCRIPT=$0
+fi
+
+#Dateisysteme, die nicht mit sysbackup gesichert werden sollen
+EXCLUDEFS=""
+if [ -f  "${0}.conf" ] ; then
+   eval `grep '^EXCLUDEFS=' ${0}.conf`
+fi
+
+# Gibt alle Filesysteme aus der Filesystemtable aus
+#  die den entsprechenden Filesystemtyp 
+get_fs() {
+   $AWK -v fstypes="$FSTYPE" '
+      BEGIN { nofstypes=split(fstypes, fstype);
+              if (FILENAME=="") FILENAME=ENVIRON["FSTAB"];
+              if (FILENAME=="/etc/vfstab") { 
+                  posfstype=4; posmntpnt=3;
+              }
+              if (FILENAME=="/etc/fstab") { 
+                  posfstype=3; posmntpnt=2;
+              }
+      }
+      !/^#/ && NF>posfstype {  
+         for (i=1; i<=nofstypes; ++i)  {
+            if ($posfstype == fstype[i]) print $posmntpnt;
+         }
+      }
+      #{ exit (0); } 
+      ' $FSTAB
+   if [ "$?" != 0 ] ; then
+     echo "
+#####################################################################
+#  Ihr Awk Programm $AWK wurde nicht richtig erkannt oder ist eine
+#  uralte Version, oder ein unbekannter Fehler ist aufgetreten.
+#####################################################################
+     " >&2
+     exit 1
+   fi
+}
+
+# Gibt nur die Filesysteme aus , die gesichert werden sollen
+print_fs()
+{ for FS in `get_fs` ; do
+      if [ ! -z "$EXCLUDEFS" ] ; then
+         GEFUNDEN=false
+         for EXFS in $EXCLUDEFS ; do
+            if [ "$FS" = "$EXFS" ] ; then GEFUNDEN=true ; fi
+         done
+	 if [ "$GEFUNDEN" = "false" ] ; then echo $FS ; fi
+      else
+         echo $FS
+      fi
+   done
+}
+
+makeuniqfilename ()
+# erzeugt eine leere Datei ohne eine andere zu ueberschreiben
+# und gibt den Namen der erzeugten Datei zurueck
+# Parameter: Der Beginn des Dateinamens 
+{
+     uqfname=${1:-MKUQFN}
+     uqnr=00
+     if test ! -d $uqfname -a ! -f $uqfname -a ! -h $uqfname -a \
+             ! -p $uqfname -a ! -b $uqfname -a ! -c $uqfname  ;  then
+        touch $uqfname
+        echo $uqfname
+        return 0
+     fi
+     uqnr=00
+     while test -d ${uqfname}$uqnr -o -f ${uqfname}$uqnr -o \
+                -h ${uqfname}$uqnr -o -p ${uqfname}$uqnr -o \
+                -b ${uqfname}$uqnr  -o -c ${uqfname}$uqnr  ; do
+         uqnr=`printf %02d \`expr $uqnr + 1\` `
+     done
+     touch ${uqfname}$uqnr
+     echo ${uqfname}$uqnr
+}
+
+make_ask_fs()  {
+# Erstellt Funktion ask_fs des Restore-Scripts
+cat <<EOF_ASKFS>>$RESTORE
+
+ask_fs ()
+# Fragt nach, ob ein Dateisystem wiederhergestellt werden soll.
+{  while true ; do
+      $ECHONNL "Wollen Sie das Dateisystem \$1 wiederherstellen ? [J/N] "
+      read ANTWORT
+      case \$ANTWORT in
+      J)  return 0 ;;
+      j)  return 0 ;;
+      N)  return 1 ;;
+      n)  return 1 ;;
+      esac
+  done
+}
+
+EOF_ASKFS
+}
+
+make_restorefs ()
+# Erstellt die Funktion restorefs des restore-scripts
+{  
+cat <<EOF_RESTFS1>>$RESTORE
+
+restorefs ()
+# Argumente 1. Blockdevice(dsk) 2. Chardevice(rdsk) 3.Mountpoint 4. FS-Type
+{
+    AKT_FORMATCMD="${FORMATCMD}"
+    AKT_FSCKCMD="${FSCKCMD}"
+    echo Erstelle Dateisystem \$3 neu ....
+    if [ "\$4" = "reiserfs" ] ; then
+       AKT_FORMATCMD="${REISERFORMATCMD}"
+       AKT_FSCKCMD="fsck -y -t"
+    fi
+    if [ "\$4" = "xfs" ] ; then
+       AKT_FORMATCMD="${XFSFORMATCMD}"
+       AKT_FSCKCMD="fsck -y -t"
+    fi
+    if [ "\$4" = "ext3" -o "\$FFS" = "ext3" ] ; then
+       AKT_FORMATCMD="${FORMATCMD} -j" 
+       FSTYPE=\${FFS:-ext3}
+    else
+       FSTYPE=\$4
+    fi
+    \$AKT_FORMATCMD \$2
+    echo Pruefe Dateisystem \$2 ....
+    \$AKT_FSCKCMD \$FSTYPE \$2
+    echo Mounte Dateisystem \$3 ....
+    $MOUNTCMD \$FSTYPE \$1 /mnt
+    echo  Loesche lost+found ...
+    rm -rf /mnt/lost+found 
+    echo Schreibe Dateien zurueck ...
+    cd /mnt
+EOF_RESTFS1
+if [ "$TAPE" = true ] ; then
+   if [ "$USETAR" = true ] ; then
+      echo "    $TARRESTORECMD $TAPEDEV">>$RESTORE
+   else
+      echo "    $RESTORECMD $TAPEDEV">>$RESTORE
+   fi
+ if [ `uname -s` = Linux ] ; then
+   echo "    mt -f $TAPEDEV fsf 1" >>$RESTORE
+ fi
+else
+ echo "    if [ \$3 = / ] ; then FS=root ; else FS=\`basename \$3 \`; fi">>$RESTORE
+ if [ "$USETAR" = true ] ; then
+  echo "    $UNCOMPRESSCMD \${WDIR}/\${FS}.tar${TAG} | $TARRESTORECMD - ">>$RESTORE
+ else
+  echo "    $UNCOMPRESSCMD \${WDIR}/\${FS}$TAG | $RESTORECMD - ">>$RESTORE
+ fi 
+fi
+
+echo "    if [ "\$3" = "/" ] ; then">>$RESTORE
+
+if [ `uname -s` = Linux ] ; then
+   cat <<EOF_RESTFS_LINUXROOT >>$RESTORE
+      if [ "\$STOP" = "true" ] ; then
+        echo
+        echo 'Soll lilo aufgerufen werden?'
+        echo
+        echo '/ (root) ist zur Zeit unter /mnt gemountet, bitte ggfs.'
+        echo '/mnt/etc/fstab'
+        echo 'und'
+        echo '/mnt/etc/lilo.conf'
+        echo 'anpassen. Darauf achten, dass das Filesystem wieder'
+        echo 'dismounted werden kann (cd /).'
+        echo
+        echo 'Sollte eine /boot Partition fuer den Kernel vorhanden sein,'
+        echo ' ist diese durch mount /dev/xxxx /mnt/boot vor dem Aus-'
+        echo ' fuehren von lilo zu mounten.'
+        echo
+        echo 'Dann durch Druck von <ENTER> weitermachen und automatisch lilo ausfuehren.'
+        echo 'Durch Druck von "n" <ENTER> wird die Ausfuehrung von lilo unterbunden.'
+        read TASTE
+      fi
+      if [ "\$TASTE" != "n" ] ; then
+         echo Installiere Bootblocks  ....
+         $MKBOOTCMD
+         BOOTDEV=\`grep boot=/dev /mnt/etc/lilo.conf | cut -b 6-13\`
+         BOOTPART=\`grep boot=/dev /mnt/etc/lilo.conf | cut -b 14\`
+         SWAPDEV=\`grep swap /mnt/etc/fstab | awk ' {print \$1} '\`
+         echo Installiere MBR ... 
+         install-mbr -i n -e \$BOOTPART \$BOOTDEV
+         echo Bereite Swap-Bereich vor....
+         mkswap \$SWAPDEV
+
+      fi 
+   # Test if /mnt/boot was mounted
+   # not finished yet, need backup of /boot first, just in case
+      if mount | grep /mnt/boot >/dev/null ; then
+         umount /mnt/boot
+      fi
+   fi
+   cd /
+   echo  Wiederherstellung von \$3 beendet!
+EOF_RESTFS_LINUXROOT
+   if [ "$TAPE" = true ] ; then
+      echo "   echo Positioniere Band ...">>$RESTORE
+      echo "   mt -f $TAPEDEV fsf 1">>$RESTORE
+      echo "}">>$RESTORE
+   fi
+   echo "}">>$RESTORE
+   
+else
+
+     cat <<EOF_RESTFS2>>$RESTORE
+     echo Installiere Bootblocks  ....
+     $MKBOOTCMD
+     if [ "\$STOP" = "true" ] ; then
+       echo "/dev usw. wird nicht ersetzt"
+     else
+       echo "Ersetze /dev, /devices und /etc/path_to_inst ...."
+       rm -rf /mnt/dev/*
+       rm -rf /mnt/devices/*
+       cd /tmp/dev
+       tar cpf - . | ( cd /mnt/dev ; tar xpf - )
+       cd /tmp/devices
+       tar cpf - . | ( cd /mnt/devices ; tar xpf - )
+       cp -p /tmp/root/etc/path_to_inst /mnt/etc/path_to_inst
+       cd /mnt
+       touch reconfigure
+     fi
+   fi
+   cd /
+   echo  Wiederherstellung von \$3 beendet!
+}
+
+EOF_RESTFS2
+fi
+}
+
+Exit ()
+# Parameter 1: exit_code oder Befehl zum Rebooten
+{  if [ "$TAPE" = true ] ; then mt -f $TAPEDEV offline ; fi
+   if [ $REBOOT = true ] ; then 
+      Echo "Reboote Server ..."
+      reboot 
+   fi
+   exit $1
+}
+
+Echo ()
+{   echo "$*"
+    echo "$*" >> $LOGDATEI
+}
+
+####################### Hauptprogramm ###########################
+
+# Setze Variablen
+LANG=C
+LC_ALL=C
+export LANG PATH  LC_ALL
+
+TAPE=true
+USETAR=false
+AKTDIR=`pwd`
+RESTORE=/tmp/sysrestore$$
+
+VERSION="`basename $0` Version 3.63 21.3.2006 (c) www.uib.de: G.Weick, K.Jahnke, K.Bade, K.Koepke J.Weintz, d. oertel"
+
+while [ ! -z "$1" ] ; do
+   case "$1" in -- ) shift 
+                     ;;
+                -v ) echo "$VERSION"; exit 
+                     ;;
+                -d ) if [ ! -z "$2" -a "`echo $2 | cut -c-1`" != "-" ] ; then
+                        BACKUPDIR=$2
+                        echo "Datensicherung findet ins Verzeichnis $BACKUPDIR statt."
+                        shift
+                     else 
+                        echo "Datensicherung findet ins aktuelle Verzeichnis statt."
+                        BACKUPDIR=`pwd`
+                     fi
+                     test -d $BACKUPDIR || mkdir -p $BACKUPDIR || \
+                        (echo "FATAL: kann $BACKUPDIR nicht erstellen"; exit 66)
+                	 TAPE=false; 
+                     shift
+              		 ;;
+        		-q ) echo "Keine Komprimierung, nur mit -d wirksam."
+                     COMPRESSCMD="cat"
+                     UNCOMPRESSCMD="cat"
+                     TAG="" ;
+                     shift
+             		 ;;                       
+        		-tar ) 	echo "Datensicherung findet mit gnutar statt"
+             			echo "Nur unter Linux!"
+             			if [ `uname -s` = Linux ] ; then
+                    	 USETAR=true;
+             			fi
+             			shift
+             			;;
+        -onlyreiserfs ) echo "Datensicherung findet nur fuer reiser-FS statt"
+             			echo "Nur unter Linux!"
+             			if [ `uname -s` = Linux ] ; then
+                     	 FSTYPE=reiserfs; 
+             			fi
+             			shift
+             			;;
+        -addreiserfs ) 	echo "Datensicherung findet auch fuer reiser-FS statt"
+             		   	echo "Nur unter Linux!"
+             			if [ `uname -s` = Linux ] ; then
+                       	FSTYPE="${FSTYPE} reiserfs"; 
+             			fi
+             			shift
+             			;;
+        -onlyxfs ) echo "Datensicherung findet nur fuer XFS-FS statt"
+             			echo "Nur unter Linux!"
+             			if [ `uname -s` = Linux ] ; then
+                     	 FSTYPE=xfs; 
+             			fi
+             			shift
+             			;;
+        -addxfs ) 	echo "Datensicherung findet auch fuer XFS-FS statt"
+             		   	echo "Nur unter Linux!"
+             			if [ `uname -s` = Linux ] ; then
+                       	FSTYPE="${FSTYPE} xfs"; 
+             			fi
+             			shift
+             			;;
+        		-h ) 	echo "$VERSION"
+       				    echo "usage: $0 [options]"
+             			echo "options:"
+             			echo " -v   print version and exit"
+             			echo " -d   Datensicherung findet ins aktuelle Verzeichnis statt."
+             			echo "      Nur unter Linux!"
+             			echo " -q   Keine Komprimierung, nur mit -d wirksam."
+             			echo " -tar Datensicherung findet mit gnutar statt"
+             			echo "      Nur unter Linux!"
+             			echo " -onlyreiserfs Datensicherung findet nur fuer reiser-FS statt"
+             			echo "      Nur unter Linux!"
+             			echo " -addreiserfs Datensicherung findet auch fuer reiser-FS statt"
+             			echo "      Nur unter Linux!"
+             			echo " -onlyxfs Datensicherung findet nur fuer XFS-FS statt"
+             			echo "      Nur unter Linux!"
+             			echo " -addxfs Datensicherung findet auch fuer XFS-FS statt"
+             			echo "      Nur unter Linux!"
+             			echo " -h   Print this help"
+             			exit;
+             			;;
+                * )  	echo "unbekannter Parameter $1 (wird ignoriert)"
+                     	shift
+                     	;;
+   esac
+done
+
+cp /dev/null $LOGDATEI
+echo "Die Bildschirmausgabe wird in der Datei $LOGDATEI gesichert!"
+# Teste ob Maschine im Single-User-Modus laeuft
+if [  "$RUNLEVEL" != "S" ] ; then
+   Echo "WARNUNG: Ihr Rechner ist derzeit nicht im Single-User-Modus"
+   Echo "         Es ist daher moeglich, dass Benutzer schreibend auf"
+   Echo "         die Platten zugreifen."
+   Echo "         Der Server wird nicht nach Beenden rebootet."
+   REBOOT=false
+else
+   REBOOT=true
+fi
+
+# Teste ob Band eingelegt ist
+if [ "$TAPE" = true ] ; then
+  if ! mt -f $TAPEDEV rewind ; then 
+     Echo "FEHLER: Band ist nicht eingelegt oder Laufwerk nicht verfuegbar!"
+     exit 1
+  fi
+fi
+
+if [ "$TAPE" = false ] ; then
+   for FS in `print_fs` ; do
+        if [ "`df -k $FS | gawk '/^[/]/ {print $1}'`" \
+            == "`df -k $BACKUPDIR | gawk '/^[/]/ {print $1}'`" ] ; then
+              echo "FATAL: das Verzeichnis $BACKUPDIR liegt im Dateisystem $FS"
+              echo "Waehlen Sie ein anderes Verzeichnis oder schliessen sie $FS aus!" 
+              exit 1
+        fi
+   done
+fi
+
+FILESYSTEMS=`print_fs`
+if [ -z "$FILESYSTEMS" ] ; then
+    echo "Something wrong - No filesystems found" ; exit 1
+fi
+
+# Erstellen des restore-scripts
+head -1 $PATH2SCRIPT | grep '^#!' >$RESTORE
+
+LANG=de
+DATUM=`date`
+LANG=C
+SERVER=`uname -n`
+
+cat <<EOF_RESTORE1>>$RESTORE
+# Backup von ${SERVER} erzeugt am ${DATUM}.
+
+LANG=C
+PATH=$PATH
+export LANG PATH
+EOF_RESTORE1
+
+make_restorefs
+make_ask_fs
+
+cat <<EOF_RESTORE2>>$RESTORE
+
+################# SYSRESTORE-HAUPTPROGRAMM ##############
+
+for i in \$* ; do
+   case "\$i" in -- ) ;;
+                -i ) echo Backup von ${SERVER} erzeugt am ${DATUM}
+                     echo "  von $VERSION"
+                     `df -k | $AWK ' { if (FNR == 1)
+                        printf("echo \"%s\";\n", $0);
+                      else
+                        printf("                     echo \"%s\";\n", $0);
+                      } '`
+                     exit ;;
+		-f ) echo "Force Filesystem to be ext3 (Linux only)"
+                     if [ `uname -s` = "Linux" ] ; then FFS=ext3
+		     else echo "Sorry not on Linux, exiting..." ; exit 1 ; fi
+                     ;;
+                -s ) echo "Linux: will stop for editing in root fs"
+                     echo "Solaris: won't replace /dev /devices and path_to_inst"
+                     STOP=true ;;
+                * ) true ;;
+   esac
+done
+EOF_RESTORE2
+
+if [ "$TAPE" = true ] ; then cat <<EOF_RESTORE3>>$RESTORE
+# Teste ob Band eingelegt ist!
+if mt -f $TAPEDEV rewind ; then
+    true
+else
+    echo "FEHLER: Band ist nicht eingelegt oder Laufwerk nicht verfuegbar!"
+    exit
+fi
+
+echo Positioniere das Tape ....
+mt -f $TAPEDEV fsf 1
+EOF_RESTORE3
+fi
+
+
+echo "# Die Kommandos zum Wiederherstellen werden in der Variablen CMD abgelegt">>$RESTORE
+echo "CMD=\"\"">>$RESTORE
+
+if [ "$TAPE" = true ] ; then 
+  for FS in $FILESYSTEMS ; do
+     $AWK -v fs=$FS -v tdev=$TAPEDEV ' 
+        BEGIN { if (FILENAME=="") FILENAME=ENVIRON["FSTAB"];
+                if (FILENAME=="/etc/vfstab") {
+                    posmntpnt=3; posblkdev=1; posrawdev=2; posfstype=4
+                }
+                if (FILENAME=="/etc/fstab") { 
+                    posmntpnt=2; posblkdev=1; posrawdev=1; posfstype=3
+                }
+        }
+        !/^#/ && $posmntpnt == fs  {
+            printf("if ask_fs %s ; then\n", $posmntpnt);
+            printf("     CMD=${CMD}`echo \"restorefs %s %s %s %s ;\"`\n", \
+                        $posblkdev, $posrawdev, $posmntpnt, $posfstype );
+            printf("     CMD=${CMD}`echo \"umount /mnt ;\"`\n");
+            printf("else\n");
+            printf("     CMD=${CMD}`echo \"mt -f %s fsf 1 ;\"`\n", tdev);
+            printf("fi\n");
+      } ' $FSTAB >> $RESTORE
+  done
+else
+  echo "WDIR=\`pwd\`" >>$RESTORE
+  for FS in $FILESYSTEMS ; do
+     $AWK -v fs=$FS '
+        BEGIN { if (FILENAME=="") FILENAME=ENVIRON["FSTAB"];
+                if (FILENAME=="/etc/vfstab") {
+                    posmntpnt=3; posblkdev=1; posrawdev=2; posfstype=4
+                }
+                if (FILENAME=="/etc/fstab") {
+                    posmntpnt=2; posblkdev=1; posrawdev=1; posfstype=3
+                }
+        }
+        !/^#/ && $posmntpnt == fs  {
+            printf("if ask_fs %s ; then\n", $posmntpnt);
+            printf("     CMD=${CMD}`echo \"restorefs %s %s %s %s ;\"`\n", \
+                        $posblkdev, $posrawdev, $posmntpnt, $posfstype );
+            printf("     CMD=${CMD}`echo \"umount /mnt ;\"`\n");
+            printf("fi\n");
+      } ' $FSTAB >> $RESTORE
+  done
+fi
+echo "# Fuehre das Kommando aus.">>$RESTORE
+echo "eval \$CMD">>$RESTORE
+if [ "$TAPE" = true ] ; then cat <<EOF_RESTORE4>>$RESTORE
+# Spule das Band zurueck.
+mt -f $TAPEDEV rewind
+#  Wiederherstellung beendet.
+exit 0
+EOF_RESTORE4
+fi
+
+if [ "$TAPE" = true ] ; then
+  # Band zurueckspulen und restore-script als erste Datei aufs Band schreiben
+  Echo Schreibe den Restore-Script auf Band
+  mt -f $TAPEDEV rewind
+  dd if=$RESTORE of=$TAPEDEV conv=sync
+
+  # Dateien als  Dumpfiles fuer jedes Dateisystem aufs Band schreiben
+  for FS in $FILESYSTEMS ; do
+        DEV=`$AWK -v fs=$FS '
+           BEGIN { if (FILENAME=="") FILENAME=ENVIRON["FSTAB"];
+                   if (FILENAME=="/etc/vfstab") { 
+                       posmntpnt=3; posblkdev=2; posrawdev=1;
+                   }
+                   if (FILENAME=="/etc/fstab") { 
+                       posmntpnt=2; posblkdev=1; posrawdev=1;
+                   }
+           }
+           !/^#/ &&  $posmntpnt == fs { print $posrawdev; }' $FSTAB`
+        if [ "$USETAR" = true ] ; then
+         Echo Sichere $FS-Dateisystem \( Device $DEV \) mit gnutar ....
+         cd $FS
+         $TARDUMPCMD $TAPEDEV .
+        else
+         Echo Sichere $FS-Dateisystem \( Device $DEV \) mit \(ufs\)dump ....
+         $DUMPCMD $TAPEDEV $DEV
+        fi
+  done
+  Echo "Dateien gesichert. Band wird zurueckgespult!"
+  mt -f $TAPEDEV rewind
+  Echo "Backup beendet!"
+
+  Echo "Teste ob das Band korrekt beschrieben wurde:"
+  # Warte 2 Minuten da mt rewind gelegenlich zu frueh zurueckkommt
+  #sleep 120
+  Echo "Teste Restore-Script auf dem Band ...."
+  dd of=/dev/null if=$TAPEDEV >>$LOGDATEI 2>&1
+  for FS in $FILESYSTEMS ; do
+     Echo "Teste Backup des $FS-Dateisystems ...."
+     case `uname -s` in
+       Linux)
+        if [ "$USETAR" = true ] ; then
+          mt -f $TAPEDEV fsf 1 ; $TARTESTCMD $TAPEDEV >>$LOGDATEI 2>&1
+        else
+          mt -f $TAPEDEV fsf 1 ; $TESTCMD $TAPEDEV >>$LOGDATEI 2>&1
+        fi
+         ;;
+       SunOS)
+          if  ! eval $TESTCMD $TAPEDEV >/dev/null ; then
+            Echo "******************************************************************"
+            Echo "*                                                    "
+            Echo "*  FATALER FEHLER: $0 misslungen. Kein Systembackup  "
+            Echo "*                                                    "
+            Echo "******************************************************************"
+            Exit 1
+          fi
+         ;;
+     esac
+  done
+  Echo "$0 beendet!, Spule Band zurueck."
+  Exit 0
+else
+  if [ -f $BACKUPDIR/sysrestore ] ; then
+      OLDFILE=`makeuniqfilename $BACKUPDIR/sysrestore\`date +%Y%m%d\``
+      echo "Rette alte Datei $BACKUPDIR/sysrestore nach $OLDFILE"
+      mv $BACKUPDIR/sysrestore $OLDFILE
+  fi
+  cp $RESTORE $BACKUPDIR/sysrestore
+  chmod u+x $BACKUPDIR/sysrestore
+  # Dateien als  Dumpfiles fuer jedes Dateisystem ins aktuelle Verzeichnis
+  for FS in $FILESYSTEMS ; do
+        DEV=`$AWK -v fs=$FS '
+           BEGIN { if (FILENAME=="") FILENAME=ENVIRON["FSTAB"];
+                   if (FILENAME=="/etc/vfstab") {
+                       posmntpnt=3; posblkdev=2; posrawdev=1;
+                   }
+                   if (FILENAME=="/etc/fstab") {
+                       posmntpnt=2; posblkdev=1; posrawdev=1;
+                   }
+           }
+           !/^#/ &&  $posmntpnt == fs { print $posrawdev; }' $FSTAB`
+        if [ "$FS" = / ] ; then
+          FSNAME=root
+        else
+          FSNAME=`basename $FS`
+        fi
+        if [ -f $BACKUPDIR/${FS}$TAG ] ; then
+           OLDFILE=`makeuniqfilename $BACKUPDIR/${FS}${TAG}\`date +%Y%m%d\``
+           echo "Rette alte Datei $BACKUPDIR/${FS}$TAG nach $OLDFILE"
+           mv $BACKUPDIR/${FS}$TAG $OLDFILE
+        fi
+        if [ "$USETAR" = true ] ; then
+         Echo Sichere $FS-Dateisystem \( Device $DEV \) tar nach $BACKUPDIR/${FSNAME}.tar${TAG} ....
+         cd $FS
+         $TARDUMPCMD - . | $COMPRESSCMD > $BACKUPDIR/${FSNAME}.tar${TAG}
+         cd $BACKUPDIR
+        else
+         Echo Sichere $FS-Dateisystem \( Device $DEV \) mit \(ufs\)dump nach $BACKUPDIR/${FSNAME}${TAG}....
+        $DUMPCMD - $DEV | $COMPRESSCMD > $BACKUPDIR/${FSNAME}$TAG         
+        fi
+  done
+  Echo "Backup beendet!"
+
+  Echo "Teste ob Dateien korrekt geschrieben wurden:"
+  Echo "Teste Restore-Script ...."
+  dd of=/dev/null if=$BACKUPDIR/sysrestore >>$LOGDATEI 2>&1
+  for FS in $FILESYSTEMS ; do
+     Echo "Teste Backup des $FS-Dateisystems ...."
+     if [ $FS = / ] ; then FS=root ; else FS=`basename $FS `; fi
+     case `uname -s` in
+       Linux)
+        if [ "$USETAR" = true ] ; then
+         $UNCOMPRESSCMD $BACKUPDIR/${FS}.tar${TAG} | $TARTESTCMD - >>$LOGDATEI 2>&1
+        else
+          $UNCOMPRESSCMD $BACKUPDIR/${FS}$TAG | $TESTCMD - >>$LOGDATEI 2>&1
+        fi
+         ;;
+       SunOS)
+          if  ! eval $UNCOMPRESSCMD $BACKUPDIR/${FS}$TAG | $TESTCMD - >/dev/null ; then
+            Echo "**************************************************************
+****"
+            Echo "*                                                    "
+            Echo "*  FATALER FEHLER: $0 misslungen. Kein Systembackup  "
+            Echo "*                                                    "
+            Echo "**************************************************************
+****"
+            Exit 1
+          fi
+         ;;
+     esac
+
+  done
+  Echo "Sichere Logdatei ...."
+  cp -p $LOGDATEI $BACKUPDIR
+  Exit 0
+fi
+
