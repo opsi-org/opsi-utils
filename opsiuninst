@@ -1,0 +1,135 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+   ===================
+   =   opsiuninst    =
+   ===================
+   
+   @copyright: Jan Schneider <j.schneider@uib.de>
+   @license: GNU GPL, see COPYING for details.
+"""
+
+__version__ = '0.2'
+
+import os, getopt, gettext, socket
+
+# OPSI imports
+from OPSI.Product import *
+from OPSI.Logger import *
+from OPSI.System import *
+
+logger = Logger()
+logger.setConsoleLevel(LOG_WARNING)
+logger.setConsoleColor(True)
+opsiConfig = OpsiConfig()
+
+# Get locale
+try:
+	t = gettext.translation('opsi_opsiuninst', LOCALE_DIR)
+	def _(string):
+		return t.ugettext(string).encode('utf-8', 'replace')
+except Exception, e:
+	###logger.error("Locale not found: %s" % e)
+	def _(string):
+		"""Dummy method, created and called when no locale is found.
+		Uses the fallback language (called C; means english) then."""
+		return string
+
+def usage():
+	print _("\nUsage: %s [options] <product-id>") % os.path.basename(sys.argv[0])
+	print _("Uninstall an opsi package.")
+	print _("Options:")
+	print _("    -v                show version information")
+	print _("    -h                this help text")
+	print _("    -r                remove product files")
+	print _("    -l                log-level (0-9, default: 3)")
+	print ""
+
+
+def main(argv):
+	deleteFiles = False
+	try:
+		(opts, args) = getopt.getopt(argv, "vhrl:")
+	
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	
+	for (opt, arg) in opts:
+		if   (opt == "-h"):
+			usage()
+			return
+		elif (opt == "-v"):
+			print __version__
+			return
+		elif (opt == "-l"):
+			logger.setConsoleLevel(int(arg))
+		elif (opt == "-r"):
+			deleteFiles = True
+	
+	from OPSI.Backend.BackendManager import BackendManager
+	bm = BackendManager(authRequired=False)
+	productIds = bm.getProductIds_list()
+	
+	if (len(productIds) < 1):
+		print >> sys.stderr, _("No opsi product installed!")
+		sys.exit(1)
+	if (len(args) < 1):
+		print >> sys.stderr, _("No opsi product id supplied!")
+		print >> sys.stderr, _("Installed products:")
+		productIds.sort()
+		for productId in productIds:
+			print >> sys.stderr, "  %s" % productId
+		print >> sys.stderr, ""
+		sys.exit(1)
+	elif (len(args) > 1):
+		usage()
+		sys.exit(1)
+	
+	productId = args[0].lower()
+	if productId not in bm.getProductIds_list():
+		raise Exception("Product %s not installed" % productId)
+	
+	product = Product(productId)
+	productPackage = ProductPackage(product)
+	
+	name = socket.getfqdn()
+	bm.setProductInstallationStatus(productId, name, 'uninstalled')
+	bm.deleteProductDependency(productId)
+	bm.deleteProductProperties(productId)
+	bm.deleteProduct(productId)
+	
+	if deleteFiles:
+		try:
+			productPackage.deleteClientDataDir()
+		except Exception, e:
+			logger.warning(e)
+	
+	print "Product '%s' uninstalled." % productId
+	print ""
+	
+	
+	
+
+if (__name__ == "__main__"):
+	exception = None
+	
+	try:
+		main(sys.argv[1:])
+	
+	except SystemExit, e:
+		pass
+		
+	except Exception, e:
+		exception = e
+	
+	if exception:
+		logger.setConsoleLevel(LOG_ERROR)
+		logger.logException(exception)
+		print >> sys.stderr, _("Failed to uninstall:"), str(exception)
+		sys.exit(1)
+	
+	sys.exit(0)
+
+
+

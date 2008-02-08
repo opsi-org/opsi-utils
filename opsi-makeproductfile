@@ -1,0 +1,232 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+   ========================
+   =   makeproductfile    =
+   ========================
+   
+   @copyright: Jan Schneider <j.schneider@uib.de>
+   @license: GNU GPL, see COPYING for details.
+"""
+
+__version__ = '0.6'
+
+import os, time, getopt, gettext, re, pwd, grp
+
+# OPSI imports    
+from OPSI.Logger import *
+from OPSI.System import *
+from OPSI.Product import *
+from OPSI.Tools import md5sum
+
+# Get logger instance
+logger = Logger()
+
+# Get locale
+try:
+	t = gettext.translation('opsi_makeproductfile', LOCALE_DIR)
+	def _(string):
+		return t.ugettext(string).encode('utf-8', 'replace')
+	
+except Exception, e:
+	logger.error("Locale not found: %s" % e)
+	def _(string):
+		"""Dummy method, created and called when no locale is found.
+		Uses the fallback language (called C; means english) then."""
+		return string
+	
+def usage():
+	print _("\nUsage: %s [-h] [-v|-s] [-f] [-F format] [-l log-level] [-i custom name] [-I required version] [-t temp dir] [source directory]") % os.path.basename(sys.argv[0])
+	print _("Provides an opsi package from a package source directory.")
+	print _("If no source directory is supplied, the current directory will be used.")
+	print _("Options:")
+	print _("   -v          verbose")
+	print _("   -s          silent")
+	print _("   -l          log-level 0..6")
+	print _("   -f          fast, no topicality test")
+	print _("   -n          do not compress")
+	print _("   -F          archive format [tar|cpio], default: cpio")
+	print _("   -h          follow symlinks")
+	print _("   -I          incremental package")
+	print _("   -i          custom name")
+	print _("   -t          temp dir")
+	print ""
+	
+def main(argv):
+	os.umask(022)
+	
+	logLevel = LOG_WARNING
+	topicalityTest = True
+	sourceDir = os.getcwd()
+	tempDir = '/tmp'
+	lockFile = None
+	customName = None
+	silent = False
+	format = 'cpio'
+	compress = 'gz'
+	dereference = False
+	requiredVersion = None
+	incremental = False
+	
+	logger.setConsoleLevel(logLevel)
+	logger.setConsoleColor(True)
+	logger.setConsoleFormat('%L: %M')
+	
+	try:
+		(opts, args) = getopt.getopt(argv, "hvnsfi:t:l:F:I:")
+	
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	
+	for (opt, arg) in opts:
+		if   (opt == "-h"):
+			dereference = True
+		elif (opt == "-v"):
+			logLevel = LOG_DEBUG
+			logger.setColor(True)
+		elif (opt == "-l"):
+			logLevel = int(arg)
+			logger.setColor(True)
+		elif (opt == "-n"):
+			compress = False
+		elif (opt == "-s"):
+			logLevel = LOG_NONE
+			silent = True
+		elif (opt == "-f"):
+			topicalityTest = False
+		elif (opt == "-i"):
+			customName = arg
+		elif (opt == "-I"):
+			requiredVersion = arg
+			incremental = True
+		elif (opt == "-t"):
+			tempDir = arg
+		elif (opt == "-F"):
+			format = arg
+	
+	if (len(args) > 1):
+		logger.error("To much arguments")
+		usage()
+		sys.exit(1)
+	
+	elif (len(args) > 0):
+		sourceDir = os.path.abspath( args[0] )
+	
+	logger.setConsoleLevel(logLevel)
+	
+	logger.notice("Source dir: %s" % sourceDir)
+	logger.notice("Temp dir: %s" % tempDir)
+	logger.notice("Custom name: %s" % customName)
+	logger.notice("Topicality test: %s" % topicalityTest)
+	logger.notice("Archive format: %s" % format)
+	
+	if format not in ['tar', 'cpio']:
+		raise Exception("Unsupported archive format: %s" % format)
+	
+	if not os.path.isdir(sourceDir):
+		raise Exception("No such directory: %s" % sourceDir)
+	
+	pps = ProductPackageSource(sourceDir = sourceDir, tempDir = tempDir, customName = customName, packageFileDestDir = os.getcwd())
+	
+	if not silent: print _("Locking product...")
+	pps.lock()
+	
+	if incremental:
+		match = re.search('^\s*([<>]?=?[\w\.]+-*[\w\.]*)\s*$', requiredVersion)
+		if not match:
+			raise Exception("Bad version string '%s' in dependency" % requiredVersion)
+		
+		sectionRegex = re.compile('^\[([^\]]+)\]\s*$')
+		lines = []
+		packageSection = []
+		section = ''
+		f = open(pps.controlFile, 'r')
+		for line in f.readlines():
+			line = line.rstrip()
+			match = re.search(sectionRegex, line)
+			if match:
+				section = match.group(1)
+				if (section.lower() == 'package'):
+					packageSection.append(line)
+					continue
+			elif (section.lower() == 'package'):
+				if not line.startswith('depends:') and not line.startswith('incremental:'):
+					packageSection.append(line)
+				continue
+			lines.append(line)
+		f.close()
+		if not packageSection:
+			packageSection = ['[Package]', '']
+		
+		f = open(pps.controlFile, 'w')
+		for i in range(len(packageSection)):
+			print >> f, packageSection[i]
+			if (i == 0):
+				print >> f, 'depends: %s (%s)' % (pps.product.productId, requiredVersion)
+				print >> f, 'incremental: True'
+		for line in lines:
+			print >> f, line
+		f.close()
+	
+	if not silent: print _("Product info:")
+	if not silent: print _("     productId:         %s" % pps.product.productId)
+	if not silent: print _("     customName:        %s" % pps.customName)
+	if not silent: print _("     name:              %s" % pps.product.name)
+	if not silent: print _("     productVersion:    %s" % pps.product.productVersion)
+	if not silent: print _("     packageVersion:    %s" % pps.product.packageVersion)
+	if not silent: print _("     licenseRequired:   %s" % pps.product.licenseRequired)
+	if not silent: print _("     setupScript:       %s" % pps.product.setupScript)
+	if not silent: print _("     uninstallScript:   %s" % pps.product.uninstallScript)
+	if not silent: print _("     updateScript:      %s" % pps.product.updateScript)
+	if not silent: print _("     alwaysScript:      %s" % pps.product.alwaysScript)
+	if not silent: print _("     onceScript:        %s" % pps.product.onceScript)
+	if not silent: print _("     priority:          %s" % pps.product.priority)
+	if not silent: print _("     description:       %s" % pps.product.description)
+	if not silent: print _("     advice:            %s" % pps.product.advice)
+	if not silent: print _("     productClassNames: %s" % pps.product.productClassNames)
+	if not silent: print _("     pxeConfigTemplate: %s" % pps.product.pxeConfigTemplate)
+	
+	if topicalityTest:
+		if not silent: print _("Testing topicality...")
+		pps.testTopicality()
+	
+	#if not silent: print _("Setting access rights...")
+	#pps.setAccessRights()
+	
+	if not silent: print _("Creating packagefile...")
+	pps.pack(format, compress, dereference)
+	
+	if not silent: print _("Unlocking product...")
+	pps.unlock()
+	
+	if not silent: print _("Package file is '%s'" % pps.packageFile)
+	
+	if not silent: print _("Creating md5sum file '%s.md5'" % pps.packageFile)
+	md5 = md5sum(pps.packageFile)
+	f = open(pps.packageFile + '.md5', 'w')
+	print >> f, md5,
+	f.close
+	
+if (__name__ == "__main__"):
+	exception = None
+	
+	try:
+		main(sys.argv[1:])
+	
+	except SystemExit, e:
+		pass
+		
+	except Exception, e:
+		exception = e
+	
+	if exception:
+		logger.setConsoleLevel(LOG_ERROR)
+		logger.logException(exception)
+		print >> sys.stderr, "ERROR:", str(exception)
+		sys.exit(1)
+	
+	sys.exit(0)
+
+
+
