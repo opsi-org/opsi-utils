@@ -1,3 +1,10 @@
+opsi-utils (3.2.0.3-1) stable; urgency=low
+
+  * opsi-makeproductfile 0.7 (new feature: custom only packages)
+  * opsiinst 0.5.5
+  
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 13 Feb 2008 11:51:03 +0100
+
 opsi-utils (3.2.0.2-1) stable; urgency=low
 
   * opsi-newprod (0.3.2): Regex test of product/package version string

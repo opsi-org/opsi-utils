@@ -10,7 +10,7 @@
    @license: GNU GPL, see COPYING for details.
 """
 
-__version__ = '0.5.4'
+__version__ = '0.5.5'
 
 import os, stat, getopt, gettext, popen2, select, time, socket
 
@@ -214,9 +214,13 @@ def main(argv):
 						raise Exception(_('Canceled'))
 		
 		mbox.addText( _("Running preinst...\n") )
-		preinstResult = ppf.runPreinst()
-		for line in preinstResult:
-			mbox.addText(' > ' + line + '\n')
+		
+		preinst = ppf.runPreinst(getHandle = True)
+		text = posix.read(preinst.fileno(), 128)
+		while text:
+			mbox.addText(text)
+			text = posix.read(preinst.fileno(), 128)
+			logger.debug(text)
 		
 		if exists:
 			# Get old default values
@@ -315,9 +319,14 @@ def main(argv):
 		
 		mbox.addText( _("Running postinst...\n") )
 		
-		postinstResult = ppf.runPostinst()
-		for line in postinstResult:
-			mbox.addText(' > ' + line + '\n')
+		postinstResult = ''
+		postinst = ppf.runPostinst(getHandle = True)
+		text = posix.read(postinst.fileno(), 128)
+		while text:
+			#logger.debug(text)
+			postinstResult += text
+			mbox.addText(text)
+			text = posix.read(postinst.fileno(), 128)
 		
 		mbox.addText( _("Unlocking product...\n") )
 		
@@ -334,13 +343,13 @@ def main(argv):
 							bm.setProductActionRequest(productId, clientId, 'setup')
 			
 			
+		mbox.addText( _("Cleaning up...\n") )
 		
 		if (str(ui.__class__) != 'OPSI.UI.TextUI'):
 			time.sleep(3)
 			ui.exit()
 			if not quiet:
-				for line in postinstResult:
-					print line
+				print postinstResult
 		
 		else:
 			ui.exit()
