@@ -216,12 +216,13 @@ def main(argv):
 		mbox.addText( _("Running preinst...\n") )
 		
 		preinst = ppf.runPreinst(getHandle = True)
-		text = posix.read(preinst.fileno(), 128)
-		while text:
-			mbox.addText(text)
+		if preinst:
 			text = posix.read(preinst.fileno(), 128)
-			logger.debug(text)
-		
+			while text:
+				mbox.addText(text)
+				text = posix.read(preinst.fileno(), 128)
+				logger.debug(text)
+			
 		if exists:
 			# Get old default values
 			oldDefaults = bm.getProductPropertyDefinitions_listOfHashes(productId)
@@ -321,12 +322,13 @@ def main(argv):
 		
 		postinstResult = ''
 		postinst = ppf.runPostinst(getHandle = True)
-		text = posix.read(postinst.fileno(), 128)
-		while text:
-			#logger.debug(text)
-			postinstResult += text
-			mbox.addText(text)
+		if postinst:
 			text = posix.read(postinst.fileno(), 128)
+			while text:
+				#logger.debug(text)
+				postinstResult += text
+				mbox.addText(text)
+				text = posix.read(postinst.fileno(), 128)
 		
 		mbox.addText( _("Unlocking product...\n") )
 		
@@ -348,7 +350,7 @@ def main(argv):
 		if (str(ui.__class__) != 'OPSI.UI.TextUI'):
 			time.sleep(3)
 			ui.exit()
-			if not quiet:
+			if not quiet and postinstResult:
 				print postinstResult
 		
 		else:
