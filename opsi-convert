@@ -1,0 +1,593 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+   =====================
+   =   opsi-convert    =
+   =====================
+   
+   @copyright: uib - umwelt informatik buero gmbh <info@uib.de>
+   @author: Jan Schneider <j.schneider@uib.de>
+   @license: GNU GPL, see COPYING for details.
+"""
+
+__version__ = '0.5.3'
+
+import sys, getopt, gettext, re, getpass, socket
+
+# OPSI imports
+from OPSI import Tools
+from OPSI.Logger import *
+from OPSI.Backend.BackendManager import *
+
+logger = Logger()
+logLevel = LOG_ERROR
+logger.setConsoleLevel(logLevel)
+logger.setConsoleFormat('%M')
+logger.setFileFormat('%D [%L] %M')
+logger.setConsoleColor(True)
+
+bmRead = None
+bmWrite = None
+deleteFirst = True
+newServer = None
+clientIds = []
+serverIds = []
+
+# Get locale
+try:
+	t = gettext.translation('opsi-convert', LOCALE_DIR)
+	_ = t.ugettext
+except Exception, e:
+	logger.warning("Locale not found: %s" % e)
+	def _(string):
+		"""Dummy method, created and called when no locale is found.
+		Uses the fallback language (called C; means english) then."""
+		return string
+
+
+def usage():
+	print _("\nUsage: %s [options] <from> <to>") % os.path.basename(sys.argv[0])
+	print _("Convert an opsi database into an other.")
+	print _("Options:")
+	print _("    -h        show this help text")
+	print _("    -V        show version information")
+	print _("    -v        increase verbosity (can be used multiple times)")
+	print _("    -n        do not clean destination database before writing")
+	print _("    -s        use destination host as new server")
+	print _("    -l <file> log to this file")
+	print ""
+	print _("<from> and <to> can be:")
+	print _("     - the name of a backend (File, File31, LDAP, ...)")
+	print _("     - the url of a opsi configuration service")
+	print _("       http(s)://<user>@<host>:<port>/rpc")
+	print _("     - the path to a backend-manager configuration")
+	print ""
+
+
+def createOpsiBase():
+	logger.comment( _("Creating opsi base.") )
+	
+	bmWrite.createOpsiBase()
+
+def deleteServers():
+	logger.comment( _("Deleting servers.") )
+	for serverId in bmWrite.getServerIds_list():
+		bmWrite.deleteServer(serverId)
+	
+def convertServers():
+	logger.comment( _("Converting servers.") )
+	for i in range(len(serverIds)):
+		serverId = serverIds[i]
+		server = bmRead.getHost_hash(serverId)
+		logger.comment( "      " + _("Converting server '%s' (%s/%s)") % (server.get('hostId'), i+1, len(serverIds)) )
+		try:
+			newServerId = server.get('hostId')
+			if newServer:
+				newServerId = newServer
+			
+			serverName = newServerId.split('.')[0]
+			domain = '.'.join( newServerId.split('.')[1:] )
+			bmWrite.createServer(	serverName	= serverName, 
+						domain		= domain,
+						description	= server.get('description', ''),
+						notes		= server.get('notes', '') )
+			
+			bmWrite.setOpsiHostKey( newServerId, bmRead.getOpsiHostKey(server.get('hostId')) )
+			
+		except Exception, e:
+			if isinstance(e, KeyboardInterrupt):
+				return
+			logger.error(e)
+
+def deleteClients():
+	logger.comment( _("Deleting clients.") )
+	for clientId in bmWrite.getClientIds_list():
+		bmWrite.deleteClient(clientId)
+
+def convertClients():
+	logger.comment( _("Converting clients.") )
+	for i in range(len(clientIds)):
+		clientId = clientIds[i]
+		client = bmRead.getHost_hash(clientId)
+		logger.comment( "      " + _("Converting client '%s' (%s/%s)") % (client.get('hostId'), i+1, len(clientIds)) )
+		try:
+			clientName = client.get('hostId').split('.')[0]
+			domain = '.'.join( client.get('hostId').split('.')[1:] )
+			bmWrite.createClient(	clientName	= clientName, 
+						domain		= domain,
+						description	= client.get('description', ''),
+						notes		= client.get('notes', '') )
+			
+			if client.get('lastSeen'):
+				bmWrite.setHostLastSeen(client.get('hostId'), client.get('lastSeen'))
+			
+			opsiHostKey = bmRead.getOpsiHostKey( client.get('hostId') )
+			bmWrite.setOpsiHostKey( client.get('hostId'), opsiHostKey )
+			serverKey = bmWrite.getOpsiHostKey( bmWrite.getServerId(client.get('hostId')) )
+			encryptedPcpatchPass = bmWrite.getPcpatchPassword( bmWrite.getServerId(client.get('hostId')) )
+			bmWrite.setPcpatchPassword( client.get('hostId'), Tools.blowfishEncrypt(opsiHostKey, Tools.blowfishDecrypt(serverKey, encryptedPcpatchPass)) )
+		
+		except Exception, e:
+			if isinstance(e, KeyboardInterrupt):
+				return
+			logger.error(e)
+
+def deleteGroups():
+	logger.comment( _("Deleting groups.") )
+	for groupId in bmWrite.getGroupIds_list():
+		bmWrite.deleteGroup(groupId)
+	
+def convertGroups():
+	logger.comment( _("Converting groups.") )
+	groupIds = bmRead.getGroupIds_list()
+	for i in range(len(groupIds)):
+		groupId = groupIds[i]
+		logger.comment( "      " + _("Converting group '%s' (%s/%s)") % (groupId, i+1, len(groupIds)) )
+		clientIds = []
+		for clientId in bmRead.getClientIds_list(groupId = groupId):
+			if newServer and (newServer == clientId):
+				continue
+			clientIds.append(clientId)
+		
+		try:
+			bmWrite.createGroup(	groupId	= groupId, 
+						members	= clientIds )
+		except Exception, e:
+			if isinstance(e, KeyboardInterrupt):
+				return
+			logger.error(e)
+
+def convertGeneralConfigs():
+	logger.comment( _("Converting general configs.") )
+	generalConfig = bmRead.getGeneralConfig_hash()
+	bmWrite.setGeneralConfig(generalConfig)
+	for clientId in clientIds:
+		logger.comment( "      " + _("Searching general config for client '%s'") % clientId )
+		if deleteFirst:
+			try:
+				bmWrite.deleteGeneralConfig(clientId)
+				logger.comment( "            " + _("Deleting general config.") )
+			except Exception, e:
+				if isinstance(e, KeyboardInterrupt):
+					return
+				
+		
+		gc = bmRead.getGeneralConfig_hash(clientId)
+		new = False
+		
+		for (key, value) in gc.items():
+			if not generalConfig.has_key(key):
+				new = True
+				break
+			elif (generalConfig.get(key) != value):
+				new = True
+				break
+			
+		if new:
+			logger.comment( "            " + _("Converting general config.") )
+			bmWrite.setGeneralConfig(gc , clientId)
+
+def convertNetworkConfigs():
+	logger.comment( _("Converting network configs.") )
+	networkConfig = bmRead.getNetworkConfig_hash()
+	if newServer:
+		networkConfig['opsiServer'] = newServer
+	bmWrite.setNetworkConfig(networkConfig)
+	
+	for clientId in clientIds:
+		logger.comment( "      " + _("Searching network config for client '%s'") % clientId )
+		if deleteFirst:
+			try:
+				bmWrite.deleteNetworkConfig(clientId)
+				logger.comment( "            " + _("Deleting network config.") )
+			except Exception, e:
+				if isinstance(e, KeyboardInterrupt):
+					return
+				
+		
+		nc = bmRead.getNetworkConfig_hash(clientId)
+		if newServer:
+			nc['opsiServer'] = newServer
+		new = False
+		
+		for (key, value) in nc.items():
+			if not networkConfig.has_key(key):
+				new = True
+				break
+			elif (networkConfig.get(key) != value):
+				new = True
+				break
+			
+		if new:
+			logger.comment( "            " + _("Converting network config.") )
+			bmWrite.setNetworkConfig(nc)
+
+def deleteProducts():
+	logger.comment( _("Deleting products.") )
+	for productId in bmWrite.getProductIds_list():
+		bmWrite.deleteProduct(productId)
+	
+def convertProducts():
+	for type in ('netboot', 'localboot'):
+		logger.comment(  _("Converting %s products.") % type )
+		productIds = bmRead.getProductIds_list(type)
+		for i in range(len(productIds)):
+			productId = productIds[i]
+			logger.comment( "      " + _("Converting product '%s' (%s/%s)") % (productId, i+1, len(productIds)) )
+			product = bmRead.getProduct_hash(productId)
+			try:
+				setupScript = product.get('setupScript', '')
+				uninstallScript	= product.get('uninstallScript', '')
+				updateScript = product.get('updateScript', '')
+				alwaysScript = product.get('alwaysScript', '')
+				onceScript = product.get('onceScript', '')
+				
+				regexPath = re.compile('^\w:\\\\.*\\\\%s\\\\(.*)$' % productId, re.IGNORECASE)
+				regexURL = re.compile('^\w+:/.*/%s/(.*)$' % productId, re.IGNORECASE)
+				
+				for script in ('setupScript', 'uninstallScript', 'updateScript', 'alwaysScript', 'onceScript'):
+					
+					if not eval(script):
+						continue
+					match = re.search(regexPath, eval(script))
+					if match:
+						logger.info("Changing scriptname from '%s' to '%s'" % (eval(script), match.group(1)))
+						exec("%s = '%s'" % (script, match.group(1)))
+						continue
+					match = re.search(regexURL, eval(script))
+					if match:
+						logger.info("Changing scriptname from '%s' to '%s'" % (eval(script), match.group(1)))
+						exec("%s = '%s'" % (script, match.group(1)))
+					
+				bmWrite.createProduct(	productType		= type, 
+							productId		= productId,
+							name			= product.get('name'),
+							productVersion		= product.get('productVersion', '1.0'),
+							packageVersion		= product.get('packageVersion', '1'),
+							licenseRequired		= product.get('licenseRequired', 0),
+							setupScript		= setupScript,
+							uninstallScript		= uninstallScript,
+							updateScript		= updateScript,
+							alwaysScript		= alwaysScript,
+							onceScript		= onceScript,
+							priority		= product.get('priority', 0),
+							description		= product.get('description', ''),
+							advice			= product.get('advice', ''),
+							productClassNames	= product.get('productClassNames', []) )
+			except Exception, e:
+				if isinstance(e, KeyboardInterrupt):
+					return
+				logger.logException(e)
+				continue
+			
+			for dependency in bmRead.getProductDependencies_listOfHashes(productId):
+				logger.comment( "            " + _("Converting product dependency '%s'") \
+					% dependency.get('requiredProductId', dependency.get('requiredProductClassId')) )
+				bmWrite.createProductDependency(
+						productId			= productId,
+						action				= dependency.get('action'),
+						requiredProductId		= dependency.get('requiredProductId'),
+						requiredProductClassId		= dependency.get('requiredProductClassId'),
+						requiredAction			= dependency.get('requiredAction'),
+						requiredInstallationStatus	= dependency.get('requiredInstallationStatus'),
+						requirementType			= dependency.get('requirementType') )
+				
+			for definition in bmRead.getProductPropertyDefinitions_listOfHashes(productId):
+				logger.comment( "            " + _("Converting product property definition '%s'") % definition.get('name') )
+				bmWrite.createProductPropertyDefinition(
+						productId 	= productId,
+						name		= definition.get('name'),
+						description	= definition.get('description'),
+						defaultValue	= definition.get('default'),
+						possibleValues	= definition.get('values') )
+		logger.comment("")
+
+def convertProductStates():
+	logger.comment( _("Converting product states.") )
+	hostIds = list(serverIds)
+	hostIds.extend( list(clientIds) )
+	
+	i = 0
+	for (hostId, states) in bmRead.getProductStates_hash(hostIds).items():
+		isServer = hostId in serverIds
+		i += 1
+		logger.comment( "      " + _("Converting product states of host '%s' (%s/%s)") % ( hostId, i, len(hostIds) ) )
+		for state in states:
+			logger.comment( "               " + _("Converting product state for product '%s' on '%s' (%s/%s)") \
+							% ( state.get('productId'), hostId, i, len(hostIds) ) )
+			try:
+				if isServer and newServer:
+					hostId = newServer
+				bmWrite.setProductState(
+						state.get('productId'),
+						hostId,
+						installationStatus = state.get('installationStatus'),
+						actionRequest = state.get('actionRequest'),
+						productVersion = state.get('productVersion'),
+						packageVersion = state.get('packageVersion'),
+						lastStateChange = state.get('lastStateChange'),
+						licenseKey = "" )
+				#bmWrite.setProductInstallationStatus(state.get('productId'), hostId, state.get('installationStatus'))
+				#if state.get('actionRequest') and state.get('actionRequest') not in ('undefined', 'none'):
+				#	bmWrite.setProductActionRequest(state.get('productId'), hostId, state.get('actionRequest'))
+			except Exception, e:
+				if isinstance(e, KeyboardInterrupt):
+					return
+				logger.error(e)
+
+def convertProductProperties():
+	logger.comment( _("Converting product properties.") )
+	i = 0
+	productIds = bmRead.getProductIds_list()
+	for productId in productIds:
+		i += 1
+		logger.comment( "      " + _("Converting product properties for product '%s' (%s/%s)") % (productId, i, len(productIds)) )
+		productProperties = bmRead.getProductProperties_hash(productId)
+		try:
+			bmWrite.setProductProperties(productId, productProperties)
+		except Exception, e:
+			if isinstance(e, KeyboardInterrupt):
+				return
+			logger.error(e)
+		
+		for clientId in clientIds:
+			logger.comment( "            " + _("Converting product properties for product '%s' on '%s' (%s/%s)") % (productId, clientId, i, len(productIds)) )
+			pp = bmRead.getProductProperties_hash(productId, clientId)
+			new = False
+			
+			for (key, value) in pp.items():
+				if not productProperties.has_key(key):
+					new = True
+					break
+				elif (productProperties.get(key) != value):
+					new = True
+					break
+				
+			if new:
+				try:
+					bmWrite.setProductProperties(productId, pp, clientId)
+				except Exception, e:
+					if isinstance(e, KeyboardInterrupt):
+						return
+					logger.error(e)
+
+def main(argv):
+	global logLevel
+	global bmRead
+	global bmWrite
+	global deleteFirst
+	global newServer
+	global clientIds
+	global serverIds
+	
+	# Get options
+	try:
+		(opts, args) = getopt.getopt(argv, "hvVnsl:")
+	
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	
+	for (opt, arg) in opts:
+		if   (opt == "-h"):
+			usage()
+			return
+		elif (opt == "-V"):
+			print __version__
+			return
+		elif (opt == "-v"):
+			logLevel += 1
+			logger.setConsoleLevel(logLevel)
+			logger.setFileLevel(logLevel)
+		elif (opt == "-n"):
+			deleteFirst = False
+		elif (opt == "-s"):
+			newServer = socket.getfqdn()
+		elif (opt == "-l"):
+			logger.setLogFile(arg)
+			logger.setFileLevel(logLevel)
+		
+	if (len(args) < 2):
+		usage()
+		sys.exit(1)
+	
+	readBackend = args[0]
+	writeBackend = args[1]
+	
+	# Define read/write backend
+	read = {
+		'username'	: '',
+		'password'	: '',
+		'address'	: '',
+		'backend'	: '',
+		'config'	: '' }
+	write = {
+		'username'	: '',
+		'password'	: '',
+		'address'	: '',
+		'backend'	: '',
+		'config'	: '' }
+	
+	logger.comment( _("Converting from backend '%s' to backend '%s'.") % (readBackend, writeBackend) )
+	
+	
+	# Parse read backend
+	match = re.search('^(\w+://)', readBackend)
+	if match:
+		# Seems to be an URL
+		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', readBackend)
+		if match:
+			read['backend'] = 'JSONRPC'
+			read['address'] = match.group(1) + match.group(3)
+			read['username'] = match.group(2)
+		else:
+			raise Exception("Bad source URL '%s'" % readBackend)
+	elif os.path.isfile(readBackend):
+		# Is a filename
+		read['config'] = os.path.abspath(readBackend)
+	else:
+		# Assuming a backend name
+		read['backend'] = readBackend
+	
+	
+	# Parse write backend
+	match = re.search('^(\w+://)', writeBackend)
+	if match:
+		# Seems to be an URL
+		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
+		if match:
+			write['backend'] = 'JSONRPC'
+			write['address'] = match.group(1) + match.group(3)
+			write['username'] = match.group(2)
+			if newServer:
+				newServer = match.group(3).split(':')[0]
+				if re.search('^[\d\.]+$', newServer):
+					# Is an ip address
+					newServer = socket.getfqdn(newServer)
+					if re.search('^[\d\.]+$', newServer):
+						raise Exception("Cannot resolve '%s'" % newServer)
+		else:
+			raise Exception("Bad destination URL '%s'" % writeBackend)
+	elif os.path.isfile(writeBackend):
+		# Is a filename
+		write['config'] = os.path.abspath(writeBackend)
+	else:
+		# Assuming a backend name
+		write['backend'] = writeBackend
+	
+	
+	# Sanity checks
+	if read['backend'] and write['backend']:
+		if (read['backend'] == write['backend']):
+			if (read['backend'] == 'JSONRPC'):
+				if (read['address'] == write['address']):
+					raise Exception("Source and destination backend are the same.")
+			else:
+				raise Exception("Source and destination backend are the same.")
+	
+	elif read['config'] and write['config'] and os.path.samefile(read['config'], write['config']):
+		raise Exception("Source and destination backend are the same.")
+	
+	if newServer and ( len(newServer.split('.')) <= 2 ):
+		raise Exception("Bad server-id '%s' for new server" % newServer)
+	
+	# Creating BackendManager instance for reading
+	bmRead = None
+	if read['address']:
+		logger.comment( _("Connecting to %s") % read['address'] )
+		read['password'] = getpass.getpass()
+		
+	if read['config']:
+		bmRead = BackendManager( configFile = read['config'], authRequired = False )
+	else:
+		bmRead = BackendManager( read['username'], read['password'], read['address'], backend = read['backend'], authRequired = False )
+	bmRead.authenticated()
+	
+	# Creating BackendManager instance for writing
+	bmWrite = None
+	if write['address']:
+		logger.comment( _("Connecting to %s") % write['address'] )
+		write['password'] = getpass.getpass()
+	
+	if write['config']:
+		bmWrite = BackendManager( configFile = write['config'], authRequired = False )
+	else:
+		bmWrite = BackendManager( write['username'], write['password'], write['address'], backend = write['backend'], authRequired = False )
+	bmWrite.authenticated()
+	
+	serverIds = bmRead.getServerIds_list()
+	clientIds = bmRead.getClientIds_list()
+	if newServer:
+		if (len(serverIds) > 1):
+			raise Exception("More than on serverId reported by read backend, cannot use '%s' as new server" % newServer)
+		
+		num = -1
+		for i in range(len(clientIds)):
+			if (clientIds[i] == newServer):
+				num = i
+				break
+		if (num > -1):
+			del clientIds[num]
+		
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	# =    Starting conversion                                                    =
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	
+	# Opsi base
+	logger.comment("")
+	createOpsiBase()
+	
+	# Servers
+	if deleteFirst: deleteServers()
+	convertServers()
+	
+	# Clients
+	logger.comment("")
+	if deleteFirst: deleteClients()
+	convertClients()
+	
+	# Groups
+	logger.comment("")
+	if deleteFirst: deleteGroups()
+	convertGroups()
+	
+	# GeneralConfigs
+	logger.comment("")
+	convertGeneralConfigs()
+	
+	# NetworkConfigs
+	logger.comment("")
+	convertNetworkConfigs()
+	
+	# Products
+	logger.comment("")
+	if deleteFirst: deleteProducts()
+	convertProducts()
+
+	# Product States
+	logger.comment("")
+	convertProductStates()
+	
+	# Product properties
+	logger.comment("")
+	convertProductProperties()
+
+
+if (__name__ == "__main__"):
+	
+	try:
+		main(sys.argv[1:])
+		
+	except SystemExit:
+		pass
+		
+	except Exception, e:
+		logger.setConsoleLevel(LOG_ERROR)
+		logger.logException(e)
+		print >> sys.stderr, "ERROR:", str(e)
+		sys.exit(1)
+	
+	sys.exit(0)
+
+
+

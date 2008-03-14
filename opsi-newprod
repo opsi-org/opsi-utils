@@ -1,0 +1,563 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# auto detect encoding => äöü
+"""
+   =================
+   =    newprod    =
+   =================
+   
+   @copyright: Jan Schneider <j.schneider@uib.de>
+   @license: GNU GPL, see COPYING for details.
+"""
+
+__version__ = '0.3.2'
+
+import getopt, gettext, os, sys, re
+
+# OPSI imports
+from OPSI.Logger import *
+from OPSI.System import *
+from OPSI.Product import *
+from OPSI.UI import *
+
+# Get logger instance
+logger = Logger()
+
+# Globals
+ui = None
+
+# Get locale
+try:
+	t = gettext.translation('opsi_newprod', LOCALE_DIR)
+	def _(string):
+		return t.ugettext(string).encode('utf-8', 'replace')
+	
+except Exception, e:
+	logger.error("Locale not found: %s" % e)
+	def _(string):
+		"""Dummy method, created and called when no locale is found.
+		Uses the fallback language (called C; means english) then."""
+		return string
+
+def usage():
+	print _(\
+'Usage: %s [options] [destination directory]\n\
+Creates an opsi product source dir in the destination directory.\n\
+If no destination directory is supplied, the current directory is used.\n\
+Options:   -h                show this help\n\
+           -i <interface>    user interface [snack|text]\n\n' ) % os.path.basename(sys.argv[0])
+
+def main(argv):
+	uiType = None
+	destDir = os.getcwd()
+	
+	try:
+		(opts, args) = getopt.getopt(argv, "hi:")
+	
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	
+	for (opt, arg) in opts:
+		if   (opt == "-h"):
+			usage()
+			return
+		elif (opt == "-i"):
+			uiType = arg
+		
+	if (len(args) > 1):
+		logger.error("To much arguments")
+		usage()
+		sys.exit(1)
+	
+	elif (len(args) > 0):
+		destDir = os.path.abspath( args[0] )
+	
+	global ui
+	ui = UIFactory(uiType)
+	
+	ui.drawRootText(1, 1, _('Open PC ServerIntegration'))
+	
+	productType = 'localboot'
+	
+	helpText  = _('\n')
+	values = [
+		{ "name": "localboot",	"selected": True },
+		{ "name": "netboot" },
+		{ "name": "server"  } ]
+	productType = ui.getSelection(
+			radio = True,
+			title = _('Please select product type'),
+			text = helpText,
+			entries = values )
+	if not productType:
+		raise Exception(_('Cancelled'))
+	
+	productType = productType[0]
+	productId = ''
+	name = ''
+	productVersion = '1.0'
+	packageVersion = '1'
+	licenseRequired = '0'
+	setupScript = ''
+	uninstallScript = ''
+	updateScript = ''
+	alwaysScript = ''
+	onceScript = ''
+	priority = '0'
+	description = ''
+	advice = ''
+	productClassNames = []
+	pxeConfigTemplate = ''
+	
+	product = None
+	
+	while not product:
+		helpText  = _( \
+'Product id: a unique identifier for the product.\n\
+Product name: The full name of the product.\n\
+Description: A description (use \\n for line breaks).\n\
+Advice: An additional important advice.\n\
+Product version: Version defined by software producer.\n\
+Package version: Opsi package version of the product version.\n\
+License required: Is a license required (0|1)?\n\
+Priority: The installation priority class of this product (default: 0).\n\
+Product class names: Comma-separated list of product classes.\n' )
+		
+		values = [
+			{ "name": _("Product id"), 		"value": productId },
+			{ "name": _("Product name"),		"value": name },
+			{ "name": _("Description"), 		"value": description },
+			{ "name": _("Advice"), 			"value": advice },
+			{ "name": _("Product version"), 	"value": productVersion },
+			{ "name": _("Package version"), 	"value": packageVersion },
+			{ "name": _("License required"), 	"value": licenseRequired },
+			{ "name": _("Priority"), 		"value": priority },
+			#{ "name": _("Product class names"), 	"value": ', '.join(productClassNames), "multivalue": True } 
+			]
+		
+		values = ui.getValues(
+			title = _('product information'),
+			text = helpText,
+			entries = values )
+		
+		if not values:
+			raise Exception(_('Cancelled'))
+		
+		productId = values[0].get('value')
+		name = values[1].get('value')
+		description = values[2].get('value')
+		advice = values[3].get('value')
+		productVersion = values[4].get('value')
+		packageVersion = values[5].get('value')
+		licenseRequired = values[6].get('value')
+		priority = values[7].get('value')
+		#productClassNames = values[8].get('value', '')
+		if not isinstance (productClassNames, list):
+			productClassNames = [ productClassNames ]
+		
+		if not productId:
+			ui.showError(title = _('Missing value'), text = _('You have to specify a product id.'))
+			continue
+		
+		if not name:
+			ui.showError(title = _('Missing value'), text = _('You have to specify a product name.'))
+			continue
+		
+		if not description:
+			ui.showError(title = _('Missing value'), text = _('Please enter a short description.'))
+			continue
+		
+		if not productVersion:
+			ui.showError(title = _('Missing value'), text = _('You have to specify a product version.\nDefault: 1.0'))
+			continue
+		elif not re.search('^[\w\.]+$', productVersion):
+			ui.showError(title = _('Bad version string'), text = _("Unallowed chars in version string '%s'." % productVersion))
+			continue
+			
+		if not packageVersion:
+			ui.showError(title = _('Missing value'), text = _('You have to specify a package version.\nDefault: 1'))
+			continue
+		elif not re.search('^[\w\.]+$', packageVersion):
+			ui.showError(title = _('Bad version string'), text = _("Unallowed chars in version string '%s'." % packageVersion))
+			continue
+		
+		if not priority:
+			ui.showError(title = _('Missing value'), text = _('Please specify the product priority class.\nDefault: 0'))
+			continue
+		
+		#raise Exception("productClassNames: %s, description: %s" % (productClassNames, description))
+		try:
+			product = Product(
+				productId		= productId,
+				productType		= productType, 
+				name			= name, 
+				productVersion		= productVersion, 
+				packageVersion		= packageVersion,
+				licenseRequired		= licenseRequired,
+				setupScript		= setupScript,
+				uninstallScript		= uninstallScript,
+				updateScript		= updateScript,
+				alwaysScript		= alwaysScript,
+				onceScript		= onceScript,
+				priority		= priority,
+				description		= description,
+				advice			= advice,
+				productClassNames	= productClassNames,
+				pxeConfigTemplate	= pxeConfigTemplate )
+		except Exception, e:
+			ui.showError(title = _('Bad value'), text = str(e))
+			continue
+		
+		if (productType != 'server'):
+			helpText  = _(\
+'Setup script: Relative path to installation script.\n\
+Uninstall script: Relative path to script for action "uninstall".\n\
+Update script: Relative path to update script.\n\
+Always script: Relative path to script for action "always".\n\
+Once script: Relative path to script for action "once".\n\
+PXE config template: path to an custom linuxpxe config template.\n' )
+
+			values = [
+				{ "name": _("Setup script"), 		"value": setupScript },
+				{ "name": _("Uninstall script"), 	"value": uninstallScript },
+				{ "name": _("Update script"), 		"value": updateScript },
+				{ "name": _("Always script"), 		"value": alwaysScript },
+				{ "name": _("Once script"), 		"value": onceScript } ]
+			
+			if (productType == 'netboot'):
+				values.append({ "name": _("PXE config template"), "value": pxeConfigTemplate })
+				
+			values = ui.getValues(
+				title = _('product scripts'),
+				text = helpText,
+				entries = values )
+			
+			if not values:
+				raise Exception(_('Cancelled'))
+			
+			setupScript = values[0].get('value')
+			uninstallScript = values[1].get('value')
+			updateScript = values[2].get('value')
+			alwaysScript = values[3].get('value')
+			onceScript = values[4].get('value')
+			if (productType == 'netboot'):
+				pxeConfigTemplate = values[5].get('value')
+			
+			try:
+				product = Product(
+					productId		= productId,
+					productType		= productType, 
+					name			= name, 
+					productVersion		= productVersion, 
+					packageVersion		= packageVersion,
+					licenseRequired		= licenseRequired,
+					setupScript		= setupScript,
+					uninstallScript		= uninstallScript,
+					updateScript		= updateScript,
+					alwaysScript		= alwaysScript,
+					onceScript		= onceScript,
+					priority		= priority,
+					description		= description,
+					advice			= advice,
+					productClassNames	= productClassNames,
+					pxeConfigTemplate	= pxeConfigTemplate )
+			except Exception, e:
+				ui.showError(title = _('Failed to create product'), text = str(e))
+				continue
+	
+	mkdir( os.path.join(destDir, productId), mode=02770 )
+	mkdir( os.path.join(destDir, productId, 'OPSI'), mode=02770 )
+	mkdir( os.path.join(destDir, productId, 'CLIENT_DATA'), mode=02770 )
+	mkdir( os.path.join(destDir, productId, 'SERVER_DATA'), mode=02770 )
+	
+	
+	# Product dependencies
+	productDependencies = []
+	if (productType != 'server'):
+		helpText  = _(\
+'You have to specify either a required product or a required product class.\n\
+You have to specify either a required installation status or a required action.\n\
+The requirement type is optional.\n\
+Possible actions are:\n      %s\n\
+Possible installation status are:\n      %s\n\
+Possible requirement types are:\n      %s\n' ) % ( 
+			', '.join(['setup', 'uninstall', 'update', 'once', 'always']),
+			', '.join(['installed', 'uninstalled', 'not_installed', 'failed']),
+			', '.join(getPossibleRequirementTypes()) )
+	
+		while True:
+			if not ui.yesno( title = _('Create product dependency?'), \
+					  text = _('Do you want to create a product dependency?'), \
+					  okLabel = _('Yes'), \
+					  cancelLabel = _('No') ):
+				break
+			
+			productDependency = None
+			action = 'setup'
+			requiredProductId = ''
+			requiredProductClassId = ''
+			requiredAction = ''
+			requiredInstallationStatus = ''
+			requirementType = ''
+			
+			while not productDependency:
+				values = [
+					{ "name": _("Dependency for action"),		"value": action },
+					{ "name": _("Required product id"),		"value": requiredProductId },
+					#{ "name": _("Required product class id"),	"value": requiredProductClassId },
+					{ "name": _("Required action"),		"value": requiredAction },
+					{ "name": _("Required installation status"), 	"value": requiredInstallationStatus },
+					{ "name": _("Requirement type"), 		"value": requirementType } ]
+				
+				values = ui.getValues(
+					title = _('Create dependency for product %s') % product.productId,
+					text = helpText,
+					entries = values )
+				
+				if not values:
+					ui.showMessage(_('Cancelled'))
+					break
+				
+				action = values[0].get('value')
+				requiredProductId = values[1].get('value')
+				#requiredProductClassId = values[2].get('value')
+				requiredAction = values[2].get('value')
+				requiredInstallationStatus = values[3].get('value')
+				requirementType = values[4].get('value')
+				
+				try:
+					productDependency = ProductDependency(
+							productId = product.productId, 
+							action = action,
+							requiredProductId = requiredProductId,
+							requiredProductClassId = requiredProductClassId,
+							requiredAction = requiredAction,
+							requiredInstallationStatus = requiredInstallationStatus,
+							requirementType = requirementType )
+				except Exception, e:
+					ui.showError(title = _('Failed to create product dependency'), text = str(e))
+					continue
+				
+				productDependencies.append(productDependency)
+				
+	
+	# Product properties
+	productProperties = []
+	if (productType != 'server'):
+		helpText  = _(\
+'Property name: Name of the variable.\n\
+Property description: Usage description.\n\
+Possible values: Comma separated list of possible values for the variable.\n\
+	         If no possible values are given any value is allowed.\n' )
+		
+		while True:
+			if not ui.yesno( title = _('Create product property?'), \
+					  text = _('Do you want to create a product property?'), \
+					  okLabel = _('Yes'), \
+					  cancelLabel = _('No') ):
+				break
+			
+			productProperty = None
+			name = ""
+			description = ""
+			possibleValues = []
+			defaultValue = ""
+			
+			while not productProperty:
+				values = [
+					{ "name": _("Property name (key)"),	"value": name },
+					{ "name": _("Property description"),	"value": description },
+					{ "name": _("Possible values"),	"value": ', '.join(possibleValues), "multivalue": True } ]
+				
+				values = ui.getValues(
+					title = _('Create property for product %s') % product.productId,
+					text = helpText,
+					entries = values )
+				
+				if not values:
+					ui.showMessage(_('Cancelled'))
+					break
+				
+				name = values[0].get('value')
+				description = values[1].get('value')
+				possibleValues = values[2].get('value')
+				if not possibleValues:
+					possibleValues = []
+				elif ( type(possibleValues) != type(()) and type(possibleValues) != type([]) ):
+					possibleValues = [ possibleValues ]
+				
+				try:
+					productProperty = ProductProperty(
+							productId = product.productId, 
+							name = name,
+							description = description,
+							possibleValues = possibleValues )
+				except Exception, e:
+					ui.showError(title = _('Failed to create product property'), text = str(e))
+					continue
+				
+				if (len(possibleValues) > 1):
+					choices = []
+					for v in possibleValues:
+						choices.append( { "name": v } )
+					choices[0]['selected'] = True
+					result = ui.getSelection(
+							radio = True,
+							title = _('Please select a default value'),
+							text = "",
+							entries = choices )
+					if result:
+						defaultValue = result[0]
+					try:
+						productProperty = ProductProperty(
+								productId = product.productId, 
+								name = name,
+								description = description,
+								possibleValues = possibleValues,
+								defaultValue = defaultValue)
+					except Exception, e:
+						ui.showError(title = _('Failed to create product property'), text = str(e))
+						continue
+				else:
+					values = [ { "name": _('Default value for %s') % name, "value": "" } ]
+					
+					values = ui.getValues(
+						title = _('Create property for product %s') % product.productId,
+						text = helpText,
+						entries = values )
+					
+					if not values:
+						ui.showMessage(_('Cancelled'))
+						break
+					
+					defaultValue = values[0].get('value')
+					
+					try:
+						productProperty = ProductProperty(
+								productId = product.productId, 
+								name = name,
+								description = description,
+								possibleValues = possibleValues,
+								defaultValue = defaultValue)
+					except Exception, e:
+						ui.showError(title = _('Failed to create product property'), text = str(e))
+						continue
+					
+				productProperties.append(productProperty)
+	
+	
+	
+	# Write control file
+	control = open( os.path.join(destDir, productId, 'OPSI', 'control'), 'w' )
+	print >> control, '[Package]'
+	print >> control, 'version: %s' % product.packageVersion
+	print >> control, 'depends:'
+	print >> control, 'incremental: False'
+	print >> control, ''
+	print >> control, '[Product]'
+	print >> control, 'type: %s' % product.productType
+	print >> control, 'id: %s' % product.productId
+	print >> control, 'name: %s' % product.name
+	print >> control, 'description:',
+	for line in product.description.split('\\n'):
+		print >> control, line
+	print >> control, 'advice: %s' % product.advice
+	print >> control, 'version: %s' % product.productVersion
+	print >> control, 'priority: %s' % product.priority
+	print >> control, 'licenseRequired: %s' % product.licenseRequired
+	print >> control, 'productClasses: %s' % ', '.join(product.productClassNames)
+	print >> control, 'setupScript: %s' % product.setupScript
+	print >> control, 'uninstallScript: %s' % product.uninstallScript
+	print >> control, 'updateScript: %s' % product.updateScript
+	print >> control, 'alwaysScript: %s' % product.alwaysScript
+	print >> control, 'onceScript: %s' % product.onceScript
+	if (product.productType == 'netboot'):
+		print >> control, 'pxeConfigTemplate: %s' % product.pxeConfigTemplate
+	
+	if (product.productType != 'server'):
+		for dependency in productDependencies:
+			print >> control, '\n[ProductDependency]'
+			print >> control, 'action: %s' % dependency.action
+			if dependency.requiredProductId:
+				print >> control, 'requiredProduct: %s' % dependency.requiredProductId
+			if dependency.requiredProductClassId:
+				print >> control, 'requiredClass: %s' % dependency.requiredProductClassId
+			if dependency.requiredAction:
+				print >> control, 'requiredAction: %s' % dependency.requiredAction
+			if dependency.requiredInstallationStatus:
+				print >> control, 'requiredStatus: %s' % dependency.requiredInstallationStatus
+			if dependency.requirementType:
+				print >> control, 'requirementType: %s' % dependency.requirementType
+		
+		for productProperty in productProperties:
+			print >> control, '\n[ProductProperty]'
+			print >> control, 'name: %s' % productProperty.name
+			if productProperty.description:
+				print >> control, 'description:',
+				for line in productProperty.description.split('\\n'):
+					print >> control, line
+			if productProperty.possibleValues:
+				print >> control, 'values: %s' % ', '.join(productProperty.possibleValues)
+			if productProperty.defaultValue:
+				print >> control, 'default: %s' % productProperty.defaultValue
+	
+	control.close()
+	
+	# Creating preinst template
+	preinst = open( os.path.join(destDir, productId, 'OPSI', 'preinst'), 'w' )
+	print >> preinst, '#! /bin/sh'
+	print >> preinst, '#'
+	print >> preinst, '# preinst script for %s' % product.productId
+	print >> preinst, '# This script executes before that package will be unpacked from its archive file.'
+	print >> preinst, '#'
+	print >> preinst, '# The following environment variables can be used to obtain information about the current installation:'
+	print >> preinst, '#   PRODUCT_ID: id of the current product'
+	print >> preinst, '#   CLIENT_DATA_DIR: directory where client data will be installed'
+	print >> preinst, '#'
+	preinst.close()
+	os.chmod(os.path.join(destDir, productId, 'OPSI', 'preinst'), 0700)
+	
+	# Creating postinst template
+	postinst = open( os.path.join(destDir, productId, 'OPSI', 'postinst'), 'w' )
+	print >> postinst, '#! /bin/sh'
+	print >> postinst, '#'
+	print >> postinst, '# postinst script for %s' % product.productId
+	print >> postinst, '# This script executes after unpacking files from that archive and registering the product at the server.'
+	print >> postinst, '#'
+	print >> postinst, '# The following environment variables can be used to obtain information about the current installation:'
+	print >> postinst, '#   PRODUCT_ID: id of the current product'
+	print >> postinst, '#   CLIENT_DATA_DIR: directory which contains the installed client data'
+	print >> postinst, '#'
+	postinst.close()
+	os.chmod(os.path.join(destDir, productId, 'OPSI', 'postinst'), 0700)
+	
+if (__name__ == "__main__"):
+	exception = None
+	
+	try:
+		main(sys.argv[1:])
+	
+	except SystemExit, e:
+		pass
+		
+	except Exception, e:
+		exception = e
+	
+	if ui: 
+		try:
+			ui.exit()
+		except:
+			pass
+	
+	if exception:
+		logger.setConsoleLevel(LOG_ERROR)
+		logger.logException(exception)
+		print >> sys.stderr, "ERROR:", str(exception)
+		sys.exit(1)
+	
+	sys.exit(0)
+	
+
+
+
