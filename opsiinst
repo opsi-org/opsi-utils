@@ -10,13 +10,15 @@
    @license: GNU GPL, see COPYING for details.
 """
 
-__version__ = '0.5.5'
+__version__ = '0.6'
 
 import os, stat, getopt, gettext, popen2, select, time, socket
 
 # OPSI imports
 from OPSI.Logger import *
+from OPSI.Backend.Backend import *
 from OPSI.System import *
+from OPSI.Tools import blowfishDecrypt
 from OPSI.Product import *
 from OPSI.UI import *
 
@@ -71,6 +73,7 @@ def main(argv):
 	tempDir = '/tmp'
 	oldDefaults = []
 	keepOldDefaults = True
+	depotIds = []
 	
 	try:
 		(opts, args) = getopt.getopt(argv, "vxhqknfdl:i:t:")
@@ -155,9 +158,17 @@ def main(argv):
 	from OPSI.Backend.BackendManager import BackendManager
 	bm = BackendManager(authRequired=False)
 	
+	serverId = bm.getServerId(None)
+	localId = socket.getfqdn()
+	
 	ui.drawRootText(3, 3, _("Opening package file '%s' ...") % packageFile)
 	
 	ppf = ProductPackageFile(packageFile, tempDir = tempDir)
+	
+	if not depotIds:
+		depotIds = bm.getDepotIds_list()
+		if not depotIds:
+			raise Exception('No depots found')
 	
 	try:
 		if sourceDir:
@@ -193,144 +204,185 @@ def main(argv):
 		mbox.addText( _("Checking package dependencies...\n") )
 		ppf.checkDependencies()
 		
-		mbox.addText( _("Locking product...\n") )
-		ppf.lock()
-		
-		exists = False
-		for productId in bm.getProductIds_list():
-			if (productId == ppf.product.productId):
-				exists = True
-				break
-		
-		if exists:
-			if quiet:
-				if not force:
-					raise Exception(_("Product '%s' already exists in the database!") % productId)
+		for depotId in depotIds:
+			logger.notice("Processing depot '%s'" % depotId)
+			mbox.addText( _("Processing depot '%s'...\n") % depotId )
 			
+			depot = bm.getDepot_hash(depotId)
+			
+			depotUrl = ''
+			if (depotId == localId):
+				depotUrl = depot['localUrl']
 			else:
-				if not force and not ui.yesno(
-					title	= _("Overwrite?"), 
-					text	= _("Product '%s' already exists in the database do you want to replace it?") % productId ):
-						raise Exception(_('Canceled'))
-		
-		mbox.addText( _("Running preinst...\n") )
-		
-		preinst = ppf.runPreinst(getHandle = True)
-		if preinst:
-			text = posix.read(preinst.fileno(), 128)
-			while text:
-				mbox.addText(text)
-				text = posix.read(preinst.fileno(), 128)
-				logger.debug(text)
+				depotUrl = depot['remoteUrl']
 			
-		if exists:
-			# Get old default values
-			oldDefaults = bm.getProductPropertyDefinitions_listOfHashes(productId)
-			# Delete all product dependencies
-			bm.deleteProductDependency(ppf.product.productId)
-			# Delete productPropertyDefinitions
-			bm.deleteProductPropertyDefinitions(ppf.product.productId)
-			# Not deleting product, because this would delete client productstates as well
-		
-		if ppf.incremental:
-			mbox.addText( _("Incremental package, not deleting old client files...\n") )
-		else:
-			mbox.addText( _("Deleting old client files...\n") )
-			ppf.deleteClientDataDir()
-		
-		mbox.addText( _("Unpacking files...\n") )
-		
-		ppf.unpack()
-		
-		mbox.addText( _("Setting access rights...\n") )
-		ppf.setAccessRights()
-		
-		mbox.addText( _("Registering product...\n") )
-		bm.createProduct(
-				ppf.product.productType,
-				ppf.product.productId,
-				ppf.product.name,
-				ppf.product.productVersion,
-				ppf.product.packageVersion,
-				ppf.product.licenseRequired,
-				ppf.product.setupScript,
-				ppf.product.uninstallScript,
-				ppf.product.updateScript,
-				ppf.product.alwaysScript,
-				ppf.product.onceScript,
-				ppf.product.priority,
-				ppf.product.description,
-				ppf.product.advice,
-				ppf.product.productClassNames,
-				ppf.product.pxeConfigTemplate
-			)
-		
-		if (ppf.product.productType != 'server'):
-			for d in ppf.product.productDependencies:
-				bm.createProductDependency(
-					d.productId,
-					d.action,
-					d.requiredProductId,
-					d.requiredProductClassId,
-					d.requiredAction,
-					d.requiredInstallationStatus,
-					d.requirementType,
-				)
-		
-			properties = {}
-			for p in ppf.product.productProperties:
-				defaultValue = p.defaultValue
-				if keepOldDefaults:
-					for old in oldDefaults:
-						if (old['name'] == p.name):
-							if not p.possibleValues or old['default'] in p.possibleValues:
-								defaultValue = old['default']
-							break
-				if not quiet:
-					if (len(p.possibleValues) > 0):
-						values = []
-						for v in p.possibleValues:
-							values.append( { "name": v, "selected": (v == defaultValue) } )
-						defaultValue = ui.getSelection(values, radio=True,
-										title=_("Please select default value for product property '%s'") % p.name, 
-										text=p.description)
-						if defaultValue != None:
-							defaultValue = defaultValue[0]
-					else:
-						defaultValue = ui.getValue(text=p.description, default=defaultValue)
-					
-					if (defaultValue != None):
-						p.defaultValue = defaultValue
+			mountPoint = ''
+			if depotUrl.startswith('file://'):
+				ppf.setClientDataDir("%s/%s" % (depotUrl[7:], ppf.product.productId))
+			elif depotUrl.startswith('smb://'):
+				mountPoint = '/tmp/depot_mount_%s' % depotId
+				clientDataDir = str(mountPoint)
+				dp = depotUrl.split('/')
+				if (len(dp) > 4):
+					depotUrl = '/'.join(dp[:4])
+					clientDataDir += '/' + '/'.join(dp[4:])
+				#raise Exception("%s-%s" % (depotUrl, clientDataDir))
+				clientDataDir += '/' + ppf.product.productId
+				pcpatchPassword = blowfishDecrypt( bm.getOpsiHostKey(serverId) , bm.getPcpatchPassword(serverId) )
+				mount(depotUrl, mountPoint, username='pcpatch', password=pcpatchPassword, rsize='32768', wsize='32768', ui=None)
+				ppf.setClientDataDir(clientDataDir)
+			else:
+				logger.error("Remote URL '%s' currently not supported." % depotUrl)
+				ui.showError( _("Remote URL '%s' currently not supported.") % depotUrl)
+				continue
+			
+			mbox.addText( _("Locking product...\n") )
+			bm.lockProduct(ppf.product.productId, [ depotId ])
+			
+			exists = False
+			try:
+				bm.getProduct_hash(ppf.product.productId, depotId)
+				exists = True
+			except BackendMissingDataError, e:
+				pass
+			
+			if exists:
+				if quiet:
+					if not force:
+						raise Exception(_("Product '%s' already exists in the database for depot '%s'!") \
+							% (ppf.product.productId, depotId))
 				
-				bm.createProductPropertyDefinition(
-					p.productId,
-					p.name,
-					p.description,
-					defaultValue,
-					p.possibleValues
+				else:
+					if not force and not ui.yesno(
+						title	= _("Overwrite?"), 
+						text	= _("Product '%s' already exists in the database for depot '%s' do you want to replace it?") \
+								% (ppf.product.productId, depotId) ):
+							raise Exception(_('Canceled'))
+			
+			mbox.addText( _("Running preinst...\n") )
+			
+			preinst = ppf.runPreinst(getHandle = True)
+			if preinst:
+				text = posix.read(preinst.fileno(), 128)
+				while text:
+					mbox.addText(text)
+					text = posix.read(preinst.fileno(), 128)
+					logger.debug(text)
+				
+			if exists:
+				# Get old default values
+				oldDefaults = bm.getProductPropertyDefinitions_listOfHashes(ppf.product.productId, depotId)
+				# Delete all product dependencies
+				bm.deleteProductDependency(ppf.product.productId, depotIds = [ depotId ])
+				# Delete productPropertyDefinitions
+				bm.deleteProductPropertyDefinitions(ppf.product.productId, depotIds = [ depotId ])
+				# Not deleting product, because this would delete client productstates as well
+			
+			if ppf.incremental:
+				mbox.addText( _("Incremental package, not deleting old client files...\n") )
+			else:
+				mbox.addText( _("Deleting old client files...\n") )
+				ppf.deleteClientDataDir()
+			
+			mbox.addText( _("Unpacking files...\n") )
+			
+			ppf.unpack()
+			
+			mbox.addText( _("Setting access rights...\n") )
+			ppf.setAccessRights()
+			
+			mbox.addText( _("Registering product...\n") )
+			bm.createProduct(
+					ppf.product.productType,
+					ppf.product.productId,
+					ppf.product.name,
+					ppf.product.productVersion,
+					ppf.product.packageVersion,
+					ppf.product.licenseRequired,
+					ppf.product.setupScript,
+					ppf.product.uninstallScript,
+					ppf.product.updateScript,
+					ppf.product.alwaysScript,
+					ppf.product.onceScript,
+					ppf.product.priority,
+					ppf.product.description,
+					ppf.product.advice,
+					ppf.product.productClassNames,
+					ppf.product.pxeConfigTemplate,
+					depotIds = [ depotId ]
 				)
-				properties[p.name] = defaultValue
-			
-			if properties:
-				bm.setProductProperties(p.productId, properties)
-			
-			name = socket.getfqdn()
-			mbox.addText( _("Setting product-installation-status on server '%s' to installed...\n") % name )
-			bm.setProductInstallationStatus(ppf.product.productId, name, 'installed')
 		
-		mbox.addText( _("Running postinst...\n") )
-		
-		postinstResult = ''
-		postinst = ppf.runPostinst(getHandle = True)
-		if postinst:
-			text = posix.read(postinst.fileno(), 128)
-			while text:
-				#logger.debug(text)
-				postinstResult += text
-				mbox.addText(text)
+			if (ppf.product.productType != 'server'):
+				for d in ppf.product.productDependencies:
+					bm.createProductDependency(
+						d.productId,
+						d.action,
+						d.requiredProductId,
+						d.requiredProductClassId,
+						d.requiredAction,
+						d.requiredInstallationStatus,
+						d.requirementType,
+						depotIds = [ depotId ]
+					)
+			
+				properties = {}
+				for p in ppf.product.productProperties:
+					defaultValue = p.defaultValue
+					if keepOldDefaults:
+						for old in oldDefaults:
+							if (old['name'] == p.name):
+								if not p.possibleValues or old['default'] in p.possibleValues:
+									defaultValue = old['default']
+								break
+					if not quiet:
+						if (len(p.possibleValues) > 0):
+							values = []
+							for v in p.possibleValues:
+								values.append( { "name": v, "selected": (v == defaultValue) } )
+							defaultValue = ui.getSelection(values, radio=True,
+											title=_("Please select default value for product property '%s'") % p.name, 
+											text=p.description)
+							if defaultValue != None:
+								defaultValue = defaultValue[0]
+						else:
+							defaultValue = ui.getValue(text=p.description, default=defaultValue)
+						
+						if (defaultValue != None):
+							p.defaultValue = defaultValue
+					
+					bm.createProductPropertyDefinition(
+						p.productId,
+						p.name,
+						p.description,
+						defaultValue,
+						p.possibleValues,
+						depotIds = [ depotId ]
+					)
+					properties[p.name] = defaultValue
+				
+				if properties:
+					bm.setProductProperties(p.productId, properties, objectId = depotId)
+				
+				mbox.addText( _("Setting product-installation-status on server '%s' to installed...\n") % depotId )
+				bm.setProductInstallationStatus(ppf.product.productId, depotId, 'installed')
+			
+			mbox.addText( _("Running postinst...\n") )
+			
+			postinstResult = ''
+			postinst = ppf.runPostinst(getHandle = True)
+			if postinst:
 				text = posix.read(postinst.fileno(), 128)
-		
-		mbox.addText( _("Unlocking product...\n") )
+				while text:
+					#logger.debug(text)
+					postinstResult += text
+					mbox.addText(text)
+					text = posix.read(postinst.fileno(), 128)
+			
+			mbox.addText( _("Unlocking product...\n") )
+			bm.unlockProduct(ppf.product.productId, [ depotId ])
+			if mountPoint:
+				umount(mountPoint)
+				rmdir(mountPoint)
 		
 		# Set to setup where installed
 		if not quiet and (ppf.product.productType != 'server'):
@@ -357,10 +409,10 @@ def main(argv):
 			ui.exit()
 	except Exception:
 		ppf.cleanup()
-		ppf.unlock()
+		#ppf.unlock()
 		raise
 	ppf.cleanup()
-	ppf.unlock()
+	#ppf.unlock()
 	
 	
 	
