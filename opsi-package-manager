@@ -1,0 +1,944 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import sys, os, mimetools, base64, re, stat, socket, threading, time, fcntl
+from optparse import OptionParser, IndentedHelpFormatter
+from twisted.web2 import responsecode
+from twisted.web2.dav import davxml
+from httplib import HTTPConnection, HTTPSConnection
+import urllib
+
+from OPSI.Backend.Backend import *
+from OPSI.Backend.BackendManager import BackendManager
+from OPSI.Backend.JSONRPC import JSONRPCBackend
+from OPSI.Logger import *
+from OPSI.Product import *
+from OPSI import Tools
+from OPSI.UI import *
+
+__version__ = '0.1'
+
+logger = Logger()
+logLevel = LOG_CRITICAL
+logger.setConsoleLevel(logLevel)
+logger.setConsoleColor(True)
+
+# Get locale
+try:
+	t = gettext.translation('opsi_????', LOCALE_DIR)
+	def _(string):
+		return t.ugettext(string).encode('utf-8', 'replace')
+	
+except Exception, e:
+	#logger.error("Locale not found: %s" % e)
+	def _(string):
+		"""Dummy method, created and called when no locale is found.
+		Uses the fallback language (called C; means english) then."""
+		return string
+
+class TransferProgress:
+	def __init__(self, size):
+		if (size < 0): size = 0
+		self.size = size
+		self.percent = 0
+		self.state = 0
+		self.timeStarted = long(time.time())
+		self.timeSpend = 0
+		self.timeLeft = 0
+		self.timeFired = 0
+		self.bytesPerSecond = 0
+		self._listener = []
+	
+	def setState(self, state):
+		if (state < 0): state = 0
+		if (state > self.size): state = self.size
+		self.state = state
+		now = long(time.time())
+		if (self.timeFired != now) or (state == self.size):
+			if (self.size == 0):
+				self.percent = 100
+			else:
+				self.percent = float(100)*(float(self.state) / float(self.size))
+			
+			self.timeSpend = now - self.timeStarted
+			if self.timeSpend:
+				self.bytesPerSecond = int(self.state/self.timeSpend)
+				self.timeLeft = ((self.size-self.state)/self.bytesPerSecond)
+			
+			self.timeFired = now
+			self.fireProgressChanged()
+	
+	def addToState(self, x):
+		self.setState(self.state + x)
+	
+	def addListener(self, listener):
+		for l in self._listener:
+			if (l == listener):
+				return
+		self._listener.append(listener)
+	
+	def removeListener(self, listener):
+		n = -1
+		for i in range(len(self._listener)):
+			if (self._listener[i] == listener):
+				n = i
+				break
+		if (n > -1):
+			del self._listener[n]
+	
+	def fireProgressChanged(self):
+		for l in self._listener:
+			l.progressChanged(self)
+	
+	
+class TransferProgressListener:
+	def __init__(self):
+		pass
+	
+	def progressChanged(self, transfer):
+		pass
+	
+class RepositoryError(Exception):
+	ExceptionShortDescription = "Repository error"
+	
+	def __init__(self, message = None):
+		self.message = message
+	
+	def __str__(self):
+		#return "<%s: %s>" % (self.__class__.__name__, self.message)
+		return str(self.message)
+	
+	def complete_message(self):
+		if self.message:
+			return "%s: %s" % (self.ExceptionShortDescription, self.message)
+		else:
+			return "%s" % self.ExceptionShortDescription
+
+def getRepository(url, username='', password=''):
+	if re.search('^file://', url):
+		return FileRepository(url, username, password)
+	if re.search('^webdavs*://', url):
+		return WebDAVRepository(url, username, password)
+	raise RepositoryError("Repository url '%s' not supported" % url)
+	
+class Repository:
+	def __init__(self, url, username='', password=''):
+		self._url = url
+		self._username = username
+		self._password = password
+		self._path = ''
+	
+	def _absoluteDestination(self, destination):
+		raise RepositoryError("Not implemented")
+		
+	def content(self, destination=''):
+		raise RepositoryError("Not implemented")
+		
+	def upload(self, source, destination):
+		raise RepositoryError("Not implemented")
+		
+	def delete(self, destination):
+		raise RepositoryError("Not implemented")
+	
+	def fileInfo(self, destination):
+		raise RepositoryError("Not implemented")
+	
+class FileRepository(Repository):
+	def __init__(self, url, username='', password=''):
+		Repository.__init__(self, url, username, password)
+		
+		match = re.search('^file://(/[^/]+.*)$', self._url)
+		if not match:
+			raise RepositoryError("Bad url: '%s'" % self._url)
+		self._path = match.group(1)
+	
+	def _absoluteDestination(self, destination):
+		if destination.startswith('/'):
+			destination = destination[1:]
+		return self._path + '/' + destination
+	
+	def content(self, destination=''):
+		destination = self._absoluteDestination(destination)
+		try:
+			return os.listdir(destination)
+		except:
+			raise RepositoryError("Not a directory: '%s'" % destination)
+	
+	def fileInfo(self, destination):
+		destination = self._absoluteDestination(destination)
+		info = {}
+		try:
+			fs = os.stat(destination)
+			info['size'] = fs[stat.ST_SIZE]
+			return info
+		except Exception, e:
+			raise RepositoryError("Failed to get file info for '%s': %s" % (destination, e))
+		
+	def upload(self, source, destination, wait=True):
+		class FileUploadThread(threading.Thread):
+			def __init__(self, fileRepository, source, destination):
+				threading.Thread.__init__(self)
+				self._fileRepository = fileRepository
+				self._source = source
+				self._destination = destination
+				fs = os.stat(self._source)
+				logger.debug("Length of binary data to upload: %d" % fs[stat.ST_SIZE])
+				self._size = fs[stat.ST_SIZE]
+				self.transferProgress = TransferProgress(self._size)
+				self.exception = None
+			
+			def run(self):
+				(src, dst) = (None, None)
+				try:
+					src = open(self._source, 'rb')
+					dst = open(self._destination, 'wb')
+					buf = True
+					while(buf):
+						buf = src.read(32*1024)
+						read = len(buf)
+						if (read > 0):
+							dst.write(buf)
+							self.transferProgress.addToState(read)
+					src.close()
+					dst.close()
+					self.transferProgress.setState(self._size)
+					self.transferProgress.setDone()
+				except Exception, e:
+					if src: src.close()
+					if dst: dst.close()
+					self.exception = RepositoryError("Failed to upload '%s' to '%s': %s" \
+								% (self._source, self._destination, e))
+					self.transferProgress.setFailed(self.exception)
+					
+					
+		uploadThread = FileUploadThread(self, source, self._absoluteDestination(destination))
+		uploadThread.start()
+		if wait:
+			while uploadThread.isAlive():
+				time.sleep(0.01)
+			if uploadThread.exception:
+				raise uploadThread.exception
+		else:
+			return uploadThread.transferProgress
+		
+	def delete(self, source, destination):
+		destination = self._absoluteDestination(destination)
+		os.unlink(destination)
+	
+class WebDAVRepository(Repository):
+	def __init__(self, url, username='', password=''):
+		Repository.__init__(self, url, username, password)
+		
+		match = re.search('^(webdavs*)://([^:]+:*[^:]+):(\d+)(/.*)$', self._url)
+		if not match:
+			raise RepositoryError("Bad url: '%s'" % self._url)
+		
+		self._protocol = match.group(1)
+		self._host = match.group(2)
+		if (self._host.find('@') != -1):
+			(username, self._host) = self._host.split('@', 1)
+			password = ''
+			if (username.find(':') != -1):
+				(username, password) = username.split(':', 1)
+			if not self._username and username: self._username = username
+			if not self._password and password: self._password = password
+		self._port = int(match.group(3))
+		self._path = match.group(4)
+		self._auth = 'Basic '+ base64.encodestring( urllib.unquote(self._username + ':' + self._password) ).strip()
+		self._connection = None
+		self._cookie = ''
+	
+	def _absoluteDestination(self, destination):
+		if destination.startswith('/'):
+			destination = destination[1:]
+		return self._path + '/' + destination
+	
+	def _connect(self):
+		logger.debug("WebDAVRepository _connect()")
+		if self._protocol.endswith('s'):
+			self._connection = HTTPSConnection(self._host, self._port)
+		else:
+			self._connection = HTTPConnection(self._host, self._port)
+		
+		self._connection.request("PROPFIND", "/products/", headers = { 'authorization': self._auth, 'depth': '0' })
+		
+		response = self._connection.getresponse()
+		if (response.status != responsecode.MULTI_STATUS):
+			raise RepositoryError("Failed to connect to '%s://%s:%s': %s" \
+				% (self._protocol, self._host, self._port, response.status))
+		# We have to read the response!
+		response.read()
+		
+		# Get cookie from header
+		cookie = response.getheader('set-cookie', None)
+		if cookie:
+			# Store cookie 
+			self._cookie = cookie.split(';')[0].strip()
+	
+	def _getContent(self, destination=''):
+		
+		content = []
+		
+		self._connect()
+		
+		self._connection.putrequest('PROPFIND', destination)
+		if self._cookie:
+			# Add cookie to header
+			self._connection.putheader('cookie', self._cookie)
+		self._connection.putheader('authorization', self._auth)
+		self._connection.putheader('depth', '1')
+		self._connection.endheaders()
+		
+		response = self._connection.getresponse()
+		if (response.status != responsecode.MULTI_STATUS):
+			raise RepositoryError("Failed to list dir '%s': %s" \
+				% (destination, response.status))
+		
+		msr = davxml.WebDAVDocument.fromString(response.read())
+		if not msr.root_element.children[0].childOfType(davxml.PropertyStatus).childOfType(davxml.PropertyContainer).childOfType(davxml.ResourceType).children:
+			raise RepositoryError("Not a directory: '%s'" % destination)
+		for child in msr.root_element.children[1:]:
+			#<prop>
+			#	<resourcetype/>
+			#	<getetag>W/"1737A0-373-47DFF2F3"</getetag>
+			#	<getcontenttype>text/plain</getcontenttype>
+			#	<getcontentlength>883</getcontentlength>
+			#	<getlastmodified>Tue, 18 Mar 2008 17:50:59 GMT</getlastmodified>
+			#	<creationdate>2008-03-18T17:50:59Z</creationdate>
+			#	<displayname>connect.vnc</displayname>
+			#</prop>
+			pContainer = child.childOfType(davxml.PropertyStatus).childOfType(davxml.PropertyContainer)
+			info = { 'size': long(0), 'type': 'file' }
+			info['name'] = str(pContainer.childOfType(davxml.DisplayName))
+			if (str(pContainer.childOfType(davxml.GETContentLength)) != 'None'):
+				info['size'] = long( str(pContainer.childOfType(davxml.GETContentLength)) )
+			if pContainer.childOfType(davxml.ResourceType).children:
+				info['type'] = 'dir'
+			
+			content.append(info)
+		
+		return content
+	
+	def content(self, destination=''):
+		result = []
+		destination = self._absoluteDestination(destination)
+		for c in self._getContent(destination):
+			result.append( c['name'] )
+		return result
+	
+	def fileInfo(self, destination):
+		info = {}
+		try:
+			path = self._absoluteDestination('/'.join(destination.split('/')[:-1]))
+			name = destination.split('/')[-1]
+			for c in self._getContent(path):
+				if (c['name'] == name):
+					info['size'] = c['size']
+					return info
+			raise Exception('file not found')
+		except Exception, e:
+			raise RepositoryError("Failed to get file info for '%s': %s" % (destination, e))
+	
+	
+	def upload(self, source, destination, progressListener=None):
+		destination = self._absoluteDestination(destination)
+		src = None
+		try:
+			fs = os.stat(source)
+			size = fs[stat.ST_SIZE]
+			logger.debug("Length of binary data to upload: %d" % size)
+			
+			transferProgress = TransferProgress(size)
+			if progressListener: transferProgress.addListener(progressListener)
+			
+			self._connect()
+			
+			self._connection.putrequest('PUT', destination)
+			
+			if self._cookie:
+				# Add cookie to header
+				self._connection.putheader('cookie', self._cookie)
+			self._connection.putheader('authorization', self._auth)
+			self._connection.putheader('content-length', size)
+			self._connection.endheaders()
+			
+			src = open(source, 'rb')
+			buf = True
+			while(buf):
+				buf = src.read(32*1024)
+				read = len(buf)
+				logger.debug2("Read %d bytes" % read)
+				if (read > 0):
+					self._connection.send(buf)
+					transferProgress.addToState(read)
+			src.close()
+			transferProgress.setState(size)
+			
+			response = self._connection.getresponse()
+			if (response.status != responsecode.CREATED) and (response.status != responsecode.NO_CONTENT):
+				raise Exception(response.status)
+			# We have to read the response!
+			response.read()
+		except Exception, e:
+			logger.logTraceback(e)
+			if src: src.close()
+			raise RepositoryError("Failed to upload '%s' to '%s': %s" \
+						% (source, destination, e))
+		logger.debug2("WebDAV upload done")
+	
+	def delete(self, destination):
+		self._connect()
+		
+		destination = self._absoluteDestination(destination)
+		
+		self._connection.putrequest('DELETE', destination)
+		
+		if self._cookie:
+			# Add cookie to header
+			self._connection.putheader('cookie', self._cookie)
+		self._connection.putheader('authorization', self._auth)
+		self._connection.endheaders()
+		
+		response = self._connection.getresponse()
+		if (response.status != responsecode.NO_CONTENT):
+			raise RepositoryError("Failed to delete '%s': %s" \
+				% (destination, response.status))
+		# We have to read the response!
+		print response.read()
+	
+
+class Task():
+	def __init__(self, name, method, params):
+		self.name = name
+		self.method = method
+		self.params = params
+		if not type(self.params) is tuple:
+			self.params = ( self.params )
+		self.failed = None
+		
+	def start(self):
+		logger.debug("Task start()")
+		try:
+			logger.debug("Method: %s" % self.method)
+			logger.debug("Params: %s" % str(self.params))
+			self.method( *self.params )
+		except Exception, e:
+			logger.logException(e)
+			logger.error("Task '%s' failed: %s" % (self.name, e))
+			self.failed = e
+			raise
+		
+class TaskQueue(threading.Thread):
+	def __init__(self, name):
+		threading.Thread.__init__(self)
+		self.name = name
+		self.tasks = []
+		self.started = False
+		self.ended = False
+		self.failed = None
+		
+	def run(self):
+		try:
+			if not self.tasks:
+				raise Exception("No tasks in queue")
+			self.started = True
+			logger.debug("TaskQueue '%s' started" % self.name)
+			for task in self.tasks:
+				logger.debug("Starting task '%s'" % task.name)
+				task.start()
+				logger.debug("Task '%s' ended" % task.name)
+		except Exception, e:
+			logger.logException(e)
+			self.failed = e
+		self.ended = True
+		
+		
+	def addTask(self, task):
+		if not isinstance(task, Task):
+			raise ValueError("Task wanted, '%s' passed")
+		self.tasks.append(task)
+		
+class OpsiPackageManager(TransferProgressListener):
+	
+	def __init__(self, configBackend):
+		if not configBackend:
+			raise Exception("No config backend given")
+		
+		TransferProgressListener.__init__(self)
+		
+		self.configBackend = configBackend
+		self.packageFile = None
+		self.depotIds = []
+		self.productPackageFile = None
+		self.maxTransfers = 0
+		self.overwriteIfSizeDiffers = True
+		self.overwriteAlways = True
+		self.installAfterTransfer = True
+		self.forceInstall = False
+		self.keepDefaultProductProperties = True
+		self.deleteFilesOnUninstall = True
+		self.quiet = True
+		self.tasks = {}
+		self.taskQueues = []
+		self.uiType = 'snack'
+		self.ui = None
+		self.consoleLevelSaved = LOG_NONE
+		logger.info("OpsiPackageManager initiated, using config backend '%s'" % self.configBackend)
+		
+	def setDepotIds(self, depotIds):
+		self.depotIds =depotIds
+		if not type(self.depotIds) in (list, tuple):
+			self.depotIds = [ self.depotIds ]
+	
+	def _openPackage(self):
+		self.productPackageFile = ProductPackageFile(self.packageFile)
+	
+	def _getDepotConnection(self, depotId):
+		depotKey = self.configBackend.getOpsiHostKey(depotId)
+		return JSONRPCBackend( username = depotId, password = depotKey, address = depotId )
+		
+	def getErrors(self):
+		errors = {}
+		for (depotId, info) in self.tasks.items():
+			if info.get('failed'):
+				errors[depotId] = str(info['failed'])
+		return errors
+	
+	def initUi(self):
+		if not self.ui:
+			self.consoleLevelSaved = logger.getConsoleLevel()
+			logger.setConsoleLevel(LOG_NONE)
+			self.ui = UIFactory(self.uiType)
+			self.ui.drawRootText(1, 1, _('Open PC ServerIntegration'))
+			setUI(self.ui)
+	
+	def exitUi(self):
+		if self.ui:
+			self.ui.exit()
+			logger.setConsoleLevel(self.consoleLevelSaved)
+			
+	def productPropertiesDialog(self):
+		self.initUi()
+		for p in self.productPackageFile.product.productProperties:
+			defaultValue = p.defaultValue
+			if (len(p.possibleValues) > 0):
+				values = []
+				for v in p.possibleValues:
+					values.append( { "name": v, "selected": (v == defaultValue) } )
+				defaultValue = self.ui.getSelection(values, radio=True,
+								title=_("Please select default value for product property '%s'") % p.name, 
+								text=p.description)
+				if defaultValue != None:
+					defaultValue = defaultValue[0]
+			else:
+				defaultValue = self.ui.getValue(text=p.description, default=defaultValue)
+				
+			if (defaultValue != None):
+				p.defaultValue = defaultValue
+		self.exitUi()
+	
+	def getProductInformations(self):
+		logger.debug('Getting product informations')
+		info = {}
+		for depotId in self.depotIds:
+			info[depotId]= {}
+			be = self._getDepotConnection(depotId)
+			for productId in be.getProductIds_list(objectId = depotId):
+				info[depotId][productId]= be.getProduct_hash(productId = productId, depotId = depotId)
+		return info
+	
+	def uploadToRepository(self, packageFile, depotId):
+		logger.notice("Processing upload for depot '%s'" % depotId)
+				
+		if not self.quiet: print _("Starting upload to depot '%s'") % depotId
+		
+		destination = os.path.basename(packageFile)
+		
+		depot = self.configBackend.getDepot_hash(depotId)
+		
+		repositoryUrl = depot['repositoryRemoteUrl']
+		logger.info("Using '%s' as repository url" % repositoryUrl)
+		
+		repository = getRepository(repositoryUrl, depotId, self.configBackend.getOpsiHostKey(depotId))
+		if destination in repository.content():
+			logger.info("Destination '%s' already exists" % destination)
+			if not self.overwriteAlways:
+				if ( repository.fileInfo(destination)['size'] != packageSize ):
+					logger.info("Size of source and destination differs")
+					if not self.overwriteIfSizeDiffers:
+						return
+				else:
+					logger.info("Size of source and destination matches")
+					return
+			logger.info("Overwriting destination '%s'" % destination)
+		
+		logger.notice("Starting upload to repository of depot '%s'" % depotId)
+		repository.upload(packageFile, destination, progressListener = self)
+		logger.notice("Upload to repository of depot '%s' done" % depotId)
+		
+	def uploadToRepositories(self, packageFile):
+		for depotId in self.depotIds:
+			tq = TaskQueue(name = "Upload of package '%s' to repository '%s'" % (packageFile, depotId))
+			tq.addTask(
+				Task(
+					name = "Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+					method = self.uploadToRepository,
+					params = (packageFile, depotId )
+				)
+			)
+			self.taskQueues.append(tq)
+			logger.info("Starting task queue '%s'" % tq.name)
+			tq.start()
+	
+	def installOnDepots(self, packageFile):
+		self.packageFile = packageFile
+		self._openPackage()
+		for depotId in self.depotIds:
+			
+			depot = self.configBackend.getDepot_hash(depotId)
+			localFile = depot['repositoryLocalUrl']
+			if not localFile.startswith('file://'):
+				raise Exception("Repository local url '%s' not allowed" % localFile)
+			localFile = localFile[7:]
+			if localFile.endswith('/'):
+				localFile = localFile[:-1]
+			localFile += '/' + os.path.basename(packageFile)
+			
+			tq = TaskQueue(name = "Install of package '%s' on depot '%s'" % (packageFile, depotId))
+			tq.addTask(
+				Task(
+					name = "Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+					method = self.uploadToRepository,
+					params = (packageFile, depotId)
+				)
+			)
+			tq.addTask(
+				Task(
+					name = "Install of package '%s' on depot '%s'" % (localFile, depotId),
+					method = self.installPackage,
+					params = (localFile, depotId)
+				)
+			)
+			self.taskQueues.append(tq)
+			logger.info("Starting task queue '%s'" % tq.name)
+			tq.start()
+	
+	def hide(self):
+		self.packageFile = packageFile
+		self._openPackage()
+		
+		destination = os.path.basename(self.packageFile)
+		
+		logger.info("uploading source: '%s', destination: '%s' to depots: %s)" \
+					% (self.packageFile, destination, self.depotIds))
+		
+		fs = os.stat(self.packageFile)
+		packageSize = fs[stat.ST_SIZE]
+		
+		for depotId in self.depotIds:
+			self.tasks[depotId] = {
+					'started': 		False,
+					'failed':		False,
+					'ended':		False }
+		
+		for depotId in self.depotIds:
+			logger.notice("Processing depot '%s'" % depotId)
+			
+			if self.maxTransfers:
+				transfers = 0
+				for (depotId, info) in self.tasks.items():
+					if info.get('transferProgress'):
+						transfers += 1
+				if (transfers >= self.maxTransfers):
+					logger.notice("%d transfer(s) running, %d transfer(s) max, waiting..." \
+							% (transfers, self.maxTransfers ))
+				while (transfers >= self.maxTransfers):
+					time.sleep(1)
+					logger.debug("%d transfer(s) running, %d transfer(s) max, waiting..." \
+							% (transfers, self.maxTransfers ))
+					transfers = 0
+					for (depotId, info) in self.tasks.items():
+						if info.get('transferProgress'):
+							transfers += 1
+			try:
+				pass
+				
+			except Exception, e:
+				logger.error("Failed to process depot '%s': %s" % (depotId, e))
+				self.tasks[depotId]['failed'] = e
+				self.tasks[depotId]['ended'] = True
+	
+	def installPackage(self, packageFile, depotId):
+		be = None
+		try:
+			logger.notice("Installing package '%s' on depot '%s'" % (packageFile, depotId))
+			productId = self.productPackageFile.product.productId
+			
+			be = self._getDepotConnection(depotId)
+			
+			defaultProperties = {}
+			if self.keepDefaultProductProperties:
+				try:
+					for pd in be.getProductPropertyDefinitions_listOfHashes(productId, depotId):
+						defaultProperties[pd['name']] = pd['default']
+				except Exception, e:
+					logger.warning(e)
+			be.installPackage(packageFile, force = self.forceInstall, defaultProperties = defaultProperties)
+			be.exit()
+			logger.notice("Installation of package '%s' on depot '%s' finished" % (packageFile, depotId))
+		except Exception, e:
+			logger.error(e)
+			if be: be.exit()
+			raise
+		
+	def uninstallPackage(self, productId, depotId):
+		self.tasks[depotId] = {
+			'started': 	False,
+			'productId': 	productId,
+			'failed':	False,
+			'ended':	False }
+		be = None
+		try:
+			logger.notice("Uninstalling package '%s' on depot '%s'" % (productId, depotId))
+			
+			be = self._getDepotConnection(depotId)
+			be.uninstallPackage(productId, force = self.forceUninstall, deleteFiles = self.deleteFilesOnUninstall)
+			logger.notice("Uninstall of package '%s' on depot '%s' finished" % (productId, depotId))
+		except Exception, e:
+			logger.error(e)
+			self.tasks[depotId]['failed'] = e
+		if be:
+			be.exit()
+		self.tasks[depotId]['ended'] = True
+		
+	def progressChanged(self, progress):
+		
+		#for (depotId, info) in self.tasks.items():
+		#	p = info.get('transferProgress')
+		#	if p and not p.done:
+				p = progress
+				minutesLeft = str(int(p.timeLeft/60))
+				secondsLeft = str(int(p.timeLeft%60))
+				if (len(minutesLeft) < 2): minutesLeft = '0' + minutesLeft
+				if (len(secondsLeft) < 2): secondsLeft = '0' + secondsLeft
+				#msg = depotId +': '\ 
+				msg = '' \
+				    + str(round(p.percent, 2)) + '% ' \
+				    + str(p.state/1024) + 'KB ' \
+				    + str(int(p.bytesPerSecond/1024)) + 'KB/s ' \
+				    + minutesLeft + ':' + secondsLeft + ' ETAs'
+				logger.info(msg)
+				if not self.quiet: print msg
+
+
+def main(argv):
+	os.umask(0027)
+	
+	global logLevel
+	
+	parser=OptionParser( version="%prog "+__version__, description="Manage opsi packages",
+				formatter=IndentedHelpFormatter(max_help_position = 10, width=80))
+	
+	parser.add_option("-v", "--verbose",    action="count",      dest="verbose",
+			help="increase verbosity (can be used multiple times)")
+	parser.add_option("-q", "--quiet",      action="store_true", dest="quiet",
+			help="Do not display any messages")
+	parser.add_option("-i", "--install",    action="store_true", dest="MODE_INSTALL",
+			help="Install opsi package")
+	parser.add_option("-p", "--properties", action="store",      dest="properties",  metavar="<package|ask|keep>",
+			default="package", choices=['ask', 'package', 'keep'],
+			help="Which values should be used as default product property values? ask=display dialog, package=use defaults from package, keep=keep depot defaults (default: %default)")
+	parser.add_option(      "--max-transfers",  action="store", dest="maxTransfers", metavar="<max>", type="int",
+			default = 0,
+			help="Maximum number of simultaneous uploads, 0=unlimited, (default: %default)")
+	parser.add_option("-l", "--list",       action="store_true", dest="MODE_LIST",
+			help="List opsi packages")
+	parser.add_option("-r", "--remove",     action="store_true", dest="MODE_REMOVE",
+			help="Uninstall opsi package")
+	parser.add_option("-d", "--depots",     action="store",      dest="depots",      metavar="<depotsId>[,depotId ...]",
+			help="comma seperated list of depots to process (default: %s) use keword ALL to process all depots" % socket.getfqdn())
+	parser.add_option("-f", "--force",      action="store_true", dest="force",
+			help="Force install/uninstall (use with extreme caution)")
+	parser.add_option(      "--interface",  action="store",      dest="interface",   metavar="<snack|text>",
+			default="snack", choices=['text', 'snack'],
+			help="User interface (default: %default)")
+	parser.add_option(      "--log-file",   action="store",      dest="logFile",     metavar="<log-file>",
+			help="Path to debug log file")
+	
+	(options, args) = parser.parse_args()
+	
+	if options.logFile:
+		if os.path.exists(options.logFile):
+			os.unlink(options.logFile)
+		logger.setLogFile(options.logFile)
+		logger.setFileLevel(LOG_DEBUG2)
+	
+	if (options.properties == 'ask') and options.quiet:
+		print >> sys.stderr, _("You cannot use properties=ask in quiet mode")
+		sys.exit(1)
+	
+	if options.quiet:
+		options.interface = 'dummy'
+		logLevel = LOG_NONE
+	elif options.verbose:
+		logLevel += options.verbose
+	
+	logger.setConsoleLevel(logLevel)
+	
+	packageFile = None
+	productRegex = re.compile('.*')
+	productId = None
+	if options.MODE_INSTALL:
+		if options.MODE_LIST or options.MODE_REMOVE:
+			print >> sys.stderr, _("Please specify only one of -i,-l,-r")
+			sys.exit(1)
+		if (len(args) < 1):
+			print >> sys.stderr, _("No opsi package given!")
+			parser.print_help()
+			sys.exit(1)
+		elif (len(args) > 1):
+			usage()
+			sys.exit(1)
+		
+		packageFile = os.path.abspath(args[0])
+		if not os.path.exists(packageFile):
+			print >> sys.stderr, _("Package file '%s' does not exist!") % packageFile
+			sys.exit(1)
+		packageFile = args[0]
+		
+	elif options.MODE_LIST:
+		if options.MODE_INSTALL or options.MODE_REMOVE:
+			print >> sys.stderr, _("Please specify only one of -i,-l,-r")
+			sys.exit(1)
+		if args:
+			if (len(args) > 1):
+				usage()
+				sys.exit(1)
+			productRegex = re.compile(args[0])
+	
+	elif options.MODE_REMOVE:
+		if options.MODE_LIST or options.MODE_INSTALL:
+			print >> sys.stderr, _("Please specify only one of -i,-l,-r")
+			sys.exit(1)
+		if (len(args) < 1):
+			print >> sys.stderr, _("No opsi product id given!")
+			parser.print_help()
+			sys.exit(1)
+		elif (len(args) > 1):
+			usage()
+			sys.exit(1)
+		productId = args[0]
+		
+	else:
+		print >> sys.stderr, _("Please specify one of -i,-l,-r")
+		sys.exit(1)
+	
+	bm = BackendManager(authRequired=False)
+	opm = None
+	try:
+		opm = OpsiPackageManager(bm)
+		
+		opm.forceInstall = opm.forceUninstall = options.force
+		opm.uiType = options.interface
+		opm.quiet = options.quiet
+		opm.maxTransfers = options.maxTransfers
+		
+		depotIds = [ socket.getfqdn() ]
+		if options.depots:
+			if (options.depots.lower() == 'all'):
+				depotIds = bm.getDepotIds_list()
+			else:
+				depotIds = options.depots.lower().split(',')
+				knownDepotIds = bm.getDepotIds_list()
+				for depotId in depotIds:
+					if depotId not in knownDepotIds:
+						raise Exception("Depot '%s' not in list of known depots: %s" \
+							% (depotId, ', '.join(knownDepotIds)))
+		opm.setDepotIds(depotIds)
+		
+		if options.MODE_INSTALL:
+			if (options.properties == 'ask'):
+				opm.productPropertiesDialog()
+			elif (options.properties == 'depot'):
+				opm.keepDefaultProductProperties = True
+			else:
+				opm.keepDefaultProductProperties = False
+			#opm.uploadToRepositories(packageFile)
+			opm.installOnDepots(packageFile)
+		
+		if options.MODE_REMOVE:
+			opm.uninstallPackage(productId)
+			
+		elif options.MODE_LIST:
+			terminalWidth = 60
+			try:
+				tty = os.popen('tty').readline().strip()
+				fd = open(tty)
+				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+				fd.close()
+			except:
+				pass
+			indent = "   "
+			idWidth = versionWidth = int((terminalWidth-len(indent))/3)
+			if (idWidth > 25): idWidth = 25
+			if (versionWidth > 25): versionWidth = 25
+			descriptionWidth = terminalWidth-len(indent)-idWidth-versionWidth-4
+			
+			for (depotId, productInfo) in opm.getProductInformations().items():
+				print "-"*(len(depotId)+4)
+				print "- %s -" % depotId
+				print "-"*(len(depotId)+4)
+				print "%s%*s %*s %*s" % (indent, -1*idWidth, _('Product ID'),
+							-1*versionWidth, _('Version'),
+							-1*descriptionWidth, _('Description'))
+				print "%s%s" % (indent, "="*(terminalWidth-len(indent)-2))
+				for (productId, product) in productInfo.items():
+					if not re.search(productRegex, productId):
+						continue
+					print "%s%*s %*s %*s" % (indent, -1*idWidth, productId,
+							-1*versionWidth, product.get('productVersion', '') + '-' + product.get('packageVersion', ''),
+							-1*descriptionWidth, product.get('description', '').replace('\n', '')[:descriptionWidth])
+				print ""
+				
+		#opm.uploadToRepositories(filename, name, backend.getDepotIds_list())
+		#opm.uploadToRepositories(['pcbon14.uib.local', 'vmix40.uib.local'])
+		#opm.uploadToRepositories(['pcbon14.uib.local'])
+		#opm.uploadToRepositories(['vmix40.uib.local'])
+	except Exception, e:
+		if opm:	opm.exitUi()
+		raise
+	
+	while(threading.activeCount() > 1):
+		time.sleep(1)
+	
+	errors = opm.getErrors()
+	if errors:
+		print >> sys.stderr, _("ERRORS OCCURED: ")
+		for (depotId, error) in errors.items():
+			logger.error("Failure on depot '%s': %s" % (depotId, error))
+			print >> sys.stderr, "   [%s] %s" % (depotId, error)
+		sys.exit(1)
+
+	
+	
+if (__name__ == "__main__"):
+	exception = None
+	
+	try:
+		main(sys.argv[1:])
+	
+	except SystemExit, e:
+		sys.exit(int(str(e)))
+		
+	except Exception, e:
+		exception = e
+	
+	if exception:
+		logger.logException(exception)
+		print >> sys.stderr, _("ERROR: ") + str(exception)
+		sys.exit(1)
+	
+	sys.exit(0)
+
+
+
