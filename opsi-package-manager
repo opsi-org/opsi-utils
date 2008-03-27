@@ -19,7 +19,7 @@ from OPSI.UI import *
 __version__ = '0.1'
 
 logger = Logger()
-logLevel = LOG_CRITICAL
+logLevel = LOG_NONE
 logger.setConsoleLevel(logLevel)
 logger.setConsoleColor(True)
 
@@ -30,14 +30,15 @@ try:
 		return t.ugettext(string).encode('utf-8', 'replace')
 	
 except Exception, e:
-	#logger.error("Locale not found: %s" % e)
+	logger.error("Locale not found: %s" % e)
 	def _(string):
 		"""Dummy method, created and called when no locale is found.
 		Uses the fallback language (called C; means english) then."""
 		return string
 
 class TransferProgress:
-	def __init__(self, size):
+	def __init__(self, name, size):
+		self.name = name
 		if (size < 0): size = 0
 		self.size = size
 		self.percent = 0
@@ -174,52 +175,35 @@ class FileRepository(Repository):
 		except Exception, e:
 			raise RepositoryError("Failed to get file info for '%s': %s" % (destination, e))
 		
-	def upload(self, source, destination, wait=True):
-		class FileUploadThread(threading.Thread):
-			def __init__(self, fileRepository, source, destination):
-				threading.Thread.__init__(self)
-				self._fileRepository = fileRepository
-				self._source = source
-				self._destination = destination
-				fs = os.stat(self._source)
-				logger.debug("Length of binary data to upload: %d" % fs[stat.ST_SIZE])
-				self._size = fs[stat.ST_SIZE]
-				self.transferProgress = TransferProgress(self._size)
-				self.exception = None
-			
-			def run(self):
-				(src, dst) = (None, None)
-				try:
-					src = open(self._source, 'rb')
-					dst = open(self._destination, 'wb')
-					buf = True
-					while(buf):
-						buf = src.read(32*1024)
-						read = len(buf)
-						if (read > 0):
-							dst.write(buf)
-							self.transferProgress.addToState(read)
-					src.close()
-					dst.close()
-					self.transferProgress.setState(self._size)
-					self.transferProgress.setDone()
-				except Exception, e:
-					if src: src.close()
-					if dst: dst.close()
-					self.exception = RepositoryError("Failed to upload '%s' to '%s': %s" \
-								% (self._source, self._destination, e))
-					self.transferProgress.setFailed(self.exception)
-					
-					
-		uploadThread = FileUploadThread(self, source, self._absoluteDestination(destination))
-		uploadThread.start()
-		if wait:
-			while uploadThread.isAlive():
-				time.sleep(0.01)
-			if uploadThread.exception:
-				raise uploadThread.exception
-		else:
-			return uploadThread.transferProgress
+	def upload(self, source, destination, progressListener=None):
+		
+		destination = self._absoluteDestination(destination)
+		
+		fs = os.stat(source)
+		size = fs[stat.ST_SIZE]
+		logger.debug("Length of binary data to upload: %d" % size)
+		
+		transferProgress = TransferProgress(os.path.basename(source) + ' >> ' + self._path, size)
+		if progressListener: transferProgress.addListener(progressListener)
+		
+		(src, dst) = (None, None)
+		try:
+			src = open(source, 'rb')
+			dst = open(destination, 'wb')
+			buf = True
+			while(buf):
+				buf = src.read(32*1024)
+				read = len(buf)
+				if (read > 0):
+					dst.write(buf)
+					transferProgress.addToState(read)
+			src.close()
+			dst.close()
+		except Exception, e:
+			if src: src.close()
+			if dst: dst.close()
+			raise RepositoryError("Failed to upload '%s' to '%s': %s" \
+						% (source, destination, e))
 		
 	def delete(self, source, destination):
 		destination = self._absoluteDestination(destination)
@@ -348,7 +332,7 @@ class WebDAVRepository(Repository):
 			size = fs[stat.ST_SIZE]
 			logger.debug("Length of binary data to upload: %d" % size)
 			
-			transferProgress = TransferProgress(size)
+			transferProgress = TransferProgress(os.path.basename(source) + ' >> ' + self._host, size)
 			if progressListener: transferProgress.addListener(progressListener)
 			
 			self._connect()
@@ -372,7 +356,6 @@ class WebDAVRepository(Repository):
 					self._connection.send(buf)
 					transferProgress.addToState(read)
 			src.close()
-			transferProgress.setState(size)
 			
 			response = self._connection.getresponse()
 			if (response.status != responsecode.CREATED) and (response.status != responsecode.NO_CONTENT):
@@ -408,26 +391,54 @@ class WebDAVRepository(Repository):
 	
 
 class Task():
-	def __init__(self, name, method, params):
+	def __init__(self, name, opsiPackageManager, method, params):
 		self.name = name
+		self.opsiPackageManager = opsiPackageManager
 		self.method = method
 		self.params = params
 		if not type(self.params) is tuple:
 			self.params = ( self.params )
-		self.failed = None
+		self.started = False
+		self.ended = False
+		self.exception = None
+	
+	def isRunning(self):
+		return self.started and not self.ended
 		
 	def start(self):
 		logger.debug("Task start()")
+		self.started = True
 		try:
-			logger.debug("Method: %s" % self.method)
-			logger.debug("Params: %s" % str(self.params))
+			logger.debug2("Method: %s" % self.method)
+			logger.debug2("Params: %s" % str(self.params))
 			self.method( *self.params )
 		except Exception, e:
 			logger.logException(e)
-			logger.error("Task '%s' failed: %s" % (self.name, e))
-			self.failed = e
+			self.exception = e
+			self.ended = True
 			raise
+		self.ended = True
+
+class UploadTask(Task):
+	def __init__(self, name, opsiPackageManager, method, params):
+		Task.__init__(self, name, opsiPackageManager, method, params)
+	
+	def start(self):
+		while self.opsiPackageManager.maxTransfersReached():
+			logger.debug("Maximum number transfers reached, waiting")
+			time.sleep(1)
+		Task.start(self)
+		# Sleeping 3 seconds to provide the opportunity to start other upload tasks
+		time.sleep(3)
 		
+class InstallTask(Task):
+	def __init__(self, name, opsiPackageManager, method, params):
+		Task.__init__(self, name, opsiPackageManager, method, params)
+
+class UninstallTask(Task):
+	def __init__(self, name, opsiPackageManager, method, params):
+		Task.__init__(self, name, opsiPackageManager, method, params)
+
 class TaskQueue(threading.Thread):
 	def __init__(self, name):
 		threading.Thread.__init__(self)
@@ -435,21 +446,29 @@ class TaskQueue(threading.Thread):
 		self.tasks = []
 		self.started = False
 		self.ended = False
-		self.failed = None
-		
+		self.errors = []
+		self.currentTaskNumber = -1
+	
+	def getCurrentTask(self):
+		if (self.currentTaskNumber < 0):
+			return None
+		return self.tasks[self.currentTaskNumber]
+	
 	def run(self):
-		try:
-			if not self.tasks:
-				raise Exception("No tasks in queue")
-			self.started = True
-			logger.debug("TaskQueue '%s' started" % self.name)
-			for task in self.tasks:
+		self.currentTaskNumber = -1
+		if not self.tasks:
+			raise Exception("No tasks in queue")
+		self.started = True
+		logger.debug("TaskQueue '%s' started" % self.name)
+		for task in self.tasks:
+			try:
 				logger.debug("Starting task '%s'" % task.name)
+				self.currentTaskNumber += 1
 				task.start()
 				logger.debug("Task '%s' ended" % task.name)
-		except Exception, e:
-			logger.logException(e)
-			self.failed = e
+			except Exception, e:
+				logger.error("Task '%s' failed: %s" % (task.name, e))
+				self.errors.append(e)
 		self.ended = True
 		
 		
@@ -457,7 +476,7 @@ class TaskQueue(threading.Thread):
 		if not isinstance(task, Task):
 			raise ValueError("Task wanted, '%s' passed")
 		self.tasks.append(task)
-		
+
 class OpsiPackageManager(TransferProgressListener):
 	
 	def __init__(self, configBackend):
@@ -467,41 +486,65 @@ class OpsiPackageManager(TransferProgressListener):
 		TransferProgressListener.__init__(self)
 		
 		self.configBackend = configBackend
-		self.packageFile = None
-		self.depotIds = []
-		self.productPackageFile = None
+		self.productPackageFiles = {}
 		self.maxTransfers = 0
 		self.overwriteIfSizeDiffers = True
-		self.overwriteAlways = True
-		self.installAfterTransfer = True
+		self.overwriteAlways = False
 		self.forceInstall = False
 		self.keepDefaultProductProperties = True
 		self.deleteFilesOnUninstall = True
 		self.quiet = True
-		self.tasks = {}
 		self.taskQueues = []
 		self.uiType = 'snack'
 		self.ui = None
 		self.consoleLevelSaved = LOG_NONE
 		logger.info("OpsiPackageManager initiated, using config backend '%s'" % self.configBackend)
-		
-	def setDepotIds(self, depotIds):
-		self.depotIds =depotIds
-		if not type(self.depotIds) in (list, tuple):
-			self.depotIds = [ self.depotIds ]
 	
-	def _openPackage(self):
-		self.productPackageFile = ProductPackageFile(self.packageFile)
+	def openProductPackageFile(self, packageFile):
+		if not self.productPackageFiles.has_key(os.path.basename(packageFile)):
+			self.productPackageFiles[os.path.basename(packageFile)] = ProductPackageFile(packageFile)
 	
-	def _getDepotConnection(self, depotId):
+	def getProductPackageFile(self, packageFile):
+		return self.productPackageFiles.get(os.path.basename(packageFile))
+	
+	def getDepotConnection(self, depotId):
 		depotKey = self.configBackend.getOpsiHostKey(depotId)
 		return JSONRPCBackend( username = depotId, password = depotKey, address = depotId )
+	
+	def getLocalDepotPath(self, depotId):
+		depot = self.configBackend.getDepot_hash(depotId)
+		localPath = depot['repositoryLocalUrl']
+		if not localPath.startswith('file://'):
+			raise Exception("Repository local url '%s' not allowed" % localPath)
+		localPath = localPath[7:]
+		if localPath.endswith('/'):
+			localPath = localPath[:-1]
+		return localPath
+	
+	def getRepositoryRemoteURL(self, depotId):
+		depot = self.configBackend.getDepot_hash(depotId)
+		return depot['repositoryRemoteUrl']
+		
+	def getNumberOfTransfers(self):
+		transfers = 0
+		for tq in self.taskQueues:
+			ct = tq.getCurrentTask()
+			if ct and isinstance(ct, UploadTask) and ct.isRunning():
+				transfers += 1
+		logger.debug("%d transfers running" % transfers)
+		return transfers
+	
+	def maxTransfersReached(self):
+		if self.maxTransfers and (self.getNumberOfTransfers() >= self.maxTransfers):
+			return True
+		return False
 		
 	def getErrors(self):
 		errors = {}
-		for (depotId, info) in self.tasks.items():
-			if info.get('failed'):
-				errors[depotId] = str(info['failed'])
+		for tq in self.taskQueues:
+			if not tq.errors:
+				continue
+			errors[tq.name] = tq.errors
 		return errors
 	
 	def initUi(self):
@@ -517,164 +560,157 @@ class OpsiPackageManager(TransferProgressListener):
 			self.ui.exit()
 			logger.setConsoleLevel(self.consoleLevelSaved)
 			
-	def productPropertiesDialog(self):
+	def productPropertiesDialog(self, packageFiles):
 		self.initUi()
-		for p in self.productPackageFile.product.productProperties:
-			defaultValue = p.defaultValue
-			if (len(p.possibleValues) > 0):
-				values = []
-				for v in p.possibleValues:
-					values.append( { "name": v, "selected": (v == defaultValue) } )
-				defaultValue = self.ui.getSelection(values, radio=True,
-								title=_("Please select default value for product property '%s'") % p.name, 
-								text=p.description)
-				if defaultValue != None:
-					defaultValue = defaultValue[0]
-			else:
-				defaultValue = self.ui.getValue(text=p.description, default=defaultValue)
-				
-			if (defaultValue != None):
-				p.defaultValue = defaultValue
+		
+		for packageFile in packageFiles:
+			self.openProductPackageFile(packageFile)
+		
+		for packageFile in packageFiles:
+			for p in self.getProductPackageFile(packageFile).product.productProperties:
+				defaultValue = p.defaultValue
+				if (len(p.possibleValues) > 0):
+					values = []
+					for v in p.possibleValues:
+						values.append( { "name": v, "selected": (v == defaultValue) } )
+					defaultValue = self.ui.getSelection(values, radio=True,
+									title=_("Please select default value for product property '%s'") % p.name, 
+									text=p.description)
+					if defaultValue != None:
+						defaultValue = defaultValue[0]
+				else:
+					defaultValue = self.ui.getValue(text=p.description, default=defaultValue)
+					
+				if (defaultValue != None):
+					p.defaultValue = defaultValue
 		self.exitUi()
 	
-	def getProductInformations(self):
+	def getProductInformations(self, depotIds):
 		logger.debug('Getting product informations')
 		info = {}
-		for depotId in self.depotIds:
+		for depotId in depotIds:
 			info[depotId]= {}
-			be = self._getDepotConnection(depotId)
+			be = self.getDepotConnection(depotId)
 			for productId in be.getProductIds_list(objectId = depotId):
 				info[depotId][productId]= be.getProduct_hash(productId = productId, depotId = depotId)
 		return info
 	
-	def uploadToRepository(self, packageFile, depotId):
-		logger.notice("Processing upload for depot '%s'" % depotId)
-				
-		if not self.quiet: print _("Starting upload to depot '%s'") % depotId
+	
+	def uploadToRepositories(self, packageFiles, depotIds):
 		
+		for packageFile in packageFiles:
+			self.openProductPackageFile(packageFile)
+			
+		for depotId in depotIds:
+			tq = TaskQueue(name = "Upload of package(s) %s to repository '%s'" % (', '.join(packageFiles), depotId))
+			for packageFile in packageFiles:
+				localFile = self.getLocalDepotPath(depotId) + '/' + os.path.basename(packageFile)
+				
+				tq.addTask(
+					UploadTask(
+						name = "Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+						opsiPackageManager = self,
+						method = self.uploadToRepository,
+						params = (packageFile, depotId)
+					)
+				)
+			self.taskQueues.append(tq)
+			logger.info("Starting task queue '%s'" % tq.name)
+			tq.start()
+		
+	def installOnDepots(self, packageFiles, depotIds):
+		
+		for packageFile in packageFiles:
+			self.openProductPackageFile(packageFile)
+		
+		for depotId in depotIds:
+			tq = TaskQueue(name = "Install of package(s) %s on depot '%s'" % (', '.join(packageFiles), depotId))
+			for packageFile in packageFiles:
+				localFile = self.getLocalDepotPath(depotId) + '/' + os.path.basename(packageFile)
+				tq.addTask(
+					UploadTask(
+						name = "Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+						opsiPackageManager = self,
+						method = self.uploadToRepository,
+						params = (packageFile, depotId)
+					)
+				)
+				tq.addTask(
+					InstallTask(
+						name = "Install of package '%s' on depot '%s'" % (localFile, depotId),
+						opsiPackageManager = self,
+						method = self.installPackage,
+						params = (localFile, depotId)
+					)
+				)
+			self.taskQueues.append(tq)
+			logger.info("Starting task queue '%s'" % tq.name)
+			tq.start()
+	
+	def uninstallOnDepots(self, productIds, depotIds):
+		
+		for depotId in depotIds:
+			tq = TaskQueue(name = "Uninstall of package(s) %s on depot '%s'" % (', '.join(productIds), depotId))
+			for productId in productIds:
+				tq.addTask(
+					UninstallTask(
+						name = "Uninstall of package '%s' on depot '%s'" % (productId, depotId),
+						opsiPackageManager = self,
+						method = self.uninstallPackage,
+						params = (productId, depotId)
+					)
+				)
+			self.taskQueues.append(tq)
+			logger.info("Starting task queue '%s'" % tq.name)
+			tq.start()
+		
+	def uploadToRepository(self, packageFile, depotId):
+		logger.notice("Processing upload of '%s' to depot '%s'" \
+				% (os.path.basename(packageFile), depotId))
+		if not self.quiet: print _("Processing upload of '%s' to depot '%s'") \
+						% (os.path.basename(packageFile), depotId)
+		
+		packageSize = os.stat(packageFile)[stat.ST_SIZE]
 		destination = os.path.basename(packageFile)
 		
-		depot = self.configBackend.getDepot_hash(depotId)
-		
-		repositoryUrl = depot['repositoryRemoteUrl']
+		repositoryUrl = self.getRepositoryRemoteURL(depotId)
 		logger.info("Using '%s' as repository url" % repositoryUrl)
 		
 		repository = getRepository(repositoryUrl, depotId, self.configBackend.getOpsiHostKey(depotId))
 		if destination in repository.content():
-			logger.info("Destination '%s' already exists" % destination)
+			logger.info("Destination '%s' already exists on depot '%s'" % (destination, depotId))
+			
 			if not self.overwriteAlways:
 				if ( repository.fileInfo(destination)['size'] != packageSize ):
-					logger.info("Size of source and destination differs")
+					logger.info("Size of source and destination differs on depot '%s'" % depotId)
 					if not self.overwriteIfSizeDiffers:
 						return
 				else:
-					logger.info("Size of source and destination matches")
+					logger.info("Size of source and destination matches on depot '%s'" % depotId)
 					return
-			logger.info("Overwriting destination '%s'" % destination)
+			logger.info("Overwriting destination '%s' on depot '%s'" % (destination, depotId))
+			if not self.quiet: print _("Overwriting destination '%s' on depot '%s'") % (destination, depotId)
 		
-		logger.notice("Starting upload to repository of depot '%s'" % depotId)
+		logger.notice("Starting upload of '%s' to depot '%s'" \
+				% (os.path.basename(packageFile), depotId))
+		if not self.quiet: print _("Starting upload of '%s' to depot '%s'") \
+						% (os.path.basename(packageFile), depotId)
 		repository.upload(packageFile, destination, progressListener = self)
-		logger.notice("Upload to repository of depot '%s' done" % depotId)
-		
-	def uploadToRepositories(self, packageFile):
-		for depotId in self.depotIds:
-			tq = TaskQueue(name = "Upload of package '%s' to repository '%s'" % (packageFile, depotId))
-			tq.addTask(
-				Task(
-					name = "Upload of package '%s' to repository '%s'" % (packageFile, depotId),
-					method = self.uploadToRepository,
-					params = (packageFile, depotId )
-				)
-			)
-			self.taskQueues.append(tq)
-			logger.info("Starting task queue '%s'" % tq.name)
-			tq.start()
-	
-	def installOnDepots(self, packageFile):
-		self.packageFile = packageFile
-		self._openPackage()
-		for depotId in self.depotIds:
-			
-			depot = self.configBackend.getDepot_hash(depotId)
-			localFile = depot['repositoryLocalUrl']
-			if not localFile.startswith('file://'):
-				raise Exception("Repository local url '%s' not allowed" % localFile)
-			localFile = localFile[7:]
-			if localFile.endswith('/'):
-				localFile = localFile[:-1]
-			localFile += '/' + os.path.basename(packageFile)
-			
-			tq = TaskQueue(name = "Install of package '%s' on depot '%s'" % (packageFile, depotId))
-			tq.addTask(
-				Task(
-					name = "Upload of package '%s' to repository '%s'" % (packageFile, depotId),
-					method = self.uploadToRepository,
-					params = (packageFile, depotId)
-				)
-			)
-			tq.addTask(
-				Task(
-					name = "Install of package '%s' on depot '%s'" % (localFile, depotId),
-					method = self.installPackage,
-					params = (localFile, depotId)
-				)
-			)
-			self.taskQueues.append(tq)
-			logger.info("Starting task queue '%s'" % tq.name)
-			tq.start()
-	
-	def hide(self):
-		self.packageFile = packageFile
-		self._openPackage()
-		
-		destination = os.path.basename(self.packageFile)
-		
-		logger.info("uploading source: '%s', destination: '%s' to depots: %s)" \
-					% (self.packageFile, destination, self.depotIds))
-		
-		fs = os.stat(self.packageFile)
-		packageSize = fs[stat.ST_SIZE]
-		
-		for depotId in self.depotIds:
-			self.tasks[depotId] = {
-					'started': 		False,
-					'failed':		False,
-					'ended':		False }
-		
-		for depotId in self.depotIds:
-			logger.notice("Processing depot '%s'" % depotId)
-			
-			if self.maxTransfers:
-				transfers = 0
-				for (depotId, info) in self.tasks.items():
-					if info.get('transferProgress'):
-						transfers += 1
-				if (transfers >= self.maxTransfers):
-					logger.notice("%d transfer(s) running, %d transfer(s) max, waiting..." \
-							% (transfers, self.maxTransfers ))
-				while (transfers >= self.maxTransfers):
-					time.sleep(1)
-					logger.debug("%d transfer(s) running, %d transfer(s) max, waiting..." \
-							% (transfers, self.maxTransfers ))
-					transfers = 0
-					for (depotId, info) in self.tasks.items():
-						if info.get('transferProgress'):
-							transfers += 1
-			try:
-				pass
-				
-			except Exception, e:
-				logger.error("Failed to process depot '%s': %s" % (depotId, e))
-				self.tasks[depotId]['failed'] = e
-				self.tasks[depotId]['ended'] = True
+		logger.notice("Upload of '%s' to depot '%s' done" \
+				% (os.path.basename(packageFile), depotId))
+		if not self.quiet: print _("Upload of '%s' to depot '%s' done") \
+						% (os.path.basename(packageFile), depotId)
 	
 	def installPackage(self, packageFile, depotId):
 		be = None
 		try:
-			logger.notice("Installing package '%s' on depot '%s'" % (packageFile, depotId))
-			productId = self.productPackageFile.product.productId
+			logger.notice("Installing package '%s' on depot '%s'" \
+				% (os.path.basename(packageFile), depotId))
+			if not self.quiet: print _("Installing package '%s' on depot '%s'") \
+						% (os.path.basename(packageFile), depotId)
+			productId = self.getProductPackageFile(packageFile).product.productId
 			
-			be = self._getDepotConnection(depotId)
+			be = self.getDepotConnection(depotId)
 			
 			defaultProperties = {}
 			if self.keepDefaultProductProperties:
@@ -683,6 +719,7 @@ class OpsiPackageManager(TransferProgressListener):
 						defaultProperties[pd['name']] = pd['default']
 				except Exception, e:
 					logger.warning(e)
+			
 			be.installPackage(packageFile, force = self.forceInstall, defaultProperties = defaultProperties)
 			be.exit()
 			logger.notice("Installation of package '%s' on depot '%s' finished" % (packageFile, depotId))
@@ -692,80 +729,118 @@ class OpsiPackageManager(TransferProgressListener):
 			raise
 		
 	def uninstallPackage(self, productId, depotId):
-		self.tasks[depotId] = {
-			'started': 	False,
-			'productId': 	productId,
-			'failed':	False,
-			'ended':	False }
 		be = None
 		try:
 			logger.notice("Uninstalling package '%s' on depot '%s'" % (productId, depotId))
+			if not self.quiet: print _("Uninstalling package '%s' on depot '%s'") \
+						% (productId, depotId)
 			
-			be = self._getDepotConnection(depotId)
+			repositoryUrl = self.getRepositoryRemoteURL(depotId)
+			logger.info("Using '%s' as repository url" % repositoryUrl)
+			repository = getRepository(repositoryUrl, depotId, self.configBackend.getOpsiHostKey(depotId))
+			for destination in repository.content():
+				if not destination.startswith(productId + '_'):
+					continue
+				logger.info("Deleting destination '%s' on depot '%s'" % (destination, depotId))
+				repository.delete(destination)
+			
+			be = self.getDepotConnection(depotId)
 			be.uninstallPackage(productId, force = self.forceUninstall, deleteFiles = self.deleteFilesOnUninstall)
+			be.exit()
 			logger.notice("Uninstall of package '%s' on depot '%s' finished" % (productId, depotId))
 		except Exception, e:
 			logger.error(e)
-			self.tasks[depotId]['failed'] = e
-		if be:
-			be.exit()
-		self.tasks[depotId]['ended'] = True
+			if be: be.exit()
+			raise
 		
 	def progressChanged(self, progress):
 		
-		#for (depotId, info) in self.tasks.items():
-		#	p = info.get('transferProgress')
-		#	if p and not p.done:
-				p = progress
-				minutesLeft = str(int(p.timeLeft/60))
-				secondsLeft = str(int(p.timeLeft%60))
-				if (len(minutesLeft) < 2): minutesLeft = '0' + minutesLeft
-				if (len(secondsLeft) < 2): secondsLeft = '0' + secondsLeft
-				#msg = depotId +': '\ 
-				msg = '' \
-				    + str(round(p.percent, 2)) + '% ' \
-				    + str(p.state/1024) + 'KB ' \
-				    + str(int(p.bytesPerSecond/1024)) + 'KB/s ' \
-				    + minutesLeft + ':' + secondsLeft + ' ETAs'
-				logger.info(msg)
-				if not self.quiet: print msg
+		minutesLeft = str(int(progress.timeLeft/60))
+		secondsLeft = str(int(progress.timeLeft%60))
+		if (len(minutesLeft) < 2): minutesLeft = '0' + minutesLeft
+		if (len(secondsLeft) < 2): secondsLeft = '0' + secondsLeft
+		msg =   '   %8s' % ("%.2f" % progress.percent + '% ') \
+			+ '%8s KB' % (progress.state/1024) \
+			+ '%8s KB/s' % (int(progress.bytesPerSecond/1024)) \
+			+ '%4s:%s ETAs' % (minutesLeft, secondsLeft) \
+			+ ' - %s' % progress.name
+		logger.info(msg)
+		if not self.quiet: print msg
 
+
+
+def printHelp():
+	print \
+	'''
+Usage: %s [options]
+
+Manage opsi packages
+
+Commands:
+  -i, --install     <opsi-package> ...      install opsi packages
+  -u, --upload      <opsi-package> ...      upload opsi packages to repositories
+  -l, --list        <regex>                 list opsi packages
+  -r, --remove      <opsi-product-id>       uninstall opsi packages
+  -V, --version                             show program's version info and exit
+  -h, --help                                show this help message and exit
+
+Options:
+  -d, --depots      <depots>                comma seperated list of depots to process
+                                                (default: %s)
+                                                use keyword ALL to process all known depots
+  --max-transfers   <num>                   maximum number of simultaneous uploads
+                                                 0=unlimited (default)
+  -f, --force                               force install/uninstall (use with extreme caution)
+  -k, --keep-files                          do not delete client data dir on uninstall
+  -o, --overwrite                           overwrite existing package even if size matches
+  -p, --properties  <mode>                  mode for default product property values
+                      ask                      display dialog
+                      package                  use defaults from package (default)
+                      keep                     keep depot defaults
+  --interface       <type>                  type of user interface
+                      text                      text based interface
+                      snack                     newt interface (default)
+  -v, --verbose                             increase verbosity (can be used multiple times)
+  -q, --quiet                               do not display any messages
+  --log-file        <log-file>              path to debug log file
+	''' % (os.path.basename(sys.argv[0]), socket.getfqdn())
+
+def printVersion():
+	print "%s %s" % (os.path.basename(sys.argv[0]), __version__)
 
 def main(argv):
 	os.umask(0027)
 	
 	global logLevel
 	
-	parser=OptionParser( version="%prog "+__version__, description="Manage opsi packages",
-				formatter=IndentedHelpFormatter(max_help_position = 10, width=80))
+	parser=OptionParser( add_help_option = False )
 	
-	parser.add_option("-v", "--verbose",    action="count",      dest="verbose",
-			help="increase verbosity (can be used multiple times)")
-	parser.add_option("-q", "--quiet",      action="store_true", dest="quiet",
-			help="Do not display any messages")
-	parser.add_option("-i", "--install",    action="store_true", dest="MODE_INSTALL",
-			help="Install opsi package")
-	parser.add_option("-p", "--properties", action="store",      dest="properties",  metavar="<package|ask|keep>",
-			default="package", choices=['ask', 'package', 'keep'],
-			help="Which values should be used as default product property values? ask=display dialog, package=use defaults from package, keep=keep depot defaults (default: %default)")
-	parser.add_option(      "--max-transfers",  action="store", dest="maxTransfers", metavar="<max>", type="int",
-			default = 0,
-			help="Maximum number of simultaneous uploads, 0=unlimited, (default: %default)")
-	parser.add_option("-l", "--list",       action="store_true", dest="MODE_LIST",
-			help="List opsi packages")
-	parser.add_option("-r", "--remove",     action="store_true", dest="MODE_REMOVE",
-			help="Uninstall opsi package")
-	parser.add_option("-d", "--depots",     action="store",      dest="depots",      metavar="<depotsId>[,depotId ...]",
-			help="comma seperated list of depots to process (default: %s) use keword ALL to process all depots" % socket.getfqdn())
-	parser.add_option("-f", "--force",      action="store_true", dest="force",
-			help="Force install/uninstall (use with extreme caution)")
-	parser.add_option(      "--interface",  action="store",      dest="interface",   metavar="<snack|text>",
-			default="snack", choices=['text', 'snack'],
-			help="User interface (default: %default)")
-	parser.add_option(      "--log-file",   action="store",      dest="logFile",     metavar="<log-file>",
-			help="Path to debug log file")
+	parser.add_option("-h", "--help",           action="store_true", dest="help")
+	parser.add_option("-V", "--version",        action="store_true", dest="version")
+	parser.add_option("-v", "--verbose",        action="count",      dest="verbose")
+	parser.add_option("-q", "--quiet",          action="store_true", dest="quiet")
+	parser.add_option("-i", "--install",        action="store_true", dest="COMMAND_INSTALL")
+	parser.add_option("-u", "--upload",         action="store_true", dest="COMMAND_UPLOAD")
+	parser.add_option("-p", "--properties",     action="store",      dest="properties",   default="package", choices=['ask', 'package', 'keep'])
+	parser.add_option(      "--max-transfers",  action="store",      dest="maxTransfers", default = 0,       type="int")
+	parser.add_option("-l", "--list",           action="store_true", dest="COMMAND_LIST")
+	parser.add_option("-r", "--remove",         action="store_true", dest="COMMAND_REMOVE")
+	parser.add_option("-d", "--depots",         action="store",      dest="depots")
+	parser.add_option("-f", "--force",          action="store_true", dest="force")
+	parser.add_option("-k", "--keep-files",     action="store_true", dest="keepFiles")
+	parser.add_option("-o", "--overwrite",      action="store_true", dest="overwriteAlways")
+	parser.add_option(      "--interface",      action="store",      dest="interface",    default="snack",   choices=['text', 'snack'])
+	parser.add_option(      "--log-file",       action="store",      dest="logFile")
 	
 	(options, args) = parser.parse_args()
+	
+	if options.help:
+		printHelp()
+		sys.exit(0)
+	
+	if options.version:
+		printVersion()
+		sys.exit(0)
 	
 	if options.logFile:
 		if os.path.exists(options.logFile):
@@ -781,57 +856,51 @@ def main(argv):
 		options.interface = 'dummy'
 		logLevel = LOG_NONE
 	elif options.verbose:
+		logLevel = LOG_WARNING
 		logLevel += options.verbose
-	
+		
 	logger.setConsoleLevel(logLevel)
 	
-	packageFile = None
+	cmds = 0
+	for cmd in (options.COMMAND_INSTALL, options.COMMAND_UPLOAD, options.COMMAND_LIST, options.COMMAND_REMOVE):
+		if not cmd:
+			continue
+		cmds += 1
+	if (cmds > 1):
+		print >> sys.stderr, _("More than one command specified")
+		sys.exit(1)
+	elif (cmds < 1):
+		print >> sys.stderr, _("No command specified")
+		sys.exit(1)
+	
+	packageFiles = []
 	productRegex = re.compile('.*')
-	productId = None
-	if options.MODE_INSTALL:
-		if options.MODE_LIST or options.MODE_REMOVE:
-			print >> sys.stderr, _("Please specify only one of -i,-l,-r")
-			sys.exit(1)
+	productIds = []
+	if options.COMMAND_INSTALL or options.COMMAND_UPLOAD:
 		if (len(args) < 1):
 			print >> sys.stderr, _("No opsi package given!")
-			parser.print_help()
-			sys.exit(1)
-		elif (len(args) > 1):
-			usage()
 			sys.exit(1)
 		
-		packageFile = os.path.abspath(args[0])
-		if not os.path.exists(packageFile):
-			print >> sys.stderr, _("Package file '%s' does not exist!") % packageFile
-			sys.exit(1)
-		packageFile = args[0]
+		for p in args:
+			p = os.path.abspath(p)
+			if not os.path.exists(p):
+				print >> sys.stderr, _("Package file '%s' does not exist!") % p
+				sys.exit(1)
+			packageFiles.append(p)
 		
-	elif options.MODE_LIST:
-		if options.MODE_INSTALL or options.MODE_REMOVE:
-			print >> sys.stderr, _("Please specify only one of -i,-l,-r")
-			sys.exit(1)
+	elif options.COMMAND_LIST:
 		if args:
 			if (len(args) > 1):
-				usage()
+				printHelp()
 				sys.exit(1)
 			productRegex = re.compile(args[0])
 	
-	elif options.MODE_REMOVE:
-		if options.MODE_LIST or options.MODE_INSTALL:
-			print >> sys.stderr, _("Please specify only one of -i,-l,-r")
-			sys.exit(1)
+	elif options.COMMAND_REMOVE:
 		if (len(args) < 1):
 			print >> sys.stderr, _("No opsi product id given!")
-			parser.print_help()
 			sys.exit(1)
-		elif (len(args) > 1):
-			usage()
-			sys.exit(1)
-		productId = args[0]
-		
-	else:
-		print >> sys.stderr, _("Please specify one of -i,-l,-r")
-		sys.exit(1)
+		productIds = args
+	
 	
 	bm = BackendManager(authRequired=False)
 	opm = None
@@ -842,6 +911,8 @@ def main(argv):
 		opm.uiType = options.interface
 		opm.quiet = options.quiet
 		opm.maxTransfers = options.maxTransfers
+		opm.deleteFilesOnUninstall = not options.keepFiles
+		opm.overwriteAlways = options.overwriteAlways
 		
 		depotIds = [ socket.getfqdn() ]
 		if options.depots:
@@ -854,22 +925,23 @@ def main(argv):
 					if depotId not in knownDepotIds:
 						raise Exception("Depot '%s' not in list of known depots: %s" \
 							% (depotId, ', '.join(knownDepotIds)))
-		opm.setDepotIds(depotIds)
 		
-		if options.MODE_INSTALL:
+		if options.COMMAND_INSTALL:
 			if (options.properties == 'ask'):
-				opm.productPropertiesDialog()
+				opm.productPropertiesDialog(packageFiles)
 			elif (options.properties == 'depot'):
 				opm.keepDefaultProductProperties = True
 			else:
 				opm.keepDefaultProductProperties = False
-			#opm.uploadToRepositories(packageFile)
-			opm.installOnDepots(packageFile)
+			opm.installOnDepots(packageFiles, depotIds)
 		
-		if options.MODE_REMOVE:
-			opm.uninstallPackage(productId)
+		elif options.COMMAND_UPLOAD:
+			opm.uploadToRepositories(packageFiles, depotIds)
+		
+		elif options.COMMAND_REMOVE:
+			opm.uninstallOnDepots(productIds, depotIds)
 			
-		elif options.MODE_LIST:
+		elif options.COMMAND_LIST:
 			terminalWidth = 60
 			try:
 				tty = os.popen('tty').readline().strip()
@@ -884,7 +956,7 @@ def main(argv):
 			if (versionWidth > 25): versionWidth = 25
 			descriptionWidth = terminalWidth-len(indent)-idWidth-versionWidth-4
 			
-			for (depotId, productInfo) in opm.getProductInformations().items():
+			for (depotId, productInfo) in opm.getProductInformations(depotIds).items():
 				print "-"*(len(depotId)+4)
 				print "- %s -" % depotId
 				print "-"*(len(depotId)+4)
@@ -899,11 +971,7 @@ def main(argv):
 							-1*versionWidth, product.get('productVersion', '') + '-' + product.get('packageVersion', ''),
 							-1*descriptionWidth, product.get('description', '').replace('\n', '')[:descriptionWidth])
 				print ""
-				
-		#opm.uploadToRepositories(filename, name, backend.getDepotIds_list())
-		#opm.uploadToRepositories(['pcbon14.uib.local', 'vmix40.uib.local'])
-		#opm.uploadToRepositories(['pcbon14.uib.local'])
-		#opm.uploadToRepositories(['vmix40.uib.local'])
+		
 	except Exception, e:
 		if opm:	opm.exitUi()
 		raise
@@ -914,9 +982,12 @@ def main(argv):
 	errors = opm.getErrors()
 	if errors:
 		print >> sys.stderr, _("ERRORS OCCURED: ")
-		for (depotId, error) in errors.items():
-			logger.error("Failure on depot '%s': %s" % (depotId, error))
-			print >> sys.stderr, "   [%s] %s" % (depotId, error)
+		for (name, errs) in errors.items():
+			logger.error("Failure while processing: %s" % name)
+			print >> sys.stderr, "Failure while processing: %s" % name
+			for err in errs:
+				logger.error("   %s" % err)
+				print >> sys.stderr, "   %s" % err
 		sys.exit(1)
 
 	
