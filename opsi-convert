@@ -10,7 +10,7 @@
    @license: GNU GPL, see COPYING for details.
 """
 
-__version__ = '0.5.3'
+__version__ = '0.5.4'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -192,6 +192,9 @@ def convertNetworkConfigs():
 	networkConfig = bmRead.getNetworkConfig_hash()
 	if newServer:
 		networkConfig['opsiServer'] = newServer
+		if networkConfig.get('depotId') in serverIds:
+			networkConfig['depotId'] = newServer
+			
 	bmWrite.setNetworkConfig(networkConfig)
 	
 	for clientId in clientIds:
@@ -208,6 +211,8 @@ def convertNetworkConfigs():
 		nc = bmRead.getNetworkConfig_hash(clientId)
 		if newServer:
 			nc['opsiServer'] = newServer
+			if nc.get('depotId') in serverIds:
+				nc['depotId'] = newServer
 		new = False
 		
 		for (key, value) in nc.items():

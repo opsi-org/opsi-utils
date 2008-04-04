@@ -9,15 +9,16 @@
    @license: GNU GPL, see COPYING for details.
 """
 
-__version__ = '0.7'
+__version__ = '0.7.1'
 
-import os, time, getopt, gettext, re, pwd, grp
+import os, time, getopt, gettext, re, pwd, grp, socket
 
 # OPSI imports    
 from OPSI.Logger import *
 from OPSI.System import *
 from OPSI.Product import *
 from OPSI.Tools import md5sum
+from OPSI.Backend.BackendManager import BackendManager
 
 # Get logger instance
 logger = Logger()
@@ -132,7 +133,20 @@ def main(argv):
 	if not os.path.isdir(sourceDir):
 		raise Exception("No such directory: %s" % sourceDir)
 	
+	bm = BackendManager(authRequired=False)
+	
 	pps = ProductPackageSource(sourceDir = sourceDir, tempDir = tempDir, customName = customName, customOnly = customOnly, packageFileDestDir = os.getcwd())
+	
+	depotId = socket.getfqdn()
+	depot = bm.getDepot_hash(depotId)
+	
+	clientDataDir = depot['depotLocalUrl']
+	if not clientDataDir.startswith('file:///'):
+		raise Exception("Value '%s' not allowed for depot local url (has to start with 'file:///')" % clientDataDir)
+	clientDataDir = os.path.join(clientDataDir[7:], pps.product.productId)
+	
+	logger.info("Setting client data dir to '%s'" % clientDataDir)
+	pps.setClientDataDir(clientDataDir)
 	
 	if not silent: print _("Locking product...")
 	pps.lock()
