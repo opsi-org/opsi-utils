@@ -1,4 +1,4 @@
-opsi-utils (3.3.0.0~a1-1ubuntu1) unstable; urgency=low
+opsi-utils (3.3.0.0~a1-1) unstable; urgency=low
 
   * added opsi-package-manager 0.1
 

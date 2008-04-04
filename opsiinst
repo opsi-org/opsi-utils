@@ -10,7 +10,7 @@
    @license: GNU GPL, see COPYING for details.
 """
 
-__version__ = '0.5.5'
+__version__ = '0.5.6'
 
 import os, stat, getopt, gettext, popen2, select, time, socket
 
@@ -158,6 +158,8 @@ def main(argv):
 	ui.drawRootText(3, 3, _("Opening package file '%s' ...") % packageFile)
 	
 	ppf = ProductPackageFile(packageFile, tempDir = tempDir)
+	
+	ppf.setClientDataDir(os.path.join('/opt/pcbin/install', ppf.product.productId))
 	
 	try:
 		if sourceDir:
