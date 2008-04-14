@@ -1,5 +1,36 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+"""
+   = = = = = = = = = = = = = = =
+   =   opsi-package-manager    =
+   = = = = = = = = = = = = = = =
+   
+   opsi-package-manager is part of the desktop management solution opsi
+   (open pc server integration) http://www.opsi.org
+   
+   Copyright (C) 2008 uib GmbH
+   
+   http://www.uib.de/
+   
+   All rights reserved.
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License version 2 as
+   published by the Free Software Foundation.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   
+   @copyright:	uib GmbH <info@uib.de>
+   @author: Jan Schneider <j.schneider@uib.de>
+   @license: GNU General Public License version 2
+"""
 
 import sys, os, mimetools, base64, re, stat, socket, threading, time, fcntl
 from optparse import OptionParser, IndentedHelpFormatter
@@ -16,7 +47,7 @@ from OPSI.Product import *
 from OPSI import Tools
 from OPSI.UI import *
 
-__version__ = '0.9'
+__version__ = '0.9.1'
 
 logger = Logger()
 logLevel = LOG_NONE
@@ -508,6 +539,8 @@ class OpsiPackageManager(TransferProgressListener):
 		self.forceInstall = False
 		self.keepDefaultProductProperties = True
 		self.deleteFilesOnUninstall = True
+		self.setupWhereInstalled = False
+		self.updateWhereInstalled = False
 		self.quiet = True
 		self.taskQueues = []
 		self.uiType = 'snack'
@@ -675,8 +708,29 @@ class OpsiPackageManager(TransferProgressListener):
 			logger.info("Starting task queue '%s'" % tq.name)
 			tq.start()
 	
+	def setActionSetupWhereInstalled(self, productId, depotId):
+		clientIds = self.configBackend.getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
+		clientIds.sort()
+		if not clientIds:
+			return
+		logger.notice("Setting action 'setup' for product '%s' on client(s): %s" % (productId, ', '.join(clientIds)))
+		if not self.quiet:
+			print _("Setting action 'setup' for product '%s' on client(s): %s") % (productId, ', '.join(clientIds))
+		for clientId in clientIds:
+			self.configBackend.setProductActionRequest(productId, clientId, 'setup')
+	
+	def setActionUpdateWhereInstalled(self, productId, depotId):
+		clientIds = self.configBackend.getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
+		clientIds.sort()
+		if not clientIds:
+			return
+		logger.notice("Setting action 'update' for product '%s' on client(s): %s" % (productId, ', '.join(clientIds)))
+		if not self.quiet:
+			print _("Setting action 'update' for product '%s' on client(s): %s") % (productId, ', '.join(clientIds))
+		for clientId in clientIds:
+			self.configBackend.setProductActionRequest(productId, clientId, 'update')
+	
 	def uninstallOnDepots(self, productIds, depotIds):
-		
 		for depotId in depotIds:
 			tq = TaskQueue(name = "Uninstall of package(s) %s on depot '%s'" % (', '.join(productIds), depotId))
 			for productId in productIds:
@@ -764,6 +818,17 @@ class OpsiPackageManager(TransferProgressListener):
 			logger.notice("Installation of package '%s' on depot '%s' finished" % (packageFile, depotId))
 			if not self.quiet: print _("Installation of package '%s' on depot '%s' finished") \
 						% (packageFile, depotId)
+			if self.setupWhereInstalled:
+				if 'setup' in self.configBackend.getPossibleProductActions_list(productId = productId, depotId = depotId):
+					self.setActionSetupWhereInstalled(productId, depotId)
+				else:
+					logger.warning("Cannot set action 'setup' for product '%s'" % productId)
+			if self.updateWhereInstalled:
+				if 'update' in self.configBackend.getPossibleProductActions_list(productId = productId, depotId = depotId):
+					self.setActionUpdateWhereInstalled(productId, depotId)
+				else:
+					logger.warning("Cannot set action 'update' for product '%s'" % productId)
+			
 		except Exception, e:
 			logger.error(e)
 			if be: be.exit()
@@ -836,6 +901,8 @@ Options:
                       package                  use defaults from package
                       keep                     keep depot defaults (default)
   -f, --force                               force install/uninstall (use with extreme caution)
+  -U, --update                              set action "update" on hosts where installation status is "installed"
+  -S, --setup                               set action "setup" on hosts where installation status is "installed"
   --max-transfers   <num>                   maximum number of simultaneous uploads
                                                  0=unlimited (default)
   -o, --overwrite                           overwrite existing package even if size matches
@@ -874,6 +941,8 @@ def main(argv):
 	parser.add_option("-f", "--force",          action="store_true", dest="force")
 	parser.add_option("-k", "--keep-files",     action="store_true", dest="keepFiles")
 	parser.add_option("-o", "--overwrite",      action="store_true", dest="overwriteAlways")
+	parser.add_option("-S", "--setup",          action="store_true", dest="setupWhereInstalled")
+	parser.add_option("-U", "--update",         action="store_true", dest="updateWhereInstalled")
 	parser.add_option(      "--direct-install", action="store_true", dest="directInstall")
 	parser.add_option(      "--interface",      action="store",      dest="interface",    default="snack", choices=['text', 'snack'])
 	parser.add_option(      "--log-file",       action="store",      dest="logFile")
@@ -963,6 +1032,8 @@ def main(argv):
 		opm.maxTransfers = options.maxTransfers
 		opm.deleteFilesOnUninstall = not options.keepFiles
 		opm.overwriteAlways = options.overwriteAlways
+		opm.setupWhereInstalled = options.setupWhereInstalled
+		opm.updateWhereInstalled = options.updateWhereInstalled
 		
 		if options.COMMAND_EXTRACT:
 			destination = os.path.abspath(os.getcwd())
