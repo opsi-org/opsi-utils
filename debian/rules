@@ -8,14 +8,14 @@ build24-stamp:
 	rm -f build24-stamp
 	rm -Rf debian/tmp24 || true
 	mkdir debian/tmp24
-	for i in opsi-admin opsi-package-manager opsi-newprod opsi-makeproductfile opsiinst opsiuninst opsi-convert; do cat $$i | sed 's/#!\/usr\/bin\/python/#!\/usr\/bin\/python2.4/' > debian/tmp24/$$i; done
+	for i in opsi-admin opsi-newprod opsi-makeproductfile opsiinst opsiuninst opsi-convert; do cat $$i | sed 's/#!\/usr\/bin\/python/#!\/usr\/bin\/python2.4/' > debian/tmp24/$$i; done
 	touch build24-stamp
 
 build23-stamp:
 	rm -f build23-stamp
 	rm -Rf debian/tmp23 || true
 	mkdir debian/tmp23
-	for i in opsi-admin opsi-package-manager opsi-newprod opsi-makeproductfile opsiinst opsiuninst opsi-convert; do cat $$i | sed 's/#!\/usr\/bin\/python/#!\/usr\/bin\/python2.3/' > debian/tmp23/$$i; done
+	for i in opsi-admin opsi-newprod opsi-makeproductfile opsiinst opsiuninst opsi-convert; do cat $$i | sed 's/#!\/usr\/bin\/python/#!\/usr\/bin\/python2.3/' > debian/tmp23/$$i; done
 	touch build23-stamp
 
 build-stamp:
@@ -51,7 +51,6 @@ binary23-stamp:
 	install -m 0750 -g opsiadmin debian/tmp23/opsi-admin debian/opsi-utils-python2.3/usr/bin/
 	install -m 0755 debian/tmp23/opsi-newprod debian/opsi-utils-python2.3/usr/bin/
 	install -m 0755 debian/tmp23/opsi-makeproductfile debian/opsi-utils-python2.3/usr/bin/
-	install -m 0755 debian/tmp23/opsi-package-manager debian/opsi-utils-python2.3/usr/bin/
 	install -m 0755 debian/tmp23/opsiinst debian/opsi-utils-python2.3/usr/bin/
 	install -m 0755 debian/tmp23/opsiuninst debian/opsi-utils-python2.3/usr/bin/
 	install -m 0755 debian/tmp23/opsi-convert debian/opsi-utils-python2.3/usr/bin/opsi-convert
@@ -68,7 +67,6 @@ binary24-stamp:
 	install -m 0750 -g opsiadmin debian/tmp24/opsi-admin debian/opsi-utils-python2.4/usr/bin/
 	install -m 0755 debian/tmp24/opsi-newprod debian/opsi-utils-python2.4/usr/bin/
 	install -m 0755 debian/tmp24/opsi-makeproductfile debian/opsi-utils-python2.4/usr/bin/
-	install -m 0755 debian/tmp24/opsi-package-manager debian/opsi-utils-python2.4/usr/bin/
 	install -m 0755 debian/tmp24/opsiinst debian/opsi-utils-python2.4/usr/bin/
 	install -m 0755 debian/tmp24/opsiuninst debian/opsi-utils-python2.4/usr/bin/
 	install -m 0755 debian/tmp24/opsi-convert debian/opsi-utils-python2.4/usr/bin/opsi-convert
@@ -85,7 +83,6 @@ binary-stamp:
 	install -m 0750 -g opsiadmin opsi-admin debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-newprod debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-makeproductfile debian/opsi-utils/usr/bin/
-	install -m 0755 opsi-package-manager debian/opsi-utils/usr/bin/
 	install -m 0755 opsiinst debian/opsi-utils/usr/bin/
 	install -m 0755 opsiuninst debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-convert debian/opsi-utils/usr/bin/opsi-convert
