@@ -92,7 +92,7 @@ msgstr "Paketversion"
 
 #: ../newprod.py:131
 msgid "License required"
-msgstr "Lizenzplichtig"
+msgstr "Lizenzpflichtig"
 
 #: ../newprod.py:132
 msgid "Priority"
