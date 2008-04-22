@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Please use `opsi-package-manager -i <package> ...` to install packages"
+echo "Please use 'opsi-package-manager -i <package> ...' to install packages"
 
 exit 1
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Please use `opsi-package-manager -r <product-id> ...` to remove packages"
+echo "Please use 'opsi-package-manager -r <product-id> ...' to remove packages"
 
 exit 1
 
