@@ -1,16 +1,38 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-   =====================
+   = = = = = = = = = = =
    =   opsi-convert    =
-   =====================
+   = = = = = = = = = = =
    
-   @copyright: uib - umwelt informatik buero gmbh <info@uib.de>
+   opsi-convert is part of the desktop management solution opsi
+   (open pc server integration) http://www.opsi.org
+   
+   Copyright (C) 2007, 2008 uib GmbH
+   
+   http://www.uib.de/
+   
+   All rights reserved.
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License version 2 as
+   published by the Free Software Foundation.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   
+   @copyright:	uib GmbH <info@uib.de>
    @author: Jan Schneider <j.schneider@uib.de>
-   @license: GNU GPL, see COPYING for details.
+   @license: GNU General Public License version 2
 """
 
-__version__ = '0.5.3'
+__version__ = '0.5.5'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -192,6 +214,9 @@ def convertNetworkConfigs():
 	networkConfig = bmRead.getNetworkConfig_hash()
 	if newServer:
 		networkConfig['opsiServer'] = newServer
+		if networkConfig.get('depotId') in serverIds:
+			networkConfig['depotId'] = newServer
+			
 	bmWrite.setNetworkConfig(networkConfig)
 	
 	for clientId in clientIds:
@@ -208,6 +233,8 @@ def convertNetworkConfigs():
 		nc = bmRead.getNetworkConfig_hash(clientId)
 		if newServer:
 			nc['opsiServer'] = newServer
+			if nc.get('depotId') in serverIds:
+				nc['depotId'] = newServer
 		new = False
 		
 		for (key, value) in nc.items():
@@ -273,7 +300,8 @@ def convertProducts():
 							priority		= product.get('priority', 0),
 							description		= product.get('description', ''),
 							advice			= product.get('advice', ''),
-							productClassNames	= product.get('productClassNames', []) )
+							productClassNames	= product.get('productClassNames', []),
+							pxeConfigTemplate	= product.get('pxeConfigTemplate', None) )
 			except Exception, e:
 				if isinstance(e, KeyboardInterrupt):
 					return
