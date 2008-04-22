@@ -47,7 +47,7 @@ from OPSI.Product import *
 from OPSI import Tools
 from OPSI.UI import *
 
-__version__ = '1.0.0.1'
+__version__ = '1.0.0.2'
 
 logger = Logger()
 logLevel = LOG_NONE
@@ -634,6 +634,7 @@ class OpsiPackageManager(TransferProgressListener):
 			self.openProductPackageFile(packageFile)
 		
 		for packageFile in packageFiles:
+			productId = self.getProductPackageFile(packageFile).product.productId
 			for p in self.getProductPackageFile(packageFile).product.productProperties:
 				defaultValue = p.defaultValue
 				if (len(p.possibleValues) > 0):
@@ -641,7 +642,7 @@ class OpsiPackageManager(TransferProgressListener):
 					for v in p.possibleValues:
 						values.append( { "name": v, "selected": (v == defaultValue) } )
 					defaultValue = self.ui.getSelection(values, radio=True,
-									title=_("Please select default value for product property '%s'") % p.name, 
+									title=_("Default value for product '%s', property '%s'") % (productId, p.name), 
 									text=p.description)
 					if defaultValue != None:
 						defaultValue = defaultValue[0]
