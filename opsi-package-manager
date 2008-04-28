@@ -185,7 +185,8 @@ class FileRepository(Repository):
 		if not match:
 			raise RepositoryError("Bad url: '%s'" % self._url)
 		self._path = match.group(1)
-	
+		self._maxSpeed = 0
+		
 	def _absoluteDestination(self, destination):
 		if destination.startswith('/'):
 			destination = destination[1:]
@@ -228,7 +229,12 @@ class FileRepository(Repository):
 				buf = src.read(32*1024)
 				read = len(buf)
 				if (read > 0):
+					t1 = time.time()
 					dst.write(buf)
+					t2 = time.time()
+					dt = t2-t1
+					if (dt > 0):
+						print int(read/dt)
 					transferProgress.addToState(read)
 			src.close()
 			dst.close()
