@@ -1,3 +1,17 @@
+opsi-utils (3.3.0.1-1) stable; urgency=low
+
+  * removed opsiinst, opsiuninst
+  * added opsi-package-manager 1.0.0.1
+
+ -- Jan Schneider <j.schneider@uib.de>  Mon, 21 Apr 2008 16:36:59 +0200
+
+opsi-utils (3.3.0.0-1) stable; urgency=low
+
+  * opsiuninst 0.3
+  * opsiinst 0.5.6
+
+ -- Jan Schneider <j.schneider@uib.de>  Tue, 15 Apr 2008 13:25:06 +0200
+
 opsi-utils (3.2.0.3-1) stable; urgency=low
 
   * opsi-makeproductfile 0.7 (new feature: custom only packages)
