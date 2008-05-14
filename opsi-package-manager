@@ -47,7 +47,7 @@ from OPSI.Product import *
 from OPSI import Tools
 from OPSI.UI import *
 
-__version__ = '1.0.0.3'
+__version__ = '1.0.0.4'
 
 logger = Logger()
 logLevel = LOG_NONE
@@ -161,10 +161,14 @@ class Repository:
 		self._username = username
 		self._password = password
 		self._path = ''
+		self._maxBandwidth = 0
 	
 	def _absoluteDestination(self, destination):
 		raise RepositoryError("Not implemented")
-		
+	
+	def setMaxBandwidth(self, maxBandwidth):
+		self._maxBandwidth = maxBandwidth
+	
 	def content(self, destination=''):
 		raise RepositoryError("Not implemented")
 		
@@ -185,7 +189,7 @@ class FileRepository(Repository):
 		if not match:
 			raise RepositoryError("Bad url: '%s'" % self._url)
 		self._path = match.group(1)
-		self._maxSpeed = 0
+		self._maxBandwidth = 0
 		
 	def _absoluteDestination(self, destination):
 		if destination.startswith('/'):
@@ -236,19 +240,19 @@ class FileRepository(Repository):
 					time.sleep(waitTime)
 					t2 = time.time()
 					dt = t2-t1
-					if self._maxSpeed and (dt > 0):
+					if self._maxBandwidth and (dt > 0):
 						speed = int(read/dt)
 						wt = 0
-						if (speed > 0) and (speed > self._maxSpeed):
-							wt = ( (float(speed)/float(self._maxSpeed)) ** (0.1) )
-						elif (speed > 0) and (speed < self._maxSpeed):
-							wt = ( (float(self._maxSpeed)/float(speed)) ** (0.1) )
+						if (speed > 0) and (speed > self._maxBandwidth):
+							wt = ( (float(speed)/float(self._maxBandwidth)) ** (0.1) )
+						elif (speed > 0) and (speed < self._maxBandwidth):
+							wt = ( (float(self._maxBandwidth)/float(speed)) ** (0.1) )
 						if wt:
 							while (wt > 1):
 								wt -= 1
 							if (wt > 0.2):
 								wt = 0.2
-							if (speed > self._maxSpeed):
+							if (speed > self._maxBandwidth):
 								waitTime += wt
 							else:
 								waitTime -= wt
@@ -289,7 +293,7 @@ class WebDAVRepository(Repository):
 		self._auth = 'Basic '+ base64.encodestring( urllib.unquote(self._username + ':' + self._password) ).strip()
 		self._connection = None
 		self._cookie = ''
-		self._maxSpeed = 0
+		self._maxBandwidth = 0
 		
 	def _absoluteDestination(self, destination):
 		if destination.startswith('/'):
@@ -419,19 +423,19 @@ class WebDAVRepository(Repository):
 					time.sleep(waitTime)
 					t2 = time.time()
 					dt = t2-t1
-					if self._maxSpeed and (dt > 0):
+					if self._maxBandwidth and (dt > 0):
 						speed = int(read/dt)
 						wt = 0
-						if (speed > 0) and (speed > self._maxSpeed):
-							wt = ( (float(speed)/float(self._maxSpeed)) ** (0.1) )
-						elif (speed > 0) and (speed < self._maxSpeed):
-							wt = ( (float(self._maxSpeed)/float(speed)) ** (0.1) )
+						if (speed > 0) and (speed > self._maxBandwidth):
+							wt = ( (float(speed)/float(self._maxBandwidth)) ** (0.1) )
+						elif (speed > 0) and (speed < self._maxBandwidth):
+							wt = ( (float(self._maxBandwidth)/float(speed)) ** (0.1) )
 						if wt:
 							while (wt > 1):
 								wt -= 1
 							if (wt > 0.2):
 								wt = 0.2
-							if (speed > self._maxSpeed):
+							if (speed > self._maxBandwidth):
 								waitTime += wt
 							else:
 								waitTime -= wt
@@ -591,6 +595,7 @@ class OpsiPackageManager(TransferProgressListener):
 		self.productPackageFiles = {}
 		self.productPackageMD5Sums = {}
 		self.maxTransfers = 0
+		self.maxBandwidth = 0
 		self.overwriteIfMD5SumDiffers = True
 		self.overwriteAlways = False
 		self.forceInstall = False
@@ -828,6 +833,7 @@ class OpsiPackageManager(TransferProgressListener):
 		logger.info("Using '%s' as repository url" % repositoryUrl)
 		
 		repository = getRepository(repositoryUrl, depotId, self.configBackend.getOpsiHostKey(depotId))
+		repository.setMaxBandwidth(self.maxBandwidth)
 		
 		for dest in repository.content():
 			if dest.startswith(productId + '_') and (dest != destination):
@@ -1008,7 +1014,8 @@ Options:
   -q, --quiet                     do not display any messages
   --log-file        <log-file>    path to debug log file
 	''' % (os.path.basename(sys.argv[0]), socket.getfqdn())
-
+#  --max-bandwidth   <kbps>        maximum transfer rate for each transfer (in kilobytes per second)
+#                                      0=unlimited (default)
 def printVersion():
 	print "%s %s" % (os.path.basename(sys.argv[0]), __version__)
 
@@ -1028,6 +1035,7 @@ def main(argv):
 	parser.add_option("-u", "--upload",         action="store_true", dest="COMMAND_UPLOAD")
 	parser.add_option("-p", "--properties",     action="store",      dest="properties",   default="keep", choices=['ask', 'package', 'keep'])
 	parser.add_option(      "--max-transfers",  action="store",      dest="maxTransfers", default = 0,    type="int")
+	#parser.add_option(      "--max-bandwidth",  action="store",      dest="maxBandwidth", default = 0,    type="int")
 	parser.add_option("-l", "--list",           action="store_true", dest="COMMAND_LIST")
 	parser.add_option("-D", "--differences",    action="store_true", dest="COMMAND_DIFFERENCES")
 	parser.add_option("-r", "--remove",         action="store_true", dest="COMMAND_REMOVE")
@@ -1124,6 +1132,7 @@ def main(argv):
 		opm.uiType = options.interface
 		opm.quiet = options.quiet
 		opm.maxTransfers = options.maxTransfers
+		opm.maxBandwidth = options.maxBandwidth*1024
 		opm.deleteFilesOnUninstall = not options.keepFiles
 		opm.overwriteAlways = options.overwriteAlways
 		opm.setupWhereInstalled = options.setupWhereInstalled
@@ -1156,9 +1165,9 @@ def main(argv):
 			if (options.properties == 'ask'):
 				opm.keepDefaultProductProperties = False
 				opm.productPropertiesDialog(packageFiles)
-			elif (options.properties == 'depot'):
+			elif (options.properties == 'keep'):
 				opm.keepDefaultProductProperties = True
-			else:
+			elif (options.properties == 'package'):
 				opm.keepDefaultProductProperties = False
 			
 			if options.directInstall:
