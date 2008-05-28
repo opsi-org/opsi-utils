@@ -26,6 +26,6 @@ Description: OPSI utils
 Package: opsi-utils
 Section: opsi
 Architecture: all
-Depends: python-opsi (>= 3.3-1) | python2.3-opsi (>= 3.3-1) | python2.4-opsi (>= 3.3-1)
+Depends: python-opsi (>= 3.3.0.10-1) | python2.3-opsi (>= 3.3.0.10-1) | python2.4-opsi (>= 3.3.0.10-1)
 Description: OPSI utils
  This package contains the OPSI util collection.
