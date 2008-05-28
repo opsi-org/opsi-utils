@@ -32,6 +32,8 @@
    @license: GNU General Public License version 2
 """
 
+__version__ = '1.0.0.8'
+
 import sys, os, mimetools, base64, re, stat, socket, threading, time, fcntl, math
 from optparse import OptionParser, IndentedHelpFormatter
 from twisted.web2 import responsecode
@@ -47,8 +49,6 @@ from OPSI.Product import *
 from OPSI import Tools
 from OPSI.UI import *
 
-__version__ = '1.0.0.4'
-
 logger = Logger()
 logLevel = LOG_NONE
 logger.setConsoleLevel(logLevel)
@@ -58,7 +58,7 @@ opm = None
 
 # Get locale
 try:
-	t = gettext.translation('opsi_????', LOCALE_DIR)
+	t = gettext.translation('opsi_package_manager', LOCALE_DIR)
 	def _(string):
 		return t.ugettext(string).encode('utf-8', 'replace')
 	
@@ -747,7 +747,7 @@ class OpsiPackageManager(TransferProgressListener):
 			logger.info("Starting task queue '%s'" % tq.name)
 			tq.start()
 		
-	def installOnDepots(self, packageFiles, depotIds):
+	def installOnDepots(self, packageFiles, depotIds, tempDir=None):
 		
 		for packageFile in packageFiles:
 			self.openProductPackageFile(packageFile)
@@ -769,7 +769,7 @@ class OpsiPackageManager(TransferProgressListener):
 						name = "Install of package '%s' on depot '%s'" % (localFile, depotId),
 						opsiPackageManager = self,
 						method = self.installPackage,
-						params = (localFile, depotId)
+						params = (localFile, depotId, tempDir)
 					)
 				)
 			self.taskQueues.append(tq)
@@ -868,6 +868,13 @@ class OpsiPackageManager(TransferProgressListener):
 			logger.info("Overwriting destination '%s' on depot '%s'" % (destination, depotId))
 			if not self.quiet: print _("Overwriting destination '%s' on depot '%s'") % (destination, depotId)
 		
+		be = self.getDepotConnection(depotId)
+		info = be.getDiskSpaceUsage( self.getLocalDepotPath(depotId) )
+		be.exit()
+		if (info['available'] < packageSize):
+			raise Exception("Not enough disk space on depot '%s': %dMB needed, %dMB available" \
+						% (depotId, (packageSize/(1024*1024)), (info['available']/(1024*1024))))
+		
 		logger.notice("Starting upload of '%s' to depot '%s'" \
 				% (os.path.basename(packageFile), depotId))
 		if not self.quiet: print _("Starting upload of '%s' to depot '%s'") \
@@ -875,21 +882,24 @@ class OpsiPackageManager(TransferProgressListener):
 		
 		repository.upload(packageFile, destination, progressListener = self)
 		
-		#time.sleep(3)
-		
 		be = self.getDepotConnection(depotId)
 		rMD5 = be.getMD5Sum( self.getLocalDepotPath(depotId) + '/' + os.path.basename(packageFile) )
+		info = be.getDiskSpaceUsage( self.getLocalDepotPath(depotId) )
 		be.exit()
 		if (lMD5 != rMD5):
 			# md5sum differ
 			raise Exception("MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (lMD5, rMD5, depotId))
+		
+		if (info['usage'] >= 0.9):
+			logger.warning("Warning: %d%% filesystem usage at repository on depot '%s'" % (int(100*info['usage']), depotId))
+			if not self.quiet: print _("Warning: %d%% filesystem usage at repository on depot '%s'") % (int(100*info['usage']), depotId)
 		
 		logger.notice("Upload of '%s' to depot '%s' done" \
 				% (os.path.basename(packageFile), depotId))
 		if not self.quiet: print _("Upload of '%s' to depot '%s' done") \
 						% (os.path.basename(packageFile), depotId)
 	
-	def installPackage(self, packageFile, depotId):
+	def installPackage(self, packageFile, depotId, tempDir=None):
 		be = None
 		try:
 			logger.notice("Installing package '%s' on depot '%s'" \
@@ -911,7 +921,7 @@ class OpsiPackageManager(TransferProgressListener):
 				except Exception, e:
 					logger.warning(e)
 			
-			be.installPackage(packageFile, force = self.forceInstall, defaultProperties = defaultProperties)
+			be.installPackage(packageFile, force = self.forceInstall, defaultProperties = defaultProperties, tempDir=tempDir)
 			be.exit()
 			logger.notice("Installation of package '%s' on depot '%s' finished" % (packageFile, depotId))
 			if not self.quiet: print _("Installation of package '%s' on depot '%s' finished") \
@@ -995,7 +1005,6 @@ Options:
                                   this feature is not supported in the opsi community edition!
                                       (default: %s)
                                       use keyword ALL to process all known depots
-  --direct-install                install package directly without repository upload
   -p, --properties  <mode>        mode for default product property values
                       ask             display dialog
                       package         use defaults from package
@@ -1007,6 +1016,7 @@ Options:
                                       0=unlimited (default)
   -o, --overwrite                 overwrite existing package even if size matches
   -k, --keep-files                do not delete client data dir on uninstall
+  -t, --temp-dir    <path>        tempory directory for package install
   --interface       <type>        type of user interface
                       text            text based interface
                       snack           newt interface (default)
@@ -1035,7 +1045,7 @@ def main(argv):
 	parser.add_option("-u", "--upload",         action="store_true", dest="COMMAND_UPLOAD")
 	parser.add_option("-p", "--properties",     action="store",      dest="properties",   default="keep", choices=['ask', 'package', 'keep'])
 	parser.add_option(      "--max-transfers",  action="store",      dest="maxTransfers", default = 0,    type="int")
-	#parser.add_option(      "--max-bandwidth",  action="store",      dest="maxBandwidth", default = 0,    type="int")
+	parser.add_option(      "--max-bandwidth",  action="store",      dest="maxBandwidth", default = 0,    type="int")
 	parser.add_option("-l", "--list",           action="store_true", dest="COMMAND_LIST")
 	parser.add_option("-D", "--differences",    action="store_true", dest="COMMAND_DIFFERENCES")
 	parser.add_option("-r", "--remove",         action="store_true", dest="COMMAND_REMOVE")
@@ -1043,10 +1053,10 @@ def main(argv):
 	parser.add_option("-d", "--depots",         action="store",      dest="depots")
 	parser.add_option("-f", "--force",          action="store_true", dest="force")
 	parser.add_option("-k", "--keep-files",     action="store_true", dest="keepFiles")
+	parser.add_option("-t", "--temp-dir",       action="store",      dest="tempDir")
 	parser.add_option("-o", "--overwrite",      action="store_true", dest="overwriteAlways")
 	parser.add_option("-S", "--setup",          action="store_true", dest="setupWhereInstalled")
 	parser.add_option("-U", "--update",         action="store_true", dest="updateWhereInstalled")
-	parser.add_option(      "--direct-install", action="store_true", dest="directInstall")
 	parser.add_option(      "--interface",      action="store",      dest="interface",    default="snack", choices=['text', 'snack'])
 	parser.add_option(      "--log-file",       action="store",      dest="logFile")
 	
@@ -1120,10 +1130,6 @@ def main(argv):
 			sys.exit(1)
 		productIds = args
 	
-	if options.directInstall and not options.COMMAND_INSTALL:
-		print >> sys.stderr, _("Direct install can only be used with command install")
-		sys.exit(1)
-	
 	bm = BackendManager(authRequired=False)
 	try:
 		opm = OpsiPackageManager(bm)
@@ -1138,6 +1144,7 @@ def main(argv):
 		opm.setupWhereInstalled = options.setupWhereInstalled
 		opm.updateWhereInstalled = options.updateWhereInstalled
 		
+		# Command EXTRACT
 		if options.COMMAND_EXTRACT:
 			destination = os.path.abspath(os.getcwd())
 			for p in packageFiles:
@@ -1156,11 +1163,7 @@ def main(argv):
 						raise Exception("Depot '%s' not in list of known depots: %s" \
 							% (depotId, ', '.join(knownDepotIds)))
 		
-		if options.directInstall and( (len(depotIds) > 1) or (depotIds[0] != socket.getfqdn()) ):
-			print >> sys.stderr, _("Direct install can only be used on local depot '%s'" \
-						% socket.getfqdn())
-			sys.exit(1)
-			
+		# Command INSTALL
 		if options.COMMAND_INSTALL:
 			if (options.properties == 'ask'):
 				opm.keepDefaultProductProperties = False
@@ -1170,18 +1173,22 @@ def main(argv):
 			elif (options.properties == 'package'):
 				opm.keepDefaultProductProperties = False
 			
-			if options.directInstall:
+			if not options.depots:
+				# Direct install without upload
 				for p in packageFiles:
-					opm.installPackage(p, depotIds[0])
+					opm.installPackage(p, depotIds[0], tempDir=options.tempDir)
 			else:
-				opm.installOnDepots(packageFiles, depotIds)
+				opm.installOnDepots(packageFiles, depotIds, tempDir=options.tempDir)
 		
+		# Command UPLOAD
 		elif options.COMMAND_UPLOAD:
 			opm.uploadToRepositories(packageFiles, depotIds)
 		
+		# Command REMOVE
 		elif options.COMMAND_REMOVE:
 			opm.uninstallOnDepots(productIds, depotIds)
-			
+		
+		# Command LIST
 		elif options.COMMAND_LIST:
 			terminalWidth = 60
 			try:
@@ -1216,6 +1223,7 @@ def main(argv):
 							-1*descriptionWidth, product.get('description', '').replace('\n', '')[:descriptionWidth])
 				print ""
 		
+		# Command DIFFERENCES
 		elif options.COMMAND_DIFFERENCES:
 			if options.COMMAND_DIFFERENCES and (len(depotIds) <= 1):
 				print >> sys.stderr, _("More than one depot id needed to display differences")
