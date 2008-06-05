@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '1.0.0.8'
+__version__ = '1.0.0.9'
 
 import sys, os, mimetools, base64, re, stat, socket, threading, time, fcntl, math
 from optparse import OptionParser, IndentedHelpFormatter
@@ -585,13 +585,10 @@ class TaskQueue(threading.Thread):
 
 class OpsiPackageManager(TransferProgressListener):
 	
-	def __init__(self, configBackend):
-		if not configBackend:
-			raise Exception("No config backend given")
+	def __init__(self):
 		
 		TransferProgressListener.__init__(self)
 		
-		self.configBackend = configBackend
 		self.productPackageFiles = {}
 		self.productPackageMD5Sums = {}
 		self.maxTransfers = 0
@@ -608,8 +605,11 @@ class OpsiPackageManager(TransferProgressListener):
 		self.uiType = 'snack'
 		self.ui = None
 		self.consoleLevelSaved = LOG_NONE
-		logger.info("OpsiPackageManager initiated, using config backend '%s'" % self.configBackend)
+		logger.info("OpsiPackageManager initiated")
 	
+	def getConfigBackend(self):
+		 return BackendManager(authRequired=False)
+		
 	def abort(self):
 		for tq in self.taskQueues:
 			tq.abort()
@@ -636,11 +636,11 @@ class OpsiPackageManager(TransferProgressListener):
 		return self.productPackageMD5Sums[os.path.basename(packageFile)]
 	
 	def getDepotConnection(self, depotId):
-		depotKey = self.configBackend.getOpsiHostKey(depotId)
+		depotKey = self.getConfigBackend().getOpsiHostKey(depotId)
 		return JSONRPCBackend( username = depotId, password = depotKey, address = depotId )
 	
 	def getLocalDepotPath(self, depotId):
-		depot = self.configBackend.getDepot_hash(depotId)
+		depot = self.getConfigBackend().getDepot_hash(depotId)
 		localPath = depot['repositoryLocalUrl']
 		if not localPath.startswith('file://'):
 			raise Exception("Repository local url '%s' not allowed" % localPath)
@@ -650,7 +650,7 @@ class OpsiPackageManager(TransferProgressListener):
 		return localPath
 	
 	def getRepositoryRemoteURL(self, depotId):
-		depot = self.configBackend.getDepot_hash(depotId)
+		depot = self.getConfigBackend().getDepot_hash(depotId)
 		return depot['repositoryRemoteUrl']
 		
 	def getNumberOfTransfers(self):
@@ -777,7 +777,7 @@ class OpsiPackageManager(TransferProgressListener):
 			tq.start()
 	
 	def setActionSetupWhereInstalled(self, productId, depotId):
-		clientIds = self.configBackend.getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
+		clientIds = self.getConfigBackend().getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
 		clientIds.sort()
 		if not clientIds:
 			return
@@ -785,10 +785,10 @@ class OpsiPackageManager(TransferProgressListener):
 		if not self.quiet:
 			print _("Setting action 'setup' for product '%s' on client(s): %s") % (productId, ', '.join(clientIds))
 		for clientId in clientIds:
-			self.configBackend.setProductActionRequest(productId, clientId, 'setup')
+			self.getConfigBackend().setProductActionRequest(productId, clientId, 'setup')
 	
 	def setActionUpdateWhereInstalled(self, productId, depotId):
-		clientIds = self.configBackend.getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
+		clientIds = self.getConfigBackend().getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
 		clientIds.sort()
 		if not clientIds:
 			return
@@ -796,7 +796,7 @@ class OpsiPackageManager(TransferProgressListener):
 		if not self.quiet:
 			print _("Setting action 'update' for product '%s' on client(s): %s") % (productId, ', '.join(clientIds))
 		for clientId in clientIds:
-			self.configBackend.setProductActionRequest(productId, clientId, 'update')
+			self.getConfigBackend().setProductActionRequest(productId, clientId, 'update')
 	
 	def uninstallOnDepots(self, productIds, depotIds):
 		for depotId in depotIds:
@@ -832,7 +832,7 @@ class OpsiPackageManager(TransferProgressListener):
 		repositoryUrl = self.getRepositoryRemoteURL(depotId)
 		logger.info("Using '%s' as repository url" % repositoryUrl)
 		
-		repository = getRepository(repositoryUrl, depotId, self.configBackend.getOpsiHostKey(depotId))
+		repository = getRepository(repositoryUrl, depotId, self.getConfigBackend().getOpsiHostKey(depotId))
 		repository.setMaxBandwidth(self.maxBandwidth)
 		
 		for dest in repository.content():
@@ -927,12 +927,12 @@ class OpsiPackageManager(TransferProgressListener):
 			if not self.quiet: print _("Installation of package '%s' on depot '%s' finished") \
 						% (packageFile, depotId)
 			if self.setupWhereInstalled:
-				if 'setup' in self.configBackend.getPossibleProductActions_list(productId = productId, depotId = depotId):
+				if 'setup' in self.getConfigBackend().getPossibleProductActions_list(productId = productId, depotId = depotId):
 					self.setActionSetupWhereInstalled(productId, depotId)
 				else:
 					logger.warning("Cannot set action 'setup' for product '%s'" % productId)
 			if self.updateWhereInstalled:
-				if 'update' in self.configBackend.getPossibleProductActions_list(productId = productId, depotId = depotId):
+				if 'update' in self.getConfigBackend().getPossibleProductActions_list(productId = productId, depotId = depotId):
 					self.setActionUpdateWhereInstalled(productId, depotId)
 				else:
 					logger.warning("Cannot set action 'update' for product '%s'" % productId)
@@ -951,7 +951,7 @@ class OpsiPackageManager(TransferProgressListener):
 			
 			repositoryUrl = self.getRepositoryRemoteURL(depotId)
 			logger.info("Using '%s' as repository url" % repositoryUrl)
-			repository = getRepository(repositoryUrl, depotId, self.configBackend.getOpsiHostKey(depotId))
+			repository = getRepository(repositoryUrl, depotId, self.getConfigBackend().getOpsiHostKey(depotId))
 			for destination in repository.content():
 				if not destination.startswith(productId + '_'):
 					continue
@@ -1132,7 +1132,7 @@ def main(argv):
 	
 	bm = BackendManager(authRequired=False)
 	try:
-		opm = OpsiPackageManager(bm)
+		opm = OpsiPackageManager()
 		
 		opm.forceInstall = opm.forceUninstall = options.force
 		opm.uiType = options.interface
