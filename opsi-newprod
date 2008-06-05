@@ -10,7 +10,7 @@
    @license: GNU GPL, see COPYING for details.
 """
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
 import getopt, gettext, os, sys, re
 
@@ -531,6 +531,8 @@ Possible values: Comma separated list of possible values for the variable.\n\
 	print >> postinst, '#'
 	postinst.close()
 	os.chmod(os.path.join(destDir, productId, 'OPSI', 'postinst'), 0700)
+	
+	ui.showMessage(_("Package source directory '%s' created") % os.path.join(destDir, productId), title=_('Done'))
 	
 if (__name__ == "__main__"):
 	exception = None

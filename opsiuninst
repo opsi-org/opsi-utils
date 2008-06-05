@@ -1,6 +1,162 @@
-#!/bin/sh
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+   = = = = = = = = = =
+   =   opsiuninst    =
+   = = = = = = = = = =
+   
+   opsi-package-manager is part of the desktop management solution opsi
+   (open pc server integration) http://www.opsi.org
+   
+   Copyright (C) 2008 uib GmbH
+   
+   http://www.uib.de/
+   
+   All rights reserved.
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License version 2 as
+   published by the Free Software Foundation.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   
+   @copyright:	uib GmbH <info@uib.de>
+   @author: Jan Schneider <j.schneider@uib.de>
+   @license: GNU General Public License version 2
+"""
 
-echo "Please use 'opsi-package-manager -r <product-id> ...' to remove packages"
+__version__ = '0.3.1'
 
-exit 1
+import os, getopt, gettext, socket
+
+# OPSI imports
+from OPSI.Product import *
+from OPSI.Logger import *
+from OPSI.System import *
+
+logger = Logger()
+logger.setConsoleLevel(LOG_WARNING)
+logger.setConsoleColor(True)
+
+# Get locale
+try:
+	t = gettext.translation('opsi_opsiuninst', LOCALE_DIR)
+	def _(string):
+		return t.ugettext(string).encode('utf-8', 'replace')
+except Exception, e:
+	###logger.error("Locale not found: %s" % e)
+	def _(string):
+		"""Dummy method, created and called when no locale is found.
+		Uses the fallback language (called C; means english) then."""
+		return string
+
+def usage():
+	print _("\nUsage: %s [options] <product-id>") % os.path.basename(sys.argv[0])
+	print _("Uninstall an opsi package.")
+	print _("Options:")
+	print _("    -v                show version information")
+	print _("    -h                this help text")
+	print _("    -r                remove product files")
+	print _("    -l                log-level (0-9, default: 3)")
+	print ""
+
+
+def main(argv):
+	deleteFiles = False
+	
+	print _("!!! opsiuninst is deprecated, please use opsi-package-manager !!!")
+	
+	try:
+		(opts, args) = getopt.getopt(argv, "vhrl:")
+	
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	
+	for (opt, arg) in opts:
+		if   (opt == "-h"):
+			usage()
+			return
+		elif (opt == "-v"):
+			print __version__
+			return
+		elif (opt == "-l"):
+			logger.setConsoleLevel(int(arg))
+		elif (opt == "-r"):
+			deleteFiles = True
+	
+	from OPSI.Backend.BackendManager import BackendManager
+	bm = BackendManager(authRequired=False)
+	productIds = bm.getProductIds_list()
+	
+	if (len(productIds) < 1):
+		print >> sys.stderr, _("No opsi product installed!")
+		sys.exit(1)
+	if (len(args) < 1):
+		print >> sys.stderr, _("No opsi product id supplied!")
+		print >> sys.stderr, _("Installed products:")
+		productIds.sort()
+		for productId in productIds:
+			print >> sys.stderr, "  %s" % productId
+		print >> sys.stderr, ""
+		sys.exit(1)
+	elif (len(args) > 1):
+		usage()
+		sys.exit(1)
+	
+	productId = args[0].lower()
+	if productId not in bm.getProductIds_list():
+		raise Exception("Product %s not installed" % productId)
+	
+	product = Product(productId)
+	productPackage = ProductPackage(product)
+	
+	productPackage.setClientDataDir(os.path.join('/opt/pcbin/install', productId))
+	
+	name = socket.getfqdn()
+	bm.setProductInstallationStatus(productId, name, 'uninstalled')
+	bm.deleteProductDependency(productId)
+	bm.deleteProductProperties(productId)
+	bm.deleteProduct(productId)
+	
+	if deleteFiles:
+		try:
+			productPackage.deleteClientDataDir()
+		except Exception, e:
+			logger.warning(e)
+	
+	print "Product '%s' uninstalled." % productId
+	print ""
+	
+	
+	
+
+if (__name__ == "__main__"):
+	exception = None
+	
+	try:
+		main(sys.argv[1:])
+	
+	except SystemExit, e:
+		pass
+		
+	except Exception, e:
+		exception = e
+	
+	if exception:
+		logger.setConsoleLevel(LOG_ERROR)
+		logger.logException(exception)
+		print >> sys.stderr, _("Failed to uninstall:"), str(exception)
+		sys.exit(1)
+	
+	sys.exit(0)
+
+
 
