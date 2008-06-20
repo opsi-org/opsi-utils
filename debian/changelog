@@ -1,3 +1,12 @@
+opsi-utils (3.3.0.7-1) stable; urgency=low
+
+  * opsi-admin 0.9.9.1
+      fixed cmdline parsing)
+  * opsi-convert 0.6
+      added multi-depot support
+
+ -- Jan Schneider <j.schneider@uib.de>  Fri, 20 Jun 2008 16:00:14 +0200
+
 opsi-utils (3.3.0.6-1) stable; urgency=low
 
   * opsi-package-manager 1.0.0.9 (fixed http request collisions)
