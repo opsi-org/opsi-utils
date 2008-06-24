@@ -2,21 +2,7 @@
 
 build: build-arch build-indep
 
-build-arch: build23-stamp build24-stamp build-stamp
-
-build24-stamp:
-	rm -f build24-stamp
-	rm -Rf debian/tmp24 || true
-	mkdir debian/tmp24
-	for i in opsi-package-manager opsi-admin opsi-newprod opsi-makeproductfile opsiinst opsiuninst opsi-convert; do cat $$i | sed 's/#!\/usr\/bin\/python/#!\/usr\/bin\/python2.4/' > debian/tmp24/$$i; done
-	touch build24-stamp
-
-build23-stamp:
-	rm -f build23-stamp
-	rm -Rf debian/tmp23 || true
-	mkdir debian/tmp23
-	for i in opsi-package-manager opsi-admin opsi-newprod opsi-makeproductfile opsiinst opsiuninst opsi-convert; do cat $$i | sed 's/#!\/usr\/bin\/python/#!\/usr\/bin\/python2.3/' > debian/tmp23/$$i; done
-	touch build23-stamp
+build-arch: build-stamp
 
 build-stamp:
 
@@ -37,46 +23,11 @@ build-indep-stamp:
 
 clean:
 	rm -f *-stamp
-	rm -Rf debian/tmp23 || true
-	rm -Rf debian/tmp24 || true
+	rm debian/files || true
 
 binary: binary-arch binary-indep
 
-binary-arch: build-arch binary23-stamp binary24-stamp binary-stamp
-
-binary23-stamp:
-	mkdir -p debian/opsi-utils-python2.3/usr/bin
-	mkdir -p debian/opsi-utils-python2.3/usr/share/locale/de/LC_MESSAGES
-	install -m 0640 gettext/opsi_newprod_de.mo debian/opsi-utils-python2.3/usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
-	install -m 0750 -g opsiadmin debian/tmp23/opsi-admin debian/opsi-utils-python2.3/usr/bin/
-	install -m 0755 debian/tmp23/opsi-newprod debian/opsi-utils-python2.3/usr/bin/
-	install -m 0755 debian/tmp23/opsi-makeproductfile debian/opsi-utils-python2.3/usr/bin/
-	install -m 0755 debian/tmp23/opsiinst debian/opsi-utils-python2.3/usr/bin/
-	install -m 0755 debian/tmp23/opsiuninst debian/opsi-utils-python2.3/usr/bin/
-	install -m 0755 debian/tmp23/opsi-package-manager debian/opsi-utils-python2.3/usr/bin/
-	install -m 0755 debian/tmp23/opsi-convert debian/opsi-utils-python2.3/usr/bin/opsi-convert
-	install -m 0755 opsi-makeproductfilev2 debian/opsi-utils-python2.3/usr/bin/
-	install -m 0755 opsiinstv2 debian/opsi-utils-python2.3/usr/bin/
-	install -m 0755 opsi-winipatch debian/opsi-utils-python2.3/usr/bin/winipatch
-	install -m 0755 sysbackup debian/opsi-utils-python2.3/usr/bin/sysbackup
-	rm -Rf debian/tmp23 || true
-
-binary24-stamp:
-	mkdir -p debian/opsi-utils-python2.4/usr/bin
-	mkdir -p debian/opsi-utils-python2.4/usr/share/locale/de/LC_MESSAGES
-	install -m 0640 gettext/opsi_newprod_de.mo debian/opsi-utils-python2.4/usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
-	install -m 0750 -g opsiadmin debian/tmp24/opsi-admin debian/opsi-utils-python2.4/usr/bin/
-	install -m 0755 debian/tmp24/opsi-newprod debian/opsi-utils-python2.4/usr/bin/
-	install -m 0755 debian/tmp24/opsi-makeproductfile debian/opsi-utils-python2.4/usr/bin/
-	install -m 0755 debian/tmp24/opsiinst debian/opsi-utils-python2.4/usr/bin/
-	install -m 0755 debian/tmp24/opsiuninst debian/opsi-utils-python2.4/usr/bin/
-	install -m 0755 debian/tmp24/opsi-package-manager debian/opsi-utils-python2.4/usr/bin/
-	install -m 0755 debian/tmp24/opsi-convert debian/opsi-utils-python2.4/usr/bin/opsi-convert
-	install -m 0755 opsi-makeproductfilev2 debian/opsi-utils-python2.4/usr/bin/
-	install -m 0755 opsiinstv2 debian/opsi-utils-python2.4/usr/bin/
-	install -m 0755 opsi-winipatch debian/opsi-utils-python2.4/usr/bin/winipatch
-	install -m 0755 sysbackup debian/opsi-utils-python2.4/usr/bin/sysbackup
-	rm -Rf debian/tmp24 || true
+binary-arch: build-arch binary-stamp
 
 binary-stamp:
 	mkdir -p debian/opsi-utils/usr/bin
