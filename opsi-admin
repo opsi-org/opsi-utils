@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.9.9.1'
+__version__ = '0.9.9.2'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, json, popen2
 
@@ -1293,6 +1293,7 @@ class CommandTask(Command):
 		Command.__init__(self, 'task')
 		self._tasks = (
 			('setupWhereInstalled', 'productId'),
+			('updateWhereInstalled', 'productId'),
 			('decodePcpatchPassword', 'encodedPassword', 'opsiHostKey'),
 			('setPcpatchPassword', '*password')
 		)
@@ -1326,7 +1327,7 @@ class CommandTask(Command):
 		if (len(params) <= 0):
 			return
 		
-		elif(params[0] not in ('setupWhereInstalled', 'decodePcpatchPassword', 'setPcpatchPassword')):
+		elif(params[0] not in ('setupWhereInstalled', 'updateWhereInstalled', 'decodePcpatchPassword', 'setPcpatchPassword')):
 			raise Exception(_('Unknown task: %s') % params[0])
 		
 		if (params[0] == 'setupWhereInstalled'):
@@ -1339,6 +1340,17 @@ class CommandTask(Command):
 				for clientId in clientIds:
 					shell.appendLine(clientId)
 					backend.setProductActionRequest(productId, clientId, 'setup')
+		
+		if (params[0] == 'updateWhereInstalled'):
+			if (len(params) < 2):
+				raise Exception(_('Missing product-id'))
+			productId = params[1]
+			clientIds = backend.getClientIds_list(productId = productId, installationStatus = 'installed')
+			#clientIds = backend.getClientIds_list('', '', productId, 'installed')
+			if clientIds:
+				for clientId in clientIds:
+					shell.appendLine(clientId)
+					backend.setProductActionRequest(productId, clientId, 'update')
 		
 		if (params[0] == 'decodePcpatchPassword'):
 			if (len(params) < 3):

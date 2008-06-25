@@ -1,3 +1,10 @@
+opsi-utils (3.3.0.8-1) stable; urgency=low
+
+  * opsi-admin 0.9.9.2
+      added task updateWhereInstalled
+
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 25 Jun 2008 15:54:12 +0200
+
 opsi-utils (3.3.0.7-1) stable; urgency=low
 
   * opsi-admin 0.9.9.1
