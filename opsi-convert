@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.5.5'
+__version__ = '0.6'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -54,6 +54,7 @@ deleteFirst = True
 newServer = None
 clientIds = []
 serverIds = []
+depotIds = []
 
 # Get locale
 try:
@@ -95,7 +96,7 @@ def deleteServers():
 	logger.comment( _("Deleting servers.") )
 	for serverId in bmWrite.getServerIds_list():
 		bmWrite.deleteServer(serverId)
-	
+
 def convertServers():
 	logger.comment( _("Converting servers.") )
 	for i in range(len(serverIds)):
@@ -115,7 +116,42 @@ def convertServers():
 						notes		= server.get('notes', '') )
 			
 			bmWrite.setOpsiHostKey( newServerId, bmRead.getOpsiHostKey(server.get('hostId')) )
+			bmWrite.setPcpatchPassword( newServerId, bmRead.getPcpatchPassword(server.get('hostId')) )
 			
+		except Exception, e:
+			if isinstance(e, KeyboardInterrupt):
+				return
+			logger.error(e)
+
+def deleteDepots():
+	logger.comment( _("Deleting depots.") )
+	for depotId in bmWrite.getDepotIds_list():
+		bmWrite.deleteDepot(depotId)
+
+def convertDepots():
+	logger.comment( _("Converting depots.") )
+	for i in range(len(depotIds)):
+		depotId = depotIds[i]
+		depot = bmRead.getDepot_hash(depotId)
+		host = bmRead.getHost_hash(depotId)
+		logger.comment( "      " + _("Converting depot '%s' (%s/%s)") % (depotId, i+1, len(depotIds)) )
+		try:
+			depotName = depotId.split('.')[0]
+			domain = '.'.join( depotId.split('.')[1:] )
+			
+			bmWrite.createDepot(	depotName		= depotName, 
+						domain			= domain,
+						description		= depot.get('description', ''),
+						notes			= depot.get('notes', ''),
+						depotLocalUrl		= depot.get('depotLocalUrl', ''),
+						depotRemoteUrl		= depot.get('depotRemoteUrl', ''),
+						repositoryLocalUrl	= depot.get('repositoryLocalUrl', ''),
+						repositoryRemoteUrl	= depot.get('repositoryRemoteUrl', ''),
+						network			= depot.get('network', ''),
+						maxBandwidth		= depot.get('repositoryMaxBandwidth', '')
+			)
+			bmWrite.setOpsiHostKey( depotId, bmRead.getOpsiHostKey(depotId) )
+		
 		except Exception, e:
 			if isinstance(e, KeyboardInterrupt):
 				return
@@ -247,108 +283,110 @@ def convertNetworkConfigs():
 			
 		if new:
 			logger.comment( "            " + _("Converting network config.") )
-			bmWrite.setNetworkConfig(nc)
+			bmWrite.setNetworkConfig(nc , clientId)
 
 def deleteProducts():
 	logger.comment( _("Deleting products.") )
-	for productId in bmWrite.getProductIds_list():
-		bmWrite.deleteProduct(productId)
+	for depotId in depotIds:
+		for productId in bmWrite.getProductIds_list(objectId = depotId):
+			bmWrite.deleteProduct(productId = productId, depotIds = [ depotId ])
 	
 def convertProducts():
-	for type in ('netboot', 'localboot'):
-		logger.comment(  _("Converting %s products.") % type )
-		productIds = bmRead.getProductIds_list(type)
-		for i in range(len(productIds)):
-			productId = productIds[i]
-			logger.comment( "      " + _("Converting product '%s' (%s/%s)") % (productId, i+1, len(productIds)) )
-			product = bmRead.getProduct_hash(productId)
-			try:
-				setupScript = product.get('setupScript', '')
-				uninstallScript	= product.get('uninstallScript', '')
-				updateScript = product.get('updateScript', '')
-				alwaysScript = product.get('alwaysScript', '')
-				onceScript = product.get('onceScript', '')
-				
-				regexPath = re.compile('^\w:\\\\.*\\\\%s\\\\(.*)$' % productId, re.IGNORECASE)
-				regexURL = re.compile('^\w+:/.*/%s/(.*)$' % productId, re.IGNORECASE)
-				
-				for script in ('setupScript', 'uninstallScript', 'updateScript', 'alwaysScript', 'onceScript'):
+	objectId=None
+	for i in range(len(depotIds)):
+		depotId = depotIds[i]
+		for type in ('netboot', 'localboot'):
+			logger.comment(  _("Converting %s products on depot '%s'.") % (type, depotId) )
+			productIds = bmRead.getProductIds_list(productType = type, objectId = depotId)
+			for j in range(len(productIds)):
+				productId = productIds[j]
+				logger.comment( "      " + _("Converting product '%s' on depot '%s' (%s/%s)") % (productId, depotId, j+1, len(productIds)) )
+				product = bmRead.getProduct_hash(productId = productId, depotId = depotId)
+				try:
+					setupScript = product.get('setupScript', '')
+					uninstallScript	= product.get('uninstallScript', '')
+					updateScript = product.get('updateScript', '')
+					alwaysScript = product.get('alwaysScript', '')
+					onceScript = product.get('onceScript', '')
 					
-					if not eval(script):
-						continue
-					match = re.search(regexPath, eval(script))
-					if match:
-						logger.info("Changing scriptname from '%s' to '%s'" % (eval(script), match.group(1)))
-						exec("%s = '%s'" % (script, match.group(1)))
-						continue
-					match = re.search(regexURL, eval(script))
-					if match:
-						logger.info("Changing scriptname from '%s' to '%s'" % (eval(script), match.group(1)))
-						exec("%s = '%s'" % (script, match.group(1)))
+					regexPath = re.compile('^\w:\\\\.*\\\\%s\\\\(.*)$' % productId, re.IGNORECASE)
+					regexURL = re.compile('^\w+:/.*/%s/(.*)$' % productId, re.IGNORECASE)
 					
-				bmWrite.createProduct(	productType		= type, 
-							productId		= productId,
-							name			= product.get('name'),
-							productVersion		= product.get('productVersion', '1.0'),
-							packageVersion		= product.get('packageVersion', '1'),
-							licenseRequired		= product.get('licenseRequired', 0),
-							setupScript		= setupScript,
-							uninstallScript		= uninstallScript,
-							updateScript		= updateScript,
-							alwaysScript		= alwaysScript,
-							onceScript		= onceScript,
-							priority		= product.get('priority', 0),
-							description		= product.get('description', ''),
-							advice			= product.get('advice', ''),
-							productClassNames	= product.get('productClassNames', []),
-							pxeConfigTemplate	= product.get('pxeConfigTemplate', None) )
-			except Exception, e:
-				if isinstance(e, KeyboardInterrupt):
-					return
-				logger.logException(e)
-				continue
-			
-			for dependency in bmRead.getProductDependencies_listOfHashes(productId):
-				logger.comment( "            " + _("Converting product dependency '%s'") \
-					% dependency.get('requiredProductId', dependency.get('requiredProductClassId')) )
-				bmWrite.createProductDependency(
-						productId			= productId,
-						action				= dependency.get('action'),
-						requiredProductId		= dependency.get('requiredProductId'),
-						requiredProductClassId		= dependency.get('requiredProductClassId'),
-						requiredAction			= dependency.get('requiredAction'),
-						requiredInstallationStatus	= dependency.get('requiredInstallationStatus'),
-						requirementType			= dependency.get('requirementType') )
+					for script in ('setupScript', 'uninstallScript', 'updateScript', 'alwaysScript', 'onceScript'):
+						
+						if not eval(script):
+							continue
+						match = re.search(regexPath, eval(script))
+						if match:
+							logger.info("Changing scriptname from '%s' to '%s'" % (eval(script), match.group(1)))
+							exec("%s = '%s'" % (script, match.group(1)))
+							continue
+						match = re.search(regexURL, eval(script))
+						if match:
+							logger.info("Changing scriptname from '%s' to '%s'" % (eval(script), match.group(1)))
+							exec("%s = '%s'" % (script, match.group(1)))
+						
+					bmWrite.createProduct(	productType		= type, 
+								productId		= productId,
+								name			= product.get('name'),
+								productVersion		= product.get('productVersion', '1.0'),
+								packageVersion		= product.get('packageVersion', '1'),
+								licenseRequired		= product.get('licenseRequired', 0),
+								setupScript		= setupScript,
+								uninstallScript		= uninstallScript,
+								updateScript		= updateScript,
+								alwaysScript		= alwaysScript,
+								onceScript		= onceScript,
+								priority		= product.get('priority', 0),
+								description		= product.get('description', ''),
+								advice			= product.get('advice', ''),
+								productClassNames	= product.get('productClassNames', []),
+								pxeConfigTemplate	= product.get('pxeConfigTemplate', None),
+								depotIds		= [ depotId ] )
+				except Exception, e:
+					if isinstance(e, KeyboardInterrupt):
+						return
+					logger.logException(e)
+					continue
 				
-			for definition in bmRead.getProductPropertyDefinitions_listOfHashes(productId):
-				logger.comment( "            " + _("Converting product property definition '%s'") % definition.get('name') )
-				bmWrite.createProductPropertyDefinition(
-						productId 	= productId,
-						name		= definition.get('name'),
-						description	= definition.get('description'),
-						defaultValue	= definition.get('default'),
-						possibleValues	= definition.get('values') )
-		logger.comment("")
+				for dependency in bmRead.getProductDependencies_listOfHashes(productId = productId, depotId = depotId):
+					logger.comment( "            " + _("Converting product dependency '%s'") \
+						% dependency.get('requiredProductId', dependency.get('requiredProductClassId')) )
+					bmWrite.createProductDependency(
+							productId			= productId,
+							action				= dependency.get('action'),
+							requiredProductId		= dependency.get('requiredProductId'),
+							requiredProductClassId		= dependency.get('requiredProductClassId'),
+							requiredAction			= dependency.get('requiredAction'),
+							requiredInstallationStatus	= dependency.get('requiredInstallationStatus'),
+							requirementType			= dependency.get('requirementType'),
+							depotIds			= [ depotId ] )
+					
+				for definition in bmRead.getProductPropertyDefinitions_listOfHashes(productId = productId, depotId = depotId):
+					logger.comment( "            " + _("Converting product property definition '%s'") % definition.get('name') )
+					bmWrite.createProductPropertyDefinition(
+							productId 	= productId,
+							name		= definition.get('name'),
+							description	= definition.get('description'),
+							defaultValue	= definition.get('default'),
+							possibleValues	= definition.get('values'),
+							depotIds	= [ depotId ] )
+			logger.comment("")
 
 def convertProductStates():
 	logger.comment( _("Converting product states.") )
-	hostIds = list(serverIds)
-	hostIds.extend( list(clientIds) )
 	
 	i = 0
-	for (hostId, states) in bmRead.getProductStates_hash(hostIds).items():
-		isServer = hostId in serverIds
+	for (clientId, states) in bmRead.getProductStates_hash(clientIds).items():
 		i += 1
-		logger.comment( "      " + _("Converting product states of host '%s' (%s/%s)") % ( hostId, i, len(hostIds) ) )
+		logger.comment( "      " + _("Converting product states of client '%s' (%s/%s)") % ( clientId, i, len(clientIds) ) )
 		for state in states:
 			logger.comment( "               " + _("Converting product state for product '%s' on '%s' (%s/%s)") \
-							% ( state.get('productId'), hostId, i, len(hostIds) ) )
+							% ( state.get('productId'), clientId, i, len(clientIds) ) )
 			try:
-				if isServer and newServer:
-					hostId = newServer
 				bmWrite.setProductState(
 						state.get('productId'),
-						hostId,
+						clientId,
 						installationStatus = state.get('installationStatus'),
 						actionRequest = state.get('actionRequest'),
 						productVersion = state.get('productVersion'),
@@ -365,39 +403,42 @@ def convertProductStates():
 
 def convertProductProperties():
 	logger.comment( _("Converting product properties.") )
-	i = 0
-	productIds = bmRead.getProductIds_list()
-	for productId in productIds:
-		i += 1
-		logger.comment( "      " + _("Converting product properties for product '%s' (%s/%s)") % (productId, i, len(productIds)) )
-		productProperties = bmRead.getProductProperties_hash(productId)
-		try:
-			bmWrite.setProductProperties(productId, productProperties)
-		except Exception, e:
-			if isinstance(e, KeyboardInterrupt):
-				return
-			logger.error(e)
+	for depotId in depotIds:
+		i = 0
+		productIds = bmRead.getProductIds_list(objectId = depotId)
+		clientIds =  bmRead.getClientIds_list(depotId = depotId)
 		
-		for clientId in clientIds:
-			logger.comment( "            " + _("Converting product properties for product '%s' on '%s' (%s/%s)") % (productId, clientId, i, len(productIds)) )
-			pp = bmRead.getProductProperties_hash(productId, clientId)
-			new = False
+		for productId in productIds:
+			i += 1
+			logger.comment( "      " + _("Converting product properties for product '%s' (%s/%s)") % (productId, i, len(productIds)) )
+			productProperties = bmRead.getProductProperties_hash(productId, objectId = depotId)
+			try:
+				bmWrite.setProductProperties(productId, productProperties, objectId = depotId)
+			except Exception, e:
+				if isinstance(e, KeyboardInterrupt):
+					return
+				logger.error(e)
 			
-			for (key, value) in pp.items():
-				if not productProperties.has_key(key):
-					new = True
-					break
-				elif (productProperties.get(key) != value):
-					new = True
-					break
+			for clientId in clientIds:
+				logger.comment( "            " + _("Converting product properties for product '%s' on '%s' (%s/%s)") % (productId, clientId, i, len(productIds)) )
+				pp = bmRead.getProductProperties_hash(productId, clientId)
+				new = False
 				
-			if new:
-				try:
-					bmWrite.setProductProperties(productId, pp, clientId)
-				except Exception, e:
-					if isinstance(e, KeyboardInterrupt):
-						return
-					logger.error(e)
+				for (key, value) in pp.items():
+					if not productProperties.has_key(key):
+						new = True
+						break
+					elif (productProperties.get(key) != value):
+						new = True
+						break
+					
+				if new:
+					try:
+						bmWrite.setProductProperties(productId, pp, clientId)
+					except Exception, e:
+						if isinstance(e, KeyboardInterrupt):
+							return
+						logger.error(e)
 
 def main(argv):
 	global logLevel
@@ -406,6 +447,7 @@ def main(argv):
 	global deleteFirst
 	global newServer
 	global clientIds
+	global depotIds
 	global serverIds
 	
 	# Get options
@@ -544,6 +586,7 @@ def main(argv):
 	bmWrite.authenticated()
 	
 	serverIds = bmRead.getServerIds_list()
+	depotIds = bmRead.getDepotIds_list()
 	clientIds = bmRead.getClientIds_list()
 	if newServer:
 		if (len(serverIds) > 1):
@@ -565,9 +608,12 @@ def main(argv):
 	logger.comment("")
 	createOpsiBase()
 	
-	# Servers
-	if deleteFirst: deleteServers()
+	# Servers / depots
+	if deleteFirst:
+		deleteServers()
+		deleteDepots()
 	convertServers()
+	convertDepots()
 	
 	# Clients
 	logger.comment("")

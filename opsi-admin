@@ -1,16 +1,38 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-   ============================================
-   =   OPSI commandline admin (opsi-admin)    =
-   ============================================
+   = = = = = = = = = =
+   =   opsi-admin    =
+   = = = = = = = = = =
    
-   @copyright:	uib - http://www.uib.de - <info@uib.de>
+   opsi-admin is part of the desktop management solution opsi
+   (open pc server integration) http://www.opsi.org
+   
+   Copyright (C) 2007,2008 uib GmbH
+   
+   http://www.uib.de/
+   
+   All rights reserved.
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License version 2 as
+   published by the Free Software Foundation.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   
+   @copyright:	uib GmbH <info@uib.de>
    @author: Jan Schneider <j.schneider@uib.de>
-   @license: GNU GPL, see COPYING for details.
+   @license: GNU General Public License version 2
 """
 
-__version__ = '0.9.8'
+__version__ = '0.9.9.2'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, json, popen2
 
@@ -56,7 +78,7 @@ LOGO =[	{"color": COLOR_GREEN, "text": '                                .. .... 
 	{"color": COLOR_GREEN, "text": '                        ?MMMNx.   !!   ..&MMM"                 '},
 	{"color": COLOR_GREEN, "text": '                          .TMMMMMMMMMMMMMM"^                   '},
 	{"color": COLOR_GREEN, "text": '                              .?""""""^!                       '},
-	{"color": COLOR_GREEN, "text": '                                                               '},
+	{"color": COLOR_GREEN, "text": '      opsi-admin %-10s                                    ' % __version__},
 	{"color": COLOR_GREEN, "text": '                                                               '} ]
 	
 
@@ -72,8 +94,6 @@ except Exception, e:
 		return string
 
 
-
-
 def signalHandler(signo, stackFrame):
 	logger.info("Received signal %s" % signo)
 	if (signo == SIGINT):
@@ -82,9 +102,10 @@ def signalHandler(signo, stackFrame):
 		sys.exit(0)
 	
 def usage():
-	print _("\nUsage: %s [-u -p -a -d -l -f -i -c -s] [command] [args...]") % os.path.basename(sys.argv[0])
+	print _("\nUsage: %s [options] [command] [args...]") % os.path.basename(sys.argv[0])
 	print _("Options:")
 	print _("  -h, --help           Display this text")
+	print _("  -V, --version        Display this text")
 	print _("  -u, --username       Username (default: current user)")
 	print _("  -p, --password       Password (default: prompt for password)")
 	print _("  -a, --address        URL of opsiconfd (default: https://localhost:4447/rpc)")
@@ -117,10 +138,10 @@ def main(argv):
 	direct = False
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSh", 
+		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsShV", 
 					[ "username=", "password=", "address=", 
 					  "loglevel=", "log-file=", "interactive", "direct",
-					  "colorize", "shell-output", "simple-output", "help" ])
+					  "colorize", "shell-output", "simple-output", "help", "version" ])
 
 	except getopt.GetoptError:
 		usage()
@@ -129,6 +150,9 @@ def main(argv):
 	for (opt, arg) in opts:
 		if   opt in ("-h", "--help"):
 			usage()
+			sys.exit(0)
+		elif opt in ("-V", "--version"):
+			print "%s %s" % (os.path.basename(sys.argv[0]), __version__)
 			sys.exit(0)
 		elif opt in ("-u", "--username"):
 			username = arg
@@ -220,13 +244,13 @@ def main(argv):
 	cmdline = ''
 	if (len(args) > 0):
 		for i in range(len(args)):
+			logger.info("arg[%d]: %s" % (i, args[i]))
 			if (i == 0):
 				cmdline = str(args[i])
 			elif (str(args[i]).find(' ') != -1) or (len(str(args[i])) == 0):
 				cmdline += " '%s'" % args[i]
 			else:
 				cmdline += " %s" % args[i]
-	
 	
 	if not cmdline:
 		import select
@@ -538,8 +562,10 @@ class Shell:
 			
 			if (self.cmdline[i] == "'"):
 				if (quote == None):
+					#self.params[cur] += '\''
 					quote = "'"
 				elif (quote == "'"):
+					#self.params[cur] += '\''
 					if not self.params[cur]:
 						cur += 1
 					quote = None
@@ -548,8 +574,10 @@ class Shell:
 			
 			elif (self.cmdline[i] == '"'):
 				if (quote == None):
+					self.params[cur] += '"'
 					quote = '"'
 				elif (quote == '"'):
+					self.params[cur] += '"'
 					if not self.params[cur]:
 						cur += 1
 					quote = None
@@ -1265,6 +1293,7 @@ class CommandTask(Command):
 		Command.__init__(self, 'task')
 		self._tasks = (
 			('setupWhereInstalled', 'productId'),
+			('updateWhereInstalled', 'productId'),
 			('decodePcpatchPassword', 'encodedPassword', 'opsiHostKey'),
 			('setPcpatchPassword', '*password')
 		)
@@ -1298,7 +1327,7 @@ class CommandTask(Command):
 		if (len(params) <= 0):
 			return
 		
-		elif(params[0] not in ('setupWhereInstalled', 'decodePcpatchPassword', 'setPcpatchPassword')):
+		elif(params[0] not in ('setupWhereInstalled', 'updateWhereInstalled', 'decodePcpatchPassword', 'setPcpatchPassword')):
 			raise Exception(_('Unknown task: %s') % params[0])
 		
 		if (params[0] == 'setupWhereInstalled'):
@@ -1311,6 +1340,17 @@ class CommandTask(Command):
 				for clientId in clientIds:
 					shell.appendLine(clientId)
 					backend.setProductActionRequest(productId, clientId, 'setup')
+		
+		if (params[0] == 'updateWhereInstalled'):
+			if (len(params) < 2):
+				raise Exception(_('Missing product-id'))
+			productId = params[1]
+			clientIds = backend.getClientIds_list(productId = productId, installationStatus = 'installed')
+			#clientIds = backend.getClientIds_list('', '', productId, 'installed')
+			if clientIds:
+				for clientId in clientIds:
+					shell.appendLine(clientId)
+					backend.setProductActionRequest(productId, clientId, 'update')
 		
 		if (params[0] == 'decodePcpatchPassword'):
 			if (len(params) < 3):
