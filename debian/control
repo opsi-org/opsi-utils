@@ -8,6 +8,6 @@ Standards-Version: 3.6.1
 Package: opsi-utils
 Section: opsi
 Architecture: all
-Depends: python-opsi (>= 3.3.0.10-1)
+Depends: python-opsi (>= 3.3.0.20-1)
 Description: OPSI utils
  This package contains the opsi util collection.
