@@ -32,14 +32,16 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '1.0.0.9'
+__version__ = '1.0.1'
 
-import sys, os, mimetools, base64, re, stat, socket, threading, time, fcntl, math
+import sys, os, base64, re, stat, socket, threading, time, fcntl, math
 from optparse import OptionParser, IndentedHelpFormatter
 from twisted.web2 import responsecode
 from twisted.web2.dav import davxml
 from httplib import HTTPConnection, HTTPSConnection
 import urllib
+
+import librsync
 
 from OPSI.Backend.Backend import *
 from OPSI.Backend.BackendManager import BackendManager
@@ -595,6 +597,7 @@ class OpsiPackageManager(TransferProgressListener):
 		self.maxBandwidth = 0
 		self.overwriteIfMD5SumDiffers = True
 		self.overwriteAlways = False
+		self.deltaUpload = True
 		self.forceInstall = False
 		self.keepDefaultProductProperties = False
 		self.deleteFilesOnUninstall = True
@@ -835,12 +838,6 @@ class OpsiPackageManager(TransferProgressListener):
 		repository = getRepository(repositoryUrl, depotId, self.getConfigBackend().getOpsiHostKey(depotId))
 		repository.setMaxBandwidth(self.maxBandwidth)
 		
-		for dest in repository.content():
-			if dest.startswith(productId + '_') and (dest != destination):
-				# same product, different version => delete
-				logger.notice("Deleting '%s' from depot '%s'" % (dest, depotId))
-				repository.delete(dest)
-		
 		if destination in repository.content():
 			logger.info("Destination '%s' already exists on depot '%s'" % (destination, depotId))
 			if not self.overwriteAlways:
@@ -875,12 +872,67 @@ class OpsiPackageManager(TransferProgressListener):
 			raise Exception("Not enough disk space on depot '%s': %dMB needed, %dMB available" \
 						% (depotId, (packageSize/(1024*1024)), (info['available']/(1024*1024))))
 		
-		logger.notice("Starting upload of '%s' to depot '%s'" \
-				% (os.path.basename(packageFile), depotId))
-		if not self.quiet: print _("Starting upload of '%s' to depot '%s'") \
-						% (os.path.basename(packageFile), depotId)
+		oldPackages = []
+		for dest in repository.content():
+			if dest.startswith(productId + '_') and (dest != destination):
+				# same product, different version
+				oldPackages.append(dest)
 		
-		repository.upload(packageFile, destination, progressListener = self)
+		if self.deltaUpload and oldPackages:
+			oldPackage = oldPackages[0]
+			be = self.getDepotConnection(depotId)
+			lp = self.getLocalDepotPath(depotId)
+			
+			logger.notice("Getting librsync signature of '%s'" % oldPackage)
+			if not self.quiet: print "  ", _("Getting librsync signature of '%s'") % oldPackage
+			
+			sig = base64.decodestring( be.librsyncSignature(lp + '/' + oldPackage) )
+			
+			logger.notice("Calculating delta")
+			if not self.quiet: print "  ", _("Calculating delta")
+			
+			deltaFileName = '%s_%s.delta' % (productId, depotId)
+			deltaFile = os.path.join('/tmp', deltaFileName)
+			bf = open(packageFile, "rb")
+			df = open(deltaFile, "wb")
+			ldf = librsync.DeltaFile(sig, bf)
+			df.write(ldf.read())
+			df.close()
+			bf.close()
+			ldf.close()
+			
+			packageSize = os.stat(packageFile)[stat.ST_SIZE]
+			deltaSize = os.stat(deltaFile)[stat.ST_SIZE]
+			speedup = int(packageSize/deltaSize)
+			
+			logger.notice("Delta calculated, upload speedup is %d" % speedup)
+			if not self.quiet: print "  ", _("Delta calculated, upload speedup is %d") % speedup
+			
+			logger.notice("Starting delta upload of '%s' to depot '%s'" \
+				% (deltaFileName, depotId))
+			if not self.quiet: print "  ", _("Starting delta upload of '%s' to depot '%s'") \
+							% (deltaFileName, depotId)
+			
+			repository.upload(deltaFile, deltaFileName, progressListener = self)
+			
+			logger.notice("Patching '%s'" % oldPackage)
+			if not self.quiet: print "  ", _("Patching '%s'") % oldPackage
+			
+			be.librsyncPatchFile(lp + '/' + oldPackage, lp + '/' + deltaFileName, lp + '/' + destination)
+			be.exit()
+			
+			os.unlink(deltaFile)
+			repository.delete(deltaFileName)
+		else:
+			logger.notice("Starting upload of '%s' to depot '%s'" \
+				% (os.path.basename(packageFile), depotId))
+			if not self.quiet: print _("Starting upload of '%s' to depot '%s'") \
+							% (os.path.basename(packageFile), depotId)
+			repository.upload(packageFile, destination, progressListener = self)
+		
+		for oldPackage in oldPackages:
+			logger.notice("Deleting '%s' from depot '%s'" % (oldPackage, depotId))
+			repository.delete(oldPackage)
 		
 		be = self.getDepotConnection(depotId)
 		rMD5 = be.getMD5Sum( self.getLocalDepotPath(depotId) + '/' + os.path.basename(packageFile) )
