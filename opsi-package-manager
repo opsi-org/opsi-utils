@@ -597,7 +597,7 @@ class OpsiPackageManager(TransferProgressListener):
 		self.maxBandwidth = 0
 		self.overwriteIfMD5SumDiffers = True
 		self.overwriteAlways = False
-		self.deltaUpload = True
+		self.deltaUpload = False
 		self.forceInstall = False
 		self.keepDefaultProductProperties = False
 		self.deleteFilesOnUninstall = True
