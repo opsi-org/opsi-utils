@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 import sys, os, base64, re, stat, socket, threading, time, fcntl, math
 from optparse import OptionParser, IndentedHelpFormatter
@@ -41,7 +41,7 @@ from twisted.web2.dav import davxml
 from httplib import HTTPConnection, HTTPSConnection
 import urllib
 
-import librsync
+from duplicity import librsync
 
 from OPSI.Backend.Backend import *
 from OPSI.Backend.BackendManager import BackendManager
@@ -597,7 +597,7 @@ class OpsiPackageManager(TransferProgressListener):
 		self.maxBandwidth = 0
 		self.overwriteIfMD5SumDiffers = True
 		self.overwriteAlways = False
-		self.deltaUpload = True
+		self.deltaUpload = False
 		self.forceInstall = False
 		self.keepDefaultProductProperties = False
 		self.deleteFilesOnUninstall = True
