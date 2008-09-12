@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.9.9.2'
+__version__ = '0.9.9.3'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, json, popen2
 
@@ -1379,13 +1379,20 @@ class CommandTask(Command):
 			
 			backend.setPcpatchPassword(fqdn, blowfishEncrypt(backend.getOpsiHostKey(fqdn), password))
 			
-			f = os.popen(which('chpasswd'), 'w')
-			f.write("pcpatch:%s\n" % password)
-			f.close()
+			try:
+				uva = which('univention-admin')
+				os.system(	uva + ' users/user modify' \
+						+ ' --dn "`' + uva + ' users/user list --filter "(uid=pcpatch)" | grep ^DN | cut -d" " -f2`"' \
+						+ ' --set password="' + password + '" --set overridePWLength=1 --set overridePWHistory=1')
+			except:
+				# univention-admin not found
+				f = os.popen(which('chpasswd'), 'w')
+				f.write("pcpatch:%s\n" % password)
+				f.close()
 			
-			f = os.popen('%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
-			f.write("%s\n%s\n" % (password, password))
-			f.close()
+				f = os.popen('%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
+				f.write("%s\n%s\n" % (password, password))
+				f.close()
 			
 			for clientId in backend.getClientIds_list(serverId = fqdn):
 				try:
