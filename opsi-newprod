@@ -10,7 +10,7 @@
    @license: GNU GPL, see COPYING for details.
 """
 
-__version__ = '0.3.3'
+__version__ = '0.3.4'
 
 import getopt, gettext, os, sys, re
 
@@ -506,7 +506,7 @@ Possible values: Comma separated list of possible values for the variable.\n\
 	
 	# Creating preinst template
 	preinst = open( os.path.join(destDir, productId, 'OPSI', 'preinst'), 'w' )
-	print >> preinst, '#! /bin/sh'
+	print >> preinst, '#! /bin/bash'
 	print >> preinst, '#'
 	print >> preinst, '# preinst script for %s' % product.productId
 	print >> preinst, '# This script executes before that package will be unpacked from its archive file.'
@@ -520,7 +520,7 @@ Possible values: Comma separated list of possible values for the variable.\n\
 	
 	# Creating postinst template
 	postinst = open( os.path.join(destDir, productId, 'OPSI', 'postinst'), 'w' )
-	print >> postinst, '#! /bin/sh'
+	print >> postinst, '#! /bin/bash'
 	print >> postinst, '#'
 	print >> postinst, '# postinst script for %s' % product.productId
 	print >> postinst, '# This script executes after unpacking files from that archive and registering the product at the server.'
