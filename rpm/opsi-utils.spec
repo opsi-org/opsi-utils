@@ -70,19 +70,18 @@ rm -rf $RPM_BUILD_ROOT
 %postun
 
 # ===[ files ]======================================
-%files -f INSTALLED_FILES
+%files
 # default attributes
-%defattr(-,root,root)
+%defattr(755,root,root)
 
 # documentation
 #%doc LICENSE README RELNOTES doc
 
 # configfiles
-%config /usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
+%attr(644,root,root) %config /usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
 
 # other files
-/usr/bin/opsiadmin
-/usr/bin/opsi-admin
+%attr(750,root,opsiadmin) /usr/bin/opsi-admin
 /usr/bin/opsi-newprod
 /usr/bin/opsi-makeproductfile
 /usr/bin/opsiinst

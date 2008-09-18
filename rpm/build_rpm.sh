@@ -19,7 +19,7 @@ test -e $buildroot && rm -rf $buildroot
 cd $dir/..
 test -e $tmpdir && rm -rf $tmpdir
 mkdir $tmpdir
-cp opsi-admin opsi-convert opsiinst opsiinstv2 opsi-makeproductfile opsi-makeproductfilev2 opsi-newprod opsi-package-manager opsiuninst opsi-winipatch sysbackup ${tmpdir}/
+cp -r gettext opsi-admin opsi-convert opsiinst opsiinstv2 opsi-makeproductfile opsi-makeproductfilev2 opsi-newprod opsi-package-manager opsiuninst opsi-winipatch sysbackup ${tmpdir}/
 cd ${tmpdir}/..
 tar cjvf ${sourcedir}/${packagename}-${version}.tar.bz2 ${packagename}-${version}
 rm -rf $tmpdir
