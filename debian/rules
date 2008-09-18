@@ -39,11 +39,11 @@ binary-stamp:
 	install -m 0755 opsiinst debian/opsi-utils/usr/bin/
 	install -m 0755 opsiuninst debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-package-manager debian/opsi-utils/usr/bin/
-	install -m 0755 opsi-convert debian/opsi-utils/usr/bin/opsi-convert
+	install -m 0755 opsi-convert debian/opsi-utils/usr/bin
 	install -m 0755 opsi-makeproductfilev2 debian/opsi-utils/usr/bin/
 	install -m 0755 opsiinstv2 debian/opsi-utils/usr/bin/
-	install -m 0755 opsi-winipatch debian/opsi-utils/usr/bin/winipatch
-	install -m 0755 sysbackup debian/opsi-utils/usr/bin/sysbackup
+	install -m 0755 opsi-winipatch debian/opsi-utils/usr/bin/
+	install -m 0755 sysbackup debian/opsi-utils/usr/bin/
 	
 binary-indep: build-indep binary-indep-stamp
 
@@ -52,7 +52,7 @@ binary-indep-stamp:
 	dh_link -A usr/bin/opsi-makeproductfile usr/bin/makeproductfile
 	dh_link -A usr/bin/opsi-makeproductfilev2 usr/bin/makeproductfilev2
 	dh_link -A usr/bin/opsi-newprod usr/bin/newprod
-	dh_link -A usr/bin/winipatch usr/bin/opsi-winipatch
+	dh_link -A usr/bin/opsi-winipatch usr/bin/winipatch
 	# Install changelogs into package build directories
 	dh_installchangelogs
 	# Fix permissions of files in package build directories
