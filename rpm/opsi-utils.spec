@@ -99,7 +99,6 @@ rm -rf $RPM_BUILD_ROOT
 
 # directories
 %dir /usr/share/locale/de/LC_MESSAGES
-%dir /usr/bin
 
 # ===[ changelog ]==================================
 %changelog
