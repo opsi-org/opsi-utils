@@ -1,5 +1,5 @@
 #
-# spec file for package python-opsi
+# spec file for package opsi-utils
 #
 # Copyright (c) 2008 uib GmbH.
 # This file and all modifications and additions to the pristine
@@ -18,6 +18,7 @@ Summary:        opsi python library
 %define tarname opsi-utils
 Source:         %{tarname}-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+BuildArch:      noarch
 %{py_requires}
 
 # ===[ description ]================================
