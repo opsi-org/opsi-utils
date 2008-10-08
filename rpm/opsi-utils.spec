@@ -12,7 +12,7 @@ Url:            http://www.opsi.org
 License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        3.3.0.11
+Version:        3.3.0.12
 Release:        1
 Summary:        opsi python library
 %define tarname opsi-utils
