@@ -1,8 +1,9 @@
 opsi-utils (3.3.0.12-1) stable; urgency=low
 
   * opsi-package-manager 1.0.3
+  * opsi-admin 0.9.9.4 (setupWhereNotInstalled)
 
- -- Jan Schneider <j.schneider@uib.de>  Wed, 08 Oct 2008 17:46:18 +0200
+ -- Jan Schneider <j.schneider@uib.de>  Fri, 10 Oct 2008 10:01:39 +0200
 
 opsi-utils (3.3.0.11-1) stable; urgency=low
 
