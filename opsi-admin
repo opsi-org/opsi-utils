@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.9.9.3'
+__version__ = '0.9.9.4'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, json, popen2
 
@@ -1293,6 +1293,7 @@ class CommandTask(Command):
 		Command.__init__(self, 'task')
 		self._tasks = (
 			('setupWhereInstalled', 'productId'),
+			('setupWhereNotInstalled', 'productId'),
 			('updateWhereInstalled', 'productId'),
 			('decodePcpatchPassword', 'encodedPassword', 'opsiHostKey'),
 			('setPcpatchPassword', '*password')
@@ -1327,7 +1328,7 @@ class CommandTask(Command):
 		if (len(params) <= 0):
 			return
 		
-		elif(params[0] not in ('setupWhereInstalled', 'updateWhereInstalled', 'decodePcpatchPassword', 'setPcpatchPassword')):
+		elif(params[0] not in ('setupWhereInstalled', 'setupWhereNotInstalled', 'updateWhereInstalled', 'decodePcpatchPassword', 'setPcpatchPassword')):
 			raise Exception(_('Unknown task: %s') % params[0])
 		
 		if (params[0] == 'setupWhereInstalled'):
@@ -1335,7 +1336,16 @@ class CommandTask(Command):
 				raise Exception(_('Missing product-id'))
 			productId = params[1]
 			clientIds = backend.getClientIds_list(productId = productId, installationStatus = 'installed')
-			#clientIds = backend.getClientIds_list('', '', productId, 'installed')
+			if clientIds:
+				for clientId in clientIds:
+					shell.appendLine(clientId)
+					backend.setProductActionRequest(productId, clientId, 'setup')
+		
+		if (params[0] == 'setupWhereNotInstalled'):
+			if (len(params) < 2):
+				raise Exception(_('Missing product-id'))
+			productId = params[1]
+			clientIds = backend.getClientIds_list(productId = productId, installationStatus = 'not_installed')
 			if clientIds:
 				for clientId in clientIds:
 					shell.appendLine(clientId)
@@ -1346,7 +1356,6 @@ class CommandTask(Command):
 				raise Exception(_('Missing product-id'))
 			productId = params[1]
 			clientIds = backend.getClientIds_list(productId = productId, installationStatus = 'installed')
-			#clientIds = backend.getClientIds_list('', '', productId, 'installed')
 			if clientIds:
 				for clientId in clientIds:
 					shell.appendLine(clientId)
