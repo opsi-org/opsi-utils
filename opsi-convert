@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.6'
+__version__ = '0.6.1'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -342,6 +342,7 @@ def convertProducts():
 								advice			= product.get('advice', ''),
 								productClassNames	= product.get('productClassNames', []),
 								pxeConfigTemplate	= product.get('pxeConfigTemplate', None),
+								windowsSoftwareIds	= product.get('windowsSoftwareIds', []),
 								depotIds		= [ depotId ] )
 				except Exception, e:
 					if isinstance(e, KeyboardInterrupt):
@@ -637,7 +638,7 @@ def main(argv):
 	logger.comment("")
 	if deleteFirst: deleteProducts()
 	convertProducts()
-
+	
 	# Product States
 	logger.comment("")
 	convertProductStates()
