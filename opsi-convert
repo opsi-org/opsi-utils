@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.6.1'
+__version__ = '0.6.2'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -155,7 +155,7 @@ def convertDepots():
 		except Exception, e:
 			if isinstance(e, KeyboardInterrupt):
 				return
-			logger.error(e)
+			raise Exception("Failed to convert depot '%s': %s" % (depotId, e))
 
 def deleteClients():
 	logger.comment( _("Deleting clients.") )
