@@ -32,16 +32,16 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '1.0.3'
+__version__ = '1.0.2'
 
 import sys, os, base64, re, stat, socket, threading, time, fcntl, math
 from optparse import OptionParser, IndentedHelpFormatter
-from OPSI.web2 import responsecode
-from OPSI.web2.dav import davxml
+from twisted.web2 import responsecode
+from twisted.web2.dav import davxml
 from httplib import HTTPConnection, HTTPSConnection
 import urllib
 
-from duplicity import librsync
+import librsync
 
 from OPSI.Backend.Backend import *
 from OPSI.Backend.BackendManager import BackendManager
@@ -597,7 +597,7 @@ class OpsiPackageManager(TransferProgressListener):
 		self.maxBandwidth = 0
 		self.overwriteIfMD5SumDiffers = True
 		self.overwriteAlways = False
-		self.deltaUpload = False
+		self.deltaUpload = True
 		self.forceInstall = False
 		self.keepDefaultProductProperties = False
 		self.deleteFilesOnUninstall = True
@@ -780,7 +780,7 @@ class OpsiPackageManager(TransferProgressListener):
 			tq.start()
 	
 	def setActionSetupWhereInstalled(self, productId, depotId):
-		clientIds = self.getConfigBackend().getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
+		clientIds = self.getConfigBackend().getClientIds_list(depotIds = [ depotId ], productId = productId, installationStatus = 'installed')
 		clientIds.sort()
 		if not clientIds:
 			return
@@ -791,7 +791,7 @@ class OpsiPackageManager(TransferProgressListener):
 			self.getConfigBackend().setProductActionRequest(productId, clientId, 'setup')
 	
 	def setActionUpdateWhereInstalled(self, productId, depotId):
-		clientIds = self.getConfigBackend().getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
+		clientIds = self.getConfigBackend().getClientIds_list(depotIds = [ depotId ], productId = productId, installationStatus = 'installed')
 		clientIds.sort()
 		if not clientIds:
 			return
