@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.6.4'
+__version__ = '0.6.5'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -52,6 +52,7 @@ bmRead = None
 bmWrite = None
 deleteFirst = True
 newServer = None
+oldServer = None
 clientIds = []
 serverIds = []
 depotIds = []
@@ -106,6 +107,8 @@ def convertServers():
 		try:
 			newServerId = server.get('hostId')
 			if newServer:
+				global oldServer
+				oldServer = server.get('hostId')
 				newServerId = newServer
 			
 			serverName = newServerId.split('.')[0]
@@ -136,8 +139,13 @@ def convertDepots():
 		host = bmRead.getHost_hash(depotId)
 		logger.comment( "      " + _("Converting depot '%s' (%s/%s)") % (depotId, i+1, len(depotIds)) )
 		try:
-			depotName = depotId.split('.')[0]
-			domain = '.'.join( depotId.split('.')[1:] )
+			newDepotId = depotId
+			if newServer and (oldServer == depotId):
+				newDepotId = newServer
+			
+			depotName = newDepotId.split('.')[0]
+			domain = '.'.join( newDepotId.split('.')[1:] )
+			
 			
 			bmWrite.createDepot(	depotName		= depotName, 
 						domain			= domain,
@@ -150,7 +158,7 @@ def convertDepots():
 						network			= depot.get('network', ''),
 						maxBandwidth		= depot.get('repositoryMaxBandwidth', '')
 			)
-			bmWrite.setOpsiHostKey( depotId, bmRead.getOpsiHostKey(depotId) )
+			bmWrite.setOpsiHostKey( newDepotId, bmRead.getOpsiHostKey(depotId) )
 		
 		except Exception, e:
 			if isinstance(e, KeyboardInterrupt):
@@ -252,7 +260,7 @@ def convertNetworkConfigs():
 	networkConfig = bmRead.getNetworkConfig_hash()
 	if newServer:
 		networkConfig['opsiServer'] = newServer
-		if networkConfig.get('depotId') in serverIds:
+		if (networkConfig.get('depotId') == oldServer):
 			networkConfig['depotId'] = newServer
 			
 	bmWrite.setNetworkConfig(networkConfig)
@@ -271,7 +279,7 @@ def convertNetworkConfigs():
 		nc = bmRead.getNetworkConfig_hash(clientId)
 		if newServer:
 			nc['opsiServer'] = newServer
-			if nc.get('depotId') in serverIds:
+			if (nc.get('depotId') == oldServer):
 				nc['depotId'] = newServer
 		new = False
 		
