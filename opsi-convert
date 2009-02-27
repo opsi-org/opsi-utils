@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.6.1'
+__version__ = '0.6.3'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -155,7 +155,7 @@ def convertDepots():
 		except Exception, e:
 			if isinstance(e, KeyboardInterrupt):
 				return
-			logger.error(e)
+			raise Exception("Failed to convert depot '%s': %s" % (depotId, e))
 
 def deleteClients():
 	logger.comment( _("Deleting clients.") )
@@ -407,7 +407,7 @@ def convertProductProperties():
 	for depotId in depotIds:
 		i = 0
 		productIds = bmRead.getProductIds_list(objectId = depotId)
-		clientIds =  bmRead.getClientIds_list(depotId = depotId)
+		clientIds =  bmRead.getClientIds_list(depotIds = [ depotId ])
 		
 		for productId in productIds:
 			i += 1
