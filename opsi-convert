@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.6.5'
+__version__ = '0.6.6'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -142,7 +142,15 @@ def convertDepots():
 			newDepotId = depotId
 			if newServer and (oldServer == depotId):
 				newDepotId = newServer
-			
+				oldServerName = oldServer.split('.')[0]
+				newServerName = newServer.split('.')[0]
+				if depot.get('depotRemoteUrl'):
+					depot['depotRemoteUrl'] = depot['depotRemoteUrl'].replace(oldServer, newServer)
+					depot['depotRemoteUrl'] = depot['depotRemoteUrl'].replace(oldServerName, newServerName)
+				if depot.get('repositoryRemoteUrl'):
+					depot['repositoryRemoteUrl'] = depot['repositoryRemoteUrl'].replace(oldServer, newServer)
+					depot['repositoryRemoteUrl'] = depot['repositoryRemoteUrl'].replace(oldServerName, newServerName)
+				
 			depotName = newDepotId.split('.')[0]
 			domain = '.'.join( newDepotId.split('.')[1:] )
 			
@@ -305,12 +313,16 @@ def convertProducts():
 	objectId=None
 	for i in range(len(depotIds)):
 		depotId = depotIds[i]
+		newDepotId = depotId
+		if newServer and (oldServer == depotId):
+			newDepotId = newServer
 		for type in ('netboot', 'localboot'):
 			logger.comment(  _("Converting %s products on depot '%s'.") % (type, depotId) )
 			productIds = bmRead.getProductIds_list(productType = type, objectId = depotId)
 			for j in range(len(productIds)):
 				productId = productIds[j]
-				logger.comment( "      " + _("Converting product '%s' on depot '%s' (%s/%s)") % (productId, depotId, j+1, len(productIds)) )
+				logger.comment( "      " + _("Converting product '%s' of depot '%s' (%s/%s)") % (productId, depotId, j+1, len(productIds)) )
+				
 				product = bmRead.getProduct_hash(productId = productId, depotId = depotId)
 				try:
 					setupScript = product.get('setupScript', '')
@@ -353,7 +365,7 @@ def convertProducts():
 								productClassNames	= product.get('productClassNames', []),
 								pxeConfigTemplate	= product.get('pxeConfigTemplate', None),
 								windowsSoftwareIds	= product.get('windowsSoftwareIds', []),
-								depotIds		= [ depotId ] )
+								depotIds		= [ newDepotId ] )
 				except Exception, e:
 					if isinstance(e, KeyboardInterrupt):
 						return
@@ -371,7 +383,7 @@ def convertProducts():
 							requiredAction			= dependency.get('requiredAction'),
 							requiredInstallationStatus	= dependency.get('requiredInstallationStatus'),
 							requirementType			= dependency.get('requirementType'),
-							depotIds			= [ depotId ] )
+							depotIds			= [ newDepotId ] )
 					
 				for definition in bmRead.getProductPropertyDefinitions_listOfHashes(productId = productId, depotId = depotId):
 					logger.comment( "            " + _("Converting product property definition '%s'") % definition.get('name') )
@@ -381,7 +393,7 @@ def convertProducts():
 							description	= definition.get('description'),
 							defaultValue	= definition.get('default'),
 							possibleValues	= definition.get('values'),
-							depotIds	= [ depotId ] )
+							depotIds	= [ newDepotId ] )
 			logger.comment("")
 
 def convertProductStates():
@@ -418,13 +430,15 @@ def convertProductProperties():
 		i = 0
 		productIds = bmRead.getProductIds_list(objectId = depotId)
 		clientIds =  bmRead.getClientIds_list(depotIds = [ depotId ])
-		
+		newDepotId = depotId
+		if newServer and (oldServer == depotId):
+			newDepotId = newServer
 		for productId in productIds:
 			i += 1
 			logger.comment( "      " + _("Converting product properties for product '%s' (%s/%s)") % (productId, i, len(productIds)) )
 			productProperties = bmRead.getProductProperties_hash(productId, objectId = depotId)
 			try:
-				bmWrite.setProductProperties(productId, productProperties, objectId = depotId)
+				bmWrite.setProductProperties(productId, productProperties, objectId = newDepotId)
 			except Exception, e:
 				if isinstance(e, KeyboardInterrupt):
 					return
