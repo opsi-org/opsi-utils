@@ -215,7 +215,7 @@ msgstr "Produkt-Abhängikeit erstellen?"
 
 #: ../newprod.py:277
 msgid "Do you want to create a product dependency?"
-msgstr "Soll eine Produkt-Abhängikeit erstellt werden?"
+msgstr "Soll eine Produkt-Abhängigkeit erstellt werden?"
 
 #: ../newprod.py:278 ../newprod.py:342
 msgid "Yes"
@@ -227,7 +227,7 @@ msgstr "Nein"
 
 #: ../newprod.py:292
 msgid "Dependency for action"
-msgstr "Die Abhängikeit betrifft die Aktion"
+msgstr "Die Abhängigkeit betrifft die Aktion"
 
 #: ../newprod.py:293
 msgid "Required product id"

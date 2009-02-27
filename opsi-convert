@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.6.1'
+__version__ = '0.6.5'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -52,6 +52,7 @@ bmRead = None
 bmWrite = None
 deleteFirst = True
 newServer = None
+oldServer = None
 clientIds = []
 serverIds = []
 depotIds = []
@@ -106,6 +107,8 @@ def convertServers():
 		try:
 			newServerId = server.get('hostId')
 			if newServer:
+				global oldServer
+				oldServer = server.get('hostId')
 				newServerId = newServer
 			
 			serverName = newServerId.split('.')[0]
@@ -136,8 +139,13 @@ def convertDepots():
 		host = bmRead.getHost_hash(depotId)
 		logger.comment( "      " + _("Converting depot '%s' (%s/%s)") % (depotId, i+1, len(depotIds)) )
 		try:
-			depotName = depotId.split('.')[0]
-			domain = '.'.join( depotId.split('.')[1:] )
+			newDepotId = depotId
+			if newServer and (oldServer == depotId):
+				newDepotId = newServer
+			
+			depotName = newDepotId.split('.')[0]
+			domain = '.'.join( newDepotId.split('.')[1:] )
+			
 			
 			bmWrite.createDepot(	depotName		= depotName, 
 						domain			= domain,
@@ -150,12 +158,12 @@ def convertDepots():
 						network			= depot.get('network', ''),
 						maxBandwidth		= depot.get('repositoryMaxBandwidth', '')
 			)
-			bmWrite.setOpsiHostKey( depotId, bmRead.getOpsiHostKey(depotId) )
+			bmWrite.setOpsiHostKey( newDepotId, bmRead.getOpsiHostKey(depotId) )
 		
 		except Exception, e:
 			if isinstance(e, KeyboardInterrupt):
 				return
-			logger.error(e)
+			raise Exception("Failed to convert depot '%s': %s" % (depotId, e))
 
 def deleteClients():
 	logger.comment( _("Deleting clients.") )
@@ -167,6 +175,7 @@ def convertClients():
 	for i in range(len(clientIds)):
 		clientId = clientIds[i]
 		client = bmRead.getHost_hash(clientId)
+		hardwareAddress = bmRead.getMacAddress(clientId)
 		logger.comment( "      " + _("Converting client '%s' (%s/%s)") % (client.get('hostId'), i+1, len(clientIds)) )
 		try:
 			clientName = client.get('hostId').split('.')[0]
@@ -174,7 +183,8 @@ def convertClients():
 			bmWrite.createClient(	clientName	= clientName, 
 						domain		= domain,
 						description	= client.get('description', ''),
-						notes		= client.get('notes', '') )
+						notes		= client.get('notes', ''),
+						hardwareAddress = hardwareAddress )
 			
 			if client.get('lastSeen'):
 				bmWrite.setHostLastSeen(client.get('hostId'), client.get('lastSeen'))
@@ -250,7 +260,7 @@ def convertNetworkConfigs():
 	networkConfig = bmRead.getNetworkConfig_hash()
 	if newServer:
 		networkConfig['opsiServer'] = newServer
-		if networkConfig.get('depotId') in serverIds:
+		if (networkConfig.get('depotId') == oldServer):
 			networkConfig['depotId'] = newServer
 			
 	bmWrite.setNetworkConfig(networkConfig)
@@ -269,7 +279,7 @@ def convertNetworkConfigs():
 		nc = bmRead.getNetworkConfig_hash(clientId)
 		if newServer:
 			nc['opsiServer'] = newServer
-			if nc.get('depotId') in serverIds:
+			if (nc.get('depotId') == oldServer):
 				nc['depotId'] = newServer
 		new = False
 		
@@ -295,12 +305,16 @@ def convertProducts():
 	objectId=None
 	for i in range(len(depotIds)):
 		depotId = depotIds[i]
+		newDepotId = depotId
+		if newServer and (oldServer == depotId):
+			newDepotId = newServer
 		for type in ('netboot', 'localboot'):
 			logger.comment(  _("Converting %s products on depot '%s'.") % (type, depotId) )
 			productIds = bmRead.getProductIds_list(productType = type, objectId = depotId)
 			for j in range(len(productIds)):
 				productId = productIds[j]
-				logger.comment( "      " + _("Converting product '%s' on depot '%s' (%s/%s)") % (productId, depotId, j+1, len(productIds)) )
+				logger.comment( "      " + _("Converting product '%s' of depot '%s' (%s/%s)") % (productId, depotId, j+1, len(productIds)) )
+				
 				product = bmRead.getProduct_hash(productId = productId, depotId = depotId)
 				try:
 					setupScript = product.get('setupScript', '')
@@ -343,7 +357,7 @@ def convertProducts():
 								productClassNames	= product.get('productClassNames', []),
 								pxeConfigTemplate	= product.get('pxeConfigTemplate', None),
 								windowsSoftwareIds	= product.get('windowsSoftwareIds', []),
-								depotIds		= [ depotId ] )
+								depotIds		= [ newDepotId ] )
 				except Exception, e:
 					if isinstance(e, KeyboardInterrupt):
 						return
@@ -361,7 +375,7 @@ def convertProducts():
 							requiredAction			= dependency.get('requiredAction'),
 							requiredInstallationStatus	= dependency.get('requiredInstallationStatus'),
 							requirementType			= dependency.get('requirementType'),
-							depotIds			= [ depotId ] )
+							depotIds			= [ newDepotId ] )
 					
 				for definition in bmRead.getProductPropertyDefinitions_listOfHashes(productId = productId, depotId = depotId):
 					logger.comment( "            " + _("Converting product property definition '%s'") % definition.get('name') )
@@ -371,7 +385,7 @@ def convertProducts():
 							description	= definition.get('description'),
 							defaultValue	= definition.get('default'),
 							possibleValues	= definition.get('values'),
-							depotIds	= [ depotId ] )
+							depotIds	= [ newDepotId ] )
 			logger.comment("")
 
 def convertProductStates():
@@ -407,14 +421,16 @@ def convertProductProperties():
 	for depotId in depotIds:
 		i = 0
 		productIds = bmRead.getProductIds_list(objectId = depotId)
-		clientIds =  bmRead.getClientIds_list(depotId = depotId)
-		
+		clientIds =  bmRead.getClientIds_list(depotIds = [ depotId ])
+		newDepotId = depotId
+		if newServer and (oldServer == depotId):
+			newDepotId = newServer
 		for productId in productIds:
 			i += 1
 			logger.comment( "      " + _("Converting product properties for product '%s' (%s/%s)") % (productId, i, len(productIds)) )
 			productProperties = bmRead.getProductProperties_hash(productId, objectId = depotId)
 			try:
-				bmWrite.setProductProperties(productId, productProperties, objectId = depotId)
+				bmWrite.setProductProperties(productId, productProperties, objectId = newDepotId)
 			except Exception, e:
 				if isinstance(e, KeyboardInterrupt):
 					return
