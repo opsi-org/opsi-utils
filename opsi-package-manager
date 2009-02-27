@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '1.0.3'
+__version__ = '1.0.5'
 
 import sys, os, base64, re, stat, socket, threading, time, fcntl, math
 from optparse import OptionParser, IndentedHelpFormatter
@@ -723,10 +723,10 @@ class OpsiPackageManager(TransferProgressListener):
 		for depotId in depotIds:
 			info[depotId]= {}
 			be = self.getDepotConnection(depotId)
-			for productId in be.getProductIds_list(objectId = depotId):
-				info[depotId][productId]= be.getProduct_hash(productId = productId, depotId = depotId)
+			for product in be.getProducts_listOfHashes(depotId = depotId):
+				productId = product['productId']
+				info[depotId][productId] = product
 		return info
-	
 	
 	def uploadToRepositories(self, packageFiles, depotIds):
 		
@@ -780,7 +780,7 @@ class OpsiPackageManager(TransferProgressListener):
 			tq.start()
 	
 	def setActionSetupWhereInstalled(self, productId, depotId):
-		clientIds = self.getConfigBackend().getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
+		clientIds = self.getConfigBackend().getClientIds_list(depotIds = [ depotId ], productId = productId, installationStatus = 'installed')
 		clientIds.sort()
 		if not clientIds:
 			return
@@ -791,7 +791,7 @@ class OpsiPackageManager(TransferProgressListener):
 			self.getConfigBackend().setProductActionRequest(productId, clientId, 'setup')
 	
 	def setActionUpdateWhereInstalled(self, productId, depotId):
-		clientIds = self.getConfigBackend().getClientIds_list(depotId = depotId, productId = productId, installationStatus = 'installed')
+		clientIds = self.getConfigBackend().getClientIds_list(depotIds = [ depotId ], productId = productId, installationStatus = 'installed')
 		clientIds.sort()
 		if not clientIds:
 			return

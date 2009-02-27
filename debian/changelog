@@ -1,3 +1,21 @@
+opsi-utils (3.3.1.0-3) stable; urgency=low
+
+  * opsi-convert 0.6.4
+
+ -- Jan Schneider <schneider@pcbon14.uib.local>  Fri, 23 Jan 2009 13:03:50 +0100
+
+opsi-utils (3.3.1.0-2) stable; urgency=low
+
+  * opsi-package-manager 1.0.5
+
+ -- Jan Schneider <j.schneider@uib.de>  Tue, 20 Jan 2009 09:35:54 +0100
+
+opsi-utils (3.3.1.0-1) stable; urgency=low
+
+  * Adapted to python-opsi >= 3.3.1
+
+ -- Jan Schneider <j.schneider@uib.de>  Tue, 13 Jan 2009 17:54:27 +0100
+
 opsi-utils (3.3.0.12-1) stable; urgency=low
 
   * opsi-package-manager 1.0.3

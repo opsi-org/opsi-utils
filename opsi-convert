@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.6.1'
+__version__ = '0.6.4'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -155,7 +155,7 @@ def convertDepots():
 		except Exception, e:
 			if isinstance(e, KeyboardInterrupt):
 				return
-			logger.error(e)
+			raise Exception("Failed to convert depot '%s': %s" % (depotId, e))
 
 def deleteClients():
 	logger.comment( _("Deleting clients.") )
@@ -167,6 +167,7 @@ def convertClients():
 	for i in range(len(clientIds)):
 		clientId = clientIds[i]
 		client = bmRead.getHost_hash(clientId)
+		hardwareAddress = bmRead.getMacAddress(clientId)
 		logger.comment( "      " + _("Converting client '%s' (%s/%s)") % (client.get('hostId'), i+1, len(clientIds)) )
 		try:
 			clientName = client.get('hostId').split('.')[0]
@@ -174,7 +175,8 @@ def convertClients():
 			bmWrite.createClient(	clientName	= clientName, 
 						domain		= domain,
 						description	= client.get('description', ''),
-						notes		= client.get('notes', '') )
+						notes		= client.get('notes', ''),
+						hardwareAddress = hardwareAddress )
 			
 			if client.get('lastSeen'):
 				bmWrite.setHostLastSeen(client.get('hostId'), client.get('lastSeen'))
@@ -407,7 +409,7 @@ def convertProductProperties():
 	for depotId in depotIds:
 		i = 0
 		productIds = bmRead.getProductIds_list(objectId = depotId)
-		clientIds =  bmRead.getClientIds_list(depotId = depotId)
+		clientIds =  bmRead.getClientIds_list(depotIds = [ depotId ])
 		
 		for productId in productIds:
 			i += 1
