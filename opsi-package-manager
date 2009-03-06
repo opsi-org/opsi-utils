@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '1.0.5'
+__version__ = '1.0.7'
 
 import sys, os, base64, re, stat, socket, threading, time, fcntl, math
 from optparse import OptionParser, IndentedHelpFormatter
@@ -817,9 +817,9 @@ class OpsiPackageManager(TransferProgressListener):
 			logger.info("Starting task queue '%s'" % tq.name)
 			tq.start()
 	
-	def extractPackage(self, packageFile, destination):
-		self.getProductPackageFile(packageFile).unpackSource(destination)
-		
+	def extractPackage(self, packageFile, destination, newProductId=None):
+		self.getProductPackageFile(packageFile).unpackSource(destination, newProductId)
+	
 	def uploadToRepository(self, packageFile, depotId):
 		logger.notice("Processing upload of '%s' to depot '%s'" \
 				% (os.path.basename(packageFile), depotId))
@@ -1069,6 +1069,7 @@ Options:
   -o, --overwrite                 overwrite existing package even if size matches
   -k, --keep-files                do not delete client data dir on uninstall
   -t, --temp-dir    <path>        tempory directory for package install
+  --new-product-id  <product-id>  set an new product id when extracting opsi package
   --interface       <type>        type of user interface
                       text            text based interface
                       snack           newt interface (default)
@@ -1102,6 +1103,7 @@ def main(argv):
 	parser.add_option("-D", "--differences",    action="store_true", dest="COMMAND_DIFFERENCES")
 	parser.add_option("-r", "--remove",         action="store_true", dest="COMMAND_REMOVE")
 	parser.add_option("-x", "--extract",        action="store_true", dest="COMMAND_EXTRACT")
+	parser.add_option(      "--new-product-id", action="store",      dest="newProductId")
 	parser.add_option("-d", "--depots",         action="store",      dest="depots")
 	parser.add_option("-f", "--force",          action="store_true", dest="force")
 	parser.add_option("-k", "--keep-files",     action="store_true", dest="keepFiles")
@@ -1169,6 +1171,10 @@ def main(argv):
 				sys.exit(1)
 			packageFiles.append(p)
 		
+		if options.COMMAND_EXTRACT and options.newProductId and (len(packageFiles) > 1):
+			print >> sys.stderr, _("Cannot use new product id with multiple package files!")
+			sys.exit(1)
+		
 	elif options.COMMAND_LIST or options.COMMAND_DIFFERENCES:
 		if args:
 			if (len(args) > 1):
@@ -1200,7 +1206,10 @@ def main(argv):
 		if options.COMMAND_EXTRACT:
 			destination = os.path.abspath(os.getcwd())
 			for p in packageFiles:
-				opm.extractPackage(p, destination)
+				if options.newProductId:
+					opm.extractPackage(p, destination, options.newProductId.lower())
+				else:
+					opm.extractPackage(p, destination)
 			return
 		
 		depotIds = [ socket.getfqdn() ]
