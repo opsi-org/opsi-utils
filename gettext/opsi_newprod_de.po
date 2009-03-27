@@ -15,7 +15,7 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../newprod.py:41
+
 msgid ""
 "Usage: %s [options] [destination directory]\n"
 "Creates an opsi product source dir in the destination directory.\n"
@@ -31,20 +31,19 @@ msgstr ""
 "            -i <interface>    Benutzer-interface [snack|text]\n"
 "\n"
 
-#: ../newprod.py:77
+
 msgid "Open PC ServerIntegration"
 msgstr "Open PC ServerIntegration"
 
-#: ../newprod.py:88
-msgid "Please select product type"
-msgstr "Bitte wählen Sie den Produkt-Typ"
+msgid "\n"
+msgstr ""
 
-#: ../newprod.py:92 ../newprod.py:142 ../newprod.py:222 ../newprod.py:305
-#: ../newprod.py:364 ../newprod.py:416
+msgid "Please select product type"
+msgstr "Bitte waehlen Sie den Produkt-Typ"
+
 msgid "Cancelled"
 msgstr "Abgebrochen"
 
-#: ../newprod.py:113
 msgid ""
 "Product id: a unique identifier for the product.\n"
 "Product name: The full name of the product.\n"
@@ -56,141 +55,125 @@ msgid ""
 "Priority: The installation priority class of this product (default: 0).\n"
 "Product class names: Comma-separated list of product classes.\n"
 msgstr ""
-"Produkt-ID: Ein eindeutiger Bezeichner für das Produkt.\n"
+"Produkt-ID: Ein eindeutiger Bezeichner fuer das Produkt.\n"
 "Produktname: Der volle Name des Produkts (Herstellerbezeichnung).\n"
-"Beschreibung: Eine Produktbeschreibung (\\n zum Einfügen von Zeilenumbrüchen verwenden).\n"
-"Hinweis: Ein zusätzlicher Hinweis.\n"
+"Beschreibung: Eine Produktbeschreibung (\\n zum Einfuegen von Zeilenumbruechen verwenden).\n"
+"Hinweis: Ein zusaetzlicher Hinweis.\n"
 "Produktversion: Die Versionsnummer der Software wie vom Hersteller angegeben.\n"
 "Paketversion: Die Paketversion.\n"
-"Lizenzpflichtig: Benötigt die Software eine Lizenz (0|1)?\n"
-"Priorität: Die Installations-Priorität der Software (Standardwert: 0).\n"
+"Lizenzpflichtig: Benoetigt die Software eine Lizenz (0|1)?\n"
+"Prioritaet: Die Installations-Prioritaet der Software (Standardwert: 0).\n"
 "Produktklassen: Eine Komma-getrennte Liste von Produktklassen.\n"
 
-#: ../newprod.py:125
 msgid "Product id"
 msgstr "Produkt-ID"
 
-#: ../newprod.py:126
 msgid "Product name"
 msgstr "Produktname"
 
-#: ../newprod.py:127
 msgid "Description"
 msgstr "Beschreibung"
 
-#: ../newprod.py:128
 msgid "Advice"
 msgstr "Hinweis"
 
-#: ../newprod.py:129
 msgid "Product version"
 msgstr "Produktversion"
 
-#: ../newprod.py:130
 msgid "Package version"
 msgstr "Paketversion"
 
-#: ../newprod.py:131
 msgid "License required"
 msgstr "Lizenzpflichtig"
 
-#: ../newprod.py:132
 msgid "Priority"
-msgstr "Priorität"
+msgstr "Prioritaet"
 
-#: ../newprod.py:137
 msgid "product information"
 msgstr "Produkt-Informationen"
 
-#: ../newprod.py:157
 msgid "You have to specify a product id."
-msgstr "Sie müssen eine Produkt-ID angeben."
+msgstr "Sie muessen eine Produkt-ID angeben."
 
-#: ../newprod.py:157 ../newprod.py:161 ../newprod.py:165 ../newprod.py:169
-#: ../newprod.py:173 ../newprod.py:177
 msgid "Missing value"
 msgstr "Fehlender Wert"
 
-#: ../newprod.py:161
 msgid "You have to specify a product name."
-msgstr "Sie müssen einen Produktnamen angeben."
+msgstr "Sie muessen einen Produktnamen angeben."
 
-#: ../newprod.py:165
 msgid "Please enter a short description."
 msgstr "Bitte eine kurze Beschreibung eingeben."
 
-#: ../newprod.py:169
 msgid ""
 "You have to specify a product version.\n"
 "Default: 1.0"
 msgstr ""
-"Sie müssen eine Produktversion angeben.\n"
+"Sie muessen eine Produktversion angeben.\n"
 "Standardwert: 1.0"
 
-#: ../newprod.py:173
-msgid ""
-"Sie müssen eine Paketversion angeben.\n"
-"Standardwert: 1"
-msgstr ""
+msgid "Bad version string"
+msgstr "Ungueltige Version"
 
-#: ../newprod.py:177
+msgid ""
+"You have to specify a package version.\n"
+"Default: 1"
+msgstr ""
+"Sie muessen eine Paketversion angeben.\n"
+"Standardwert: 1"
+
 msgid ""
 "Please specify the product priority class.\n"
 "Default: 0"
 msgstr ""
-"Bitte die Installations-Priorität des Pakets angeben.\n"
+"Bitte die Installations-Prioritaet des Pakets angeben.\n"
 "Standardwert: 0"
 
-#: ../newprod.py:199
 msgid "Bad value"
 msgstr "Falscher Wert"
 
-#: ../newprod.py:202
 msgid ""
 "Setup script: Relative path to installation script.\n"
 "Uninstall script: Relative path to script for action \"uninstall\".\n"
 "Update script: Relative path to update script.\n"
 "Always script: Relative path to script for action \"always\".\n"
 "Once script: Relative path to script for action \"once\".\n"
+"PXE config template: path to an custom pxelinux config template.\n"
 msgstr ""
 "Setup-Skript: Relativer Pfad zum Installation-Skript.\n"
-"Uninstall-Skript: Relativer Pfad zum Skript für die Aktion \"uninstall\".\n"
+"Uninstall-Skript: Relativer Pfad zum Skript fuer die Aktion \"uninstall\".\n"
 "Update-Skript: Relativer Pfad zum Update-Skript.\n"
-"Always-Skript: Relativer Pfad zum Skript für die Aktion \"always\".\n"
-"Once-Skript: Relativer Pfad zum Skript für die Aktion \"once\".\n"
+"Always-Skript: Relativer Pfad zum Skript fuer die Aktion \"always\".\n"
+"Once-Skript: Relativer Pfad zum Skript fuer die Aktion \"once\".\n"
+"PXE-Konfigurations-Vorlage: Pfad zu einer abweichenden pxelinux-Konfigurations-Datei.\n"
 
-#: ../newprod.py:210
 msgid "Setup script"
 msgstr "Setup-Skript"
 
-#: ../newprod.py:211
 msgid "Uninstall script"
 msgstr "Uninstall-Skript"
 
-#: ../newprod.py:212
 msgid "Update script"
 msgstr "Update-Skript"
 
-#: ../newprod.py:213
 msgid "Always script"
 msgstr "Always-Skript"
 
-#: ../newprod.py:214
 msgid "Once script"
 msgstr "Once-Skript"
 
-#: ../newprod.py:217
+msgid "PXE config template"
+msgstr "PXE-Konfigurations-Vorlage"
+
 msgid "product scripts"
 msgstr "Produkt-Skripte"
 
-#: ../newprod.py:253
 msgid "Failed to create product"
 msgstr "Produkt konnte nicht erstellt werden"
 
-#: ../newprod.py:264
 msgid ""
 "You have to specify either a required product or a required product class.\n"
-"You have to specify either a required installation status or a required action.\n"
+"You have to specify either a required installation status or a required "
+"action.\n"
 "The requirement type is optional.\n"
 "Possible actions are:\n"
 "      %s\n"
@@ -199,105 +182,90 @@ msgid ""
 "Possible requirement types are:\n"
 "      %s\n"
 msgstr ""
-"Es muss entweder ein benötigtes Produkt oder eine benötigte Produktklasse angegeben werden.\n"
-"Ein benötigter Installations-Status oder eine auszuführende Aktion müssen angegeben werden.\n"
-"Der Abhängigkeits-Typ ist optional.\n"
-"Möglich Aktionen sind:\n"
+"Es muss entweder ein benoetigtes Produkt oder eine benoetigte Produktklasse angegeben werden.\n"
+"Ein benoetigter Installations-Status oder eine auszufuehrende Aktion muessen angegeben werden.\n"
+"Der Abhaengigkeits-Typ ist optional.\n"
+"Moeglich Aktionen sind:\n"
 "      %s\n"
-"Mögliche Installations-Status sind:\n"
+"Moegliche Installations-Status sind:\n"
 "      %s\n"
-"Mögliche Abhängigkeits-Typen sind:\n"
+"Moegliche Abhaengigkeits-Typen sind:\n"
 "      %s\n"
 
-#: ../newprod.py:276
 msgid "Create product dependency?"
-msgstr "Produkt-Abhängikeit erstellen?"
+msgstr "Produkt-Abhaengikeit erstellen?"
 
-#: ../newprod.py:277
 msgid "Do you want to create a product dependency?"
-msgstr "Soll eine Produkt-Abhängigkeit erstellt werden?"
+msgstr "Soll eine Produkt-Abhaengigkeit erstellt werden?"
 
-#: ../newprod.py:278 ../newprod.py:342
 msgid "Yes"
 msgstr "Ja"
 
-#: ../newprod.py:279 ../newprod.py:343
 msgid "No"
 msgstr "Nein"
 
-#: ../newprod.py:292
 msgid "Dependency for action"
-msgstr "Die Abhängigkeit betrifft die Aktion"
+msgstr "Die Abhaengigkeit betrifft die Aktion"
 
-#: ../newprod.py:293
 msgid "Required product id"
-msgstr "ID des benötigten Produkts"
+msgstr "ID des benoetigten Produkts"
 
-#: ../newprod.py:295
 msgid "Required action"
-msgstr "Auszuführende Aktion"
+msgstr "Auszufuehrende Aktion"
 
-#: ../newprod.py:296
 msgid "Required installation status"
-msgstr "Benötigter Installations-Status"
+msgstr "Benoetigter Installations-Status"
 
-#: ../newprod.py:297
 msgid "Requirement type"
-msgstr "Typ der Abhängigkeit"
+msgstr "Typ der Abhaengigkeit"
 
-#: ../newprod.py:300
 msgid "Create dependency for product %s"
-msgstr "Eine Produktabhängigkeit für Produkt %s erstellen"
+msgstr "Eine Produktabhaengigkeit fuer Produkt %s erstellen"
 
-#: ../newprod.py:325
 msgid "Failed to create product dependency"
-msgstr "Erstellen der Produktabhängigkeit fehlgeschlagen"
+msgstr "Erstellen der Produktabhaengigkeit fehlgeschlagen"
 
-#: ../newprod.py:333
 msgid ""
 "Property name: Name of the variable.\n"
 "Property description: Usage description.\n"
 "Possible values: Comma separated list of possible values for the variable.\n"
-"       If no possible values are given any value is allowed.\n"
+"\t         If no possible values are given any value is allowed.\n"
 msgstr ""
 "Optionsname: Variablename der Einstellung.\n"
-"Options-Beschreibung: Beschreibung der Funktionalität (Verwendung der Option).\n"
-"Mögliche Werte: Eine Komma-getrennte Liste von möglichen Wertvorgaben.\n"
-"       Wird keine Liste vorgegeben sind alle Werte erlaubt.\n"
+"Options-Beschreibung: Beschreibung der Funktionalitaet (Verwendung der Option).\n"
+"Moegliche Werte: Eine Komma-getrennte Liste von moeglichen Wertvorgaben.\n"
+"\t       Wird keine Liste vorgegeben sind alle Werte erlaubt.\n"
 
-#: ../newprod.py:340
 msgid "Create product property?"
 msgstr "Produkt-Option erstellen?"
 
-#: ../newprod.py:341
 msgid "Do you want to create a product property?"
 msgstr "Wollen Sie eine Produkt-Option erstellen?"
 
-#: ../newprod.py:354
 msgid "Property name (key)"
-msgstr "Optionsname (Schlüssel)"
+msgstr "Optionsname (Schluessel)"
 
-#: ../newprod.py:355
 msgid "Property description"
 msgstr "Options-Beschreibung"
 
-#: ../newprod.py:356
 msgid "Possible values"
-msgstr "Mögliche Werte"
+msgstr "Moegliche Werte"
 
-#: ../newprod.py:359 ../newprod.py:411
 msgid "Create property for product %s"
-msgstr "Erstellen einer Produkt-Option für Produkt %s"
+msgstr "Erstellen einer Produkt-Option fuer Produkt %s"
 
-#: ../newprod.py:382 ../newprod.py:405 ../newprod.py:429
 msgid "Failed to create product property"
 msgstr "Das Anlegen der Produkt-Option ist fehlgeschlagen"
 
-#: ../newprod.py:392
 msgid "Please select a default value"
-msgstr "Bitte einen Standardwert für die Option angeben."
+msgstr "Bitte einen Standardwert fuer die Option angeben."
 
-#: ../newprod.py:408
 msgid "Default value for %s"
-msgstr "Standardwert für die Produkt-Option %s"
+msgstr "Standardwert fuer die Produkt-Option %s"
+
+msgid "Done"
+msgstr "Abgeschlossen"
+
+msgid "Package source directory '%s' created"
+msgstr "Paket-Quellverzeichnis '%s' wurde erzeugt"
 

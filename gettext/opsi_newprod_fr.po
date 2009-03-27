@@ -17,7 +17,6 @@ msgstr ""
 "Plural-Forms:  nplurals=2; plural=(n > 1);\n"
 "X-Generator: KBabel 1.11.4\n"
 
-#: usr/bin/opsi-newprod:43
 msgid ""
 "Usage: %s [options] [destination directory]\n"
 "Creates an opsi product source dir in the destination directory.\n"
@@ -26,31 +25,25 @@ msgid ""
 "           -i <interface>    user interface [snack|text]\n"
 "\n"
 msgstr ""
-"Utilisation: %s [options] [répertoire de destination]\n"
-"Crée un répertoire source pour un produit opsi dans le répertoire de destination.\n"
-"Si aucune destination n'est indiquée, le répertoire courant est utilisé.\n"
+"Utilisation: %s [options] [repertoire de destination]\n"
+"Cree un repertoire source pour un produit opsi dans le repertoire de destination.\n"
+"Si aucune destination n'est indiquee, le repertoire courant est utilise.\n"
 "Options:   -h                montrer l'aide\n"
 "           -i <interface>    type d'interface utilisateur [snack|text]\n"
 "\n"
 
-#: usr/bin/opsi-newprod:79
 msgid "Open PC ServerIntegration"
-msgstr "Intégration serveur Open PC"
+msgstr "Integration serveur Open PC"
 
-#: usr/bin/opsi-newprod:83
 msgid "\n"
 msgstr ""
 
-#: usr/bin/opsi-newprod:90
 msgid "Please select product type"
-msgstr "Veuillez sélectionner le type de produit"
+msgstr "Veuillez selectionner le type de produit"
 
-#: usr/bin/opsi-newprod:94 usr/bin/opsi-newprod:145 usr/bin/opsi-newprod:237
-#: usr/bin/opsi-newprod:319 usr/bin/opsi-newprod:379 usr/bin/opsi-newprod:431
 msgid "Cancelled"
-msgstr "Annulé"
+msgstr "Annule"
 
-#: usr/bin/opsi-newprod:116
 msgid ""
 "Product id: a unique identifier for the product.\n"
 "Product name: The full name of the product.\n"
@@ -64,148 +57,119 @@ msgid ""
 msgstr ""
 "Id du produit: un identifiant unique pour le produit.\n"
 "Nom du produit: Le nom complet du produit.\n"
-"Description: Une description (utilisez \\n pour les retour à la ligne).\n"
+"Description: Une description (utilisez \\n pour les retour a la ligne).\n"
 "Conseil: Un conseil important.\n"
-"Version du produit: La version définie par le fournisseur du logiciel.\n"
+"Version du produit: La version definie par le fournisseur du logiciel.\n"
 "Version du paquet: La version Opsi de la version du produit.\n"
-"Licence nécessaire: Est ce qu'une licence est requise (0|1)?\n"
-"Priorité: La priorité d'installation de ce produit (défaut: 0).\n"
-"Nom de classes de produit: Liste séparée par des virgules de classes de produits.\n"
+"Licence necessaire: Est ce qu'une licence est requise (0|1)?\n"
+"Priorite: La priorite d'installation de ce produit (defaut: 0).\n"
+"Nom de classes de produit: Liste separee par des virgules de classes de produits.\n"
 
-#: usr/bin/opsi-newprod:128
 msgid "Product id"
 msgstr "Id du produit"
 
-#: usr/bin/opsi-newprod:129
 msgid "Product name"
 msgstr "Nom du produit"
 
-#: usr/bin/opsi-newprod:130
 msgid "Description"
 msgstr ""
 
-#: usr/bin/opsi-newprod:131
 msgid "Advice"
 msgstr "Conseil"
 
-#: usr/bin/opsi-newprod:132
 msgid "Product version"
 msgstr "Version du produit"
 
-#: usr/bin/opsi-newprod:133
 msgid "Package version"
 msgstr "Version du paquet"
 
-#: usr/bin/opsi-newprod:134
 msgid "License required"
-msgstr "Licence nécessaire"
+msgstr "Licence necessaire"
 
-#: usr/bin/opsi-newprod:135
 msgid "Priority"
-msgstr "Priorité"
+msgstr "Priorite"
 
-#: usr/bin/opsi-newprod:140
 msgid "product information"
 msgstr "information du produit"
 
-#: usr/bin/opsi-newprod:160
 msgid "You have to specify a product id."
-msgstr "Vous devez spécifier un id de produit"
+msgstr "Vous devez specifier un id de produit"
 
-#: usr/bin/opsi-newprod:160 usr/bin/opsi-newprod:164 usr/bin/opsi-newprod:168
-#: usr/bin/opsi-newprod:172 usr/bin/opsi-newprod:179 usr/bin/opsi-newprod:186
 msgid "Missing value"
 msgstr "Valeur manquante"
 
-#: usr/bin/opsi-newprod:164
 msgid "You have to specify a product name."
-msgstr "Vous devez spécifier un nom de produit"
+msgstr "Vous devez specifier un nom de produit"
 
-#: usr/bin/opsi-newprod:168
 msgid "Please enter a short description."
 msgstr "Vous devez entre un courte description."
 
-#: usr/bin/opsi-newprod:172
 msgid ""
 "You have to specify a product version.\n"
 "Default: 1.0"
 msgstr ""
-"Vous devez spécifier une version de produit.\n"
-"Par défaut: 1.0"
+"Vous devez specifier une version de produit.\n"
+"Par defaut: 1.0"
 
-#: usr/bin/opsi-newprod:175 usr/bin/opsi-newprod:182
 msgid "Bad version string"
 msgstr "Mauvaise version"
 
-#: usr/bin/opsi-newprod:179
 msgid ""
 "You have to specify a package version.\n"
 "Default: 1"
 msgstr ""
-"Vous devez spécifier une version de paquet.\n"
-"Défaut: 1"
+"Vous devez specifier une version de paquet.\n"
+"Defaut: 1"
 
-#: usr/bin/opsi-newprod:186
 msgid ""
 "Please specify the product priority class.\n"
 "Default: 0"
 msgstr ""
-"Veuillez spécifier la priorité de la classe de produits.\n"
-"Défaut: 0"
+"Veuillez specifier la priorite de la classe de produits.\n"
+"Defaut: 0"
 
-#: usr/bin/opsi-newprod:209
 msgid "Bad value"
 msgstr "Mauvaise valeur"
 
-#: usr/bin/opsi-newprod:213
 msgid ""
 "Setup script: Relative path to installation script.\n"
 "Uninstall script: Relative path to script for action \"uninstall\".\n"
 "Update script: Relative path to update script.\n"
 "Always script: Relative path to script for action \"always\".\n"
 "Once script: Relative path to script for action \"once\".\n"
-"PXE config template: path to an custom linuxpxe config template.\n"
+"PXE config template: path to an custom pxelinux config template.\n"
 msgstr ""
 "Script d'installation: Chemin relatif vers le script d'installation.\n"
 "Script de desinstallation: Chemin relatif vers le script pour l'action \"uninstall\".\n"
-"Script de mise à jour: Chemin relatif vers le script de mise à jour.\n"
+"Script de mise a jour: Chemin relatif vers le script de mise a jour.\n"
 "Script toujours: Chemin relatif vers le script pour l'action \"always\".\n"
 "Script une fois: Chemin relatif vers le script pour l'action \"once\".\n"
-"Modèle PXE: Chemin relatif vers le modèle de configuration linuxpe.\n"
+"Modele PXE: Chemin relatif vers le modele de configuration pxelinux.\n"
 
-#: usr/bin/opsi-newprod:222
 msgid "Setup script"
 msgstr "Script d'installation"
 
-#: usr/bin/opsi-newprod:223
 msgid "Uninstall script"
-msgstr "Script de désinstallation"
+msgstr "Script de desinstallation"
 
-#: usr/bin/opsi-newprod:224
 msgid "Update script"
-msgstr "Script de mise à jour"
+msgstr "Script de mise a jour"
 
-#: usr/bin/opsi-newprod:225
 msgid "Always script"
 msgstr "Script toujours"
 
-#: usr/bin/opsi-newprod:226
 msgid "Once script"
 msgstr "Script une fois"
 
-#: usr/bin/opsi-newprod:229
 msgid "PXE config template"
-msgstr "Modèle de configuration PXE"
+msgstr "Modele de configuration PXE"
 
-#: usr/bin/opsi-newprod:232
 msgid "product scripts"
 msgstr "scripts du produit"
 
-#: usr/bin/opsi-newprod:266
 msgid "Failed to create product"
-msgstr "Impossible de créer le produit"
+msgstr "Impossible de creer le produit"
 
-#: usr/bin/opsi-newprod:278
 msgid ""
 "You have to specify either a required product or a required product class.\n"
 "You have to specify either a required installation status or a required "
@@ -218,8 +182,8 @@ msgid ""
 "Possible requirement types are:\n"
 "      %s\n"
 msgstr ""
-"Vous devez spécifier un produit nécessaire ou une classe produit nécessaire.\n"
-"Vous devez spécifier un statut d'installation nécessaire ou une action nécessaire.\n"
+"Vous devez specifier un produit necessaire ou une classe produit necessaire.\n"
+"Vous devez specifier un statut d'installation necessaire ou une action necessaire.\n"
 "Le type d'exigence est optionnel.\n"
 "Les actions possible sont:\n"
 "      %s\n"
@@ -228,103 +192,80 @@ msgstr ""
 "Les exigences possibles sont:\n"
 "      %s\n"
 
-#: usr/bin/opsi-newprod:290
 msgid "Create product dependency?"
-msgstr "Créer une dépendance sur le produit ?"
+msgstr "Creer une dependance sur le produit ?"
 
-#: usr/bin/opsi-newprod:291
 msgid "Do you want to create a product dependency?"
-msgstr "Voulez vous créer une dépendance sur un produit ?"
+msgstr "Voulez vous creer une dependance sur un produit ?"
 
-#: usr/bin/opsi-newprod:292 usr/bin/opsi-newprod:357
 msgid "Yes"
 msgstr "Oui"
 
-#: usr/bin/opsi-newprod:293 usr/bin/opsi-newprod:358
 msgid "No"
 msgstr "Non"
 
-#: usr/bin/opsi-newprod:306
 msgid "Dependency for action"
-msgstr "Dépendance pour action"
+msgstr "Dependance pour action"
 
-#: usr/bin/opsi-newprod:307
 msgid "Required product id"
 msgstr "Id du produit obligatoire"
 
-#: usr/bin/opsi-newprod:309
 msgid "Required action"
 msgstr "Action obligatoire"
 
-#: usr/bin/opsi-newprod:310
 msgid "Required installation status"
 msgstr "Statut d'installation obligatoire"
 
-#: usr/bin/opsi-newprod:311
 msgid "Requirement type"
 msgstr "Type d'exigence"
 
-#: usr/bin/opsi-newprod:314
 msgid "Create dependency for product %s"
-msgstr "Créer une dépendance pour le produit %s"
+msgstr "Creer une dependance pour le produit %s"
 
-#: usr/bin/opsi-newprod:339
 msgid "Failed to create product dependency"
-msgstr "Impossible de créer un dépendance pour le produit"
+msgstr "Impossible de creer un dependance pour le produit"
 
-#: usr/bin/opsi-newprod:348
 msgid ""
 "Property name: Name of the variable.\n"
 "Property description: Usage description.\n"
 "Possible values: Comma separated list of possible values for the variable.\n"
 "\t         If no possible values are given any value is allowed.\n"
 msgstr ""
-"Nom de la propriété: Nom de la variable.\n"
-"Description de la propriété: Description de l'utilisation.\n"
-"Valeurs possibles: liste séparée par des virgules des valeurs possibles pour la variable.\n"
-"\t        Si aucune valeur possible n'est spécifiée, n'importe quelle valeur est autorisée.\n"
+"Nom de la propriete: Nom de la variable.\n"
+"Description de la propriete: Description de l'utilisation.\n"
+"Valeurs possibles: liste separee par des virgules des valeurs possibles pour la variable.\n"
+"\t        Si aucune valeur possible n'est specifiee, n'importe quelle valeur est autorisee.\n"
 
-#: usr/bin/opsi-newprod:355
 msgid "Create product property?"
-msgstr "Créer un propriété pour le produit ?"
+msgstr "Creer un propriete pour le produit ?"
 
-#: usr/bin/opsi-newprod:356
 msgid "Do you want to create a product property?"
-msgstr "Voulez vous créer une propriété pour le produit ?"
+msgstr "Voulez vous creer une propriete pour le produit ?"
 
-#: usr/bin/opsi-newprod:369
 msgid "Property name (key)"
-msgstr "Nom de la propriété (clef)"
+msgstr "Nom de la propriete (clef)"
 
-#: usr/bin/opsi-newprod:370
 msgid "Property description"
-msgstr "Description de la propriété"
+msgstr "Description de la propriete"
 
-#: usr/bin/opsi-newprod:371
 msgid "Possible values"
 msgstr "Valeurs possibles"
 
-#: usr/bin/opsi-newprod:374 usr/bin/opsi-newprod:426
 msgid "Create property for product %s"
-msgstr "Créer une propriété pour le produit %s"
+msgstr "Creer une propriete pour le produit %s"
 
-#: usr/bin/opsi-newprod:397 usr/bin/opsi-newprod:420 usr/bin/opsi-newprod:444
 msgid "Failed to create product property"
-msgstr "Impossible de créer la propriété pour le produit"
+msgstr "Impossible de creer la propriete pour le produit"
 
-#: usr/bin/opsi-newprod:407
 msgid "Please select a default value"
-msgstr "Veuillez sélectionner un valeur par défaut "
+msgstr "Veuillez selectionner un valeur par defaut"
 
-#: usr/bin/opsi-newprod:423
 msgid "Default value for %s"
-msgstr "Valeur par défaut pour %s"
+msgstr "Valeur par defaut pour %s"
 
-#: usr/bin/opsi-newprod:535
 msgid "Done"
 msgstr "Fini"
 
-#: usr/bin/opsi-newprod:535
 msgid "Package source directory '%s' created"
-msgstr "Le répertoire source pour le paquet '%s' à été crée"
+msgstr "Le repertoire source pour le paquet '%s' a ete cree"
 
