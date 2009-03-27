@@ -1,14 +1,21 @@
+opsi-utils (3.3.1.1-1) stable; urgency=low
+
+  * opsi-package-manager 1.0.7
+      --new-product-id
+
+ -- Jan Schneider <j.schneider@uib.de>  Fri, 06 Mar 2009 10:27:57 +0100
+
 opsi-utils (3.3.1.0-4) stable; urgency=low
 
   * opsi-convert 0.6.5
 
- -- Jan Schneider <schneider@pcbon14.uib.local>  Wed, 04 Feb 2009 14:47:33 +0100
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 04 Feb 2009 14:47:33 +0100
 
 opsi-utils (3.3.1.0-3) stable; urgency=low
 
   * opsi-convert 0.6.4
 
- -- Jan Schneider <schneider@pcbon14.uib.local>  Fri, 23 Jan 2009 13:03:50 +0100
+ -- Jan Schneider <j.schneider@uib.de>  Fri, 23 Jan 2009 13:03:50 +0100
 
 opsi-utils (3.3.1.0-2) stable; urgency=low
 

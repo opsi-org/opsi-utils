@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 
 import sys, os, base64, re, stat, socket, threading, time, fcntl, math
 from optparse import OptionParser, IndentedHelpFormatter
@@ -611,7 +611,7 @@ class OpsiPackageManager(TransferProgressListener):
 		logger.info("OpsiPackageManager initiated")
 	
 	def getConfigBackend(self):
-		 return BackendManager(authRequired=False)
+		return BackendManager(authRequired = False, configFile = '/etc/opsi/backendManager.d')
 		
 	def abort(self):
 		for tq in self.taskQueues:
@@ -1188,7 +1188,7 @@ def main(argv):
 			sys.exit(1)
 		productIds = args
 	
-	bm = BackendManager(authRequired=False)
+	bm = BackendManager(authRequired = False, configFile = '/etc/opsi/backendManager.d')
 	try:
 		opm = OpsiPackageManager()
 		

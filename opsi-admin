@@ -32,11 +32,11 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.9.9.4'
+__version__ = '0.9.9.5'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, json, popen2
 
-# OPSI imports    
+# OPSI imports
 from OPSI import Tools
 from OPSI.Logger import *
 from OPSI.Backend.BackendManager import *
@@ -194,7 +194,7 @@ def main(argv):
 	if direct:
 		# Create BackendManager
 		from OPSI.Backend.BackendManager import BackendManager
-		backend = BackendManager(authRequired=False)
+		backend = BackendManager(authRequired=False, configFile='/etc/opsi/backendManager.d')
 	
 	else:
 		# Connect to opsiconfd
