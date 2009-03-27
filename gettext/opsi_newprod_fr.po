@@ -33,10 +33,10 @@ msgstr ""
 "\n"
 
 msgid "Open PC ServerIntegration"
-msgstr "Integration serveur Open PC"
+msgstr "Open PC ServerIntegration"
 
 msgid "\n"
-msgstr ""
+msgstr "\n"
 
 msgid "Please select product type"
 msgstr "Veuillez selectionner le type de produit"
