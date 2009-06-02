@@ -1,9 +1,11 @@
-opsi-utils (3.4-a1) stable; urgency=low
+opsi-utils (3.4-1) stable; urgency=low
 
   * Adapted to new BackendManager configFile default
   * french localization
+  * opsi-convert 0.7
+  * opsi-admin 0.9.9.7
 
- -- Jan Schneider <j.schneider@uib.de>  Fri, 27 Mar 2009 16:31:30 +0100
+ -- Jan Schneider <j.schneider@uib.de>  Tue, 02 Jun 2009 13:09:14 +0200
 
 opsi-utils (3.3.1.1-1) stable; urgency=low
 
