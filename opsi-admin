@@ -32,9 +32,9 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.9.9.7'
+__version__ = '1.0'
 
-import os, sys, termios, getopt, time, fcntl, struct, gettext, json, popen2
+import os, sys, termios, getopt, time, fcntl, struct, gettext, json, subprocess
 
 # OPSI imports
 from OPSI import Tools
@@ -1075,43 +1075,50 @@ class CommandMethod(Command):
 				
 				logger.notice("Executing: '%s'" % shell.shellCommand)
 				
-				fi = popen2.Popen3(shell.shellCommand, capturestderr = True)
+				proc = subprocess.Popen(
+					shell.shellCommand,
+					shell	= True,
+					stdin	= subprocess.PIPE,
+					stdout	= subprocess.PIPE,
+					stderr	= subprocess.PIPE,
+				)
+				flags = fcntl.fcntl(proc.stdout, fcntl.F_GETFL)
+				fcntl.fcntl(proc.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 				
-				exitCode = -1
+				flags = fcntl.fcntl(proc.stderr, fcntl.F_GETFL)
+				fcntl.fcntl(proc.stderr, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+			
+				exitCode = None
 				
 				buf = ''
 				err = ''
 				
-				while (exitCode == -1):
+				while exitCode is None:
+					exitCode = proc.poll()
 					if lines:
-						try:
-							for line in lines:
-								print >> fi.tochild, line
-							lines = []
-							if not fi.tochild.closed:
-								fi.tochild.close()
-						except Exception, e:
-							logger.warning(e)
+						for line in lines:
+							proc.stdin.write("%s\n" % line)
+						lines = []
+						proc.stdin.close()
 					
 					try:
-						string = fi.fromchild.read()
+						string = proc.stdout.read()
 						if (len(string) > 0):
 							buf += string
-					except OSError:
-						pass
+					except IOError, e:
+						if (e.errno != 11):
+							raise
 					
 					try:
-						string = fi.childerr.read()
+						string = proc.stderr.read()
 						if (len(string) > 0):
 							err += string
-					except OSError:
-						pass
+					except IOError, e:
+						if (e.errno != 11):
+							raise
 					
-					exitCode = fi.poll()
-					
-				
 				if (exitCode != 0):
-					raise Exception('\n' + err)
+					raise Exception('Exitcode: %s\n%s' % ((exitCode*-1), err))
 					
 				lines = buf.split('\n')
 				

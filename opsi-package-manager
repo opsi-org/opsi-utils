@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '1.0.8'
+__version__ = '1.0.9'
 
 import sys, os, base64, re, stat, socket, threading, time, fcntl, math
 from optparse import OptionParser, IndentedHelpFormatter
@@ -788,6 +788,7 @@ class OpsiPackageManager(TransferProgressListener):
 		if not self.quiet:
 			print _("Setting action 'setup' for product '%s' on client(s): %s") % (productId, ', '.join(clientIds))
 		for clientId in clientIds:
+			logger.info("Setting action 'setup' for product '%s' on client: %s" % (productId, clientId))
 			self.getConfigBackend().setProductActionRequest(productId, clientId, 'setup')
 	
 	def setActionUpdateWhereInstalled(self, productId, depotId):

@@ -3,7 +3,8 @@ opsi-utils (3.4-1) stable; urgency=low
   * Adapted to new BackendManager configFile default
   * french localization
   * opsi-convert 0.7
-  * opsi-admin 0.9.9.7
+  * opsi-admin 1.0
+  * opsi-package-manager 1.0.9
 
  -- Jan Schneider <j.schneider@uib.de>  Tue, 02 Jun 2009 13:09:14 +0200
 
