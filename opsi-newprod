@@ -216,7 +216,7 @@ Uninstall script: Relative path to script for action "uninstall".\n\
 Update script: Relative path to update script.\n\
 Always script: Relative path to script for action "always".\n\
 Once script: Relative path to script for action "once".\n\
-PXE config template: path to an custom linuxpxe config template.\n' )
+PXE config template: path to an custom pxelinux config template.\n' )
 
 			values = [
 				{ "name": _("Setup script"), 		"value": setupScript },

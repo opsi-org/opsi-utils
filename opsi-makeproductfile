@@ -9,11 +9,11 @@
    @license: GNU GPL, see COPYING for details.
 """
 
-__version__ = '0.7.1'
+__version__ = '0.7.2'
 
 import os, time, getopt, gettext, re, pwd, grp, socket
 
-# OPSI imports    
+# OPSI imports
 from OPSI.Logger import *
 from OPSI.System import *
 from OPSI.Product import *
@@ -133,7 +133,7 @@ def main(argv):
 	if not os.path.isdir(sourceDir):
 		raise Exception("No such directory: %s" % sourceDir)
 	
-	bm = BackendManager(authRequired=False)
+	bm = BackendManager(authRequired=False, configFile='/etc/opsi/backendManager.d')
 	
 	pps = ProductPackageSource(sourceDir = sourceDir, tempDir = tempDir, customName = customName, customOnly = customOnly, packageFileDestDir = os.getcwd())
 	

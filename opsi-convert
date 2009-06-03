@@ -32,29 +32,21 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.6.1'
+__version__ = '0.7'
 
 import sys, getopt, gettext, re, getpass, socket
 
 # OPSI imports
-from OPSI import Tools
 from OPSI.Logger import *
+from OPSI.Util import *
+from OPSI.Backend import *
 from OPSI.Backend.BackendManager import *
 
 logger = Logger()
-logLevel = LOG_ERROR
-logger.setConsoleLevel(logLevel)
+logger.setConsoleLevel(LOG_ERROR)
 logger.setConsoleFormat('%M')
 logger.setFileFormat('%D [%L] %M')
 logger.setConsoleColor(True)
-
-bmRead = None
-bmWrite = None
-deleteFirst = True
-newServer = None
-clientIds = []
-serverIds = []
-depotIds = []
 
 # Get locale
 try:
@@ -87,369 +79,11 @@ def usage():
 	print ""
 
 
-def createOpsiBase():
-	logger.comment( _("Creating opsi base.") )
-	
-	bmWrite.createOpsiBase()
-
-def deleteServers():
-	logger.comment( _("Deleting servers.") )
-	for serverId in bmWrite.getServerIds_list():
-		bmWrite.deleteServer(serverId)
-
-def convertServers():
-	logger.comment( _("Converting servers.") )
-	for i in range(len(serverIds)):
-		serverId = serverIds[i]
-		server = bmRead.getHost_hash(serverId)
-		logger.comment( "      " + _("Converting server '%s' (%s/%s)") % (server.get('hostId'), i+1, len(serverIds)) )
-		try:
-			newServerId = server.get('hostId')
-			if newServer:
-				newServerId = newServer
-			
-			serverName = newServerId.split('.')[0]
-			domain = '.'.join( newServerId.split('.')[1:] )
-			bmWrite.createServer(	serverName	= serverName, 
-						domain		= domain,
-						description	= server.get('description', ''),
-						notes		= server.get('notes', '') )
-			
-			bmWrite.setOpsiHostKey( newServerId, bmRead.getOpsiHostKey(server.get('hostId')) )
-			bmWrite.setPcpatchPassword( newServerId, bmRead.getPcpatchPassword(server.get('hostId')) )
-			
-		except Exception, e:
-			if isinstance(e, KeyboardInterrupt):
-				return
-			logger.error(e)
-
-def deleteDepots():
-	logger.comment( _("Deleting depots.") )
-	for depotId in bmWrite.getDepotIds_list():
-		bmWrite.deleteDepot(depotId)
-
-def convertDepots():
-	logger.comment( _("Converting depots.") )
-	for i in range(len(depotIds)):
-		depotId = depotIds[i]
-		depot = bmRead.getDepot_hash(depotId)
-		host = bmRead.getHost_hash(depotId)
-		logger.comment( "      " + _("Converting depot '%s' (%s/%s)") % (depotId, i+1, len(depotIds)) )
-		try:
-			depotName = depotId.split('.')[0]
-			domain = '.'.join( depotId.split('.')[1:] )
-			
-			bmWrite.createDepot(	depotName		= depotName, 
-						domain			= domain,
-						description		= depot.get('description', ''),
-						notes			= depot.get('notes', ''),
-						depotLocalUrl		= depot.get('depotLocalUrl', ''),
-						depotRemoteUrl		= depot.get('depotRemoteUrl', ''),
-						repositoryLocalUrl	= depot.get('repositoryLocalUrl', ''),
-						repositoryRemoteUrl	= depot.get('repositoryRemoteUrl', ''),
-						network			= depot.get('network', ''),
-						maxBandwidth		= depot.get('repositoryMaxBandwidth', '')
-			)
-			bmWrite.setOpsiHostKey( depotId, bmRead.getOpsiHostKey(depotId) )
-		
-		except Exception, e:
-			if isinstance(e, KeyboardInterrupt):
-				return
-			logger.error(e)
-
-def deleteClients():
-	logger.comment( _("Deleting clients.") )
-	for clientId in bmWrite.getClientIds_list():
-		bmWrite.deleteClient(clientId)
-
-def convertClients():
-	logger.comment( _("Converting clients.") )
-	for i in range(len(clientIds)):
-		clientId = clientIds[i]
-		client = bmRead.getHost_hash(clientId)
-		logger.comment( "      " + _("Converting client '%s' (%s/%s)") % (client.get('hostId'), i+1, len(clientIds)) )
-		try:
-			clientName = client.get('hostId').split('.')[0]
-			domain = '.'.join( client.get('hostId').split('.')[1:] )
-			bmWrite.createClient(	clientName	= clientName, 
-						domain		= domain,
-						description	= client.get('description', ''),
-						notes		= client.get('notes', '') )
-			
-			if client.get('lastSeen'):
-				bmWrite.setHostLastSeen(client.get('hostId'), client.get('lastSeen'))
-			
-			opsiHostKey = bmRead.getOpsiHostKey( client.get('hostId') )
-			bmWrite.setOpsiHostKey( client.get('hostId'), opsiHostKey )
-			serverKey = bmWrite.getOpsiHostKey( bmWrite.getServerId(client.get('hostId')) )
-			encryptedPcpatchPass = bmWrite.getPcpatchPassword( bmWrite.getServerId(client.get('hostId')) )
-			bmWrite.setPcpatchPassword( client.get('hostId'), Tools.blowfishEncrypt(opsiHostKey, Tools.blowfishDecrypt(serverKey, encryptedPcpatchPass)) )
-		
-		except Exception, e:
-			if isinstance(e, KeyboardInterrupt):
-				return
-			logger.error(e)
-
-def deleteGroups():
-	logger.comment( _("Deleting groups.") )
-	for groupId in bmWrite.getGroupIds_list():
-		bmWrite.deleteGroup(groupId)
-	
-def convertGroups():
-	logger.comment( _("Converting groups.") )
-	groupIds = bmRead.getGroupIds_list()
-	for i in range(len(groupIds)):
-		groupId = groupIds[i]
-		logger.comment( "      " + _("Converting group '%s' (%s/%s)") % (groupId, i+1, len(groupIds)) )
-		clientIds = []
-		for clientId in bmRead.getClientIds_list(groupId = groupId):
-			if newServer and (newServer == clientId):
-				continue
-			clientIds.append(clientId)
-		
-		try:
-			bmWrite.createGroup(	groupId	= groupId, 
-						members	= clientIds )
-		except Exception, e:
-			if isinstance(e, KeyboardInterrupt):
-				return
-			logger.error(e)
-
-def convertGeneralConfigs():
-	logger.comment( _("Converting general configs.") )
-	generalConfig = bmRead.getGeneralConfig_hash()
-	bmWrite.setGeneralConfig(generalConfig)
-	for clientId in clientIds:
-		logger.comment( "      " + _("Searching general config for client '%s'") % clientId )
-		if deleteFirst:
-			try:
-				bmWrite.deleteGeneralConfig(clientId)
-				logger.comment( "            " + _("Deleting general config.") )
-			except Exception, e:
-				if isinstance(e, KeyboardInterrupt):
-					return
-				
-		
-		gc = bmRead.getGeneralConfig_hash(clientId)
-		new = False
-		
-		for (key, value) in gc.items():
-			if not generalConfig.has_key(key):
-				new = True
-				break
-			elif (generalConfig.get(key) != value):
-				new = True
-				break
-			
-		if new:
-			logger.comment( "            " + _("Converting general config.") )
-			bmWrite.setGeneralConfig(gc , clientId)
-
-def convertNetworkConfigs():
-	logger.comment( _("Converting network configs.") )
-	networkConfig = bmRead.getNetworkConfig_hash()
-	if newServer:
-		networkConfig['opsiServer'] = newServer
-		if networkConfig.get('depotId') in serverIds:
-			networkConfig['depotId'] = newServer
-			
-	bmWrite.setNetworkConfig(networkConfig)
-	
-	for clientId in clientIds:
-		logger.comment( "      " + _("Searching network config for client '%s'") % clientId )
-		if deleteFirst:
-			try:
-				bmWrite.deleteNetworkConfig(clientId)
-				logger.comment( "            " + _("Deleting network config.") )
-			except Exception, e:
-				if isinstance(e, KeyboardInterrupt):
-					return
-				
-		
-		nc = bmRead.getNetworkConfig_hash(clientId)
-		if newServer:
-			nc['opsiServer'] = newServer
-			if nc.get('depotId') in serverIds:
-				nc['depotId'] = newServer
-		new = False
-		
-		for (key, value) in nc.items():
-			if not networkConfig.has_key(key):
-				new = True
-				break
-			elif (networkConfig.get(key) != value):
-				new = True
-				break
-			
-		if new:
-			logger.comment( "            " + _("Converting network config.") )
-			bmWrite.setNetworkConfig(nc , clientId)
-
-def deleteProducts():
-	logger.comment( _("Deleting products.") )
-	for depotId in depotIds:
-		for productId in bmWrite.getProductIds_list(objectId = depotId):
-			bmWrite.deleteProduct(productId = productId, depotIds = [ depotId ])
-	
-def convertProducts():
-	objectId=None
-	for i in range(len(depotIds)):
-		depotId = depotIds[i]
-		for type in ('netboot', 'localboot'):
-			logger.comment(  _("Converting %s products on depot '%s'.") % (type, depotId) )
-			productIds = bmRead.getProductIds_list(productType = type, objectId = depotId)
-			for j in range(len(productIds)):
-				productId = productIds[j]
-				logger.comment( "      " + _("Converting product '%s' on depot '%s' (%s/%s)") % (productId, depotId, j+1, len(productIds)) )
-				product = bmRead.getProduct_hash(productId = productId, depotId = depotId)
-				try:
-					setupScript = product.get('setupScript', '')
-					uninstallScript	= product.get('uninstallScript', '')
-					updateScript = product.get('updateScript', '')
-					alwaysScript = product.get('alwaysScript', '')
-					onceScript = product.get('onceScript', '')
-					
-					regexPath = re.compile('^\w:\\\\.*\\\\%s\\\\(.*)$' % productId, re.IGNORECASE)
-					regexURL = re.compile('^\w+:/.*/%s/(.*)$' % productId, re.IGNORECASE)
-					
-					for script in ('setupScript', 'uninstallScript', 'updateScript', 'alwaysScript', 'onceScript'):
-						
-						if not eval(script):
-							continue
-						match = re.search(regexPath, eval(script))
-						if match:
-							logger.info("Changing scriptname from '%s' to '%s'" % (eval(script), match.group(1)))
-							exec("%s = '%s'" % (script, match.group(1)))
-							continue
-						match = re.search(regexURL, eval(script))
-						if match:
-							logger.info("Changing scriptname from '%s' to '%s'" % (eval(script), match.group(1)))
-							exec("%s = '%s'" % (script, match.group(1)))
-						
-					bmWrite.createProduct(	productType		= type, 
-								productId		= productId,
-								name			= product.get('name'),
-								productVersion		= product.get('productVersion', '1.0'),
-								packageVersion		= product.get('packageVersion', '1'),
-								licenseRequired		= product.get('licenseRequired', 0),
-								setupScript		= setupScript,
-								uninstallScript		= uninstallScript,
-								updateScript		= updateScript,
-								alwaysScript		= alwaysScript,
-								onceScript		= onceScript,
-								priority		= product.get('priority', 0),
-								description		= product.get('description', ''),
-								advice			= product.get('advice', ''),
-								productClassNames	= product.get('productClassNames', []),
-								pxeConfigTemplate	= product.get('pxeConfigTemplate', None),
-								windowsSoftwareIds	= product.get('windowsSoftwareIds', []),
-								depotIds		= [ depotId ] )
-				except Exception, e:
-					if isinstance(e, KeyboardInterrupt):
-						return
-					logger.logException(e)
-					continue
-				
-				for dependency in bmRead.getProductDependencies_listOfHashes(productId = productId, depotId = depotId):
-					logger.comment( "            " + _("Converting product dependency '%s'") \
-						% dependency.get('requiredProductId', dependency.get('requiredProductClassId')) )
-					bmWrite.createProductDependency(
-							productId			= productId,
-							action				= dependency.get('action'),
-							requiredProductId		= dependency.get('requiredProductId'),
-							requiredProductClassId		= dependency.get('requiredProductClassId'),
-							requiredAction			= dependency.get('requiredAction'),
-							requiredInstallationStatus	= dependency.get('requiredInstallationStatus'),
-							requirementType			= dependency.get('requirementType'),
-							depotIds			= [ depotId ] )
-					
-				for definition in bmRead.getProductPropertyDefinitions_listOfHashes(productId = productId, depotId = depotId):
-					logger.comment( "            " + _("Converting product property definition '%s'") % definition.get('name') )
-					bmWrite.createProductPropertyDefinition(
-							productId 	= productId,
-							name		= definition.get('name'),
-							description	= definition.get('description'),
-							defaultValue	= definition.get('default'),
-							possibleValues	= definition.get('values'),
-							depotIds	= [ depotId ] )
-			logger.comment("")
-
-def convertProductStates():
-	logger.comment( _("Converting product states.") )
-	
-	i = 0
-	for (clientId, states) in bmRead.getProductStates_hash(clientIds).items():
-		i += 1
-		logger.comment( "      " + _("Converting product states of client '%s' (%s/%s)") % ( clientId, i, len(clientIds) ) )
-		for state in states:
-			logger.comment( "               " + _("Converting product state for product '%s' on '%s' (%s/%s)") \
-							% ( state.get('productId'), clientId, i, len(clientIds) ) )
-			try:
-				bmWrite.setProductState(
-						state.get('productId'),
-						clientId,
-						installationStatus = state.get('installationStatus'),
-						actionRequest = state.get('actionRequest'),
-						productVersion = state.get('productVersion'),
-						packageVersion = state.get('packageVersion'),
-						lastStateChange = state.get('lastStateChange'),
-						licenseKey = "" )
-				#bmWrite.setProductInstallationStatus(state.get('productId'), hostId, state.get('installationStatus'))
-				#if state.get('actionRequest') and state.get('actionRequest') not in ('undefined', 'none'):
-				#	bmWrite.setProductActionRequest(state.get('productId'), hostId, state.get('actionRequest'))
-			except Exception, e:
-				if isinstance(e, KeyboardInterrupt):
-					return
-				logger.error(e)
-
-def convertProductProperties():
-	logger.comment( _("Converting product properties.") )
-	for depotId in depotIds:
-		i = 0
-		productIds = bmRead.getProductIds_list(objectId = depotId)
-		clientIds =  bmRead.getClientIds_list(depotId = depotId)
-		
-		for productId in productIds:
-			i += 1
-			logger.comment( "      " + _("Converting product properties for product '%s' (%s/%s)") % (productId, i, len(productIds)) )
-			productProperties = bmRead.getProductProperties_hash(productId, objectId = depotId)
-			try:
-				bmWrite.setProductProperties(productId, productProperties, objectId = depotId)
-			except Exception, e:
-				if isinstance(e, KeyboardInterrupt):
-					return
-				logger.error(e)
-			
-			for clientId in clientIds:
-				logger.comment( "            " + _("Converting product properties for product '%s' on '%s' (%s/%s)") % (productId, clientId, i, len(productIds)) )
-				pp = bmRead.getProductProperties_hash(productId, clientId)
-				new = False
-				
-				for (key, value) in pp.items():
-					if not productProperties.has_key(key):
-						new = True
-						break
-					elif (productProperties.get(key) != value):
-						new = True
-						break
-					
-				if new:
-					try:
-						bmWrite.setProductProperties(productId, pp, clientId)
-					except Exception, e:
-						if isinstance(e, KeyboardInterrupt):
-							return
-						logger.error(e)
 
 def main(argv):
-	global logLevel
-	global bmRead
-	global bmWrite
-	global deleteFirst
-	global newServer
-	global clientIds
-	global depotIds
-	global serverIds
+	logLevel = LOG_ERROR
+	newServerId = None
+	cleanupFirst = True
 	
 	# Get options
 	try:
@@ -471,9 +105,9 @@ def main(argv):
 			logger.setConsoleLevel(logLevel)
 			logger.setFileLevel(logLevel)
 		elif (opt == "-n"):
-			deleteFirst = False
+			cleanupFirst = False
 		elif (opt == "-s"):
-			newServer = socket.getfqdn()
+			newServerId = socket.getfqdn()
 		elif (opt == "-l"):
 			logger.setLogFile(arg)
 			logger.setFileLevel(logLevel)
@@ -530,13 +164,13 @@ def main(argv):
 			write['backend'] = 'JSONRPC'
 			write['address'] = match.group(1) + match.group(3)
 			write['username'] = match.group(2)
-			if newServer:
-				newServer = match.group(3).split(':')[0]
-				if re.search('^[\d\.]+$', newServer):
+			if newServerId:
+				newServerId = match.group(3).split(':')[0]
+				if re.search('^[\d\.]+$', newServerId):
 					# Is an ip address
-					newServer = socket.getfqdn(newServer)
-					if re.search('^[\d\.]+$', newServer):
-						raise Exception("Cannot resolve '%s'" % newServer)
+					newServerId = socket.getfqdn(newServerId)
+					if re.search('^[\d\.]+$', newServerId):
+						raise Exception("Cannot resolve '%s'" % newServerId)
 		else:
 			raise Exception("Bad destination URL '%s'" % writeBackend)
 	elif os.path.isfile(writeBackend):
@@ -559,8 +193,8 @@ def main(argv):
 	elif read['config'] and write['config'] and os.path.samefile(read['config'], write['config']):
 		raise Exception("Source and destination backend are the same.")
 	
-	if newServer and ( len(newServer.split('.')) <= 2 ):
-		raise Exception("Bad server-id '%s' for new server" % newServer)
+	if newServerId and ( len(newServerId.split('.')) <= 2 ):
+		raise Exception("Bad server-id '%s' for new server" % newServerId)
 	
 	# Creating BackendManager instance for reading
 	bmRead = None
@@ -586,67 +220,34 @@ def main(argv):
 		bmWrite = BackendManager( write['username'], write['password'], write['address'], backend = write['backend'], authRequired = False )
 	bmWrite.authenticated()
 	
-	serverIds = bmRead.getServerIds_list()
-	depotIds = bmRead.getDepotIds_list()
-	clientIds = bmRead.getClientIds_list()
-	if newServer:
-		if (len(serverIds) > 1):
-			raise Exception("More than on serverId reported by read backend, cannot use '%s' as new server" % newServer)
-		
-		num = -1
-		for i in range(len(clientIds)):
-			if (clientIds[i] == newServer):
-				num = i
-				break
-		if (num > -1):
-			del clientIds[num]
-		
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 	# =    Starting conversion                                                    =
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	class OverallReplicationProgressObserver(ProgressObserver):
+		def messageChanged(self, subject, message):
+			#print "%s (%d%%)" % (subject.getMessage(), subject.getPercent())
+			print message
+			pass
+			
+		def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+			pass
 	
-	# Opsi base
-	logger.comment("")
-	createOpsiBase()
-	
-	# Servers / depots
-	if deleteFirst:
-		deleteServers()
-		deleteDepots()
-	convertServers()
-	convertDepots()
-	
-	# Clients
-	logger.comment("")
-	if deleteFirst: deleteClients()
-	convertClients()
-	
-	# Groups
-	logger.comment("")
-	if deleteFirst: deleteGroups()
-	convertGroups()
-	
-	# GeneralConfigs
-	logger.comment("")
-	convertGeneralConfigs()
-	
-	# NetworkConfigs
-	logger.comment("")
-	convertNetworkConfigs()
-	
-	# Products
-	logger.comment("")
-	if deleteFirst: deleteProducts()
-	convertProducts()
-	
-	# Product States
-	logger.comment("")
-	convertProductStates()
-	
-	# Product properties
-	logger.comment("")
-	convertProductProperties()
-
+	class CurrentReplicationProgressObserver(ProgressObserver):
+		def messageChanged(self, subject, message):
+			#print "%s (%d%%)" % (subject.getMessage(), subject.getPercent())
+			print message
+		
+		def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+			#print "%s (%d%%)" % (subject.getMessage(), subject.getPercent())
+			pass
+		
+	orpo = OverallReplicationProgressObserver()
+	crpo = CurrentReplicationProgressObserver()
+	dbr = DataBackendReplicator(bmRead, bmWrite, newServerId = newServerId, cleanupFirst = cleanupFirst)
+	dbr.getOverallProgressSubject().attachObserver(orpo)
+	dbr.getCurrentProgressSubject().attachObserver(crpo)
+	dbr.replicate()
+	print ""
 
 if (__name__ == "__main__"):
 	

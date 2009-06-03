@@ -19,11 +19,13 @@ build-indep-stamp:
 	dh_installdirs
 	rm -f build-indep-stamp
 	msgfmt -o gettext/opsi_newprod_de.mo gettext/opsi_newprod_de.po
+	msgfmt -o gettext/opsi_newprod_fr.mo gettext/opsi_newprod_fr.po
 	touch build-indep-stamp
 
 clean:
 	rm -f *-stamp
 	rm debian/files || true
+	rm gettext/*.mo
 
 binary: binary-arch binary-indep
 
@@ -33,6 +35,8 @@ binary-stamp:
 	mkdir -p debian/opsi-utils/usr/bin
 	mkdir -p debian/opsi-utils/usr/share/locale/de/LC_MESSAGES
 	install -m 0640 gettext/opsi_newprod_de.mo debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
+	mkdir -p debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES
+	install -m 0640 gettext/opsi_newprod_fr.mo debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi_newprod.mo
 	install -m 0750 -g opsiadmin opsi-admin debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-newprod debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-makeproductfile debian/opsi-utils/usr/bin/
@@ -40,19 +44,12 @@ binary-stamp:
 	install -m 0755 opsiuninst debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-package-manager debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-convert debian/opsi-utils/usr/bin
-	install -m 0755 opsi-makeproductfilev2 debian/opsi-utils/usr/bin/
-	install -m 0755 opsiinstv2 debian/opsi-utils/usr/bin/
-	install -m 0755 opsi-winipatch debian/opsi-utils/usr/bin/
 	install -m 0755 sysbackup debian/opsi-utils/usr/bin/
 	
 binary-indep: build-indep binary-indep-stamp
 
 binary-indep-stamp:
 	# Create symlinks
-	dh_link -A usr/bin/opsi-makeproductfile usr/bin/makeproductfile
-	dh_link -A usr/bin/opsi-makeproductfilev2 usr/bin/makeproductfilev2
-	dh_link -A usr/bin/opsi-newprod usr/bin/newprod
-	dh_link -A usr/bin/opsi-winipatch usr/bin/winipatch
 	# Install changelogs into package build directories
 	dh_installchangelogs
 	# Fix permissions of files in package build directories
