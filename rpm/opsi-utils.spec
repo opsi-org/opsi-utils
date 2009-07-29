@@ -43,6 +43,7 @@ msgfmt -o gettext/opsi_newprod_fr.mo gettext/opsi_newprod_fr.po
 %install
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES
+mkdir -p $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES
 install -m 0640 gettext/opsi_newprod_de.mo $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
 install -m 0640 gettext/opsi_newprod_fr.mo $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi_newprod.mo
 install -m 0750 opsi-admin $RPM_BUILD_ROOT/usr/bin/
