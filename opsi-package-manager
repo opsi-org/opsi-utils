@@ -1,4 +1,4 @@
-#!/usr/bin/python
+j#!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
    = = = = = = = = = = = = = = =
@@ -1343,8 +1343,13 @@ def main(argv):
 		if opm:	opm.cleanup()
 		raise
 	
-	while(threading.activeCount() > 1):
-		time.sleep(1)
+	while True:
+		threads = threading.enumerate()
+		if (len(threads) == 1):
+			break
+		for t in threads:
+			if (t != threading.currentThread()):
+				t.join(1)
 	
 	errors = opm.getErrors()
 	if errors:
