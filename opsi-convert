@@ -79,7 +79,7 @@ class OpsiConvert():
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
 		#print subject, state, timeLeft
 		#sys.stdout.write("%s %0.2f%% ETA: %ds\n" % (subject.getId(), percent, timeLeft))
-		sys.stdout.write("     %s %0.2f%% ETA: %ds          \r" % (subject.getId(), percent, timeLeft))
+		sys.stdout.write("                                    %s %0.2f%% ETA: %ds          \r" % (subject.getId(), percent, timeLeft))
 		sys.stdout.flush()
 		
 
