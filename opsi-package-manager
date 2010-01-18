@@ -1,0 +1,654 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+   = = = = = = = = = = = = = = =
+   =   opsi-package-manager    =
+   = = = = = = = = = = = = = = =
+   
+   opsi-package-manager is part of the desktop management solution opsi
+   (open pc server integration) http://www.opsi.org
+   
+   Copyright (C) 2010 uib GmbH
+   
+   http://www.uib.de/
+   
+   All rights reserved.
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License version 2 as
+   published by the Free Software Foundation.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   
+   @copyright:	uib GmbH <info@uib.de>
+   @author: Jan Schneider <j.schneider@uib.de>
+   @license: GNU General Public License version 2
+"""
+
+__version__ = '3.4.99'
+
+
+# Imports
+import os, sys, threading, time, termios, socket
+from signal import *
+from optparse import OptionParser
+
+# OPSI Imports
+from OPSI.Logger import *
+from OPSI.Types import *
+from OPSI.Backend.BackendManager import BackendManager
+from OPSI.Backend.JSONRPC import JSONRPCBackend
+from OPSI.Util.Repository import *
+
+# Get logger instance
+logger = Logger()
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# -                                               TASK                                                -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class Task:
+	def __init__(self, name, opsiPackageManager, method, params):
+		self.name = forceUnicode(name)
+		self.opsiPackageManager = opsiPackageManager
+		self.method = method
+		self.params = forceList(params)
+		self.started = False
+		self.ended = False
+		self.exception = None
+	
+	def abort(self):
+		pass
+	
+	def isRunning(self):
+		return self.started and not self.ended
+		
+	def start(self):
+		logger.debug(u"Task start()")
+		self.started = True
+		try:
+			logger.debug2(u"Method: %s" % self.method)
+			logger.debug2(u"Params: %s" % self.params)
+			self.method( *self.params )
+		except Exception, e:
+			logger.logException(e)
+			self.exception = e
+			self.ended = True
+			raise
+		self.ended = True
+	
+class UploadTask(Task):
+	def __init__(self, name, opsiPackageManager, method, params):
+		Task.__init__(self, name, opsiPackageManager, method, params)
+	
+	def start(self):
+		while self.opsiPackageManager.maxTransfersReached():
+			logger.debug(u"Maximum number transfers reached, waiting")
+			time.sleep(1)
+		Task.start(self)
+		
+class InstallTask(Task):
+	def __init__(self, name, opsiPackageManager, method, params):
+		Task.__init__(self, name, opsiPackageManager, method, params)
+
+class UninstallTask(Task):
+	def __init__(self, name, opsiPackageManager, method, params):
+		Task.__init__(self, name, opsiPackageManager, method, params)
+		
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# -                                             TASKQUEUE                                             -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class TaskQueue(threading.Thread):
+	def __init__(self, name):
+		threading.Thread.__init__(self)
+		self.name = forceUnicode(name)
+		self.tasks = []
+		self.started = False
+		self.ended = False
+		self.errors = []
+		self.currentTaskNumber = -1
+	
+	def abort(self):
+		self.ended = True
+		task = self.getCurrentTask()
+		if task:
+			task.abort()
+		
+	def getCurrentTask(self):
+		if (self.currentTaskNumber < 0):
+			return None
+		return self.tasks[self.currentTaskNumber]
+	
+	def run(self):
+		self.currentTaskNumber = -1
+		if not self.tasks:
+			raise Exception(u"No tasks in queue")
+		self.started = True
+		logger.debug(u"TaskQueue '%s' started" % self.name)
+		i = 0
+		while (i < len(self.tasks)):
+			if self.ended:	return
+			task = self.tasks[i]
+			try:
+				logger.debug(u"Starting task '%s'" % task.name)
+				self.currentTaskNumber += 1
+				task.start()
+				logger.debug(u"Task '%s' ended" % task.name)
+				if (i < len(self.tasks)-1) and isinstance(task, UploadTask) and isinstance(self.tasks[i+1], UploadTask):
+					# Sleeping 3 seconds to provide the opportunity to start other upload tasks
+					time.sleep(3)
+			except Exception, e:
+				logger.error(u"Task '%s' failed: %s" % (task.name, e))
+				self.errors.append(e)
+				if (i < len(self.tasks)-1) and isinstance(task, UploadTask) and isinstance(self.tasks[i+1], InstallTask):
+					# Upload task failed => do not execute install task
+					logger.notice(u"Upload task failed, skipping install task")
+					i += 1
+			i += 1
+		self.ended = True
+	
+	def addTask(self, task):
+		if not isinstance(task, Task):
+			raise ValueError(u"Task wanted, '%s' passed" % task)
+		self.tasks.append(task)
+	
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# -                                         OPSIPACKAGEMANAGER                                        -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class OpsiPackageManager():
+	
+	def __init__(self, config, backend):
+		self.config = config
+		self.backend = backend
+		self.taskQueues = []
+		
+	def stop(self):
+		logger.notice(u"Stopping opsi-package-manager")
+	
+	def getDepotConnection(self, depotId):
+		depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
+		return JSONRPCBackend( username = depotId, password = depot.getOpsiHostKey(), address = depotId )
+		
+	def getNumberOfTransfers(self):
+		transfers = 0
+		for tq in self.taskQueues:
+			ct = tq.getCurrentTask()
+			if ct and isinstance(ct, UploadTask) and ct.isRunning():
+				transfers += 1
+		logger.debug(u"%d transfers running" % transfers)
+		return transfers
+		
+	def maxTransfersReached(self):
+		if self.config['maxTransfers'] and (self.getNumberOfTransfers() >= self.config['maxTransfers']):
+			return True
+		return False
+	
+	def waitForTaskQueues(self):
+		for tq in self.taskQueues:
+			tq.join()
+		
+	def uninstallPackages(self):
+		productIds = []
+		for product in self.backend.product_getObjects(id = self.config['productIds']):
+			if not product.id in productIds:
+				productIds.append(product.id)
+		
+		for depotId in self.config['depotIds']:
+			tq = TaskQueue(name = u"Uninstall of package(s) %s on depot '%s'" % (', '.join(productIds), depotId))
+			for productId in productIds:
+				tq.addTask(
+					UninstallTask(
+						name = u"Uninstall of package '%s' on depot '%s'" % (productId, depotId),
+						opsiPackageManager = self,
+						method = self.uninstallPackage,
+						params = [productId, depotId]
+					)
+				)
+			self.taskQueues.append(tq)
+			logger.info(u"Starting task queue '%s'" % tq.name)
+			tq.start()
+		self.waitForTaskQueues()
+		
+	def uninstallPackage(self, productId, depotId):
+		depotConnection = None
+		try:
+			logger.notice(u"Uninstalling package '%s' on depot '%s'" % (productId, depotId))
+			#if not self.quiet: print u"Uninstalling package '%s' on depot '%s'" \
+			#			% (productId, depotId)
+			
+			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
+			logger.info(u"Using '%s' as repository url" % depot.getRepositoryRemoteUrl())
+			repository = getRepository(depot.getRepositoryRemoteUrl(), depotId, depot.getOpsiHostKey())
+			for destination in repository.content():
+				if not destination['name'].startswith(u'%s_' % productId):
+					continue
+				logger.info(u"Deleting destination '%s' on depot '%s'" % (destination['name'], depotId))
+				repository.delete(destination['name'])
+			
+			depotConnection = self.getDepotConnection(depotId)
+			depotConnection.depot_uninstallPackage(productId, force = self.config['forceUninstall'], deleteFiles = self.config['deleteFilesOnUninstall'])
+			logger.notice(u"Uninstall of package '%s' on depot '%s' finished" % (productId, depotId))
+			
+		except Exception, e:
+			logger.error(e)
+			if depotConnection:
+				depotConnection.backend_exit()
+			raise
+	
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# -                                      OPSIPACKAGEMANAGERCONTROL                                    -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class OpsiPackageManagerControl(object):
+	def __init__(self):
+		logger.debug(u"OpsiPackageManagerControl")
+		# Set umask
+		os.umask(0077)
+		self._pid = 0
+		
+		# Call signalHandler on signal SIGTERM, SIGINT
+		signal(SIGTERM, self.signalHandler)
+		signal(SIGINT,  self.signalHandler)
+		
+		parser = OptionParser( add_help_option = False )
+		
+		parser.add_option("-h", "--help",           action="store_true", dest="help")
+		parser.add_option("-V", "--version",        action="store_true", dest="version")
+		parser.add_option("-v", "--verbose",        action="count",      dest="verbose")
+		parser.add_option("-q", "--quiet",          action="store_true", dest="quiet")
+		parser.add_option("-i", "--install",        action="store_true", dest="COMMAND_INSTALL")
+		parser.add_option("-u", "--upload",         action="store_true", dest="COMMAND_UPLOAD")
+		parser.add_option("-p", "--properties",     action="store",      dest="properties",   default="keep", choices=['ask', 'package', 'keep'])
+		parser.add_option(      "--max-transfers",  action="store",      dest="maxTransfers", default = 0,    type="int")
+		parser.add_option(      "--max-bandwidth",  action="store",      dest="maxBandwidth", default = 0,    type="int")
+		parser.add_option("-l", "--list",           action="store_true", dest="COMMAND_LIST")
+		parser.add_option("-D", "--differences",    action="store_true", dest="COMMAND_DIFFERENCES")
+		parser.add_option("-r", "--remove",         action="store_true", dest="COMMAND_REMOVE")
+		parser.add_option("-x", "--extract",        action="store_true", dest="COMMAND_EXTRACT")
+		parser.add_option(      "--new-product-id", action="store",      dest="newProductId")
+		parser.add_option("-d", "--depots",         action="store",      dest="depots")
+		parser.add_option("-f", "--force",          action="store_true", dest="force")
+		parser.add_option("-k", "--keep-files",     action="store_true", dest="keepFiles")
+		parser.add_option("-t", "--temp-dir",       action="store",      dest="tempDir")
+		parser.add_option("-o", "--overwrite",      action="store_true", dest="overwriteAlways")
+		parser.add_option("-S", "--setup",          action="store_true", dest="setupWhereInstalled")
+		parser.add_option("-U", "--update",         action="store_true", dest="updateWhereInstalled")
+		parser.add_option(      "--interface",      action="store",      dest="interface",    default="snack", choices=['text', 'snack'])
+		parser.add_option(      "--log-file",       action="store",      dest="logFile")
+		
+		# Get commandline options and arguments
+		try:
+			(self.opts, self.args) = parser.parse_args()
+		except Exception:
+			self.usage()
+			sys.exit(1)
+		
+		self.setDefaultConfig()
+		
+		if self.opts.help:
+			usage()
+			sys.exit(0)
+		
+		if self.opts.version:
+			print u"opsi-package-manager version %s" % __version__
+			sys.exit(0)
+		
+		self.setCommandlineConfig()
+		
+		self.backend = BackendManager(
+			backendConfigDir   = self.config['backendConfigDir'],
+			dispatchConfigFile = self.config['dispatchConfigFile']
+		)
+		
+		knownDepotIds = self.backend.host_getIdents(type = 'OpsiDepotserver', returnType = 'unicode')
+		knownDepotIds.sort()
+		if not self.config['depotIds']:
+			try:
+				self.config['depotIds'] = [ forceHostId(socket.getfqdn()) ]
+			except Exception, e:
+				raise Exception(u"Failed to get local depot id: %s" % e)
+		
+		for i in range(len(self.config['depotIds'])):
+			if (self.config['depotIds'][i].lower() == 'all'):
+				self.config['depotIds'] = knownDepotIds
+				break
+			else:
+				depotId = forceHostId(self.config['depotIds'][i])
+				if not depotId in knownDepotIds:
+					raise Exception(u"Depot '%s' not in list of known depots: %s" % (depotId, u', '.join(knownDepotIds)))
+				self.config['depotIds'][i] = depotId
+		self.config['depotIds'].sort()
+		
+		if self.config['command'] in (u'install', u'upload', u'extract'):
+			if (len(self.config['packageFiles']) < 1):
+				raise Exception(u"No opsi package given")
+			if self.config['command'] in (u'install', u'upload', u'extract'):
+				for i in range(len(self.config['packageFiles'])):
+					self.config['packageFiles'][i] = os.path.abspath(self.config['packageFiles'][i])
+					if not os.path.exists(self.config['packageFiles'][i]):
+						raise Exception(u"Package file '%s' does not exist or access denied" % self.config['packageFiles'][i])
+			if (self.config['command'] == u'extract') and self.config['newProductId'] and (len(self.config['packageFiles']) > 1):
+				raise Exception(u"Cannot use new product id with multiple package files")
+		
+		elif self.config['command'] in (u'list', u'differences'):
+			if not self.config['productIds']:
+				self.config['productIds'] = ['*']
+			if (len(self.config['depotIds']) <= 1):
+				raise Exception(u"More than one depot id needed to display differences")
+			
+		elif self.config['command'] in (u'remove'):
+			if not self.config['productIds']:
+				raise Exception(u"No opsi product id given")
+		
+		logger.setLogFormat(u'[%l] [%D] %M (%F|%N)')
+		if self.config['logFile']:
+			if os.path.exists(self.config['logFile']):
+				os.unlink(self.config['logFile'])
+			logger.setLogFile(self.config['logFile'])
+			logger.setFileLevel(self.config['fileLogLevel'])
+		
+		logger.setConsoleLevel(self.config['consoleLogLevel'])
+		logger.setConsoleColor(True)
+		
+		try:
+			self.processCommand()
+		except Exception, e:
+			logger.logException(e)
+			raise Exception(u"Failed to process command '%s': %s" % (self.config['command'], e))
+		
+		if self.backend:
+			self.backend.backend_exit()
+		
+	def processCommand(self):
+		self._opm = OpsiPackageManager(self.config, self.backend)
+		
+		if   (self.config['command'] == u'list'):
+			self.processListCommand()
+		elif (self.config['command'] == u'differences'):
+			self.processDifferencesCommand()
+		elif (self.config['command'] == u'remove'):
+			self.processRemoveCommand()
+	
+	def processListCommand(self):
+		terminalWidth = 60
+		try:
+			tty = os.popen('tty').readline().strip()
+			fd = open(tty)
+			terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+			fd.close()
+		except:
+			pass
+		
+		indent = u"   "
+		idWidth = versionWidth = int((terminalWidth-len(indent))/3)
+		if (idWidth > 25): idWidth = 25
+		if (versionWidth > 25): versionWidth = 25
+		descriptionWidth = terminalWidth-len(indent)-idWidth-versionWidth-4
+		
+		productOnDepots = self.backend.productOnDepot_getObjects(depotId = self.config['depotIds'], productId = self.config['productIds'])
+		products = self.backend.product_getObjects(id = self.config['productIds'])
+		
+		productInfo = {}
+		for product in products:
+			if not productInfo.has_key(product.id):
+				productInfo[product.id] = {}
+			if not productInfo[product.id].has_key(product.productVersion):
+				productInfo[product.id][product.productVersion] = {}
+			productInfo[product.id][product.productVersion][product.packageVersion] = product
+		
+		productOnDepotInfo = {}
+		for depotId in self.config['depotIds']:
+			productOnDepotInfo[depotId] = {}
+		for productOnDepot in productOnDepots:
+			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
+		
+		for (depotId, values) in productOnDepotInfo.items():
+			print u"-"*(len(depotId)+4)
+			print u"- %s -" % depotId
+			print u"-"*(len(depotId)+4)
+			print u"%s%*s %*s %*s" % (indent, -1*idWidth, u'Product ID',
+						-1*versionWidth, u'Version',
+						-1*descriptionWidth, u'Description')
+			print u"%s%s" % (indent, "="*(terminalWidth-len(indent)-2))
+			productIds = values.keys()
+			productIds.sort()
+			for productId in productIds:
+				productOnDepot = productOnDepotInfo[depotId][productId]
+				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
+				print u"%s%*s %*s %*s" % (indent, -1*idWidth, productId,
+						-1*versionWidth,     product.productVersion + u'-' + product.packageVersion,
+						-1*descriptionWidth, product.description.replace(u'\n', u'')[:descriptionWidth])
+			print u""
+		
+	def processDifferencesCommand(self):
+		productOnDepots = self.backend.productOnDepot_getObjects(depotId = self.config['depotIds'], productId = self.config['productIds'])
+		productOnDepotInfo = {}
+		productIds = []
+		maxWidth = 0
+		for depotId in self.config['depotIds']:
+			if (len(depotId) > maxWidth):
+				maxWidth = len(depotId)
+			productOnDepotInfo[depotId] = {}
+		for productOnDepot in productOnDepots:
+			if not productOnDepot.productId in productIds:
+				productIds.append(productOnDepot.productId)
+			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
+		productIds.sort()
+		
+		for productId in productIds:
+			differs = False
+			lines = []
+			lines.append(productId)
+			productVersion = u''
+			packageVersion = u''
+			for depotId in self.config['depotIds']:
+				lines.append(u"    %*s: " % (-1*maxWidth, depotId))
+				productOnDepot = productOnDepotInfo[depotId].get(productId)
+				if not productOnDepot:
+					lines[-1] += u" not installed"
+					differs = True
+					continue
+				
+				if not productVersion:
+					productVersion = productOnDepot.productVersion
+				elif (productVersion != productOnDepot.productVersion):
+					differs = True
+				
+				if not packageVersion:
+					packageVersion = productOnDepot.packageVersion
+				elif (packageVersion != productOnDepot.packageVersion):
+					differs = True
+				
+				lines[-1] += u" %s-%s" % ( productOnDepot.productVersion, productOnDepot.packageVersion)
+				
+			if differs:
+				for line in lines:
+					print line
+				print ""
+	
+	def processRemoveCommand(self):
+		self._opm.uninstallPackages()
+		
+	def setDefaultConfig(self):
+		self.config = {
+			'fileLogLevel'           : LOG_DEBUG2,
+			'consoleLogLevel'        : LOG_NONE,
+			'logFile'                : None,
+			'interface'              : u'snack',
+			'tempDir'                : u'/tmp',
+			'backendConfigDir'       : u'/etc/opsi/backends',
+			'dispatchConfigFile'     : u'/etc/opsi/backendManager/dispatch.conf',
+			'command'                : None,
+			'packageFiles'           : [],
+			'productIds'             : [],
+			'properties'             : u'keep',
+			'maxTransfers'           : 0,
+			'maxBandwidth'           : 0,
+			'newProductId'           : None,
+			'depotIds'               : None,
+			'forceInstall'           : False,
+			'forceUninstall'         : False,
+			'deleteFilesOnUninstall' : True,
+			'overwriteAlways'        : False,
+			'setupWhereInstalled'    : False,
+			'updateWhereInstalled'   : False
+		}
+	
+	def setCommandlineConfig(self):
+		if (self.opts.properties == 'ask') and self.opts.quiet:
+			raise Exception(u"You cannot use properties=ask in quiet mode")
+		
+		if self.opts.logFile:
+			self.config['logFile'] = self.opts.logFile
+		
+		if self.opts.quiet:
+			self.config['interface'] = u'dummy'
+		elif self.opts.verbose:
+			self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
+		
+		if self.opts.depots:
+			self.config['depotIds'] = self.opts.depots.split(',')
+			
+		if self.opts.newProductId:
+			self.config['newProductId'] = self.opts.newProductId
+		
+		if self.opts.maxBandwidth:
+			self.config['maxBandwidth'] = self.opts.maxBandwidth * 1024
+		
+		if self.opts.keepFiles:
+			self.config['deleteFilesOnUninstall'] = False
+		
+		if self.opts.force:
+			self.config['forceInstall'] = True
+			self.config['forceUninstall'] = True
+		
+		# Get command
+		if self.opts.COMMAND_INSTALL:
+			if self.config['command']:
+				raise Exception(u"More than one command specified")
+			self.config['command'] = u'install'
+		if self.opts.COMMAND_UPLOAD:
+			if self.config['command']:
+				raise Exception(u"More than one command specified")
+			self.config['command'] = u'upload'
+		if self.opts.COMMAND_LIST:
+			if self.config['command']:
+				raise Exception(u"More than one command specified")
+			self.config['command'] = u'list'
+		if self.opts.COMMAND_REMOVE:
+			if self.config['command']:
+				raise Exception(u"More than one command specified")
+			self.config['command'] = u'remove'
+		if self.opts.COMMAND_EXTRACT:
+			if self.config['command']:
+				raise Exception(u"More than one command specified")
+			self.config['command'] = u'extract'
+		if self.opts.COMMAND_DIFFERENCES:
+			if self.config['command']:
+				raise Exception(u"More than one command specified")
+			self.config['command'] = u'differences'
+		
+		if not self.config['command']:
+			raise Exception(u"No command specified")
+		
+		if   self.config['command'] in (u'install', u'upload', u'extract'):
+			self.config['packageFiles'] = self.args
+		
+		elif self.config['command'] in (u'remove', u'list', u'differences'):
+			self.config['productIds'] = self.args
+			
+	def signalHandler(self, signo, stackFrame):
+		for thread in threading.enumerate():
+			logger.debug(u"Running thread before signal: %s" % thread)
+		
+		if (signo == SIGTERM or signo == SIGINT):
+			if self._opm:
+				self._opm.stop()
+		
+		for thread in threading.enumerate():
+			logger.debug(u"Running thread after signal: %s" % thread)
+	
+	def usage(self):
+		print u"\nUsage: %s [options] <command>" % os.path.basename(sys.argv[0])
+		print u""
+		print u"Manage opsi packages"
+		print u""
+		print u"Commands:"
+		print u"  -i, --install      <opsi-package> ...      install opsi packages"
+		print u"  -u, --upload       <opsi-package> ...      upload opsi packages to repositories"
+		print u"  -l, --list         <regex>                 list opsi packages matching regex"
+		print u"  -D, --differences  <regex>                 show depot differences of opsi packages matching regex"
+		print u"  -r, --remove       <opsi-product-id> ...   uninstall opsi packages"
+		print u"  -x, --extract      <opsi-package> ...      extract opsi packages to local directory"
+		print u"  -V, --version                              show program's version info and exit"
+		print u"  -h, --help                                 show this help message and exit"
+		print u""
+		print u"Options:"
+		print u"  -v, --verbose                    increase verbosity (can be used multiple times)"
+		print u""
+		print u"  -q, --quiet                      do not display any messages"
+		print u""
+		print u"  --log-file         <log-file>    path to debug log file"
+		print u""
+		print u"  -d, --depots       <depots>      comma separated list of depot ids to process"
+		print u"			 	  use keyword ALL to process all known depots"
+		print u""
+		print u"  -p, --properties   <mode>        mode for default product property values"
+		print u"		                      ask     = display dialog"
+		print u"		                      package = use defaults from package"
+		print u"		                      keep    = keep depot defaults (default)"
+		print u""
+		print u"  -f, --force                      force install/uninstall (use with extreme caution)"
+		print u""
+		print u"  -U, --update                     set action \"update\" on hosts where installation status is \"installed\""
+		print u""
+		print u"  -S, --setup                      set action \"setup\" on hosts where installation status is \"installed\""
+		print u""
+		print u"  -o, --overwrite                  overwrite existing package on upload even if size matches"
+		print u""
+		print u"  -k, --keep-files                 do not delete client data dir on uninstall"
+		print u""
+		print u"  -t, --temp-dir     <path>        tempory directory for package install"
+		print u""
+		print u"  --max-transfers    <num>         maximum number of simultaneous uploads"
+		print u"                                      0 = unlimited (default)"
+		print u""
+		print u"  --max-bandwidth    <kbps>        maximum transfer rate for each transfer (in kilobytes per second)"
+		print u"                                      0 = unlimited (default)"
+		print u""
+		print u"  --new-product-id   <product-id>  set a new product id when extracting opsi package"
+		print u""
+		print u"  --interface        <type>        type of user interface"
+		print u"		                      text  = text based interface"
+		print u"		                      snack = newt interface (default)"
+		print u""
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# -                                               MAIN                                                -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if (__name__ == "__main__"):
+	exception = None
+	
+	try:
+		OpsiPackageManagerControl()
+		
+	except SystemExit, e:
+		pass
+		
+	except Exception, e:
+		exception = e
+	
+	if exception:
+		logger.logException(exception)
+		print >> sys.stderr, u"ERROR:", unicode(exception)
+		sys.exit(1)
+	sys.exit(0)
+
+
