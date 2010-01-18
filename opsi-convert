@@ -34,7 +34,7 @@
 
 __version__ = '3.5'
 
-import sys
+import fcntl, termios, struct, os, sys
 
 # OPSI imports
 from OPSI.Logger import *
@@ -66,22 +66,60 @@ class OpsiConvert():
 		self.currentProgressSubject.attachObserver(self)
 		self.overallProgressSubject.attachObserver(self)
 		
+		self._message = ''
+	
+	def ioctl_GWINSZ(self, fd):
+		try:
+			cr = struct.unpack('hh',fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+		except:
+			return None
+		return cr
+	
+	def getTermWidth(self):
+		cr = self.ioctl_GWINSZ(0) or self.ioctl_GWINSZ(1) or self.ioctl_GWINSZ(2)
+		if not cr:
+			try:
+				fd = os.open(os.ctermid(), os.O_RDONLY)
+				cr = self.ioctl_GWINSZ(fd)
+				os.close(fd)
+			except:
+				try:
+					cr = (env['LINES'], env['COLUMNS'])
+				except:
+					cr = (25, 80)
+		
+		return int(cr[1])
+	
+	def _rewrite(self, line = ''):
+		width = self.getTermWidth()
+		blank = ''
+		for i in range(width):
+			blank = blank + ' '
+		
+		if len(line) > width:
+			line = line[:width]
+		
+		sys.stdout.write(blank + '\r' + line + '\r')
+		sys.stdout.flush()
+	
 	def convert(self):
 		self.backendReplicator.replicate()
-		
+	
 	def __del__(self):
 		self.currentProgressSubject.detachObserver(self)
 		self.overallProgressSubject.detachObserver(self)
 	
 	def messageChanged(self, subject, message):
-		print message
+		self._message = message
 	
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+		#time.sleep(0.3)
 		#print subject, state, timeLeft
 		#sys.stdout.write("%s %0.2f%% ETA: %ds\n" % (subject.getId(), percent, timeLeft))
-		sys.stdout.write("                                    %s %0.2f%% ETA: %ds          \r" % (subject.getId(), percent, timeLeft))
-		sys.stdout.flush()
+		self._rewrite(u"%s %0.2f%% ETA: %ds '%s'" % (subject.getTitle(), percent, timeLeft, self._message))
 		
+	
+
 
 
 readBackend  = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
@@ -89,6 +127,4 @@ writeBackend = File31Backend()
 
 oc = OpsiConvert(readBackend, writeBackend)
 oc.convert()
-
-print "done"
 
