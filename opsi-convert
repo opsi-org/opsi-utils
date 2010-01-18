@@ -68,14 +68,14 @@ class OpsiConvert():
 		
 		self._message = ''
 	
-	def ioctl_GWINSZ(self, fd):
+	def ioctl_GWINSZ(self, fd): # found on http://pleac.sourceforge.net/pleac_python/userinterfaces.html
 		try:
 			cr = struct.unpack('hh',fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
 		except:
 			return None
 		return cr
 	
-	def getTermWidth(self):
+	def getTermWidth(self): # found on http://pleac.sourceforge.net/pleac_python/userinterfaces.html
 		cr = self.ioctl_GWINSZ(0) or self.ioctl_GWINSZ(1) or self.ioctl_GWINSZ(2)
 		if not cr:
 			try:
