@@ -44,6 +44,7 @@ from duplicity import librsync
 # OPSI Imports
 from OPSI.Logger import *
 from OPSI.Types import *
+from OPSI.UI import *
 from OPSI.Util import md5sum
 from OPSI.Util.Message import MessageSubject, ProgressSubject, ChoiceSubject, SubjectsObserver
 from OPSI.Util.Repository import *
@@ -233,7 +234,7 @@ class CursesMainWindow(CursesWindow):
 		self.win.keypad(0)
 		curses.echo()
 		curses.endwin()
-	
+		
 	def resize(self):
 		return
 		self.exitScreen()
@@ -310,7 +311,10 @@ class UserInterface(SubjectsObserver):
 	def __init__(self, config = {}, subjects = []):
 		SubjectsObserver.__init__(self)
 		self.config = config
+		self.opmSubjects = subjects
+		self.initScreen()
 		
+	def initScreen(self):
 		# Important for ncurses to use the right encoding!?
 		locale.setlocale(locale.LC_ALL, '')
 		
@@ -384,7 +388,7 @@ class UserInterface(SubjectsObserver):
 		
 		self.mainWindow.refresh()
 		
-		self.setSubjects(subjects)
+		self.setSubjects(self.opmSubjects)
 		if self.loggerWindow:
 			self.addSubject(logger.getMessageSubject())
 			logger.setMessageSubjectLevel(self.config['consoleLogLevel'])
@@ -427,18 +431,7 @@ class UserInterface(SubjectsObserver):
 		for subject in self.getSubjects():
 			if (subject.getClass() == 'MessageSubject'):
 				self.messageChanged(subject, subject.getMessage())
-			if (subject.getClass() == 'ChoiceSubject'):
-				#logger.error("WINDOW CREATED")
-				#self.choiceWindow = CursesTextWindow(
-				#	height	= 30,
-				#	width 	= 60,
-				#	x	= 10,
-				#	y	= 10,
-				#	border  = True,
-				#	title   = 'Choice' )
-				##self.choiceWindow.setLines([u'testteste', u'vbcxvymbvmcxyvmybcvx'])
-				#self.choiceWindow.refresh()
-				
+		
 		self.showProgress()
 	
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
@@ -488,6 +481,7 @@ class UserInterface(SubjectsObserver):
 	
 	def exitScreen(self):
 		logger.debug(u"UserInterface: exitScreen()")
+		self.mainWindow.exitScreen()
 		self.mainWindow = None
 	
 	def showProgress(self):
@@ -982,17 +976,28 @@ class OpsiPackageManager():
 			self.openProductPackageFile(packageFile)
 		
 		if self.userInterface and (self.config['properties'] == 'ask'):
-			choiceMade = threading.Event()
-			def callback(choiceSubject):
-				choiceMade.set()
-			
-			cs = ChoiceSubject(
-				id = 'test', type = u'', title = u'test', choices = ['true', 'false'], selectedIndexes = [ 0 ],
-				callbacks = [ callback, callback ] )
-			self.userInterface.addSubject(cs)
-			while not choiceMade.isSet() and not self.aborted:
-				#logger.info(u"Waiting for user to make choice")
-				time.sleep(1)
+			#choiceMade = threading.Event()
+			#def callback(choiceSubject):
+			#	choiceMade.set()
+			#
+			#cs = ChoiceSubject(
+			#	id = 'test', type = u'', title = u'test', choices = ['true', 'false'], selectedIndexes = [ 0 ])
+			#	#callbacks = [ callback, callback ] )
+			#self.userInterface.addSubject(cs)
+			#while not choiceMade.isSet() and not self.aborted:
+			#	#logger.info(u"Waiting for user to make choice")
+			#	time.sleep(1)
+			self.userInterface.exit()
+			ui = SnackUI()
+			radio = False #not subject.getMultiValue()
+			entries = {'name': 'test', 'value': 'test'}
+			selection = ui.getSelection(entries, radio=radio, width=-1, height=-1, title=u'Please select', text=u'')
+			ui.exit()
+			time.sleep(1)
+			self.userInterface.initScreen()
+			#self.ui.exit()
+			#subject.selectChoice()
+			#self.resized(None, None)
 			
 		for depotId in self.config['depotIds']:
 			tq = TaskQueue(name = u"Install of package(s) %s on depot '%s'" % (', '.join(self.config['packageFiles']), depotId))
@@ -1545,14 +1550,21 @@ class OpsiPackageManagerControl(object):
 if (__name__ == "__main__"):
 	exception = None
 	
+	# save terminal settings
+	fileno = sys.stdin.fileno()
+	orig = termios.tcgetattr(fileno)
+	
 	try:
 		OpsiPackageManagerControl()
 		
 	except SystemExit, e:
 		pass
-		
+	
 	except Exception, e:
 		exception = e
+	
+	# restore terminal settings
+	termios.tcsetattr(fileno, termios.TCSANOW, orig)
 	
 	if exception:
 		logger.logException(exception)
