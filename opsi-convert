@@ -136,15 +136,8 @@ oc = OpsiConvert(readBackend, writeBackend)
 oc.convert()
 
 readBackend  = LDAPBackend(username = 'cn=admin,dc=uib,dc=local', password = 'linux123')
-writeBackend = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
-
-oc = OpsiConvert(readBackend, writeBackend)
-oc.convert()
-
-readBackend  = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
 writeBackend = File31Backend()
 
 oc = OpsiConvert(readBackend, writeBackend)
 oc.convert()
-
 
