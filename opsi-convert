@@ -40,6 +40,7 @@ import fcntl, termios, struct, os, sys
 from OPSI.Logger import *
 from OPSI.Backend.MySQL import MySQLBackend
 from OPSI.Backend.File31 import File31Backend
+from OPSI.Backend.LDAP import LDAPBackend
 from OPSI.Backend.Replicator import BackendReplicator
 
 logger = Logger()
@@ -122,9 +123,28 @@ class OpsiConvert():
 
 
 
+readBackend  = File31Backend()
+writeBackend = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
+
+oc = OpsiConvert(readBackend, writeBackend)
+oc.convert()
+
+readBackend  = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
+writeBackend = LDAPBackend(username = 'cn=admin,dc=uib,dc=local', password = 'linux123')
+
+oc = OpsiConvert(readBackend, writeBackend)
+oc.convert()
+
+readBackend  = LDAPBackend(username = 'cn=admin,dc=uib,dc=local', password = 'linux123')
+writeBackend = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
+
+oc = OpsiConvert(readBackend, writeBackend)
+oc.convert()
+
 readBackend  = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
 writeBackend = File31Backend()
 
 oc = OpsiConvert(readBackend, writeBackend)
 oc.convert()
+
 
