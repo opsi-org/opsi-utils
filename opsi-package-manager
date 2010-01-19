@@ -36,7 +36,7 @@ __version__ = '3.4.99'
 
 
 # Imports
-import os, sys, threading, time, termios, socket, random, base64
+import os, sys, threading, time, termios, socket, random, base64, curses, locale, fcntl, termios, struct
 from signal import *
 from optparse import OptionParser
 from duplicity import librsync
@@ -45,7 +45,7 @@ from duplicity import librsync
 from OPSI.Logger import *
 from OPSI.Types import *
 from OPSI.Util import md5sum
-from OPSI.Util.Message import MessageSubject, ProgressSubject
+from OPSI.Util.Message import MessageSubject, ProgressSubject, ChoiceSubject, SubjectsObserver
 from OPSI.Util.Repository import *
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Backend.BackendManager import BackendManager
@@ -108,7 +108,468 @@ class InstallTask(Task):
 class UninstallTask(Task):
 	def __init__(self, name, opsiPackageManager, method, params):
 		Task.__init__(self, name, opsiPackageManager, method, params)
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# -                                           USERINTERFACE                                           -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class CursesWindow:
+	def __init__(self, height, width, y, x, title = u'', border = False):
+		self.height   = forceInt(height)
+		self.width    = forceInt(width)
+		self.y        = forceInt(y)
+		self.x        = forceInt(x)
+		self.title    = forceUnicode(title)
+		self.border   = forceBool(border)
+		self.color    = None
+		self.encoding = locale.getpreferredencoding()
+		self.win      = curses.newwin(self.height, self.width, self.y, self.x)
+		if self.border:
+			self.win.border()
+		self.setTitle(self.title)
+		self.refresh()
 		
+	def resize(self, height, width, y, x):
+		self.height = forceInt(height)
+		self.width  = forceInt(width)
+		self.y      = forceInt(y)
+		self.x      = forceInt(x)
+		try:
+			self.win.resize(height, width)
+			self.win.mvwin(y, x)
+			self.win.redrawwin()
+			self.win.refresh()
+		except:
+			pass
+
+	def setTitle(self, title):
+		self.title = forceUnicode(title)
+		if not self.title:
+			return
+		if (len(self.title) > self.width-4):
+			self.title = self.title[:self.width-4]
+		self.title = u'| %s |' % self.title
+		attr = curses.A_NORMAL
+		if self.color:
+			attr |= self.color
+		try:
+			self.win.addstr(
+				0,
+				int((self.width-len(self.title))/2),
+				self.title,
+				attr)
+		except:	pass
+	
+	def setColor(self, colorPair):
+		if not curses.has_colors():
+			return
+		self.color = colorPair
+		self.win.attrset(self.color)
+		self.win.bkgdset(' ', self.color)
+		self.win.clear()
+		if self.border:
+			self.win.border()
+		self.setTitle(self.title)
+		self.refresh()
+	
+	def setScrollable(self, scrollable):
+		if scrollable:
+			scrollable = 1
+		else:
+			scrollable = 0
+		self.win.scrollok(scrollable)
+		self.win.idlok(scrollable)
+	
+	def addstr(self, *attr):
+		try:
+			self.win.addstr(*attr)
+		except: pass
+	
+	def clrtoeol(self):
+		try:
+			self.win.clrtoeol()
+		except: pass
+	
+	def move(self, y, x):
+		try:
+			self.win.move(y, x)
+		except: pass
+	
+	def clear(self):
+		try:
+			self.win.clear()
+		except: pass
+	
+	def refresh(self):
+		try:
+			self.win.refresh()
+		except: pass
+	
+	def redraw(self):
+		try:
+			self.win.redrawwin()
+			self.win.refresh()
+		except: pass
+	
+class CursesMainWindow(CursesWindow):
+	def __init__(self):
+		self.initScreen()
+		
+	def __del__(self):
+		self.exitScreen()
+	
+	def initScreen(self):
+		self.win = curses.initscr()
+		(self.height, self.width) = self.win.getmaxyx()
+		(self.x, self.y) = (0, 0)
+		curses.noecho()
+		curses.cbreak()
+		self.win.keypad(1)
+		curses.start_color()
+		self.refresh()
+		
+	def exitScreen(self):
+		curses.nocbreak()
+		self.win.keypad(0)
+		curses.echo()
+		curses.endwin()
+	
+	def resize(self):
+		return
+		self.exitScreen()
+		self.initScreen()
+		#(self.height, self.width) = self.win.getmaxyx()
+	
+	
+class CursesTextWindow(CursesWindow):
+	def __init__(self, height, width, y, x, title = u'', border = False):
+		CursesWindow.__init__(self, height, width, y, x, title, border)
+		self.lines = []
+		self._lock = threading.Lock()
+		
+	def addLine(self, line, *params):
+		line = forceUnicode(line)
+		self._lock.acquire()
+		if (len(line) > self.width):
+			line = line[:self.width-1]
+			self.lines.append( (line, params) )
+		self.build()
+		self._lock.release()
+	
+	def addLines(self, lines, *params):
+		lines = forceUnicodeList(lines)
+		self._lock.acquire()
+		for line in lines:
+			if (len(line) > self.width):
+				line = line[:self.width-1]
+			self.lines.append( (line, params) )
+		self.build()
+		self._lock.release()
+	
+	def setLines(self, lines, *params):
+		lines = forceUnicodeList(lines)
+		self._lock.acquire()
+		self.lines = []
+		for line in lines:
+			if (len(line) > self.width):
+				line = line[:self.width-1]
+			self.lines.append( (line, params) )
+		self.build()
+		self._lock.release()
+	
+	def getLines(self):
+		return self.lines
+	
+	def build(self):
+		if (len(self.lines) > self.height):
+			self.lines = self.lines[-1*self.height:]
+		for i in range(len(self.lines)):
+			if (i >= len(self.lines)) or (i >= self.height):
+				return
+			self.move(i, 0)
+			self.clrtoeol()
+			(line, params) = self.lines[i]
+			
+			line = line.encode(self.encoding, 'replace')
+			if params:
+				self.addstr(line, *params)
+			else:
+				self.addstr(line)
+	
+	def resize(self, height, width, y, x):
+		CursesWindow.resize(self, height, width, y, x)
+		newLines = []
+		for i in range(len(self.lines)):
+			(line, params) = self.lines[i]
+			if (len(line) > self.width):
+				line = line[:self.width-1]
+			newLines.append( (line, params) )
+		self.lines = newLines
+	
+class UserInterface(SubjectsObserver):
+	def __init__(self, config = {}, subjects = []):
+		SubjectsObserver.__init__(self)
+		self.config = config
+		
+		# Important for ncurses to use the right encoding!?
+		locale.setlocale(locale.LC_ALL, '')
+		
+		if (self.config['consoleLogLevel'] <= LOG_NONE):
+			self.loggerWindowHeight = 0
+		elif (self.config['consoleLogLevel'] <= LOG_WARNING):
+			self.loggerWindowHeight = 2
+		else:
+			self.loggerWindowHeight = 5
+		
+		self._colors = {}
+		self.__lock = threading.Lock()
+		
+		self.mainWindow = CursesMainWindow()
+		self.infoWindow = CursesTextWindow(
+					height	= 1,
+					width 	= self.mainWindow.width,
+					x	= 0,
+					y	= 0)
+		self.progressWindow = CursesWindow(
+					height	= self.mainWindow.height-self.loggerWindowHeight-2,
+					width 	= self.mainWindow.width,
+					x	= 0,
+					y	= 1)
+		
+		self.loggerHeaderWindow = None
+		self.loggerWindow = None
+		if (self.loggerWindowHeight > 0):
+			self.loggerHeaderWindow = CursesTextWindow(
+						height	= 1,
+						width 	= self.mainWindow.width,
+						x	= 0,
+						y	= self.mainWindow.height-self.loggerWindowHeight-1)
+			self.loggerWindow = CursesTextWindow(
+						height	= self.loggerWindowHeight,
+						width 	= self.mainWindow.width,
+						x	= 0,
+						y	= self.mainWindow.height-self.loggerWindowHeight)
+		
+		if curses.has_colors():
+			logger.debug('init colors')
+			curses.init_pair(1, curses.COLOR_BLACK,  curses.COLOR_GREEN)
+			curses.init_pair(2, curses.COLOR_BLACK,  curses.COLOR_WHITE)
+			curses.init_pair(3, curses.COLOR_GREEN,  curses.COLOR_BLACK)
+			curses.init_pair(4, curses.COLOR_WHITE,  curses.COLOR_BLACK)
+			curses.init_pair(5, curses.COLOR_RED,    curses.COLOR_BLACK)
+			curses.init_pair(6, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+			curses.init_pair(7, curses.COLOR_WHITE,  curses.COLOR_BLUE)
+			
+			self._colors = {
+					'INFO_WINDOW':	curses.color_pair(7),
+					'LOG_HEADER':	curses.color_pair(2),
+					0:		curses.color_pair(5),
+					1:		curses.color_pair(5),
+					2:		curses.color_pair(5),
+					3:		curses.color_pair(6),
+					4:		curses.color_pair(3),
+					5:		curses.color_pair(4),
+					6:		curses.color_pair(4),
+					7:		curses.color_pair(4),
+					8:		curses.color_pair(4),
+					9:		curses.color_pair(4)
+			}
+			self.infoWindow.setColor(self._colors['INFO_WINDOW'])
+			if self.loggerHeaderWindow:
+				self.loggerHeaderWindow.setColor(self._colors['LOG_HEADER'])
+		
+		if self.loggerHeaderWindow:
+			self.loggerHeaderWindow.setLines( [ _(u'Log messages') ] )
+			self.loggerHeaderWindow.refresh()
+		
+		self.mainWindow.refresh()
+		
+		self.setSubjects(subjects)
+		if self.loggerWindow:
+			self.addSubject(logger.getMessageSubject())
+			logger.setMessageSubjectLevel(self.config['consoleLogLevel'])
+		
+		signal(SIGWINCH, self.resized)
+		logger.info(u"UserInterface initialized")
+		
+	def resized(self, signo, stackFrame):
+		try:
+			self.mainWindow.resize()
+			self.infoWindow.resize(
+					height	= 1,
+					width 	= self.mainWindow.width,
+					x	= 0,
+					y	= 0)
+			self.progressWindow.resize(
+					height	= self.mainWindow.height-self.loggerWindowHeight-2,
+					width 	= self.mainWindow.width,
+					x	= 0,
+					y	= 1)
+			if (self.loggerWindowHeight > 0):
+				self.loggerHeaderWindow.resize(
+						height	= 1,
+						width 	= self.mainWindow.width,
+						x	= 0,
+						y	= self.mainWindow.height-self.loggerWindowHeight-1)
+				self.loggerWindow.resize(
+						height	= self.loggerWindowHeight,
+						width 	= self.mainWindow.width,
+						x	= 0,
+						y	= self.mainWindow.height-self.loggerWindowHeight)
+		except:
+			pass
+		try:
+			self.subjectsChanged(self.getSubjects())
+		except:
+			pass
+		
+	def subjectsChanged(self, subjects):
+		for subject in self.getSubjects():
+			if (subject.getClass() == 'MessageSubject'):
+				self.messageChanged(subject, subject.getMessage())
+			if (subject.getClass() == 'ChoiceSubject'):
+				#logger.error("WINDOW CREATED")
+				#self.choiceWindow = CursesTextWindow(
+				#	height	= 30,
+				#	width 	= 60,
+				#	x	= 10,
+				#	y	= 10,
+				#	border  = True,
+				#	title   = 'Choice' )
+				##self.choiceWindow.setLines([u'testteste', u'vbcxvymbvmcxyvmybcvx'])
+				#self.choiceWindow.refresh()
+				
+		self.showProgress()
+	
+	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+		self.showProgress()
+	
+	def messageChanged(self, subject, message):
+		if self.__lock.locked():
+			return
+		if (subject.getType() == 'Logger'):
+			self.__lock.acquire()
+			try:
+				# Do not log anything to avoid log loops !!!
+				params = []
+				ll = subject.getSeverity()
+				if self._colors.has_key(ll):
+					params = [ self._colors[ll] ]
+				self.loggerWindow.addLines(message.split(u'\n'), *params)
+				self.loggerWindow.refresh()
+			finally:
+				self.__lock.release()
+		
+		elif subject.getId() in ('info', 'transfers'):
+			self.__lock.acquire()
+			try:
+				info = u''
+				transfers = u''
+				for subject in self.getSubjects():
+					if (subject.getId() == u'info'):
+						info = subject.getMessage()
+					elif (subject.getId() == u'transfers'):
+						transfers = subject.getMessage()
+				
+				free = self.infoWindow.width - len(info) - len(transfers) -1
+				if (free < 0): free = 0
+				
+				self.infoWindow.setLines( [ info + u' '*free + transfers ] )
+				self.infoWindow.refresh()
+			finally:
+				self.__lock.release()
+		else:
+			self.showProgress()
+		
+	def exit(self):
+		for subject in self.getSubjects():
+			subject.detachObserver(self)
+		self.exitScreen()
+	
+	def exitScreen(self):
+		logger.debug(u"UserInterface: exitScreen()")
+		self.mainWindow = None
+	
+	def showProgress(self):
+		if self.__lock.locked():
+			return
+		self.__lock.acquire()
+		try:
+			subjects = {}
+			for s in self.getSubjects():
+				if (s.getType() == u'depot'):
+					subjects[s.getId()] = s
+			for s in self.getSubjects():
+				if (s.getType() == u'upload'):
+					subjects[s.getId()] = s
+			ids = subjects.keys()
+			ids.sort()
+			maxIdLength = 0
+			for id in ids:
+				if (len(id) > maxIdLength):
+					maxIdLength = len(id)
+			
+			y = 0
+			for id in ids:
+				subject = subjects[id]
+				if (y >= self.progressWindow.height):
+					# Screen full
+					logger.info(u"Screen to small to display all progresses")
+					break
+				
+				self.progressWindow.move(y, 0)
+				self.progressWindow.clrtoeol()
+				
+				idString = u'%-*s | ' % (maxIdLength, subject.getId())
+				if (len(idString) > self.progressWindow.width):
+					idString = idString[:self.progressWindow.width]
+				self.progressWindow.addstr(idString, curses.A_BOLD)
+				
+				if (len(idString) < self.progressWindow.width):
+					color = None
+					self.progressWindow.move(y, len(idString))
+					maxSize = self.progressWindow.width - len(idString)
+					message = ''
+					if subject.getClass() is 'ProgressSubject':
+						minutesLeft = str(int(subject.getTimeLeft()/60))
+						secondsLeft = str(int(subject.getTimeLeft()%60))
+						if (len(minutesLeft) < 2): minutesLeft = '0' + minutesLeft
+						if (len(secondsLeft) < 2): secondsLeft = '0' + secondsLeft
+						
+						message = subject.getMessage()
+						progress = u' %8s' % ("%.2f" % subject.getPercent() + u'% ') \
+							+ u'%8s KB' % (subject.getState()/1000) \
+							+ u'%6s KB/s' % (int(subject.getSpeed()/1000)) \
+							+ u'%6s:%s ETA' % (minutesLeft, secondsLeft)
+						
+						free = maxSize - len(message) - len(progress)
+						if (free < 0): free = 0
+						message = message + u' '*free + progress
+					
+					elif subject.getClass() is 'MessageSubject':
+						severity = subject.getSeverity()
+						if severity and self._colors.has_key(severity):
+							color = self._colors[severity]
+						message = subject.getMessage()
+						
+					if (len(message) > maxSize):
+						message = message[:maxSize]
+					if color:
+						self.progressWindow.addstr(message, color)
+					else:
+						self.progressWindow.addstr(message)
+				y += 1
+			
+			while (y < self.progressWindow.height):
+				y += 1
+			#	self.progressWindow.move(y, 0)
+			#	self.progressWindow.clrtoeol()
+			
+			self.progressWindow.refresh()
+			
+		finally:
+			self.__lock.release()
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # -                                             TASKQUEUE                                             -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -185,12 +646,14 @@ class OpsiPackageManager():
 		self.transferSubject = MessageSubject(u'transfers')
 		self.depotSubjects = {}
 		
-		
 		self.productPackageFilesLock = threading.Lock()
 		self.runningTransfersLock = threading.Lock()
 		
 		self.infoSubject.setMessage(u'opsi-package-manager')
 		
+		if not self.config['quiet']:
+			logger.setConsoleLevel(LOG_NONE)
+			self.userInterface = UserInterface( config = self.config, subjects = [ self.infoSubject, self.transferSubject ] )
 		logger.info(u"OpsiPackageManager initiated")
 		
 	def abort(self):
@@ -202,6 +665,14 @@ class OpsiPackageManager():
 				if not tq.ended:
 					logger.notice(u"Aborting task queue '%s'" % tq.name)
 					tq.abort()
+	
+	def cleanup(self):
+		logger.info(u"Cleaning up")
+		if self.userInterface:
+			self.userInterface.exit()
+		#self.exitUi()
+		for productPackageFile in self.productPackageFiles.values():
+			productPackageFile.cleanup()
 	
 	def getDepotConnection(self, depotId):
 		depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
@@ -226,16 +697,18 @@ class OpsiPackageManager():
 			return True
 		return False
 	
-	def createDepotSubjects(self, depotIds):
+	def createDepotSubjects(self):
 		if self.depotSubjects and self.userInterface:
 			for subject in self.depotSubjects.values():
 				self.userInterface.removeSubject(subject)
-		for depotId in depotIds:
+		for depotId in self.config['depotIds']:
 			self.depotSubjects[depotId] = MessageSubject(id = depotId, type = u'depot')
 			if self.userInterface:
 				self.userInterface.addSubject(self.depotSubjects[depotId])
 	
 	def getDepotSubject(self, depotId):
+		if not self.depotSubjects.has_key(depotId):
+			self.createDepotSubjects()
 		return self.depotSubjects.get(depotId)
 	
 	def openProductPackageFile(self, packageFile):
@@ -266,9 +739,15 @@ class OpsiPackageManager():
 								% (running, len(self.taskQueues)) )
 			time.sleep(1)
 	
+	def getTaskQueueErrors(self):
+		errors = {}
+		for tq in self.taskQueues:
+			if not tq.errors:
+				continue
+			errors[tq.name] = tq.errors
+		return errors
+	
 	def uploadToRepositories(self):
-		self.createDepotSubjects(self.config['depotIds'])
-		
 		for packageFile in self.config['packageFiles']:
 			self.openProductPackageFile(packageFile)
 		
@@ -291,6 +770,8 @@ class OpsiPackageManager():
 	
 	def uploadToRepository(self, packageFile, depotId):
 		subject = self.getDepotSubject(depotId)
+		
+		depotConnection = None
 		try:
 			# Process upload
 			logger.notice(u"Processing upload of '%s' to depot '%s'" \
@@ -304,12 +785,18 @@ class OpsiPackageManager():
 			productId = self.getPackageControlFile(packageFile).getProduct().getId()
 			
 			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
+			if not depot.repositoryLocalUrl.startswith('file://'):
+				raise Exception(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
+			depotRepositoryPath = depot.repositoryLocalUrl[7:]
+			if depotRepositoryPath.endswith('/'):
+				depotRepositoryPath = depotRepositoryPath[:-1]
+			logger.info(u"Depot repository path is '%s'" % depotRepositoryPath)
 			logger.info(u"Using '%s' as repository url" % depot.repositoryRemoteUrl)
 			
 			repository = getRepository(depot.repositoryRemoteUrl, depotId, depot.opsiHostKey)
 			if self.config['maxBandwidth']:
-				logger.info(u"Setting max bandwith for depot '%s' to %d" % (depotId, self.config['maxBandwidth']))
-				repository.setMaxBandwidth(self.config['maxBandwidth'])
+				logger.info(u"Setting max bandwith for depot '%s' to %d kBytes/s" % (depotId, self.config['maxBandwidth']))
+				repository.setMaxBandwidth(self.config['maxBandwidth'] * 1000)
 			
 			for dest in repository.content():
 				if (dest['name'] == destination):
@@ -328,6 +815,7 @@ class OpsiPackageManager():
 							if (lMD5 == rMD5):
 								# md5sum match => do not overwrite
 								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
+								logger.notice(u"No need to upload, '%s' is up to date on '%s'" % (os.path.basename(packageFile), depotId))
 								subject.setMessage( _(u"No need to upload, %s is up to date") % os.path.basename(packageFile), severity = 4 )
 								return
 							# md5sums differ => overwrite
@@ -338,11 +826,6 @@ class OpsiPackageManager():
 					break
 			
 			depotConnection = self.getDepotConnection(depotId)
-			if not depot.repositoryLocalUrl.startswith('file://'):
-				raise Exception(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
-			depotRepositoryPath = depot.repositoryLocalUrl[7:]
-			if depotRepositoryPath.endswith('/'):
-				depotRepositoryPath = depotRepositoryPath[:-1]
 			info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
 			depotConnection.backend_exit()
 			if (info['available'] < packageSize):
@@ -489,17 +972,115 @@ class OpsiPackageManager():
 			
 		except Exception, e:
 			logger.error(e)
+			if depotConnection: depotConnection.backend_exit()
 			if type(e) is dict and e.has_key('message'): e = e['message']
-			subject.setMessage( _(u"Upload failed: %s") % e, severity = 2 )
+			subject.setMessage( _("Error: %s") % e, severity = 2 )
 			raise
 	
-	def uninstallPackages(self):
-		productIds = []
-		for product in self.backend.product_getObjects(id = self.config['productIds']):
-			if not product.id in productIds:
-				productIds.append(product.id)
+	def installOnDepots(self):
+		for packageFile in self.config['packageFiles']:
+			self.openProductPackageFile(packageFile)
 		
+		if self.userInterface and (self.config['properties'] == 'ask'):
+			choiceMade = threading.Event()
+			def callback(choiceSubject):
+				choiceMade.set()
+			
+			cs = ChoiceSubject(
+				id = 'test', type = u'', title = u'test', choices = ['true', 'false'], selectedIndexes = [ 0 ],
+				callbacks = [ callback, callback ] )
+			self.userInterface.addSubject(cs)
+			while not choiceMade.isSet() and not self.aborted:
+				#logger.info(u"Waiting for user to make choice")
+				time.sleep(1)
+			
 		for depotId in self.config['depotIds']:
+			tq = TaskQueue(name = u"Install of package(s) %s on depot '%s'" % (', '.join(self.config['packageFiles']), depotId))
+			for packageFile in self.config['packageFiles']:
+				tq.addTask(
+					UploadTask(
+						name = u"Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+						opsiPackageManager = self,
+						method = self.uploadToRepository,
+						params = [packageFile, depotId]
+					)
+				)
+				tq.addTask(
+					InstallTask(
+						name = u"Install of package '%s' on depot '%s'" % (os.path.basename(packageFile), depotId),
+						opsiPackageManager = self,
+						method = self.installPackage,
+						params = [os.path.basename(packageFile), depotId]
+					)
+				)
+			if not self.aborted:
+				self.taskQueues.append(tq)
+				logger.info(u"Starting task queue '%s'" % tq.name)
+				tq.start()
+		self.waitForTaskQueues()
+	
+	def installPackage(self, packageFile, depotId):
+		subject = self.getDepotSubject(depotId)
+		
+		depotConnection = None
+		try:
+			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
+			if not depot.repositoryLocalUrl.startswith('file://'):
+				raise Exception(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
+			depotPackageFile = depot.repositoryLocalUrl[7:]
+			if depotPackageFile.endswith('/'):
+				depotPackageFile = depotPackageFile[:-1]
+			depotPackageFile += u'/' + packageFile
+			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
+			
+			logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
+			subject.setMessage( _(u"Installing package %s") % packageFile )
+			
+			productId = self.getPackageControlFile(packageFile).getProduct().getId()
+			
+			propertyDefaultValues = {}
+			for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
+				propertyDefaultValues[productProperty.propertyId] = productProperty.defaultValues
+			
+			if (self.config['properties'] == 'keep'):
+				for productPropertyState in self.backend.productPropertyState_getObjects(
+										productId = productId,
+										objectId  = depotId ):
+					if propertyDefaultValues.has_key(productPropertyState.propertyId):
+						propertyDefaultValues[productPropertyState.propertyId] = productPropertyState.values
+			
+			depotConnection = self.getDepotConnection(depotId)
+			depotConnection.depot_installPackage(depotPackageFile, force = self.config['forceInstall'], propertyDefaultValues = propertyDefaultValues, tempDir = self.config['tempDir'])
+			depotConnection.backend_exit()
+			
+			logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
+			subject.setMessage( _(u"Installation of package %s successful") % packageFile, severity = 4 )
+			
+			#if self.setupWhereInstalled:
+			#	if 'setup' in self.getConfigBackend().getPossibleProductActions_list(productId = productId, depotId = depotId):
+			#		self.setActionSetupWhereInstalled(productId, depotId)
+			#	else:
+			#		logger.warning("Cannot set action 'setup' for product '%s'" % productId)
+			#if self.updateWhereInstalled:
+			#	if 'update' in self.getConfigBackend().getPossibleProductActions_list(productId = productId, depotId = depotId):
+			#		self.setActionUpdateWhereInstalled(productId, depotId)
+			#	else:
+			#		logger.warning("Cannot set action 'update' for product '%s'" % productId)
+			
+		except Exception, e:
+			logger.error(e)
+			if depotConnection: depotConnection.backend_exit()
+			if type(e) is dict and e.has_key('message'): e = e['message']
+			subject.setMessage( _("Error: %s") % e, severity = 2 )
+			raise
+		
+	def uninstallPackages(self):
+		for depotId in self.config['depotIds']:
+			productIds = []
+			for productOnDepot in self.backend.productOnDepot_getObjects(productId = self.config['productIds']):
+				productIds.append(productOnDepot.productId)
+			if not productIds:
+				continue
 			tq = TaskQueue(name = u"Uninstall of package(s) %s on depot '%s'" % (', '.join(productIds), depotId))
 			for productId in productIds:
 				tq.addTask(
@@ -516,11 +1097,12 @@ class OpsiPackageManager():
 		self.waitForTaskQueues()
 		
 	def uninstallPackage(self, productId, depotId):
+		subject = self.getDepotSubject(depotId)
+		
 		depotConnection = None
 		try:
 			logger.notice(u"Uninstalling package '%s' on depot '%s'" % (productId, depotId))
-			#if not self.quiet: print u"Uninstalling package '%s' on depot '%s'" \
-			#			% (productId, depotId)
+			subject.setMessage( _(u"Uninstalling package %s") % productId )
 			
 			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
 			logger.info(u"Using '%s' as repository url" % depot.getRepositoryRemoteUrl())
@@ -534,12 +1116,15 @@ class OpsiPackageManager():
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_uninstallPackage(productId, force = self.config['forceUninstall'], deleteFiles = self.config['deleteFilesOnUninstall'])
 			logger.notice(u"Uninstall of package '%s' on depot '%s' finished" % (productId, depotId))
+			subject.setMessage( _(u"Uninstallation of package %s successful") % productId, severity = 4 )
 			
 		except Exception, e:
 			logger.error(e)
-			if depotConnection:
-				depotConnection.backend_exit()
+			if depotConnection: depotConnection.backend_exit()
+			if type(e) is dict and e.has_key('message'): e = e['message']
+			subject.setMessage( _("Error: %s") % e, severity = 2 )
 			raise
+			
 	
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # -                                      OPSIPACKAGEMANAGERCONTROL                                    -
@@ -550,6 +1135,7 @@ class OpsiPackageManagerControl(object):
 		# Set umask
 		os.umask(0077)
 		self._pid = 0
+		self._opm = None
 		
 		# Call signalHandler on signal SIGTERM, SIGINT
 		signal(SIGTERM, self.signalHandler)
@@ -591,7 +1177,7 @@ class OpsiPackageManagerControl(object):
 		self.setDefaultConfig()
 		
 		if self.opts.help:
-			usage()
+			self.usage()
 			sys.exit(0)
 		
 		if self.opts.version:
@@ -665,17 +1251,28 @@ class OpsiPackageManagerControl(object):
 			self.backend.backend_exit()
 		
 	def processCommand(self):
-		self._opm = OpsiPackageManager(self.config, self.backend)
-		
 		if   (self.config['command'] == u'list'):
 			self.processListCommand()
 		elif (self.config['command'] == u'differences'):
 			self.processDifferencesCommand()
 		elif (self.config['command'] == u'upload'):
 			self.processUploadCommand()
+		elif (self.config['command'] == u'install'):
+			self.processInstallCommand()
 		elif (self.config['command'] == u'remove'):
 			self.processRemoveCommand()
-	
+		if self._opm:
+			errors = self._opm.getTaskQueueErrors()
+			if errors:
+				print >> sys.stderr, _(u"Errors occured: ")
+				for (name, errs) in errors.items():
+					logger.error(u"Failure while processing %s:" % name)
+					print >> sys.stderr, u"   Failure while processing %s:" % name
+					for err in errs:
+						logger.error(u"      %s" % err)
+						print >> sys.stderr, u"      %s" % err
+				sys.exit(1)
+		
 	def processListCommand(self):
 		terminalWidth = 60
 		try:
@@ -774,17 +1371,33 @@ class OpsiPackageManagerControl(object):
 				print ""
 	
 	def processUploadCommand(self):
-		self._opm.uploadToRepositories()
-		
-	def processRemoveCommand(self):
-		self._opm.uninstallPackages()
+		self._opm = OpsiPackageManager(self.config, self.backend)
+		try:
+			self._opm.uploadToRepositories()
+		finally:
+			self._opm.cleanup()
 	
+	def processInstallCommand(self):
+		self._opm = OpsiPackageManager(self.config, self.backend)
+		try:
+			self._opm.installOnDepots()
+		finally:
+			self._opm.cleanup()
+	
+	def processRemoveCommand(self):
+		self._opm = OpsiPackageManager(self.config, self.backend)
+		try:
+			self._opm.uninstallPackages()
+		finally:
+			self._opm.cleanup()
+		
 	def setDefaultConfig(self):
 		self.config = {
 			'fileLogLevel'           : LOG_DEBUG2,
 			'consoleLogLevel'        : LOG_NONE,
 			'logFile'                : None,
-			'interface'              : u'snack',
+			#'interface'              : u'snack',
+			'quiet'                  : False,
 			'tempDir'                : u'/tmp',
 			'backendConfigDir'       : u'/etc/opsi/backends',
 			'dispatchConfigFile'     : u'/etc/opsi/backendManager/dispatch.conf',
@@ -793,7 +1406,7 @@ class OpsiPackageManagerControl(object):
 			'productIds'             : [],
 			'properties'             : u'keep',
 			'maxTransfers'           : 0,
-			'maxBandwidth'           : 0,
+			'maxBandwidth'           : 0, # Kbyte/s
 			'deltaUpload'            : True,
 			'newProductId'           : None,
 			'depotIds'               : None,
@@ -809,32 +1422,20 @@ class OpsiPackageManagerControl(object):
 		if (self.opts.properties == 'ask') and self.opts.quiet:
 			raise Exception(u"You cannot use properties=ask in quiet mode")
 		
-		if self.opts.logFile:
-			self.config['logFile'] = self.opts.logFile
-		
 		if self.opts.quiet:
-			self.config['interface'] = u'dummy'
-		elif self.opts.verbose:
-			self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
+			#self.config['interface'] = u'dummy'
+			self.config['quiet'] = True
 		
-		if self.opts.depots:
-			self.config['depotIds'] = self.opts.depots.split(',')
-			
-		if self.opts.newProductId:
-			self.config['newProductId'] = self.opts.newProductId
-		
-		if self.opts.maxBandwidth:
-			self.config['maxBandwidth'] = self.opts.maxBandwidth * 1024
-		
-		if self.opts.overwriteAlways:
-			self.config['overwriteAlways'] = self.opts.overwriteAlways
-		
-		if self.opts.keepFiles:
-			self.config['deleteFilesOnUninstall'] = False
-		
-		if self.opts.force:
-			self.config['forceInstall'] = True
-			self.config['forceUninstall'] = True
+		if self.opts.verbose:        self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
+		if self.opts.logFile:         self.config['logFile'] = self.opts.logFile
+		if self.opts.tempDir:         self.config['tempDir'] = self.opts.tempDir
+		if self.opts.depots:          self.config['depotIds'] = self.opts.depots.split(',')
+		if self.opts.newProductId:    self.config['newProductId'] = self.opts.newProductId
+		if self.opts.maxBandwidth:    self.config['maxBandwidth'] = self.opts.maxBandwidth
+		if self.opts.overwriteAlways: self.config['overwriteAlways'] = self.opts.overwriteAlways
+		if self.opts.keepFiles:       self.config['deleteFilesOnUninstall'] = False
+		if self.opts.properties:      self.config['properties'] = self.opts.properties
+		if self.opts.force:           self.config['forceInstall'] = self.config['forceUninstall'] = True
 		
 		# Get command
 		if self.opts.COMMAND_INSTALL:
@@ -905,7 +1506,7 @@ class OpsiPackageManagerControl(object):
 		print u"  --log-file         <log-file>    path to debug log file"
 		print u""
 		print u"  -d, --depots       <depots>      comma separated list of depot ids to process"
-		print u"			 	  use keyword ALL to process all known depots"
+		print u"			 	      all = all known depots"
 		print u""
 		print u"  -p, --properties   <mode>        mode for default product property values"
 		print u"		                      ask     = display dialog"
