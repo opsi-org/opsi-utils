@@ -481,6 +481,8 @@ class UserInterface(SubjectsObserver):
 	
 	def exitScreen(self):
 		logger.debug(u"UserInterface: exitScreen()")
+		if not self.mainWindow:
+			return
 		self.mainWindow.exitScreen()
 		self.mainWindow = None
 	
@@ -670,7 +672,7 @@ class OpsiPackageManager():
 	
 	def getDepotConnection(self, depotId):
 		depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
-		return JSONRPCBackend( username = depotId, password = depot.getOpsiHostKey(), address = depotId )
+		return JSONRPCBackend( username = depotId, password = depot.getOpsiHostKey(), address = depotId, application = 'opsi-package-manager version %s' % __version__)
 	
 	def getRunningTransfers(self):
 		return self.runningTransfers
@@ -787,10 +789,19 @@ class OpsiPackageManager():
 			logger.info(u"Depot repository path is '%s'" % depotRepositoryPath)
 			logger.info(u"Using '%s' as repository url" % depot.repositoryRemoteUrl)
 			
-			repository = getRepository(depot.repositoryRemoteUrl, depotId, depot.opsiHostKey)
-			if self.config['maxBandwidth']:
-				logger.info(u"Setting max bandwith for depot '%s' to %d kBytes/s" % (depotId, self.config['maxBandwidth']))
-				repository.setMaxBandwidth(self.config['maxBandwidth'] * 1000)
+			maxBandwidth = depot.maxBandwidth
+			if (maxBandwidth < 0): maxBandwidth = 0
+			if not maxBandwidth and self.config['maxBandwidth']:
+				maxBandwidth = self.config['maxBandwidth']
+			if maxBandwidth:
+				logger.info(u"Setting max bandwith for depot '%s' to %d kBytes/s" % (depotId, maxBandwidth))
+			
+			repository = getRepository(
+					url          = depot.repositoryRemoteUrl,
+					username     = depotId,
+					password     = depot.opsiHostKey,
+					maxBandwidth = maxBandwidth,
+					application  = 'opsi-package-manager version %s' % __version__ )
 			
 			for dest in repository.content():
 				if (dest['name'] == destination):
@@ -976,28 +987,52 @@ class OpsiPackageManager():
 			self.openProductPackageFile(packageFile)
 		
 		if self.userInterface and (self.config['properties'] == 'ask'):
-			#choiceMade = threading.Event()
-			#def callback(choiceSubject):
-			#	choiceMade.set()
-			#
-			#cs = ChoiceSubject(
-			#	id = 'test', type = u'', title = u'test', choices = ['true', 'false'], selectedIndexes = [ 0 ])
-			#	#callbacks = [ callback, callback ] )
-			#self.userInterface.addSubject(cs)
-			#while not choiceMade.isSet() and not self.aborted:
-			#	#logger.info(u"Waiting for user to make choice")
-			#	time.sleep(1)
-			self.userInterface.exit()
-			ui = SnackUI()
-			radio = False #not subject.getMultiValue()
-			entries = {'name': 'test', 'value': 'test'}
-			selection = ui.getSelection(entries, radio=radio, width=-1, height=-1, title=u'Please select', text=u'')
-			ui.exit()
-			time.sleep(1)
-			self.userInterface.initScreen()
-			#self.ui.exit()
-			#subject.selectChoice()
-			#self.resized(None, None)
+			productProperties = []
+			products = {}
+			for packageFile in self.config['packageFiles']:
+				product = self.getPackageControlFile(packageFile).getProduct()
+				for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
+					productProperties.append(productProperty)
+					products[productProperty.getIdent(returnType = 'unicode')] = product			
+			if productProperties:
+				self.userInterface.exit()
+				ui = SnackUI()
+				i = 0
+				while (i < len(productProperties)):
+					productProperty = productProperties[i]
+					product = products[productProperty.getIdent(returnType = 'unicode')]
+					
+					logger.notice(u"Getting product property defaults from user")
+					title = _(u'Please select product property defaults')
+					text = u'%s: %s\n   %s\n\n%s: %s\n   %s' % (_(u'Product'), product.id, product.name, productProperty.propertyId, _(u'Property'), productProperty.description)
+					cancelLabel = _('Back')
+					if productProperty.possibleValues:
+						entries = []
+						for possibleValue in productProperty.possibleValues:
+							entries.append({'name': possibleValue, 'value': possibleValue, 'selected': possibleValue in productProperty.defaultValues})
+						radio = not productProperty.multiValue
+						selection = ui.getSelection(entries, radio = radio, width = 65, height = 10, title = title, text = text, cancelLabel = cancelLabel)
+						if selection is None:
+							# back
+							i -= 1
+							if (i < 0): i = 0
+							continue
+						productProperties[i].setDefaultValues(selection)
+					else:
+						default = u''
+						if productProperty.defaultValues:
+							default = productProperty.defaultValues[0]
+						value = ui.getValue(width = 65, height = 13, title = title, default = default, password = False, text = text, cancelLabel = cancelLabel)
+						if value is None:
+							# back
+							i -= 1
+							if (i < 0): i = 0
+							continue
+						productProperties[i].setDefaultValues(value)
+						logger.notice(u"Product '%s', property '%s': default values set to: %s" % (productProperties[i].productId, productProperties[i].propertyId, productProperties[i].defaultValues))
+					i += 1
+				ui.exit()
+				self.userInterface.initScreen()
 			
 		for depotId in self.config['depotIds']:
 			tq = TaskQueue(name = u"Install of package(s) %s on depot '%s'" % (', '.join(self.config['packageFiles']), depotId))
