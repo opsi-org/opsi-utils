@@ -100,7 +100,7 @@ class OpsiConvert():
 		if len(line) > width:
 			line = line[:width]
 		
-		sys.stdout.write(blank + '\r' + line + '\r')
+		sys.stdout.write('\r' + blank + '\r' + line)
 		sys.stdout.flush()
 	
 	def convert(self):
@@ -121,23 +121,42 @@ class OpsiConvert():
 		
 	
 
-
-
+print
+print "################################################"
+print "#   opsi-convert: file -> mysql                #"
+print "################################################"
+print
 readBackend  = File31Backend()
 writeBackend = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
 
 oc = OpsiConvert(readBackend, writeBackend)
 oc.convert()
 
+print
+print "################################################"
+print "#   opsi-convert: mysql -> ldap                #"
+print "################################################"
+print
 readBackend  = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
 writeBackend = LDAPBackend(username = 'cn=admin,dc=uib,dc=local', password = 'linux123')
 
 oc = OpsiConvert(readBackend, writeBackend)
 oc.convert()
 
+print
+print "################################################"
+print "#   opsi-convert: ldap -> file                 #"
+print "################################################"
+print
 readBackend  = LDAPBackend(username = 'cn=admin,dc=uib,dc=local', password = 'linux123')
 writeBackend = File31Backend()
 
 oc = OpsiConvert(readBackend, writeBackend)
 oc.convert()
+
+print
+print "################################################"
+print "#   opsi-convert: done!                        #"
+print "################################################"
+print
 
