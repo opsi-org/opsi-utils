@@ -1029,7 +1029,7 @@ class OpsiPackageManager():
 							if (i < 0): i = 0
 							continue
 						productProperties[i].setDefaultValues(value)
-						logger.notice(u"Product '%s', property '%s': default values set to: %s" % (productProperties[i].productId, productProperties[i].propertyId, productProperties[i].defaultValues))
+					logger.notice(u"Product '%s', property '%s': default values set to: %s" % (productProperties[i].productId, productProperties[i].propertyId, productProperties[i].defaultValues))
 					i += 1
 				ui.exit()
 				self.userInterface.initScreen()
