@@ -46,7 +46,7 @@ from OPSI.Logger import *
 from OPSI.Types import *
 from OPSI.UI import *
 from OPSI.Util import md5sum
-from OPSI.Util.Message import MessageSubject, ProgressSubject, ChoiceSubject, SubjectsObserver
+from OPSI.Util.Message import MessageSubject, ProgressSubject, ChoiceSubject, SubjectsObserver, ProgressObserver
 from OPSI.Util.Repository import *
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Backend.BackendManager import BackendManager
@@ -666,7 +666,6 @@ class OpsiPackageManager():
 		logger.info(u"Cleaning up")
 		if self.userInterface:
 			self.userInterface.exit()
-		#self.exitUi()
 		for productPackageFile in self.productPackageFiles.values():
 			productPackageFile.cleanup()
 	
@@ -743,6 +742,34 @@ class OpsiPackageManager():
 			errors[tq.name] = tq.errors
 		return errors
 	
+	
+	def setActionRequestWhereInstalled(self, productId, depotId, actionRequest = u'setup'):
+		try:
+			subject = self.getDepotSubject(depotId)
+			subject.setMessage( _(u"Setting action setup for product %s where installed") % productId )
+			actionRequest = forceActionRequest(actionRequest)
+			clientIds = []
+			for clientToDepot in self.backend.configState_getClientToDepotserver(depotIds = [ depotId ]):
+				clientIds.append(clientToDepot['clientId'])
+			if not clientIds:
+				return
+			productOnClients = self.backend.productOnClient_getObjects(clientId = clientIds, productId = productId, installationStatus = u'installed')
+			if not productOnClients:
+				return
+			clientIds = []
+			for i in range(len(productOnClients)):
+				productOnClients[i].setActionRequest(actionRequest)
+				clientIds.append(productOnClients[i].clientId)
+			clientIds.sort()
+			logger.notice(u"Setting action '%s' for product '%s' on client(s): %s" % (actionRequest, productId, ', '.join(clientIds)))
+			subject.setMessage( _(u"Setting action %s for product %s on client(s): %s") % (actionRequest, productId, ', '.join(clientIds)) )
+			self.backend.productOnClient_updateObjects(productOnClients)
+		except Exception, e:
+			logger.error(e)
+			if type(e) is dict and e.has_key('message'): e = e['message']
+			subject.setMessage( _("Error: %s") % e, severity = 2 )
+			raise
+	
 	def uploadToRepositories(self):
 		for packageFile in self.config['packageFiles']:
 			self.openProductPackageFile(packageFile)
@@ -800,7 +827,7 @@ class OpsiPackageManager():
 					url          = depot.repositoryRemoteUrl,
 					username     = depotId,
 					password     = depot.opsiHostKey,
-					maxBandwidth = maxBandwidth,
+					maxBandwidth = maxBandwidth * 1000,
 					application  = 'opsi-package-manager version %s' % __version__ )
 			
 			for dest in repository.content():
@@ -864,7 +891,7 @@ class OpsiPackageManager():
 						logger.notice(u"Getting librsync signature of '%s' on depot '%s'" % (oldPackage, depotId))
 						subject.setMessage( _(u"Getting librsync signature of %s") % oldPackage )
 						
-						sig = base64.decodestring( depotConnection.librsyncSignature(depotRepositoryPath + '/' + oldPackage) )
+						sig = base64.decodestring( depotConnection.depot_librsyncSignature(depotRepositoryPath + '/' + oldPackage) )
 						
 						logger.notice(u"Calculating delta for depot '%s'" % depotId)
 						subject.setMessage( _(u"Calculating delta") )
@@ -919,7 +946,7 @@ class OpsiPackageManager():
 						logger.notice(u"Patching '%s'" % oldPackage)
 						subject.setMessage( _(u"Patching %s") % oldPackage )
 						
-						depotConnection.librsyncPatchFile(depotRepositoryPath + u'/' + oldPackage, depotRepositoryPath + u'/' + deltaFilename, depotRepositoryPath + u'/' + destination)
+						depotConnection.depot_librsyncPatchFile(depotRepositoryPath + u'/' + oldPackage, depotRepositoryPath + u'/' + deltaFilename, depotRepositoryPath + u'/' + destination)
 						
 						repository.delete(deltaFilename)
 					finally:
@@ -986,6 +1013,22 @@ class OpsiPackageManager():
 		for packageFile in self.config['packageFiles']:
 			self.openProductPackageFile(packageFile)
 		
+		if not self.config['forceInstall']:
+			logger.info(u"Checking product locks")
+			productIds = []
+			for packageFile in self.config['packageFiles']:
+				productIds.append(self.getPackageControlFile(packageFile).getProduct().getId())
+			productsOnDepot = self.backend.productOnDepot_getObjects(
+				productId = productIds,
+				depotId   = self.config['depotIds'],
+				locked    = True
+			)
+			if productsOnDepot:
+				errors = []
+				for productOnDepot in productsOnDepot:
+					errors.append(u"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId))
+				raise Exception(u'\n' + u'\n'.join(errors) + u'\nUse --force to force installation')
+		
 		if self.userInterface and (self.config['properties'] == 'ask'):
 			productProperties = []
 			products = {}
@@ -1037,14 +1080,15 @@ class OpsiPackageManager():
 		for depotId in self.config['depotIds']:
 			tq = TaskQueue(name = u"Install of package(s) %s on depot '%s'" % (', '.join(self.config['packageFiles']), depotId))
 			for packageFile in self.config['packageFiles']:
-				tq.addTask(
-					UploadTask(
-						name = u"Upload of package '%s' to repository '%s'" % (packageFile, depotId),
-						opsiPackageManager = self,
-						method = self.uploadToRepository,
-						params = [packageFile, depotId]
+				if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
+					tq.addTask(
+						UploadTask(
+							name = u"Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+							opsiPackageManager = self,
+							method = self.uploadToRepository,
+							params = [packageFile, depotId]
+						)
 					)
-				)
 				tq.addTask(
 					InstallTask(
 						name = u"Install of package '%s' on depot '%s'" % (os.path.basename(packageFile), depotId),
@@ -1076,7 +1120,8 @@ class OpsiPackageManager():
 			logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
 			subject.setMessage( _(u"Installing package %s") % packageFile )
 			
-			productId = self.getPackageControlFile(packageFile).getProduct().getId()
+			product = self.getPackageControlFile(packageFile).getProduct()
+			productId = product.getId()
 			
 			propertyDefaultValues = {}
 			for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
@@ -1096,16 +1141,17 @@ class OpsiPackageManager():
 			logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
 			subject.setMessage( _(u"Installation of package %s successful") % packageFile, severity = 4 )
 			
-			#if self.setupWhereInstalled:
-			#	if 'setup' in self.getConfigBackend().getPossibleProductActions_list(productId = productId, depotId = depotId):
-			#		self.setActionSetupWhereInstalled(productId, depotId)
-			#	else:
-			#		logger.warning("Cannot set action 'setup' for product '%s'" % productId)
-			#if self.updateWhereInstalled:
-			#	if 'update' in self.getConfigBackend().getPossibleProductActions_list(productId = productId, depotId = depotId):
-			#		self.setActionUpdateWhereInstalled(productId, depotId)
-			#	else:
-			#		logger.warning("Cannot set action 'update' for product '%s'" % productId)
+			if self.config['setupWhereInstalled']:
+				if product.getSetupScript():
+					self.setActionRequestWhereInstalled(productId = productId, depotId = depotId, actionRequest = u'setup')
+				else:
+					logger.warning(u"Cannot set action 'setup' for product '%s': setupScript not defined" % productId)
+			
+			if self.config['updateWhereInstalled']:
+				if product.getUpdateScript():
+					self.setActionRequestWhereInstalled(productId = productId, depotId = depotId, actionRequest = u'update')
+				else:
+					logger.warning(u"Cannot set action 'update' for product '%s': updateScript not defined" % productId)
 			
 		except Exception, e:
 			logger.error(e)
@@ -1113,7 +1159,7 @@ class OpsiPackageManager():
 			if type(e) is dict and e.has_key('message'): e = e['message']
 			subject.setMessage( _("Error: %s") % e, severity = 2 )
 			raise
-		
+	
 	def uninstallPackages(self):
 		for depotId in self.config['depotIds']:
 			productIds = []
@@ -1204,7 +1250,6 @@ class OpsiPackageManagerControl(object):
 		parser.add_option("-o", "--overwrite",      action="store_true", dest="overwriteAlways")
 		parser.add_option("-S", "--setup",          action="store_true", dest="setupWhereInstalled")
 		parser.add_option("-U", "--update",         action="store_true", dest="updateWhereInstalled")
-		parser.add_option(      "--interface",      action="store",      dest="interface",    default="snack", choices=['text', 'snack'])
 		parser.add_option(      "--log-file",       action="store",      dest="logFile")
 		
 		# Get commandline options and arguments
@@ -1228,16 +1273,19 @@ class OpsiPackageManagerControl(object):
 		
 		self.backend = BackendManager(
 			backendConfigDir   = self.config['backendConfigDir'],
-			dispatchConfigFile = self.config['dispatchConfigFile']
+			dispatchConfigFile = self.config['dispatchConfigFile'],
+			extend             = True
 		)
 		
 		knownDepotIds = self.backend.host_getIdents(type = 'OpsiDepotserver', returnType = 'unicode')
 		knownDepotIds.sort()
 		if not self.config['depotIds']:
 			try:
-				self.config['depotIds'] = [ forceHostId(socket.getfqdn()) ]
+				self.config['depotIds'] = [ self.config['localDepotId'] ]
 			except Exception, e:
 				raise Exception(u"Failed to get local depot id: %s" % e)
+		else:
+			self.config['uploadToLocalDepot'] = True
 		
 		for i in range(len(self.config['depotIds'])):
 			if (self.config['depotIds'][i].lower() == 'all'):
@@ -1301,6 +1349,8 @@ class OpsiPackageManagerControl(object):
 			self.processInstallCommand()
 		elif (self.config['command'] == u'remove'):
 			self.processRemoveCommand()
+		elif (self.config['command'] == u'extract'):
+			self.processExtractCommand()
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
 			if errors:
@@ -1312,7 +1362,55 @@ class OpsiPackageManagerControl(object):
 						logger.error(u"      %s" % err)
 						print >> sys.stderr, u"      %s" % err
 				sys.exit(1)
+	
+	def processExtractCommand(self):
+		progressSubject = ProgressSubject(id = 'extract', title = u'extracting')
 		
+		class ProgressNotifier(ProgressObserver):
+			def __init__(self):
+				self.usedWidth = 60
+				try:
+					tty = os.popen('tty').readline().strip()
+					fd = open(tty)
+					terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+					if (self.usedWidth > terminalWidth):
+						self.usedWidth = terminalWidth
+					fd.close()
+				except:
+					pass
+				
+			def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+				barlen = self.usedWidth - 10
+				filledlen = int("%0.0f" % (barlen*percent/100))
+				bar = u'='*filledlen + u' '*(barlen-filledlen)
+				percent = '%0.2f%%' % percent
+				sys.stderr.write('\r %8s [%s]\r' % (percent, bar))
+				sys.stderr.flush()
+				
+			def messageChanged(self, subject, message):
+				sys.stderr.write('\n%s\n' % message)
+				sys.stderr.flush()
+		
+		if not self.config['quiet']:
+			progressSubject.attachObserver(ProgressNotifier())
+		
+		destinationDir = os.path.abspath(os.getcwd())
+		for packageFile in self.config['packageFiles']:
+			ppf = ProductPackageFile(packageFile)
+			productId = ppf.getMetaData().getProduct().getId()
+			if not productId:
+				raise Exception(u"Failed to extract source from package '%s': product id not found in meta data" % (packageFile))
+			newProductId = None
+			if self.config['newProductId']:
+				productId = forceProductId(self.config['newProductId'])
+				newProductId = productId
+			packageDestinationDir = os.path.join(destinationDir, productId)
+			os.mkdir(packageDestinationDir)
+			ppf.unpackSource(destinationDir = packageDestinationDir, newProductId = newProductId, progressSubject = progressSubject)
+			if not self.config['quiet']:
+				sys.stderr.write('\n\n')
+			ppf.cleanup()
+	
 	def processListCommand(self):
 		terminalWidth = 60
 		try:
@@ -1346,6 +1444,9 @@ class OpsiPackageManagerControl(object):
 		for productOnDepot in productOnDepots:
 			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
 		
+		if self.config['quiet']:
+			return
+		
 		for (depotId, values) in productOnDepotInfo.items():
 			print u"-"*(len(depotId)+4)
 			print u"- %s -" % depotId
@@ -1378,6 +1479,9 @@ class OpsiPackageManagerControl(object):
 				productIds.append(productOnDepot.productId)
 			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
 		productIds.sort()
+		
+		if self.config['quiet']:
+			return
 		
 		for productId in productIds:
 			differs = False
@@ -1436,7 +1540,6 @@ class OpsiPackageManagerControl(object):
 			'fileLogLevel'           : LOG_DEBUG2,
 			'consoleLogLevel'        : LOG_NONE,
 			'logFile'                : None,
-			#'interface'              : u'snack',
 			'quiet'                  : False,
 			'tempDir'                : u'/tmp',
 			'backendConfigDir'       : u'/etc/opsi/backends',
@@ -1450,6 +1553,8 @@ class OpsiPackageManagerControl(object):
 			'deltaUpload'            : True,
 			'newProductId'           : None,
 			'depotIds'               : None,
+			'uploadToLocalDepot'     : False,
+			'localDepotId'           : forceHostId(socket.getfqdn()),
 			'forceInstall'           : False,
 			'forceUninstall'         : False,
 			'deleteFilesOnUninstall' : True,
@@ -1462,20 +1567,20 @@ class OpsiPackageManagerControl(object):
 		if (self.opts.properties == 'ask') and self.opts.quiet:
 			raise Exception(u"You cannot use properties=ask in quiet mode")
 		
-		if self.opts.quiet:
-			#self.config['interface'] = u'dummy'
-			self.config['quiet'] = True
-		
-		if self.opts.verbose:        self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
-		if self.opts.logFile:         self.config['logFile'] = self.opts.logFile
-		if self.opts.tempDir:         self.config['tempDir'] = self.opts.tempDir
-		if self.opts.depots:          self.config['depotIds'] = self.opts.depots.split(',')
-		if self.opts.newProductId:    self.config['newProductId'] = self.opts.newProductId
-		if self.opts.maxBandwidth:    self.config['maxBandwidth'] = self.opts.maxBandwidth
-		if self.opts.overwriteAlways: self.config['overwriteAlways'] = self.opts.overwriteAlways
-		if self.opts.keepFiles:       self.config['deleteFilesOnUninstall'] = False
-		if self.opts.properties:      self.config['properties'] = self.opts.properties
-		if self.opts.force:           self.config['forceInstall'] = self.config['forceUninstall'] = True
+		if self.opts.quiet:                self.config['quiet'] = True
+		if self.opts.verbose:              self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
+		if self.opts.logFile:              self.config['logFile'] = self.opts.logFile
+		if self.opts.tempDir:              self.config['tempDir'] = self.opts.tempDir
+		if self.opts.depots:               self.config['depotIds'] = self.opts.depots.split(',')
+		if self.opts.newProductId:         self.config['newProductId'] = self.opts.newProductId
+		if self.opts.maxBandwidth:         self.config['maxBandwidth'] = self.opts.maxBandwidth
+		if self.opts.maxTransfers:         self.config['maxTransfers'] = self.opts.maxTransfers
+		if self.opts.overwriteAlways:      self.config['overwriteAlways'] = self.opts.overwriteAlways
+		if self.opts.keepFiles:            self.config['deleteFilesOnUninstall'] = False
+		if self.opts.properties:           self.config['properties'] = self.opts.properties
+		if self.opts.force:                self.config['forceInstall'] = self.config['forceUninstall'] = True
+		if self.opts.setupWhereInstalled:  self.config['setupWhereInstalled'] = True
+		if self.opts.updateWhereInstalled: self.config['updateWhereInstalled'] = True
 		
 		# Get command
 		if self.opts.COMMAND_INSTALL:
@@ -1573,10 +1678,6 @@ class OpsiPackageManagerControl(object):
 		print u""
 		print u"  --new-product-id   <product-id>  set a new product id when extracting opsi package"
 		print u""
-		print u"  --interface        <type>        type of user interface"
-		print u"		                      text  = text based interface"
-		print u"		                      snack = newt interface (default)"
-		print u""
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1603,7 +1704,7 @@ if (__name__ == "__main__"):
 	
 	if exception:
 		logger.logException(exception)
-		print >> sys.stderr, u"ERROR:", unicode(exception)
+		print >> sys.stderr, u"\nERROR: %s\n" % exception
 		sys.exit(1)
 	sys.exit(0)
 
