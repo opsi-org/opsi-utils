@@ -1094,7 +1094,7 @@ class OpsiPackageManager():
 						name = u"Install of package '%s' on depot '%s'" % (os.path.basename(packageFile), depotId),
 						opsiPackageManager = self,
 						method = self.installPackage,
-						params = [os.path.basename(packageFile), depotId]
+						params = [packageFile, depotId]
 					)
 				)
 			if not self.aborted:
@@ -1108,14 +1108,19 @@ class OpsiPackageManager():
 		
 		depotConnection = None
 		try:
+			depotPackageFile = packageFile
 			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
-			if not depot.repositoryLocalUrl.startswith('file://'):
-				raise Exception(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
-			depotPackageFile = depot.repositoryLocalUrl[7:]
-			if depotPackageFile.endswith('/'):
-				depotPackageFile = depotPackageFile[:-1]
-			depotPackageFile += u'/' + packageFile
+			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
+				if not depot.repositoryLocalUrl.startswith('file://'):
+					raise Exception(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
+				depotPackageFile = depot.repositoryLocalUrl[7:]
+				if depotPackageFile.endswith('/'):
+					depotPackageFile = depotPackageFile[:-1]
+				depotPackageFile += u'/' + packageFile
+			
 			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
+			
+			packageFile = os.path.basename(packageFile)
 			
 			logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
 			subject.setMessage( _(u"Installing package %s") % packageFile )
