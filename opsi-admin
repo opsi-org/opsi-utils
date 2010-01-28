@@ -179,7 +179,7 @@ def main(argv):
 			output = u'SIMPLE'
 		
 	if logFile:
-		f = codecs.open(logFile, 'utf-8', 'w')
+		f = codecs.open(logFile, 'w', 'utf-8')
 		print >> f, u"Starting log at: %s" % time.strftime(u"%a, %d %b %Y %H:%M:%S")
 		f.close()
 		logger.setLogFile(logFile)
@@ -196,7 +196,12 @@ def main(argv):
 	if direct:
 		# Create BackendManager
 		from OPSI.Backend.BackendManager import BackendManager
-		backend = BackendManager(authRequired=False, configFile='/etc/opsi/backendManager.d')
+		backend = BackendManager(
+			dispatchConfigFile = u'/etc/opsi/backendManager/dispatch.conf',
+			backendConfigDir   = u'/etc/opsi/backends',
+			extensionConfigDir = u'/etc/opsi/backendManager/extend.d',
+			# depotBackend       = bool(self.opsiconfd.config['depotId'])
+		)
 	
 	else:
 		# Connect to opsiconfd
@@ -213,7 +218,7 @@ def main(argv):
 		
 		sessionId = None
 		try:
-			session = codes.open(os.path.join(opsiadminUserDir, u'session'), 'utf-8')
+			session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'r', 'utf-8')
 			for line in session.readlines():
 				line = line.strip()
 				if line:
@@ -225,6 +230,7 @@ def main(argv):
 		
 		
 		from OPSI.Backend.JSONRPC import JSONRPCBackend
+		print sessionId
 		backend = JSONRPCBackend(
 				address	    = address,
 				username    = username,
@@ -233,13 +239,14 @@ def main(argv):
 				sessionId   = sessionId)
 		logger.info(u'Connected')
 		
-		sessionId = backend.getSessionId()
+		sessionId = backend.jsonrpc_getSessionId()
 		if sessionId:
 			try:
-				session = codes.open(os.path.join(opsiadminUserDir, u'session'), 'utf-8', 'w')
+				session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'w', 'utf-8')
 				session.write(u"%s\n" % sessionId)
 				session.close()
 			except Exception, e:
+				print e
 				logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), e))
 	
 	cmdline = u''
@@ -342,7 +349,7 @@ class Shell:
 		
 		historyFile = forceFilename( os.path.join(self.userConfigDir, u'history') )
 		try:
-			history = codecs.open(historyFile, 'utf-8', 'replace')
+			history = codecs.open(historyFile, 'r', 'utf-8', 'replace')
 			for line in history.readlines():
 				if not line:
 					continue
@@ -422,7 +429,7 @@ class Shell:
 				except Exception, e:
 					logger.error(u"Failed to delete log-file '%s': %s" % (logFile, e))
 		try:
-			history = codecs.open( os.path.join(self.userConfigDir, 'history'), 'utf-8', 'w')
+			history = codecs.open( os.path.join(self.userConfigDir, 'history'), 'w', 'utf-8')
 			for line in self.cmdList:
 				if not line or line in ('quit', 'exit'):
 					continue
@@ -960,13 +967,14 @@ class CommandMethod(Command):
 	
 	def __init__(self):
 		Command.__init__(self, u'method')
-	
+		self.interface = backend.backend_getInterface()
+		
 	def getDescription(self):
 		return _(u"Execute a config-interface-method")
 	
 	def help(self, shell):
 		shell.appendLine(_(u"\rMethods are:\n"))
-		for m in backend.getPossibleMethods_listOfHashes():
+		for m in backend.backend_getInterface():
 			logger.debug(m)
 			shell.appendLine(u"\r%s\n" % m.get('name'))
 	
@@ -975,19 +983,19 @@ class CommandMethod(Command):
 		
 		if ( paramPos == 0 ):
 			completions.append(u'list')
-			for m in backend.getPossibleMethods_listOfHashes():
+			for m in self.interface:
 				completions.append( m.get(u'name') )
 			
 		elif ( paramPos == 1):
 			method = None
 			if u'list'.startswith( params[0] ):
 				completions.append(u'list')
-			for m in backend.getPossibleMethods_listOfHashes():
+			for m in self.interface:
 				if m.get('name').startswith( params[0] ):
 					completions.append( m.get('name') )
 		
 		elif ( paramPos >=2 ):
-			for m in backend.getPossibleMethods_listOfHashes():
+			for m in self.interface:
 				if (m.get('name') == params[0]):
 					if ( len(m.get('params')) >= len(params)-1 ):
 						completions = [ m.get('params')[paramPos-2] ]
@@ -1002,48 +1010,57 @@ class CommandMethod(Command):
 		method = params[0]
 		
 		if (method == u'list'):
-			for m in backend.getPossibleMethods_listOfHashes():
+			for m in self.interface:
 				shell.appendLine(u"%s%s" % (m.get('name'), tuple(m.get('params'))), refresh = False )
 			shell.display()
 			return
 		
-		params = params[1:]
-		result = None
-		
-		#logger.debug(u"params: %s" % params)
+		params = deserialize(params[1:])
 		for i in range(len(params)):
-			if (len(params[i].strip()) == 0):
-				params[i] = u'null'
-			elif ( params[i] == u'null' ):
-				pass
-			elif ( params[i].strip()[0] not in (u'{', u'[', u'"') ):
-				params[i] = u'"%s"' % params[i]
-			if hasattr(json, 'loads'):
-				# Python 2.6 json module
-				params[i] = json.loads(params[i])
-			else:
-				params[i] = json.read(params[i])
-			#logger.debug( u"Type of param: %s" % type(params[i]) )
+			try:
+				params[i] = fromJson(params[i])
+			except:
+				params[i] = forceUnicode(params[i])
 		
-		#if (len(params) == 1) and (isinstance(params[0], list) or isinstance(params[0], tuple)):
-		#	params[i] = [ params[i] ]
+		pString = unicode(params)[1:-1]
+		if (len(pString) > 200):
+			pString = pString[:200] + u'...'
 		
-		# Check if possible method
-		valid = False
-		for f in backend.getPossibleMethods_listOfHashes():
-			if (f['name'] == method):
-				valid = True
+		result = None
+		found = False
+		keywords = {}
+		for m in self.interface:
+			if (method == m['name']):
+				if m['keywords']:
+					l = 0
+					if m['args']:
+						l += len(m['args'])
+					if m['varargs']:
+						l += len(m['varargs'])
+					if (len(params) >= l):
+						if not type(params[-1]) is types.DictType:
+							raise Exception(u"Not a dict: %s" % params[-1])
+						for (key, value) in params.pop(-1).items():
+							keywords[str(key)] = deserialize(value)
+				found = True
+				break
+		if not found:
+			raise OpsiRpcError(u"Method '%s' is not valid" %method)
 		
-		if not valid:
-			raise Exception(u"Method '%s' is not valid" % method)
-		
-		logger.info(u"Executing:  %s%s" % (method, tuple(params)))
-		shell.setInfoline(u"Executing:  %s%s" % (method, tuple(params)))
+		logger.info(u"Executing:  %s(%s)" % (method, pString))
+		shell.setInfoline(u"Executing:  %s(%s)" % (method, pString))
 		start = time.time()
-		result = eval("backend.%s(*params)" % method)
-		duration = u'%0.3f' % (time.time() - start)
-		logger.debug( u'Took %0.3f to process %s%s' % ((time.time() - start), method, tuple(params)) )
-		shell.setInfoline( _(u'Took %0.3f to process %s%s') % ((time.time() - start), method, tuple(params)) )
+		
+		if keywords:
+			result = eval( "backend.%s(*params, **keywords)" % method )
+		else:
+			result = eval( "backend.%s(*params)" % method )
+		
+		duration = (time.time() - start)
+		logger.debug( u'Took %0.3f to process: %s(%s)' % (duration, method, pString) )
+		shell.setInfoline( _(u'Took %0.3f to process: %s(%s)') % (duration, method, pString) )
+		result = serialize(result)
+		logger.debug2(result)
 		
 		if result:
 			lines = []
@@ -1051,7 +1068,7 @@ class CommandMethod(Command):
 				lines = objectToBeautifiedText(result, 0).split(u'\n')
 				
 			elif (shell.output == u'SHELL'):
-				bashVars = Tools.objectToBash(result, {})
+				bashVars = objectToBash(result, {})
 				for i in range(len(bashVars)-1, -2, -1):
 					if (i == -1): i = ''
 					v = bashVars.get('RESULT%s' % i)
@@ -1060,15 +1077,18 @@ class CommandMethod(Command):
 			
 			elif (shell.output == u'SIMPLE'):
 				if type(result) is types.DictType:
-					raise Exception(u"Simple output not possible for dicts")
+					for (key, value) in result.items():
+						lines.append(u'%s=%s' % (key, value))
 				
 				if type(result) in (types.TupleType, types.ListType):
 					for r in result:
-						if type(result) is types.DictType:
-							raise Exception(u"Simple output not possible for list of dicts")
-						if type(result) in (types.TupleType, types.ListType):
+						if type(r) is types.DictType:
+							for (key, value) in r.items():
+								lines.append(u'%s=%s' % (key, value))
+						#	raise Exception(u"Simple output not possible for list of dicts")
+						if type(r) in (types.TupleType, types.ListType):
 							raise Exception(u"Simple output not possible for list of lists")
-						lines.append( forceUnicode(r) )
+						lines.append(u'')
 				else:
 					lines.append( forceUnicode(result) )
 			else:
@@ -1191,7 +1211,7 @@ class CommandSet(Command):
 				logger.setLogFile(None)
 			else:
 				logFile = params[1]
-				f = codecs.open(logFile, 'utf-8', u'w')
+				f = codecs.open(logFile, 'w', 'utf-8')
 				f.write(u"Starting log at: %s\n" % time.strftime(u"%a, %d %b %Y %H:%M:%S"))
 				f.close()
 				logger.setLogFile(logFile)
