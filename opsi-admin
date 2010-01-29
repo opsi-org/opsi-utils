@@ -99,7 +99,7 @@ except Exception, e:
 def signalHandler(signo, stackFrame):
 	logger.info(u"Received signal %s" % signo)
 	if (signo == SIGINT):
-		shell.sigint()
+		if shell: shell.sigint()
 	if (signo == SIGQUIT):
 		sys.exit(0)
 	
@@ -135,7 +135,7 @@ def main(argv):
 	
 	password = u''
 	address  = u'https://localhost:4447/rpc'
-	output   = u'NICE'
+	output   = u'JSON'
 	color    = False
 	direct   = False
 	
@@ -195,12 +195,11 @@ def main(argv):
 	
 	if direct:
 		# Create BackendManager
-		from OPSI.Backend.BackendManager import BackendManager
 		backend = BackendManager(
 			dispatchConfigFile = u'/etc/opsi/backendManager/dispatch.conf',
 			backendConfigDir   = u'/etc/opsi/backends',
 			extensionConfigDir = u'/etc/opsi/backendManager/extend.d',
-			# depotBackend       = bool(self.opsiconfd.config['depotId'])
+			depotbackend       = True
 		)
 	
 	else:
@@ -230,7 +229,6 @@ def main(argv):
 		
 		
 		from OPSI.Backend.JSONRPC import JSONRPCBackend
-		print sessionId
 		backend = JSONRPCBackend(
 				address	    = address,
 				username    = username,
@@ -300,7 +298,7 @@ def main(argv):
 
 class Shell:
 	
-	def __init__(self, prompt = u'opsi-admin>', output = u'NICE', color = True, cmdline = u''):
+	def __init__(self, prompt = u'opsi-admin>', output = u'JSON', color = True, cmdline = u''):
 		self.color = forceBool(color)
 		self.output = forceUnicode(output)
 		self.running = False
@@ -369,7 +367,8 @@ class Shell:
 		return self.lines
 		
 	def initScreen(self):
-		self.screen = curses.initscr()
+		if not self.screen:
+			self.screen = curses.initscr()
 		curses.noecho()
 		curses.cbreak()
 		self.screen.keypad(1)
@@ -387,13 +386,19 @@ class Shell:
 			curses.init_pair(4, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
 			curses.init_pair(5, curses.COLOR_RED,     curses.COLOR_BLACK)
 	
+	def exitScreen(self):
+		if self.screen:
+			curses.nocbreak()
+			self.screen.keypad(0)
+			curses.echo()
+			curses.endwin()
+	
 	def sigint(self):
 		self.pos = 0
 		self.setCmdline(u'')
 		self.reverseSearch = None
 	
 	def run(self):
-		#logger.debug(u"run")
 		self.running = True
 		
 		self.initScreen()
@@ -420,7 +425,7 @@ class Shell:
 		while self.running:
 			self.getCommand()
 		
-		
+	
 	def exit(self):
 		if interactive and logFile and os.path.exists(logFile):
 			if self.question(u"Delete log-file '%s'?" % logFile):
@@ -438,11 +443,8 @@ class Shell:
 		except Exception, e:
 			logger.error(u"Failed to write history file '%s': %s" % (os.path.join(self.userConfigDir, 'history'), e))
 		
-		if self.screen:
-			curses.nocbreak()
-			self.screen.keypad(0)
-			curses.echo()
-			curses.endwin()
+		self.exitScreen()
+		
 		self.running = False
 		sys.exit(0)
 		
@@ -1064,7 +1066,7 @@ class CommandMethod(Command):
 		
 		if result:
 			lines = []
-			if   (shell.output == u'NICE'):
+			if   (shell.output == u'JSON'):
 				lines = objectToBeautifiedText(result, 0).split(u'\n')
 				
 			elif (shell.output == u'SHELL'):
@@ -1085,10 +1087,11 @@ class CommandMethod(Command):
 						if type(r) is types.DictType:
 							for (key, value) in r.items():
 								lines.append(u'%s=%s' % (key, value))
-						#	raise Exception(u"Simple output not possible for list of dicts")
-						if type(r) in (types.TupleType, types.ListType):
+							lines.append(u'')
+						elif type(r) in (types.TupleType, types.ListType):
 							raise Exception(u"Simple output not possible for list of lists")
-						lines.append(u'')
+						else:
+							lines.append(forceUnicode(r))
 				else:
 					lines.append( forceUnicode(result) )
 			else:
@@ -1245,10 +1248,7 @@ class CommandQuit(Command):
 		return _(u"Exit opsi-admin")
 	
 	def execute(self, shell, params):
-		try:
-			shell.exit()
-		except SystemExit:
-			pass
+		shell.exit()
 
 class CommandExit(CommandQuit):
 	def __init__(self):
@@ -1427,33 +1427,37 @@ class CommandTask(Command):
 			else:
 				password = params[1]
 			
-			backend.setPcpatchPassword(fqdn, blowfishEncrypt(backend.getOpsiHostKey(fqdn), password))
+			backend.depot_setCredentials(username = 'pcpatch', password = password)
 			
-			raise NotImplementedError(u"smbldap-passwd")
 			try:
-				uva = which('univention-admin')
-				os.system(	uva + u' users/user modify' \
-						+ u' --dn "`' + uva + u' users/user list --filter "(uid=pcpatch)" | grep ^DN | cut -d" " -f2`"' \
-						+ u' --set password="' + password + u'" --set overridePWLength=1 --set overridePWHistory=1 > /dev/null')
+				# Univention
+				dn = None
+				f = os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % (which('univention-admin'), 'r'))
+				for line in f.readlines():
+					if line.startswith('DN'):
+						dn = line.strip().split(' ')[1]
+						break
+				f.close()
+				if not dn:
+					raise Exception(u"Failed to get DN for user pcpatch")
+				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 > /dev/null" % (dn, password)
+				os.system(cmd.encode(encoding))
 			except:
-				# univention-admin not found
-				f = os.popen(which(u'chpasswd'), u'w')
-				f.write( (u"pcpatch:%s\n" % password).encode(encoding) )
-				f.close()
-			
-				f = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
-				f.write( (u"%s\n%s\n" % (password, password)).encode(encoding) )
-				f.close()
-			
-			for clientId in backend.getClientIds_list(serverId = fqdn):
 				try:
-					clientKey = backend.getOpsiHostKey(clientId)
-					backend.setPcpatchPassword( clientId, blowfishEncrypt(clientKey, password) )
-				except Exception, e:
-					logger.warning(u"Failed to update password for client '%s': %s" % (clientId, e))
-					shell.appendLine(u"WARNING: Failed to update password for client '%s': %s" % (clientId, e), COLOR_YELLOW)
+					# smbldap
+					f = os.popen(u'%s pcpatch' % which('smbldap-passwd'), 'w')
+					f.write( (u"%s\n%s\n" % (password, password)).encode(encoding) )
+					f.close()
+				except:
+					# unix
+					f = os.popen(which(u'chpasswd'), 'w')
+					f.write( (u"pcpatch:%s\n" % password).encode(encoding) )
+					f.close()
+				
+					f = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
+					f.write( (u"%s\n%s\n" % (password, password)).encode(encoding) )
+					f.close()
 			
-		
 if (__name__ == "__main__"):
 	exception = None
 	
