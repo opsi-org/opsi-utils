@@ -34,13 +34,13 @@
 
 __version__ = '3.4.99'
 
-import getopt, gettext, os, sys, re
+import getopt, gettext, os, sys, re, shutil
 
 # OPSI imports
 from OPSI.Logger import *
 from OPSI.System import *
 from OPSI.Object import *
-from OPSI.Util.Product import *
+from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.UI import *
 
 # Get logger instance
@@ -464,17 +464,20 @@ Possible values:      Comma separated list of possible values for the property.
 			try:
 				defaultValues = []
 				if productProperty.possibleValues:
-					choices = []
-					for v in productProperty.possibleValues:
-						choices.append( { "name": v } )
-					choices[0]['selected'] = True
-					result = ui.getSelection(
-							title   = _(u'Please select a default value'),
-							text    = u"",
-							radio   = True,
-							entries = choices )
-					if not result is None:
-						defaultValues = [ result ]
+					if (len(productProperty.possibleValues) == 1):
+						defaultValues = productProperty.possibleValues
+					else:
+						choices = []
+						for v in productProperty.possibleValues:
+							choices.append( { "name": v } )
+						choices[0]['selected'] = True
+						result = ui.getSelection(
+								title   = _(u'Please select a default value'),
+								text    = u"",
+								radio   = True,
+								entries = choices )
+						if not result is None:
+							defaultValues = result
 				else:
 					result = ui.getValue(
 						title = _(u'Please set a default value'),
@@ -482,7 +485,7 @@ Possible values:      Comma separated list of possible values for the property.
 					if not result is None:
 						defaultValues = [ result ]
 					
-				productProperty.setDefaultValues([result])
+				productProperty.setDefaultValues(defaultValues)
 			except Exception, e:
 				if not error: error = _(u'Please specify valid default values')
 			
@@ -493,93 +496,42 @@ Possible values:      Comma separated list of possible values for the property.
 			productProperties.append(productProperty)
 			break
 	
-	return
+	pcf = PackageControlFile(os.path.join(productSourceDir, 'OPSI', 'control'))
+	pcf.setProduct(product)
+	pcf.setProductDependencies(productDependencies)
+	pcf.setProductProperties(productProperties)
+	pcf.generate()
+	pcf.chmod(0600)
 	
-	# Write control file
-	control = open( os.path.join(destDir, productId, 'OPSI', 'control'), 'w' )
-	print >> control, '[Package]'
-	print >> control, 'version: %s' % product.packageVersion
-	print >> control, 'depends:'
-	print >> control, 'incremental: False'
-	print >> control, ''
-	print >> control, '[Product]'
-	print >> control, 'type: %s' % product.productType
-	print >> control, 'id: %s' % product.productId
-	print >> control, 'name: %s' % product.name
-	print >> control, 'description:',
-	for line in product.description.split('\\n'):
-		print >> control, line
-	print >> control, 'advice: %s' % product.advice
-	print >> control, 'version: %s' % product.productVersion
-	print >> control, 'priority: %s' % product.priority
-	print >> control, 'licenseRequired: %s' % product.licenseRequired
-	print >> control, 'productClasses: %s' % ', '.join(product.productClassNames)
-	print >> control, 'setupScript: %s' % product.setupScript
-	print >> control, 'uninstallScript: %s' % product.uninstallScript
-	print >> control, 'updateScript: %s' % product.updateScript
-	print >> control, 'alwaysScript: %s' % product.alwaysScript
-	print >> control, 'onceScript: %s' % product.onceScript
-	if (product.productType == 'netboot'):
-		print >> control, 'pxeConfigTemplate: %s' % product.pxeConfigTemplate
-	
-	if (product.productType != 'server'):
-		for dependency in productDependencies:
-			print >> control, '\n[ProductDependency]'
-			print >> control, 'action: %s' % dependency.action
-			if dependency.requiredProductId:
-				print >> control, 'requiredProduct: %s' % dependency.requiredProductId
-			if dependency.requiredProductClassId:
-				print >> control, 'requiredClass: %s' % dependency.requiredProductClassId
-			if dependency.requiredAction:
-				print >> control, 'requiredAction: %s' % dependency.requiredAction
-			if dependency.requiredInstallationStatus:
-				print >> control, 'requiredStatus: %s' % dependency.requiredInstallationStatus
-			if dependency.requirementType:
-				print >> control, 'requirementType: %s' % dependency.requirementType
-		
-		for productProperty in productProperties:
-			print >> control, '\n[ProductProperty]'
-			print >> control, 'name: %s' % productProperty.name
-			if productProperty.description:
-				print >> control, 'description:',
-				for line in productProperty.description.split('\\n'):
-					print >> control, line
-			if productProperty.possibleValues:
-				print >> control, 'values: %s' % ', '.join(productProperty.possibleValues)
-			if productProperty.defaultValue:
-				print >> control, 'default: %s' % productProperty.defaultValue
-	
-	control.close()
-	
-	# Creating preinst template
-	preinst = open( os.path.join(destDir, productId, 'OPSI', 'preinst'), 'w' )
-	print >> preinst, '#! /bin/bash'
-	print >> preinst, '#'
-	print >> preinst, '# preinst script for %s' % product.productId
-	print >> preinst, '# This script executes before that package will be unpacked from its archive file.'
-	print >> preinst, '#'
-	print >> preinst, '# The following environment variables can be used to obtain information about the current installation:'
-	print >> preinst, '#   PRODUCT_ID: id of the current product'
-	print >> preinst, '#   CLIENT_DATA_DIR: directory where client data will be installed'
-	print >> preinst, '#'
+	# Create preinst template
+	preinst = codecs.open(os.path.join(productSourceDir, 'OPSI', 'preinst'), 'w', 'utf-8')
+	print >> preinst, u'#! /bin/bash'
+	print >> preinst, u'#'
+	print >> preinst, u'# preinst script'
+	print >> preinst, u'# This script executes before that package will be unpacked from its archive file.'
+	print >> preinst, u'#'
+	print >> preinst, u'# The following environment variables can be used to obtain information about the current installation:'
+	print >> preinst, u'#   PRODUCT_ID: id of the current product'
+	print >> preinst, u'#   CLIENT_DATA_DIR: directory where client data will be installed'
+	print >> preinst, u'#'
 	preinst.close()
-	os.chmod(os.path.join(destDir, productId, 'OPSI', 'preinst'), 0700)
+	os.chmod(os.path.join(productSourceDir, 'OPSI', 'preinst'), 0700)
 	
-	# Creating postinst template
-	postinst = open( os.path.join(destDir, productId, 'OPSI', 'postinst'), 'w' )
-	print >> postinst, '#! /bin/bash'
-	print >> postinst, '#'
-	print >> postinst, '# postinst script for %s' % product.productId
-	print >> postinst, '# This script executes after unpacking files from that archive and registering the product at the server.'
-	print >> postinst, '#'
-	print >> postinst, '# The following environment variables can be used to obtain information about the current installation:'
-	print >> postinst, '#   PRODUCT_ID: id of the current product'
-	print >> postinst, '#   CLIENT_DATA_DIR: directory which contains the installed client data'
-	print >> postinst, '#'
+	# Create postinst template
+	postinst = codecs.open(os.path.join(productSourceDir, 'OPSI', 'postinst'), 'w', 'utf-8')
+	print >> postinst, u'#! /bin/bash'
+	print >> postinst, u'#'
+	print >> postinst, u'# postinst script'
+	print >> postinst, u'# This script executes after unpacking files from that archive and registering the product at the server.'
+	print >> postinst, u'#'
+	print >> postinst, u'# The following environment variables can be used to obtain information about the current installation:'
+	print >> postinst, u'#   PRODUCT_ID: id of the current product'
+	print >> postinst, u'#   CLIENT_DATA_DIR: directory which contains the installed client data'
+	print >> postinst, u'#'
 	postinst.close()
-	os.chmod(os.path.join(destDir, productId, 'OPSI', 'postinst'), 0700)
+	os.chmod(os.path.join(productSourceDir, 'OPSI', 'postinst'), 0700)
 	
-	ui.showMessage(_("Package source directory '%s' created") % os.path.join(destDir, productId), title=_('Done'))
+	ui.showMessage(title=_('Done'), text = _("Package source directory '%s' created") % productSourceDir, width = 70, height = 3)
 	
 if (__name__ == "__main__"):
 	exception = None
