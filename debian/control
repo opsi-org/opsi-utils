@@ -1,0 +1,13 @@
+Source: opsi-utils
+Section: opsi
+Priority: optional
+Maintainer: uib GmbH <info@uib.de>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.1
+
+Package: opsi-utils
+Section: opsi
+Architecture: all
+Depends: python-opsi (>= 3.4.99)
+Description: OPSI utils
+ This package contains the opsi util collection.

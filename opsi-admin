@@ -965,8 +965,6 @@ class Command:
 	
 	
 class CommandMethod(Command):
-	from OPSI import Tools
-	
 	def __init__(self):
 		Command.__init__(self, u'method')
 		self.interface = backend.backend_getInterface()
