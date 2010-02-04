@@ -34,129 +34,240 @@
 
 __version__ = '3.5'
 
-import fcntl, termios, struct, os, sys
+import fcntl, termios, struct, os, sys, getopt, socket
 
 # OPSI imports
 from OPSI.Logger import *
-from OPSI.Backend.MySQL import MySQLBackend
-from OPSI.Backend.File31 import File31Backend
-from OPSI.Backend.LDAP import LDAPBackend
+from OPSI.Types import *
+from OPSI.Util.Message import ProgressObserver
+from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.Replicator import BackendReplicator
 
+logLevel = -1
 logger = Logger()
-logger.setConsoleLevel(LOG_ERROR)
+logger.setConsoleLevel(logLevel)
 logger.setConsoleFormat('%M')
 logger.setFileFormat('%D [%L] %M')
 logger.setConsoleColor(True)
 
 
-class OpsiConvert():
-	def __init__(self, readBackend, writeBackend):
-		self.readBackend  = readBackend
-		self.writeBackend = writeBackend
-		
-		self.backendReplicator = BackendReplicator(
-			readBackend  = self.readBackend,
-			writeBackend = self.writeBackend,
-			newServerId  = None,
-			cleanupFirst = True)
-			
-		self.currentProgressSubject = self.backendReplicator.getCurrentProgressSubject()
-		self.overallProgressSubject = self.backendReplicator.getOverallProgressSubject()
-		
+def usage():
+	print u"\nUsage: %s [options] <from> <to>" % os.path.basename(sys.argv[0])
+	print u"Convert an opsi database into an other."
+	print u"Options:"
+	print u"    -h        show this help text"
+	print u"    -V        show version information"
+	print u"    -v        increase verbosity (can be used multiple times)"
+	print u"    -n        do not clean destination database before writing"
+	print u"    -s        use destination host as new server"
+	print u"    -l <file> log to this file"
+	print u""
+	print u"<from> and <to> can be:"
+	print u"     - the name of a backend as defined in /etc/opsi/backends (file, ldap, ...)"
+	print u"     - the url of a opsi configuration service"
+	print u"       http(s)://<user>@<host>:<port>/rpc"
+	print u""
+
+class ProgressNotifier(ProgressObserver):
+	def __init__(self, backendReplicator):
+		self.usedWidth = 120
+		self.currentProgressSubject = backendReplicator.getCurrentProgressSubject()
+		self.overallProgressSubject = backendReplicator.getOverallProgressSubject()
 		self.currentProgressSubject.attachObserver(self)
 		self.overallProgressSubject.attachObserver(self)
+		self.logSubject = logger.getMessageSubject()
+		self.logSubject.attachObserver(self)
+		logger.setMessageSubjectLevel(LOG_ERROR)
+		self.error = None
 		
-		self._message = ''
-	
-	def ioctl_GWINSZ(self, fd): # found on http://pleac.sourceforge.net/pleac_python/userinterfaces.html
+	def displayProgress(self):
+		usedWidth = self.usedWidth
 		try:
-			cr = struct.unpack('hh',fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+			tty = os.popen('tty').readline().strip()
+			fd = open(tty)
+			terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+			if (usedWidth > terminalWidth):
+				usedWidth = terminalWidth
+			fd.close()
 		except:
-			return None
-		return cr
-	
-	def getTermWidth(self): # found on http://pleac.sourceforge.net/pleac_python/userinterfaces.html
-		cr = self.ioctl_GWINSZ(0) or self.ioctl_GWINSZ(1) or self.ioctl_GWINSZ(2)
-		if not cr:
-			try:
-				fd = os.open(os.ctermid(), os.O_RDONLY)
-				cr = self.ioctl_GWINSZ(fd)
-				os.close(fd)
-			except:
-				try:
-					cr = (env['LINES'], env['COLUMNS'])
-				except:
-					cr = (25, 80)
+			pass
 		
-		return int(cr[1])
-	
-	def _rewrite(self, line = ''):
-		width = self.getTermWidth()
-		blank = ''
-		for i in range(width):
-			blank = blank + ' '
+		if (logLevel <= LOG_NONE):
+			sys.stdout.write("\033[2A")
+		if self.error:
+			sys.stdout.write("\033[K")
+			sys.stdout.write(u"Error occured: %s\n" % self.error)
+			sys.stdout.write("\033[K")
+		self.error = None
+		for subject in self.overallProgressSubject, self.currentProgressSubject:
+			text = u''
+			if subject is self.overallProgressSubject:
+				text = u'Overall progress'
+			else:
+				text = subject.getTitle()
+			barlen = usedWidth - 62
+			filledlen = int("%0.0f" % (barlen * subject.getPercent() / 100))
+			bar = u'='*filledlen + u' '*(barlen - filledlen)
+			percent = '%0.2f%%' % subject.getPercent()
+			sys.stdout.write('%35s : %8s [%s] %5s/%-5s\n' % (text, percent, bar, subject.getState(), subject.getEnd()))
 		
-		if len(line) > width:
-			line = line[:width]
-		
-		sys.stdout.write('\r' + blank + '\r' + line)
-		sys.stdout.flush()
-	
-	def convert(self):
-		self.backendReplicator.replicate()
-	
-	def __del__(self):
-		self.currentProgressSubject.detachObserver(self)
-		self.overallProgressSubject.detachObserver(self)
-	
-	def messageChanged(self, subject, message):
-		self._message = message
-	
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
-		#time.sleep(0.3)
-		#print subject, state, timeLeft
-		#sys.stdout.write("%s %0.2f%% ETA: %ds\n" % (subject.getId(), percent, timeLeft))
-		self._rewrite(u"%s %0.2f%% ETA: %ds '%s'" % (subject.getTitle(), percent, timeLeft, self._message))
+		self.displayProgress()
 		
+	def messageChanged(self, subject, message):
+		if (subject == self.logSubject):
+			self.error = message
+		self.displayProgress()
+
+
+def main(argv):
+	global logLevel
+	newServerId = None
+	cleanupFirst = True
+	
+	# Get options
+	try:
+		(opts, args) = getopt.getopt(argv, "hvVnsl:")
+	
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	
+	for (opt, arg) in opts:
+		if   (opt == "-h"):
+			usage()
+			return
+		elif (opt == "-V"):
+			print u"%s %s" % (os.path.basename(sys.argv[0]), __version__)
+			return
+		elif (opt == "-v"):
+			logLevel += 1
+			logger.setConsoleLevel(logLevel)
+			logger.setFileLevel(logLevel)
+		elif (opt == "-n"):
+			cleanupFirst = False
+		elif (opt == "-s"):
+			newServerId = socket.getfqdn()
+		elif (opt == "-l"):
+			logger.setLogFile(arg)
+			logger.setFileLevel(logLevel)
+		
+	if (len(args) < 2):
+		usage()
+		sys.exit(1)
+	
+	readBackend  = forceUnicode(args[0])
+	writeBackend = forceUnicode(args[1])
+	
+	# Define read/write backend
+	read = {
+		'username'	: u'',
+		'password'	: u'',
+		'address'	: u'',
+		'backend'	: u'' }
+	write = {
+		'username'	: u'',
+		'password'	: u'',
+		'address'	: u'',
+		'backend'	: u'' }
+	
+	logger.comment(u"Converting from backend '%s' to backend '%s'." % (readBackend, writeBackend) )
+	
+	
+	# Parse read backend
+	match = re.search('^(\w+://)', readBackend)
+	if match:
+		# Seems to be an URL
+		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', readBackend)
+		if match:
+			read['backend']  = 'JSONRPC'
+			read['address']  = match.group(1) + match.group(3)
+			read['username'] = match.group(2)
+		else:
+			raise Exception(u"Bad source URL '%s'" % readBackend)
+	else:
+		# Assuming a backend name
+		read['backend'] = readBackend
+	
+	
+	# Parse write backend
+	match = re.search('^(\w+://)', writeBackend)
+	if match:
+		# Seems to be an URL
+		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
+		if match:
+			write['backend']  = 'JSONRPC'
+			write['address']  = match.group(1) + match.group(3)
+			write['username'] = match.group(2)
+			if newServerId:
+				newServerId = match.group(3).split(':')[0]
+				if re.search('^[\d\.]+$', newServerId):
+					# Is an ip address
+					newServerId = socket.getfqdn(newServerId)
+					if re.search('^[\d\.]+$', newServerId):
+						raise Exception(u"Cannot resolve '%s'" % newServerId)
+		else:
+			raise Exception(u"Bad destination URL '%s'" % writeBackend)
+	else:
+		# Assuming a backend name
+		write['backend'] = writeBackend
+	
+	
+	# Sanity checks
+	if read['backend'] and write['backend']:
+		if (read['backend'] == write['backend']):
+			if (read['backend'] == 'JSONRPC'):
+				if (read['address'] == write['address']):
+					raise Exception(u"Source and destination backend are the same.")
+			else:
+				raise Exception(u"Source and destination backend are the same.")
+	
+	if newServerId:
+		try:
+			newServerId = forceHostId(newServerId)
+		except:
+			raise Exception(u"Bad server-id '%s' for new server" % newServerId)
+	
+	# Creating BackendManager instance for reading
+	bmRead = None
+	if read['address']:
+		logger.comment( u"Connecting to %s" % read['address'] )
+		read['password'] = getpass.getpass()
+		
+	bmRead = BackendManager(backendConfigDir = u'/etc/opsi/backends', **read)
+	
+	# Creating BackendManager instance for writing
+	bmWrite = None
+	if read['address']:
+		logger.comment( u"Connecting to %s" % bmWrite['address'] )
+		write['password'] = getpass.getpass()
+		
+	bmWrite = BackendManager(backendConfigDir = u'/etc/opsi/backends', **write)
+	
+	backendReplicator = BackendReplicator(
+		readBackend  = bmRead,
+		writeBackend = bmWrite,
+		newServerId  = newServerId,
+		cleanupFirst = cleanupFirst
+	)
+	progressNotifier = ProgressNotifier(backendReplicator)
+	backendReplicator.replicate()
 	
 
-print
-print "################################################"
-print "#   opsi-convert: file -> mysql                #"
-print "################################################"
-print
-readBackend  = File31Backend()
-writeBackend = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
+if (__name__ == "__main__"):
+	
+	try:
+		main(sys.argv[1:])
+		
+	except SystemExit:
+		pass
+		
+	except Exception, e:
+		logger.setConsoleLevel(LOG_ERROR)
+		logger.logException(e)
+		print >> sys.stderr, u"ERROR: %s" % e
+		sys.exit(1)
+	
+	sys.exit(0)
 
-oc = OpsiConvert(readBackend, writeBackend)
-oc.convert()
-
-print
-print "################################################"
-print "#   opsi-convert: mysql -> ldap                #"
-print "################################################"
-print
-readBackend  = MySQLBackend(username = 'opsi', password = 'opsi', database='opsi')
-writeBackend = LDAPBackend(username = 'cn=admin,dc=uib,dc=local', password = 'linux123')
-
-oc = OpsiConvert(readBackend, writeBackend)
-oc.convert()
-
-print
-print "################################################"
-print "#   opsi-convert: ldap -> file                 #"
-print "################################################"
-print
-readBackend  = LDAPBackend(username = 'cn=admin,dc=uib,dc=local', password = 'linux123')
-writeBackend = File31Backend()
-
-oc = OpsiConvert(readBackend, writeBackend)
-oc.convert()
-
-print
-print "################################################"
-print "#   opsi-convert: done!                        #"
-print "################################################"
-print
 

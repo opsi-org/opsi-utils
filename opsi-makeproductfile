@@ -41,6 +41,7 @@ from OPSI.Logger import *
 from OPSI.System import *
 from OPSI.Types import *
 from OPSI.Util.Product import *
+from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util import md5sum
 #from OPSI.Backend.BackendManager import BackendManager
 
@@ -61,38 +62,70 @@ except Exception, e:
 		return string
 	
 def usage():
-	print _(u"\nUsage: %s [-h] [-v|-s] [-f] [-F format] [-l log-level] [-i|-c custom name] [-I required version] [-t temp dir] [source directory]") % os.path.basename(sys.argv[0])
-	print _(u"Provides an opsi package from a package source directory.")
-	print _(u"If no source directory is supplied, the current directory will be used.")
-	print _(u"Options:")
-	print _(u"   -v          verbose")
-	print _(u"   -s          silent")
-	print _(u"   -l          log-level 0..6")
-	print _(u"   -f          fast, no topicality test")
-	print _(u"   -n          do not compress")
-	print _(u"   -F          archive format [tar|cpio], default: cpio")
-	print _(u"   -h          follow symlinks")
-	print _(u"   -I          incremental package")
-	print _(u"   -i          custom name (add custom files)")
-	print _(u"   -c          custom name (custom only)")
-	print _(u"   -t          temp dir")
+	print u"\nUsage: %s [-h] [-v|-q] [-F format] [-l log-level] [-i|-c custom name] [-I required version] [-t temp dir] [source directory]" % os.path.basename(sys.argv[0])
+	print u"Provides an opsi package from a package source directory."
+	print u"If no source directory is supplied, the current directory will be used."
+	print u"Options:"
+	print u"   -v          verbose"
+	print u"   -q          quiet"
+	print u"   -l          log-level 0..9"
+	print u"   -n          do not compress"
+	print u"   -F          archive format [tar|cpio], default: cpio"
+	print u"   -h          follow symlinks"
+	print u"   -I          incremental package"
+	print u"   -i          custom name (add custom files)"
+	print u"   -c          custom name (custom only)"
+	print u"   -t          temp dir"
 	print u""
+
+
+def lockPackage(tempDir, packageControlFile):
+	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	# Test if other processes are accessing same product
+	try:
+		lf = open(lockFile, 'r')
+		p = lf.read().strip()
+		lf.close()
+		
+		if p:
+			for line in execute(u"ps -A"):
+				line = line.strip()
+				if not line:
+					continue
+				if (p == line.split()[0].strip()):
+					pName = line.split()[-1].strip()
+					# process is running
+					raise Exception(u"Product '%s' is currently locked by process %s (%s)." \
+								% (packageControlFile.getProduct().id, pName, p) )
 	
+	except IOError:
+		pass
+	
+	# Write lock-file
+	lf = open(lockFile, 'w')
+	lf.write(os.getpid())
+	lf.close()
+	
+def unlockPackage(tempDir, packageControlFile):
+	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	if os.path.isfile(lockFile):
+		os.unlink(lockFile)
+
 def main(argv):
 	os.umask(022)
 	
-	logLevel        = LOG_WARNING
-	sourceDir       = os.getcwd()
-	tempDir         = u'/tmp'
-	lockFile        = None
-	customName      = None
-	customOnly      = False
-	silent          = False
-	format          = 'cpio'
-	compress        = 'gz'
-	dereference     = False
-	requiredVersion = None
-	incremental     = False
+	logLevel         = LOG_WARNING
+	packageSourceDir = os.getcwd()
+	tempDir          = u'/tmp'
+	lockFile         = None
+	customName       = None
+	customOnly       = False
+	quiet            = False
+	format           = 'cpio'
+	compression      = 'gzip'
+	dereference      = False
+	requiredVersion  = None
+	incremental      = False
 	
 	logger.setConsoleLevel(logLevel)
 	logger.setConsoleColor(True)
@@ -115,10 +148,10 @@ def main(argv):
 			logLevel = forceInt(arg)
 			logger.setColor(True)
 		elif (opt == "-n"):
-			compress = False
-		elif (opt == "-s"):
+			compression = None
+		elif (opt == "-q"):
 			logLevel = LOG_NONE
-			silent = True
+			quiet = True
 		elif (opt == "-i"):
 			customName = arg
 		elif (opt == "-c"):
@@ -138,118 +171,82 @@ def main(argv):
 		sys.exit(1)
 	
 	elif (len(args) > 0):
-		sourceDir = os.path.abspath( args[0] )
+		packageSourceDir = os.path.abspath( args[0] )
 	
 	logger.setConsoleLevel(logLevel)
 	
-	logger.notice(u"Source dir:     %s" % sourceDir)
-	logger.notice(u"Temp dir:       %s" % tempDir)
-	logger.notice(u"Custom name:    %s" % customName)
-	logger.notice(u"Archive format: %s" % format)
+	logger.info(u"Source dir: %s" % packageSourceDir)
+	logger.info(u"Temp dir: %s" % tempDir)
+	logger.info(u"Custom name: %s" % customName)
+	logger.info(u"Archive format: %s" % format)
 	
 	if format not in ['tar', 'cpio']:
 		raise Exception(u"Unsupported archive format: %s" % format)
 	
-	if not os.path.isdir(sourceDir):
-		raise Exception(u"No such directory: %s" % sourceDir)
+	if not os.path.isdir(packageSourceDir):
+		raise Exception(u"No such directory: %s" % packageSourceDir)
 	
-	bm = BackendManager(authRequired=False, configFile='/etc/opsi/backendManager.d')
+	packageControlFilePath = os.path.join(packageSourceDir, u'OPSI', u'control')
+	if not os.path.exists(packageControlFilePath):
+		raise Exception(u"Control file '%s' not found" % packageControlFilePath)
 	
-	pps = ProductPackageSource(sourceDir = sourceDir, tempDir = tempDir, customName = customName, customOnly = customOnly, packageFileDestDir = os.getcwd())
+	if not quiet: print _(u"Locking package...")
+	pcf = PackageControlFile(packageControlFilePath)
 	
-	clientDataDir = u'/opt/pcbin/install'
-	depotId = socket.getfqdn()
+	lockPackage(tempDir, pcf)
+	pps = None
 	try:
-		# If the local computer is not a depot an error will occur
-		depot = bm.getDepot_hash(depotId)
-		clientDataDir = depot['depotLocalUrl']
-		if not clientDataDir.startswith('file:///'):
-			raise Exception("Value '%s' not allowed for depot local url (has to start with 'file:///')" % clientDataDir)
-		clientDataDir = os.path.join(clientDataDir[7:], pps.product.productId)
-	except Exception, e:
-		logger.info("Failed to get info for depot '%s': %s" % (depotId, e))
-	
-	logger.info("Setting client data dir to '%s'" % clientDataDir)
-	pps.setClientDataDir(clientDataDir)
-	
-	if not silent: print _("Locking product...")
-	pps.lock()
-	
-	if incremental:
-		match = re.search('^\s*([<>]?=?[\w\.]+-*[\w\.]*)\s*$', requiredVersion)
-		if not match:
-			raise Exception("Bad version string '%s' in dependency" % requiredVersion)
+		product = pcf.getProduct()
+		if incremental:
+			match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
+			if not match:
+				raise Exception(u"Bad version string '%s' in dependency" % requiredVersion)
+			packageDependency = { 'package': product.id, 'condition': match.group(1), 'version': match.group(2) }
+			pcf.setPackageDependencies([ packageDependency ])
+			pcf.setIncrementalPackage(True)
 		
-		sectionRegex = re.compile('^\[([^\]]+)\]\s*$')
-		lines = []
-		packageSection = []
-		section = ''
-		f = open(pps.controlFile, 'r')
-		for line in f.readlines():
-			line = line.rstrip()
-			match = re.search(sectionRegex, line)
-			if match:
-				section = match.group(1)
-				if (section.lower() == 'package'):
-					packageSection.append(line)
-					continue
-			elif (section.lower() == 'package'):
-				if not line.startswith('depends:') and not line.startswith('incremental:'):
-					packageSection.append(line)
-				continue
-			lines.append(line)
-		f.close()
-		if not packageSection:
-			packageSection = ['[Package]', '']
+		if not quiet: print _(u"Product info:")
+		if not quiet: print u"     productId:          %s" % product.id
+		if not quiet: print u"     customName:         %s" % customName
+		if not quiet: print u"     name:               %s" % product.name
+		if not quiet: print u"     productVersion:     %s" % product.productVersion
+		if not quiet: print u"     packageVersion:     %s" % product.packageVersion
+		if not quiet: print u"     licenseRequired:    %s" % product.licenseRequired
+		if not quiet: print u"     setupScript:        %s" % product.setupScript
+		if not quiet: print u"     uninstallScript:    %s" % product.uninstallScript
+		if not quiet: print u"     updateScript:       %s" % product.updateScript
+		if not quiet: print u"     alwaysScript:       %s" % product.alwaysScript
+		if not quiet: print u"     onceScript:         %s" % product.onceScript
+		if not quiet: print u"     customScript:       %s" % product.customScript
+		if not quiet: print u"     userLoginScript:    %s" % product.userLoginScript
+		if not quiet: print u"     priority:           %s" % product.priority
+		if not quiet: print u"     description:        %s" % product.description
+		if not quiet: print u"     advice:             %s" % product.advice
+		if not quiet: print u"     productClassNames:  %s" % product.productClassNames
+		if not quiet: print u"     windowsSoftwareIds: %s" % product.windowsSoftwareIds
+		if not quiet: print u"     pxeConfigTemplate:  %s" % product.pxeConfigTemplate
 		
-		f = open(pps.controlFile, 'w')
-		for i in range(len(packageSection)):
-			print >> f, packageSection[i]
-			if (i == 0):
-				print >> f, 'depends: %s (%s)' % (pps.product.productId, requiredVersion)
-				print >> f, 'incremental: True'
-		for line in lines:
-			print >> f, line
+		pps = ProductPackageSource(
+			packageSourceDir   = packageSourceDir,
+			tempDir            = tempDir,
+			customName         = customName,
+			customOnly         = customOnly,
+			packageFileDestDir = os.getcwd(),
+			format             = format
+			compression        = compression,
+			dereference        = dereference)
+		
+		if not quiet: print _(u"Creating packagefile...")
+		pps.pack(progressSubject = None)
+		
+		if not quiet: print _(u"Creating md5sum file '%s.md5'" % pps.packageFile)
+		f = open(pps.packageFile + u'.md5', 'w')
+		f.write(md5sum(pps.packageFile))
 		f.close()
-	
-	if not silent: print _("Product info:")
-	if not silent: print _("     productId:         %s" % pps.product.productId)
-	if not silent: print _("     customName:        %s" % pps.customName)
-	if not silent: print _("     name:              %s" % pps.product.name)
-	if not silent: print _("     productVersion:    %s" % pps.product.productVersion)
-	if not silent: print _("     packageVersion:    %s" % pps.product.packageVersion)
-	if not silent: print _("     licenseRequired:   %s" % pps.product.licenseRequired)
-	if not silent: print _("     setupScript:       %s" % pps.product.setupScript)
-	if not silent: print _("     uninstallScript:   %s" % pps.product.uninstallScript)
-	if not silent: print _("     updateScript:      %s" % pps.product.updateScript)
-	if not silent: print _("     alwaysScript:      %s" % pps.product.alwaysScript)
-	if not silent: print _("     onceScript:        %s" % pps.product.onceScript)
-	if not silent: print _("     priority:          %s" % pps.product.priority)
-	if not silent: print _("     description:       %s" % pps.product.description)
-	if not silent: print _("     advice:            %s" % pps.product.advice)
-	if not silent: print _("     productClassNames: %s" % pps.product.productClassNames)
-	if not silent: print _("     pxeConfigTemplate: %s" % pps.product.pxeConfigTemplate)
-	
-	if topicalityTest:
-		if not silent: print _("Testing topicality...")
-		pps.testTopicality()
-	
-	#if not silent: print _("Setting access rights...")
-	#pps.setAccessRights()
-	
-	if not silent: print _("Creating packagefile...")
-	pps.pack(format, compress, dereference)
-	
-	if not silent: print _("Unlocking product...")
-	pps.unlock()
-	
-	if not silent: print _("Package file is '%s'" % pps.packageFile)
-	
-	if not silent: print _("Creating md5sum file '%s.md5'" % pps.packageFile)
-	md5 = md5sum(pps.packageFile)
-	f = open(pps.packageFile + '.md5', 'w')
-	print >> f, md5,
-	f.close
+	finally:
+		if pps:
+			pps.cleanup()
+		unlockPackage(tempDir, packageControlFile)
 	
 if (__name__ == "__main__"):
 	exception = None
@@ -266,7 +263,7 @@ if (__name__ == "__main__"):
 	if exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
-		print >> sys.stderr, "ERROR:", str(exception)
+		print >> sys.stderr, u"ERROR: %s" % exception
 		sys.exit(1)
 	
 	sys.exit(0)
