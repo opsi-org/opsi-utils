@@ -40,10 +40,10 @@ import os, time, getopt, gettext, re, pwd, grp, socket
 from OPSI.Logger import *
 from OPSI.System import *
 from OPSI.Types import *
+from OPSI.Util.Message import ProgressObserver, ProgressSubject
 from OPSI.Util.Product import *
 from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util import md5sum
-#from OPSI.Backend.BackendManager import BackendManager
 
 # Get logger instance
 logger = Logger()
@@ -79,6 +79,31 @@ def usage():
 	print u""
 
 
+class ProgressNotifier(ProgressObserver):
+	def __init__(self):
+		self.usedWidth = 60
+		try:
+			tty = os.popen('tty').readline().strip()
+			fd = open(tty)
+			terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+			if (self.usedWidth > terminalWidth):
+				self.usedWidth = terminalWidth
+			fd.close()
+		except:
+			pass
+		
+	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+		barlen = self.usedWidth - 10
+		filledlen = int("%0.0f" % (barlen*percent/100))
+		bar = u'='*filledlen + u' '*(barlen-filledlen)
+		percent = '%0.2f%%' % percent
+		sys.stderr.write('\r %8s [%s]\r' % (percent, bar))
+		sys.stderr.flush()
+		
+	def messageChanged(self, subject, message):
+		sys.stderr.write('\n%s\n' % message)
+		sys.stderr.flush()
+
 def lockPackage(tempDir, packageControlFile):
 	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
 	# Test if other processes are accessing same product
@@ -103,7 +128,7 @@ def lockPackage(tempDir, packageControlFile):
 	
 	# Write lock-file
 	lf = open(lockFile, 'w')
-	lf.write(os.getpid())
+	lf.write(str(os.getpid()))
 	lf.close()
 	
 def unlockPackage(tempDir, packageControlFile):
@@ -118,7 +143,7 @@ def main(argv):
 	packageSourceDir = os.getcwd()
 	tempDir          = u'/tmp'
 	lockFile         = None
-	customName       = None
+	customName       = u''
 	customOnly       = False
 	quiet            = False
 	format           = 'cpio'
@@ -132,7 +157,7 @@ def main(argv):
 	logger.setConsoleFormat(u'%L: %M')
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "hvnsi:c:t:l:F:I:")
+		(opts, args) = getopt.getopt(argv, "hvnqi:c:t:l:F:I:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -190,7 +215,8 @@ def main(argv):
 	if not os.path.exists(packageControlFilePath):
 		raise Exception(u"Control file '%s' not found" % packageControlFilePath)
 	
-	if not quiet: print _(u"Locking package...")
+	if not quiet: print ""
+	if not quiet: print _(u"Locking package")
 	pcf = PackageControlFile(packageControlFilePath)
 	
 	lockPackage(tempDir, pcf)
@@ -205,26 +231,49 @@ def main(argv):
 			pcf.setPackageDependencies([ packageDependency ])
 			pcf.setIncrementalPackage(True)
 		
+		if not quiet: print u""
+		if not quiet: print _(u"Package info")
+		if not quiet: print u"----------------------------------------------------------------------------"
+		if not quiet: print u"   %-20s : %s" % (u'version',             product.packageVersion)
+		if not quiet: print u"   %-20s : %s" % (u'custom package name', customName)
+		if not quiet: print u"   %-20s : %s" % (u'incremental package', incremental)
+		if not quiet:
+			dependencies = []
+			for dep in pcf.getPackageDependencies():
+				dependencies.append(u'%s(%s%s)' % (dep['package'], dep['condition'], dep['version']))
+			print       u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
+		
+		if not quiet: print ""
 		if not quiet: print _(u"Product info:")
-		if not quiet: print u"     productId:          %s" % product.id
-		if not quiet: print u"     customName:         %s" % customName
-		if not quiet: print u"     name:               %s" % product.name
-		if not quiet: print u"     productVersion:     %s" % product.productVersion
-		if not quiet: print u"     packageVersion:     %s" % product.packageVersion
-		if not quiet: print u"     licenseRequired:    %s" % product.licenseRequired
-		if not quiet: print u"     setupScript:        %s" % product.setupScript
-		if not quiet: print u"     uninstallScript:    %s" % product.uninstallScript
-		if not quiet: print u"     updateScript:       %s" % product.updateScript
-		if not quiet: print u"     alwaysScript:       %s" % product.alwaysScript
-		if not quiet: print u"     onceScript:         %s" % product.onceScript
-		if not quiet: print u"     customScript:       %s" % product.customScript
-		if not quiet: print u"     userLoginScript:    %s" % product.userLoginScript
-		if not quiet: print u"     priority:           %s" % product.priority
-		if not quiet: print u"     description:        %s" % product.description
-		if not quiet: print u"     advice:             %s" % product.advice
-		if not quiet: print u"     productClassNames:  %s" % product.productClassNames
-		if not quiet: print u"     windowsSoftwareIds: %s" % product.windowsSoftwareIds
-		if not quiet: print u"     pxeConfigTemplate:  %s" % product.pxeConfigTemplate
+		if not quiet: print u"----------------------------------------------------------------------------"
+		if not quiet: print u"   %-20s : %s" % (u'product id',           product.id)
+		if not quiet and (product.getType() == 'LocalbootProduct'):
+			print       u"   %-20s : %s" % (u'product type',         u'localboot')
+		if not quiet and (product.getType() == 'LocalbootProduct'):
+			print       u"   %-20s : %s" % (u'product type',         u'netboot')
+		if not quiet: print u"   %-20s : %s" % (u'version',              product.productVersion)
+		if not quiet: print u"   %-20s : %s" % (u'name',                 product.name)
+		if not quiet: print u"   %-20s : %s" % (u'description',          product.description)
+		if not quiet: print u"   %-20s : %s" % (u'advice',               product.advice)
+		if not quiet: print u"   %-20s : %s" % (u'priority',             product.priority)
+		if not quiet: print u"   %-20s : %s" % (u'licenseRequired',      product.licenseRequired)
+		if not quiet: print u"   %-20s : %s" % (u'product classes',      u', '.join(product.productClassIds))
+		if not quiet: print u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds))
+		if not quiet and (product.getType() == 'NetbootProduct'):
+			print       u" %-20s : %s" % (u'pxe config template',  product.pxeConfigTemplate)
+		
+		if not quiet: print ""
+		if not quiet: print _(u"Product scripts:")
+		if not quiet: print u"----------------------------------------------------------------------------"
+		if not quiet: print u"   %-20s : %s" % (u'setup',      product.setupScript)
+		if not quiet: print u"   %-20s : %s" % (u'uninstall',  product.uninstallScript)
+		if not quiet: print u"   %-20s : %s" % (u'update',     product.updateScript)
+		if not quiet: print u"   %-20s : %s" % (u'always',     product.alwaysScript)
+		if not quiet: print u"   %-20s : %s" % (u'once',       product.onceScript)
+		if not quiet: print u"   %-20s : %s" % (u'custom',     product.customScript)
+		if not quiet and (product.getType() == 'LocalbootProduct'):
+			print       u"   %-20s : %s" % (u'user login', product.userLoginScript)
+		if not quiet: print u""
 		
 		pps = ProductPackageSource(
 			packageSourceDir   = packageSourceDir,
@@ -232,21 +281,30 @@ def main(argv):
 			customName         = customName,
 			customOnly         = customOnly,
 			packageFileDestDir = os.getcwd(),
-			format             = format
+			format             = format,
 			compression        = compression,
 			dereference        = dereference)
 		
-		if not quiet: print _(u"Creating packagefile...")
-		pps.pack(progressSubject = None)
+		progressSubject = None
+		if not quiet:
+			progressSubject = ProgressSubject('packing')
+			progressSubject.attachObserver(ProgressNotifier())
+			print _(u"Creating package file '%s'" % pps.packageFile)
+		pps.pack(progressSubject = progressSubject)
 		
+		if not quiet: print "\n"
 		if not quiet: print _(u"Creating md5sum file '%s.md5'" % pps.packageFile)
+		md5 = md5sum(pps.packageFile)
 		f = open(pps.packageFile + u'.md5', 'w')
-		f.write(md5sum(pps.packageFile))
+		f.write(md5)
 		f.close()
 	finally:
 		if pps:
+			if not quiet: print _(u"Cleaning up")
 			pps.cleanup()
-		unlockPackage(tempDir, packageControlFile)
+		if not quiet: print _(u"Unlocking package")
+		unlockPackage(tempDir, pcf)
+		if not quiet: print ""
 	
 if (__name__ == "__main__"):
 	exception = None
