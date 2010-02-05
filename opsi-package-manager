@@ -1398,7 +1398,7 @@ class OpsiPackageManagerControl(object):
 		
 		if not self.config['quiet']:
 			progressSubject.attachObserver(ProgressNotifier())
-		
+			
 		destinationDir = os.path.abspath(os.getcwd())
 		for packageFile in self.config['packageFiles']:
 			ppf = ProductPackageFile(packageFile)
@@ -1410,6 +1410,8 @@ class OpsiPackageManagerControl(object):
 				productId = forceProductId(self.config['newProductId'])
 				newProductId = productId
 			packageDestinationDir = os.path.join(destinationDir, productId)
+			if os.path.exists(packageDestinationDir):
+				raise Exception(u"Destination directory '%s' already exists" % packageDestinationDir)
 			os.mkdir(packageDestinationDir)
 			ppf.unpackSource(destinationDir = packageDestinationDir, newProductId = newProductId, progressSubject = progressSubject)
 			if not self.config['quiet']:

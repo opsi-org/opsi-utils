@@ -40,11 +40,8 @@ binary-stamp:
 	install -m 0750 -g opsiadmin opsi-admin debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-newprod debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-makeproductfile debian/opsi-utils/usr/bin/
-	#install -m 0755 opsiinst debian/opsi-utils/usr/bin/
-	#install -m 0755 opsiuninst debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-package-manager debian/opsi-utils/usr/bin/
 	install -m 0755 opsi-convert debian/opsi-utils/usr/bin
-	#install -m 0755 sysbackup debian/opsi-utils/usr/bin/
 	
 binary-indep: build-indep binary-indep-stamp
 

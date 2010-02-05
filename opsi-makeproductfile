@@ -326,8 +326,10 @@ def main(argv):
 							break
 						except:
 							print _(u"Bad package version: %s") % newVersion
-					pcf.generate()
 					continue
+			
+			# Regenerating to fix encoding
+			pcf.generate()
 			
 			progressSubject = None
 			if not quiet:

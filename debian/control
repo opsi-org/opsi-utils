@@ -9,5 +9,5 @@ Package: opsi-utils
 Section: opsi
 Architecture: all
 Depends: python-opsi (>= 3.4.99)
-Description: OPSI utils
+Description: opsi utils
  This package contains the opsi util collection.
