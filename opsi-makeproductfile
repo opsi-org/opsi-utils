@@ -34,7 +34,7 @@
 
 __version__ = '3.4.99'
 
-import os, time, getopt, gettext, re, pwd, grp, socket
+import sys, os, getopt, gettext, re, tty, termios
 
 # OPSI imports
 from OPSI.Logger import *
@@ -222,82 +222,127 @@ def main(argv):
 	lockPackage(tempDir, pcf)
 	pps = None
 	try:
-		product = pcf.getProduct()
-		if incremental:
-			match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
-			if not match:
-				raise Exception(u"Bad version string '%s' in dependency" % requiredVersion)
-			packageDependency = { 'package': product.id, 'condition': match.group(1), 'version': match.group(2) }
-			pcf.setPackageDependencies([ packageDependency ])
-			pcf.setIncrementalPackage(True)
-		
-		if not quiet: print u""
-		if not quiet: print _(u"Package info")
-		if not quiet: print u"----------------------------------------------------------------------------"
-		if not quiet: print u"   %-20s : %s" % (u'version',             product.packageVersion)
-		if not quiet: print u"   %-20s : %s" % (u'custom package name', customName)
-		if not quiet: print u"   %-20s : %s" % (u'incremental package', incremental)
-		if not quiet:
-			dependencies = []
-			for dep in pcf.getPackageDependencies():
-				dependencies.append(u'%s(%s%s)' % (dep['package'], dep['condition'], dep['version']))
-			print       u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
-		
-		if not quiet: print ""
-		if not quiet: print _(u"Product info:")
-		if not quiet: print u"----------------------------------------------------------------------------"
-		if not quiet: print u"   %-20s : %s" % (u'product id',           product.id)
-		if not quiet and (product.getType() == 'LocalbootProduct'):
-			print       u"   %-20s : %s" % (u'product type',         u'localboot')
-		if not quiet and (product.getType() == 'LocalbootProduct'):
-			print       u"   %-20s : %s" % (u'product type',         u'netboot')
-		if not quiet: print u"   %-20s : %s" % (u'version',              product.productVersion)
-		if not quiet: print u"   %-20s : %s" % (u'name',                 product.name)
-		if not quiet: print u"   %-20s : %s" % (u'description',          product.description)
-		if not quiet: print u"   %-20s : %s" % (u'advice',               product.advice)
-		if not quiet: print u"   %-20s : %s" % (u'priority',             product.priority)
-		if not quiet: print u"   %-20s : %s" % (u'licenseRequired',      product.licenseRequired)
-		if not quiet: print u"   %-20s : %s" % (u'product classes',      u', '.join(product.productClassIds))
-		if not quiet: print u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds))
-		if not quiet and (product.getType() == 'NetbootProduct'):
-			print       u" %-20s : %s" % (u'pxe config template',  product.pxeConfigTemplate)
-		
-		if not quiet: print ""
-		if not quiet: print _(u"Product scripts:")
-		if not quiet: print u"----------------------------------------------------------------------------"
-		if not quiet: print u"   %-20s : %s" % (u'setup',      product.setupScript)
-		if not quiet: print u"   %-20s : %s" % (u'uninstall',  product.uninstallScript)
-		if not quiet: print u"   %-20s : %s" % (u'update',     product.updateScript)
-		if not quiet: print u"   %-20s : %s" % (u'always',     product.alwaysScript)
-		if not quiet: print u"   %-20s : %s" % (u'once',       product.onceScript)
-		if not quiet: print u"   %-20s : %s" % (u'custom',     product.customScript)
-		if not quiet and (product.getType() == 'LocalbootProduct'):
-			print       u"   %-20s : %s" % (u'user login', product.userLoginScript)
-		if not quiet: print u""
-		
-		pps = ProductPackageSource(
-			packageSourceDir   = packageSourceDir,
-			tempDir            = tempDir,
-			customName         = customName,
-			customOnly         = customOnly,
-			packageFileDestDir = os.getcwd(),
-			format             = format,
-			compression        = compression,
-			dereference        = dereference)
-		
-		progressSubject = None
-		if not quiet:
-			progressSubject = ProgressSubject('packing')
-			progressSubject.attachObserver(ProgressNotifier())
-			print _(u"Creating package file '%s'" % pps.packageFile)
-		pps.pack(progressSubject = progressSubject)
-		
-		if not quiet: print "\n"
-		if not quiet: print _(u"Creating md5sum file '%s.md5'" % pps.packageFile)
-		md5 = md5sum(pps.packageFile)
-		f = open(pps.packageFile + u'.md5', 'w')
-		f.write(md5)
-		f.close()
+		while True:
+			product = pcf.getProduct()
+			if incremental:
+				match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
+				if not match:
+					raise Exception(u"Bad version string '%s' in dependency" % requiredVersion)
+				packageDependency = { 'package': product.id, 'condition': match.group(1), 'version': match.group(2) }
+				pcf.setPackageDependencies([ packageDependency ])
+				pcf.setIncrementalPackage(True)
+			
+			if not quiet: print u""
+			if not quiet: print _(u"Package info")
+			if not quiet: print u"----------------------------------------------------------------------------"
+			if not quiet: print u"   %-20s : %s" % (u'version',             product.packageVersion)
+			if not quiet: print u"   %-20s : %s" % (u'custom package name', customName)
+			if not quiet: print u"   %-20s : %s" % (u'incremental package', incremental)
+			if not quiet:
+				dependencies = []
+				for dep in pcf.getPackageDependencies():
+					dependencies.append(u'%s(%s%s)' % (dep['package'], dep['condition'], dep['version']))
+				print       u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
+			
+			if not quiet: print ""
+			if not quiet: print _(u"Product info:")
+			if not quiet: print u"----------------------------------------------------------------------------"
+			if not quiet: print u"   %-20s : %s" % (u'product id',           product.id)
+			if not quiet and (product.getType() == 'LocalbootProduct'):
+				print       u"   %-20s : %s" % (u'product type',         u'localboot')
+			if not quiet and (product.getType() == 'LocalbootProduct'):
+				print       u"   %-20s : %s" % (u'product type',         u'netboot')
+			if not quiet: print u"   %-20s : %s" % (u'version',              product.productVersion)
+			if not quiet: print u"   %-20s : %s" % (u'name',                 product.name)
+			if not quiet: print u"   %-20s : %s" % (u'description',          product.description)
+			if not quiet: print u"   %-20s : %s" % (u'advice',               product.advice)
+			if not quiet: print u"   %-20s : %s" % (u'priority',             product.priority)
+			if not quiet: print u"   %-20s : %s" % (u'licenseRequired',      product.licenseRequired)
+			if not quiet: print u"   %-20s : %s" % (u'product classes',      u', '.join(product.productClassIds))
+			if not quiet: print u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds))
+			if not quiet and (product.getType() == 'NetbootProduct'):
+				print       u" %-20s : %s" % (u'pxe config template',  product.pxeConfigTemplate)
+			
+			if not quiet: print ""
+			if not quiet: print _(u"Product scripts:")
+			if not quiet: print u"----------------------------------------------------------------------------"
+			if not quiet: print u"   %-20s : %s" % (u'setup',      product.setupScript)
+			if not quiet: print u"   %-20s : %s" % (u'uninstall',  product.uninstallScript)
+			if not quiet: print u"   %-20s : %s" % (u'update',     product.updateScript)
+			if not quiet: print u"   %-20s : %s" % (u'always',     product.alwaysScript)
+			if not quiet: print u"   %-20s : %s" % (u'once',       product.onceScript)
+			if not quiet: print u"   %-20s : %s" % (u'custom',     product.customScript)
+			if not quiet and (product.getType() == 'LocalbootProduct'):
+				print       u"   %-20s : %s" % (u'user login', product.userLoginScript)
+			if not quiet: print u""
+			
+			pps = ProductPackageSource(
+				packageSourceDir   = packageSourceDir,
+				tempDir            = tempDir,
+				customName         = customName,
+				customOnly         = customOnly,
+				packageFileDestDir = os.getcwd(),
+				format             = format,
+				compression        = compression,
+				dereference        = dereference)
+			
+			if not quiet and os.path.exists(pps.getPackageFile()):
+				print _(u"Package file '%s' already exists." % pps.getPackageFile())
+				print _(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"),
+				newVersion = False
+				fd = sys.stdin.fileno()
+				savedSettings = termios.tcgetattr(fd)
+				tty.setraw(fd)
+				try:
+					while True:
+						ch = sys.stdin.read(1)
+						if   ch in ('o', 'O'):
+							break
+						elif ch in ('c', 'C'):
+							raise Exception(_(u"Aborted"))
+						elif ch in ('n', 'N'):
+							newVersion = True
+							break
+				finally:
+					termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
+					print ""
+				
+				if newVersion:
+					while True:
+						print '\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion,
+						newVersion = sys.stdin.readline().strip()
+						try:
+							if (newVersion != ''):
+								product.setProductVersion(newVersion)
+							break
+						except:
+							print _(u"Bad product version: %s") % newVersion
+					while True:
+						print '\r%s' % _(u"Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion,
+						newVersion = sys.stdin.readline().strip()
+						try:
+							if (newVersion != ''):
+								product.setPackageVersion(newVersion)
+							break
+						except:
+							print _(u"Bad package version: %s") % newVersion
+					pcf.generate()
+					continue
+			
+			progressSubject = None
+			if not quiet:
+				progressSubject = ProgressSubject('packing')
+				progressSubject.attachObserver(ProgressNotifier())
+				print _(u"Creating package file '%s'" % pps.getPackageFile())
+			pps.pack(progressSubject = progressSubject)
+			
+			if not quiet: print "\n"
+			if not quiet: print _(u"Creating md5sum file '%s.md5'" % pps.getPackageFile())
+			md5 = md5sum(pps.packageFile)
+			f = open(pps.packageFile + u'.md5', 'w')
+			f.write(md5)
+			f.close()
+			break
 	finally:
 		if pps:
 			if not quiet: print _(u"Cleaning up")
