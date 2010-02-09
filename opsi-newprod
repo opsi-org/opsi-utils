@@ -34,13 +34,14 @@
 
 __version__ = '3.4.99'
 
-import getopt, gettext, os, sys, re, shutil
+import getopt, gettext, os, sys, re, shutil, time
 
 # OPSI imports
 from OPSI.Logger import *
 from OPSI.System import *
 from OPSI.Object import *
 from OPSI.Util.File.Opsi import PackageControlFile
+from OPSI.Util.File import ChangelogFile
 from OPSI.UI import *
 
 # Get logger instance
@@ -495,11 +496,73 @@ Possible values:      Comma separated list of possible values for the property.
 			
 			productProperties.append(productProperty)
 			break
+
+	# Maintainer info
+	maintainer = u''
+	maintainerEmail = u''
+	helpText  = _(\
+u'''
+Maintainer of this opsi package.
+''')
+	while True:
+		values = [
+			{ "name": _(u"Maintainer name"),           "value": maintainer },
+			{ "name": _(u"Maintainer e-mail address"), "value": maintainerEmail }
+		]
+		
+		values = ui.getValues(
+			title   = _(u'Maintainer info'),
+			width   = 80,
+			height  = 10,
+			text    = helpText,
+			entries = values )
+		
+		if not values:
+			raise Exception(_('Cancelled'))
+		
+		error = None
+		try:
+			if not values[0].get('value'):
+				raise Exception(u'Empty maintainer')
+			maintainer = forceUnicode(values[0].get('value'))
+		except Exception, e:
+			if not error: error = _(u'Please enter a valid maintainer name.')
+		
+		try:
+			if not values[1].get('value'):
+				raise Exception(u'Empty maintainer e-mail')
+			maintainerEmail = forceEmailAddress(values[1].get('value'))
+		except Exception, e:
+			if not error: error = _(u'Please enter a valid e-mail address.')
+		
+		if error:
+			ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
+			continue
+		
+		break
 	
 	pcf = PackageControlFile(os.path.join(productSourceDir, 'OPSI', 'control'))
 	pcf.setProduct(product)
 	pcf.setProductDependencies(productDependencies)
 	pcf.setProductProperties(productProperties)
+	
+	tmpChangelog = os.path.join(productSourceDir, 'OPSI', 'changelog.txt')
+	cf = ChangelogFile(tmpChangelog)
+	cf.setEntries([{
+		'package':         product.id,
+		'version':         u'%s-%s' % (product.productVersion, product.packageVersion),
+		'release':         u'testing',
+		'urgency':         u'low',
+		'changelog':       [ u'  * Initial package' ],
+		'maintainerName':  maintainer,
+		'maintainerEmail': maintainerEmail,
+		'date':            time.time()
+	}])
+	cf.generate()
+	product.setChangelog(u''.join(cf.getLines()))
+	os.unlink(tmpChangelog)
+	
+	pcf.setProduct(product)
 	pcf.generate()
 	pcf.chmod(0600)
 	
@@ -522,7 +585,7 @@ Possible values:      Comma separated list of possible values for the property.
 	print >> postinst, u'#! /bin/bash'
 	print >> postinst, u'#'
 	print >> postinst, u'# postinst script'
-	print >> postinst, u'# This script executes after unpacking files from that archive and registering the product at the server.'
+	print >> postinst, u'# This script executes after unpacking files from that archive and registering the product at the depot.'
 	print >> postinst, u'#'
 	print >> postinst, u'# The following environment variables can be used to obtain information about the current installation:'
 	print >> postinst, u'#   PRODUCT_ID: id of the current product'
