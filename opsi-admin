@@ -34,7 +34,7 @@
 
 __version__ = '3.4.99'
 
-import os, sys, termios, getopt, time, fcntl, struct, gettext, json, subprocess, codecs, locale, types
+import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codecs, locale, types
 
 # OPSI imports
 from OPSI.Types import *
