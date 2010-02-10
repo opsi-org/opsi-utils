@@ -39,7 +39,7 @@ import os, sys, termios, getopt, time, fcntl, struct, gettext, json, subprocess,
 # OPSI imports
 from OPSI.Types import *
 from OPSI.Logger import *
-from OPSI.Util import objectToBeautifiedText, objectToBash
+from OPSI.Util import objectToBeautifiedText, objectToBash, fromJson
 from OPSI.Backend.BackendManager import *
 from OPSI.Backend.Backend import *
 
@@ -1019,7 +1019,8 @@ class CommandMethod(Command):
 		for i in range(len(params)):
 			try:
 				params[i] = fromJson(params[i])
-			except:
+			except Exception, e:
+				logger.debug(u"Not a json string '%s': %s" % (params[i], e))
 				params[i] = forceUnicode(params[i])
 		
 		pString = unicode(params)[1:-1]
