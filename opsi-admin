@@ -272,26 +272,32 @@ def main(argv):
 	
 	global shell
 	if interactive:
-		logger.notice(u"Starting interactive mode")
-		shell = Shell(prompt = u'%s@opsi-admin>' % username, output = output, color = color, cmdline = cmdline)
-		shell.setInfoline(u"Connected to %s" % address)
-		
-		for line in LOGO:
-			shell.appendLine(line.get('text'), line.get('color'))
-		shell.run()
-	
+		try:
+			logger.notice(u"Starting interactive mode")
+			shell = Shell(prompt = u'%s@opsi-admin>' % username, output = output, color = color, cmdline = cmdline)
+			shell.setInfoline(u"Connected to %s" % address)
+			
+			for line in LOGO:
+				shell.appendLine(line.get('text'), line.get('color'))
+			shell.run()
+		except Exception, e:
+			logger.logException(e)
+			raise
 	elif cmdline:
-		shell = Shell(prompt = u'%s@opsi-admin>' % username, output = output, color = color)
-		for cmd in cmdline.split(u'\n'):
-			if cmd:
-				shell.cmdline = cmd
-				shell.execute()
-		
-		logger.debug(shell.getLines())
-		for line in shell.lines:
-			print >> sys.stdout, line['text'].rstrip()
-		
-	
+		try:
+			shell = Shell(prompt = u'%s@opsi-admin>' % username, output = output, color = color)
+			for cmd in cmdline.split(u'\n'):
+				if cmd:
+					shell.cmdline = cmd
+					shell.execute()
+			
+			logger.debug(shell.getLines())
+			for line in shell.lines:
+				print >> sys.stdout, line['text'].rstrip()
+			
+		except Exception, e:
+			logger.logException(e)
+			raise
 	else:
 		usage()
 		sys.exit(1)
