@@ -1460,6 +1460,8 @@ if (__name__ == "__main__"):
 	exception = None
 	
 	try:
+		locale.setlocale(locale.LC_ALL, '')
+		
 		if (os.name == 'posix'):
 			from signal import *
 			signal(SIGINT, signalHandler)
