@@ -64,7 +64,7 @@ except Exception, e:
 		return string
 
 def usage():
-	print _(u"\n'Usage: %s [options] [destination directory]") % os.path.basename(sys.argv[0])
+	print _(u"\nUsage: %s [options] [destination directory]") % os.path.basename(sys.argv[0])
 	print _(u"Creates an opsi product source dir in the destination directory.")
 	print _(u"If no destination directory is supplied, the current directory is used.")
 	print _(u"Options:")
@@ -75,7 +75,7 @@ def main(argv):
 	destDir = os.getcwd()
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "h:")
+		(opts, args) = getopt.getopt(argv, "h")
 	
 	except getopt.GetoptError:
 		usage()
