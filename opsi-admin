@@ -193,6 +193,10 @@ def main(argv):
 	
 	global backend
 	
+	encoding = sys.stdin.encoding
+	if not encoding:
+		encoding = locale.getpreferredencoding()
+	
 	if direct:
 		# Create BackendManager
 		backend = BackendManager(
@@ -207,7 +211,7 @@ def main(argv):
 		if not password:
 			try:
 				import getpass
-				password = forceUnicode(getpass.getpass())
+				password = unicode(getpass.getpass(), encoding)
 			except:
 				pass
 		
@@ -250,17 +254,14 @@ def main(argv):
 	cmdline = u''
 	if (len(args) > 0):
 		for i in range(len(args)):
+			args[i] = unicode(args[i], encoding)
 			logger.info(u"arg[%d]: %s" % (i, args[i]))
 			if (i == 0):
-				cmdline = str(args[i])
-			elif (str(args[i]).find(u' ') != -1) or (len(str(args[i])) == 0):
+				cmdline = args[i]
+			elif (args[i].find(u' ') != -1) or (len(args[i]) == 0):
 				cmdline += u" '%s'" % args[i]
 			else:
 				cmdline += u" %s" % args[i]
-	
-	encoding = sys.stdin.encoding
-	if not encoding:
-		encoding = locale.getpreferredencoding()
 	
 	if not cmdline:
 		import select
@@ -677,23 +678,13 @@ class Shell:
 				self.screen.clrtoeol()
 				self.screen.addstr(_(u"Please type password:").encode(self.encoding))
 				self.screen.refresh()
-				password1 = u''
-				#char = None
-				#while not char or (char != 10):
-				#	char = self.screen.getch()
-				#	if (char and char >= 0 and char < 256 and char != 10):
-				#		password1 += chr(char)
+				password1 = unicode(self.screen.getstr(), self.encoding)
 				
 				self.screen.move(self.yMax-1, 0)
 				self.screen.clrtoeol()
 				self.screen.addstr(_(u"Please retype password:").encode(self.encoding))
 				self.screen.refresh()
-				password2 = u''
-				#char = None
-				#while not char or (char != 10):
-				#	char = self.screen.getch()
-				#	if (char and char >= 0 and char < 256 and char != 10):
-				#		password2 += chr(char)
+				password2 = unicode(self.screen.getstr(), self.encoding)
 				
 				if (password1 != password2):
 					self.screen.move(self.yMax-1, 0)
@@ -703,8 +694,9 @@ class Shell:
 					time.sleep(2)
 			else:
 				import getpass
-				password1 = password2 = getpass.getpass()
-			
+				password1 = password2 = unicode(getpass.getpass(), self.encoding)
+		
+		logger.confidential(u"Got password '%s'" % password1)
 		return password1
 		
 	def getCommand(self):
