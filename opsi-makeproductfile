@@ -314,6 +314,7 @@ def main(argv):
 						try:
 							if (newVersion != ''):
 								product.setProductVersion(newVersion)
+								pcf.generate()
 							break
 						except:
 							print _(u"Bad product version: %s") % newVersion
@@ -323,6 +324,7 @@ def main(argv):
 						try:
 							if (newVersion != ''):
 								product.setPackageVersion(newVersion)
+								pcf.generate()
 							break
 						except:
 							print _(u"Bad package version: %s") % newVersion

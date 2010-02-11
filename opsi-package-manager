@@ -1116,7 +1116,7 @@ class OpsiPackageManager():
 				depotPackageFile = depot.repositoryLocalUrl[7:]
 				if depotPackageFile.endswith('/'):
 					depotPackageFile = depotPackageFile[:-1]
-				depotPackageFile += u'/' + packageFile
+				depotPackageFile += u'/' + os.path.basename(packageFile)
 			
 			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
 			
