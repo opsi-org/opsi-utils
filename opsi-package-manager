@@ -647,6 +647,8 @@ class OpsiPackageManager():
 		
 		self.infoSubject.setMessage(u'opsi-package-manager')
 		
+		self.depotConnections = {}
+		
 		if not self.config['quiet']:
 			logger.setConsoleLevel(LOG_NONE)
 			self.userInterface = UserInterface( config = self.config, subjects = [ self.infoSubject, self.transferSubject ] )
@@ -671,8 +673,10 @@ class OpsiPackageManager():
 	
 	def getDepotConnection(self, depotId):
 		depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
-		return JSONRPCBackend( username = depotId, password = depot.getOpsiHostKey(), address = depotId, application = 'opsi-package-manager version %s' % __version__)
-	
+		if not self.depotConnections.get(depotId):
+			self.depotConnections[depotId] = JSONRPCBackend( username = depotId, password = depot.getOpsiHostKey(), address = depotId, application = 'opsi-package-manager version %s' % __version__)
+		return self.depotConnections[depotId]
+		
 	def getRunningTransfers(self):
 		return self.runningTransfers
 	
