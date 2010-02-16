@@ -13,7 +13,7 @@ License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
 Version:        3.4
-Release:        1
+Release:        2
 Summary:        opsi utils
 %define tarname opsi-utils
 Source:         %{tarname}-%{version}.tar.bz2

@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.7'
+__version__ = '0.7.1'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -79,7 +79,29 @@ def usage():
 	print ""
 
 
-
+def getBackendConfig(backend):
+	class Config:
+		def __init__(self):
+			self.backends = {}
+			fqdn = socket.getfqdn()
+			if (fqdn.count('.') < 2):
+				raise Exception("Failed to get fqdn: %s" % fqdn)
+			self.defaultDomain = '.'.join(fqdn.split('.')[1:])
+	self = Config()
+	confDir = '/etc/opsi/backendManager.d'
+	for f in os.listdir(confDir):
+		if not f.endswith('.conf'):
+			continue
+		confFile = os.path.join(confDir, f)
+		try:
+			execfile(confFile)
+		except:
+			pass
+		for (key, value) in self.backends.items():
+			if (key == backend):
+				return value.get('config', {})
+	return {}
+	
 def main(argv):
 	logLevel = LOG_ERROR
 	newServerId = None
@@ -205,7 +227,17 @@ def main(argv):
 	if read['config']:
 		bmRead = BackendManager( configFile = read['config'], authRequired = False )
 	else:
-		bmRead = BackendManager( read['username'], read['password'], read['address'], backend = read['backend'], authRequired = False )
+		exec('from OPSI.Backend.%s import %sBackend' % (read['backend'], read['backend']))
+		exec('b = %sBackend(	address 	= "%s", \
+					username 	= "%s", \
+					password 	= "%s", \
+					args 		= %s )' \
+			% (	read['backend'],
+				read['address'],
+				read['username'],
+				read['password'],
+				getBackendConfig(read['backend']) ) )
+		bmRead = BackendManager( read['username'], read['password'], read['address'], backend = b, authRequired = False )
 	bmRead.authenticated()
 	
 	# Creating BackendManager instance for writing
@@ -217,7 +249,17 @@ def main(argv):
 	if write['config']:
 		bmWrite = BackendManager( configFile = write['config'], authRequired = False )
 	else:
-		bmWrite = BackendManager( write['username'], write['password'], write['address'], backend = write['backend'], authRequired = False )
+		exec('from OPSI.Backend.%s import %sBackend' % (write['backend'], write['backend']))
+		exec('b = %sBackend(	address 	= "%s", \
+					username 	= "%s", \
+					password 	= "%s", \
+					args 		= %s )' \
+			% (	write['backend'],
+				write['address'],
+				write['username'],
+				write['password'],
+				getBackendConfig(write['backend']) ) )
+		bmWrite = BackendManager( write['username'], write['password'], write['address'], backend = b, authRequired = False )
 	bmWrite.authenticated()
 	
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
