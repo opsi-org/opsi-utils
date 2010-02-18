@@ -34,7 +34,7 @@
 
 __version__ = '3.4.99'
 
-import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codecs, locale, types
+import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codecs, locale, types, select
 
 # OPSI imports
 from OPSI.Types import *
@@ -263,13 +263,12 @@ def main(argv):
 			else:
 				cmdline += u" %s" % args[i]
 	
-	if not cmdline:
-		import select
-		(r, w, x) = select.select([ sys.stdin ], [], [], 0.2)
-		if sys.stdin in r:
-			cmdline = unicode(sys.stdin.read(), encoding, 'replace')
+	(r, w, x) = select.select([ sys.stdin ], [], [], 0.2)
+	if sys.stdin in r:
+		read = unicode(sys.stdin.read(), encoding, 'replace')
+		cmdline += u" '%s'" % read.replace('\r', '').replace('\n', '')
 	
-	#logger.notice("cmdline: '%s'" % cmdline)
+	logger.notice("cmdline: '%s'" % cmdline)
 	
 	global shell
 	if interactive:
