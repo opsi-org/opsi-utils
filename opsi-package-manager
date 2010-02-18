@@ -605,9 +605,9 @@ class TaskQueue(threading.Thread):
 				self.currentTaskNumber += 1
 				task.start()
 				logger.debug(u"Task '%s' ended" % task.name)
-				if (i < len(self.tasks)-1) and isinstance(task, UploadTask) and isinstance(self.tasks[i+1], UploadTask):
-					# Sleeping 3 seconds to provide the opportunity to start other upload tasks
-					time.sleep(3)
+				#if (i < len(self.tasks)-1) and isinstance(task, UploadTask) and isinstance(self.tasks[i+1], UploadTask):
+				#	# Sleeping 3 seconds to provide the opportunity to start other upload tasks
+				#	time.sleep(3)
 			except Exception, e:
 				logger.error(u"Task '%s' failed: %s" % (task.name, e))
 				self.errors.append(e)
@@ -615,6 +615,8 @@ class TaskQueue(threading.Thread):
 					# Upload task failed => do not execute install task
 					logger.notice(u"Upload task failed, skipping install task")
 					i += 1
+			if (i < len(self.tasks)-1):
+				time.sleep(3)
 			i += 1
 		self.ended = True
 	
