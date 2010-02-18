@@ -43,7 +43,7 @@ from OPSI.Util.Message import ProgressObserver
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.Replicator import BackendReplicator
 
-logLevel = -1
+logLevel = LOG_NONE
 logger = Logger()
 logger.setConsoleLevel(logLevel)
 logger.setConsoleFormat('%M')
