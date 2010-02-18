@@ -1311,7 +1311,7 @@ class CommandLog(Command):
 		if (len(params) <= 0):
 			# By default: show log
 			params = [u'show']
-		elif(params[0] not in (u'show')):
+		elif(params[0] not in (u'show',)):
 			raise Exception(_(u'unknown command: %s') % params[0])
 			
 		if (params[0] == u'show'):

@@ -1324,7 +1324,7 @@ class OpsiPackageManagerControl(object):
 			if (self.config['command'] == u'differences') and (len(self.config['depotIds']) <= 1):
 				raise Exception(u"More than one depot id needed to display differences")
 			
-		elif self.config['command'] in (u'remove'):
+		elif self.config['command'] in (u'remove',):
 			if not self.config['productIds']:
 				raise Exception(u"No opsi product id given")
 		
