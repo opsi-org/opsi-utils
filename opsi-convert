@@ -57,6 +57,7 @@ def usage():
 	print u"Options:"
 	print u"    -h        show this help text"
 	print u"    -V        show version information"
+	print u"    -q        do not show progress"
 	print u"    -v        increase verbosity (can be used multiple times)"
 	print u"    -n        do not clean destination database before writing"
 	print u"    -s        use destination host as new server"
@@ -124,10 +125,11 @@ def main(argv):
 	global logLevel
 	newServerId = None
 	cleanupFirst = True
+	progress = True
 	
 	# Get options
 	try:
-		(opts, args) = getopt.getopt(argv, "hvVnsl:")
+		(opts, args) = getopt.getopt(argv, "qhvVnsl:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -148,6 +150,8 @@ def main(argv):
 			cleanupFirst = False
 		elif (opt == "-s"):
 			newServerId = socket.getfqdn()
+		elif (opt == "-q"):
+			progress = False
 		elif (opt == "-l"):
 			logger.setLogFile(arg)
 			logger.setFileLevel(logLevel)
@@ -250,7 +254,8 @@ def main(argv):
 		newServerId  = newServerId,
 		cleanupFirst = cleanupFirst
 	)
-	progressNotifier = ProgressNotifier(backendReplicator)
+	if progress:
+		progressNotifier = ProgressNotifier(backendReplicator)
 	backendReplicator.replicate()
 	
 
