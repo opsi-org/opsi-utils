@@ -1423,7 +1423,7 @@ class CommandTask(Command):
 			else:
 				password = params[1]
 			
-			backend.depot_setCredentials(username = 'pcpatch', password = password)
+			backend.user_setCredentials(username = 'pcpatch', password = password)
 			
 			try:
 				# Univention
