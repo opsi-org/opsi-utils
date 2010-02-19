@@ -40,8 +40,10 @@ import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codec
 from OPSI.Types import *
 from OPSI.Logger import *
 from OPSI.Util import objectToBeautifiedText, objectToBash, fromJson
+from OPSI.System import which
 from OPSI.Backend.BackendManager import *
 from OPSI.Backend.Backend import *
+
 
 import curses
 
@@ -417,7 +419,7 @@ class Shell:
 					try:
 						self.execute()
 					except Exception, e:
-						lines = str(e).split(u'\n')
+						lines = forceUnicode(e).split(u'\n')
 						lines[0] = u"ERROR: %s" % lines[0]
 						for line in lines:
 							self.appendLine(line, COLOR_RED)
@@ -671,7 +673,7 @@ class Shell:
 	def getPassword(self):
 		password1 = u''
 		password2 = u''
-		while (not password1 or password1 != password2):
+		while not password1 or (password1 != password2):
 			if interactive:
 				self.screen.move(self.yMax-1, 0)
 				self.screen.clrtoeol()
@@ -896,11 +898,20 @@ class Shell:
 			
 				else:
 					try:
+						curses.ungetch(char)
+						char = self.screen.getkey()
+						
+						try:
+							char = unicode(char, self.encoding)
+						except:
+							char += self.screen.getkey()
+							char = unicode(char, self.encoding)
+						
 						if (self.reverseSearch != None):
-							self.reverseSearch += chr(char)
+							self.reverseSearch += char
 						else:
 							newPos = self.pos + 1
-							newCmdline = self.cmdline[0:self.pos] + chr(char) + self.cmdline[self.pos:]
+							newCmdline = self.cmdline[0:self.pos] + char + self.cmdline[self.pos:]
 					except Exception, e:
 						logger.error("Failed to add char '%s': %s" % (char, e))
 				try:
@@ -919,7 +930,7 @@ class Shell:
 					self.pos = newPos
 					self.setCmdline(newCmdline)
 				except Exception, e:
-					self.setInfoline(str(e))
+					self.setInfoline(forceUnicode(e))
 					pass
 				
 			if not textInput:
@@ -931,17 +942,24 @@ class Shell:
 		
 		self.appendLine(self.prompt + ' ' + self.cmdline)
 		if self.cmdline:
+			#try:
+			#	self.execute()
+			#except Exception, e:
+			#	try:
+			#		self.execute()
+			#	except Exception, e:
+			#		lines = forceUnicode(e).split('\n')
+			#		lines[0] = "ERROR: %s" % lines[0]
+			#		for line in lines:
+			#			self.appendLine(line, COLOR_RED)
+			#
 			try:
 				self.execute()
 			except Exception, e:
-				try:
-					self.execute()
-				except Exception, e:
-					lines = str(e).split('\n')
-					lines[0] = "ERROR: %s" % lines[0]
-					for line in lines:
-						self.appendLine(line, COLOR_RED)
-				
+				lines = forceUnicode(e).split('\n')
+				lines[0] = "ERROR: %s" % lines[0]
+				for line in lines:
+					self.appendLine(line, COLOR_RED)
 		if (len(self.lines) > self.yMax-2):
 			self.linesBack = 0
 			#logger.debug("linesBack: %s" % self.linesBack)
