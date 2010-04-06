@@ -97,7 +97,7 @@ class ProgressNotifier(ProgressObserver):
 			sys.stdout.write("\033[2A")
 		if self.error:
 			sys.stdout.write("\033[K")
-			sys.stdout.write(u"Error occured: %s\n" % self.error)
+			print u"Error occured: %s" % self.error
 			sys.stdout.write("\033[K")
 		self.error = None
 		for subject in self.overallProgressSubject, self.currentProgressSubject:
@@ -110,7 +110,7 @@ class ProgressNotifier(ProgressObserver):
 			filledlen = int("%0.0f" % (barlen * subject.getPercent() / 100))
 			bar = u'='*filledlen + u' '*(barlen - filledlen)
 			percent = '%0.2f%%' % subject.getPercent()
-			sys.stdout.write('%35s : %8s [%s] %5s/%-5s\n' % (text, percent, bar, subject.getState(), subject.getEnd()))
+			print '%35s : %8s [%s] %5s/%-5s' % (text, percent, bar, subject.getState(), subject.getEnd())
 		
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
 		self.displayProgress()

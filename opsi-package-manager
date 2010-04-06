@@ -367,7 +367,6 @@ class UserInterface(SubjectsObserver):
 			self._colors = {
 					'INFO_WINDOW':	curses.color_pair(7),
 					'LOG_HEADER':	curses.color_pair(2),
-					0:		curses.color_pair(5),
 					1:		curses.color_pair(5),
 					2:		curses.color_pair(5),
 					3:		curses.color_pair(6),
