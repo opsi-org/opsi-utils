@@ -1052,7 +1052,7 @@ class OpsiPackageManager():
 					
 					logger.notice(u"Getting product property defaults from user")
 					title = _(u'Please select product property defaults')
-					text = u'%s: %s\n   %s\n\n%s: %s\n   %s' % (_(u'Product'), product.id, product.name, productProperty.propertyId, _(u'Property'), productProperty.description)
+					text = u'%s: %s\n   %s\n\n%s: %s\n   %s' % (_(u'Product'), product.id, product.name, _(u'Property'), productProperty.propertyId, productProperty.description)
 					cancelLabel = _('Back')
 					if productProperty.possibleValues:
 						entries = []
