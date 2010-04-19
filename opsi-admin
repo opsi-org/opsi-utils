@@ -115,7 +115,7 @@ def usage():
 	print _(u"  -a, --address        URL of opsiconfd (default: https://localhost:4447/rpc)")
 	print _(u"  -d, --direct         Do not use opsiconfd")
 	print _(u"  -l, --loglevel       Set log level (default: 3)")
-	print _(u"                       0=nothing, 1=essential, 2=critical, 3=error, 4=warning"
+	print _(u"                       0=nothing, 1=essential, 2=critical, 3=error, 4=warning")
 	print _(u"                       5=notice, 6=info, 7=debug, 8=debug2, 9=confidential")
 	print _(u"  -f, --log-file       Path to log file")
 	print _(u"  -i, --interactive    Start in interactive mode")
