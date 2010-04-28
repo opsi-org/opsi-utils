@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '3.4.99'
+__version__ = '4.0'
 
 import sys, os, getopt, gettext, re, tty, termios
 
@@ -93,6 +93,8 @@ class ProgressNotifier(ProgressObserver):
 			pass
 		
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+		if (subject.getEnd() <= 0):
+			return
 		barlen = self.usedWidth - 10
 		filledlen = int("%0.0f" % (barlen*percent/100))
 		bar = u'='*filledlen + u' '*(barlen-filledlen)
@@ -305,7 +307,7 @@ def main(argv):
 							break
 				finally:
 					termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
-					print ""
+					print '\r\033[0K'
 				
 				if newVersion:
 					while True:
