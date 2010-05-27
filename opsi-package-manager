@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '3.4.99'
+__version__ = '3.99.0'
 
 
 # Imports
@@ -1232,6 +1232,7 @@ class OpsiPackageManagerControl(object):
 		os.umask(0077)
 		self._pid = 0
 		self._opm = None
+		self.encoding = locale.getpreferredencoding()
 		
 		# Call signalHandler on signal SIGTERM, SIGINT
 		signal(SIGTERM, self.signalHandler)
@@ -1364,13 +1365,13 @@ class OpsiPackageManagerControl(object):
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
 			if errors:
-				print >> sys.stderr, _(u"Errors occured: ")
+				print >> sys.stderr, _(u"Errors occured: ").encode(self.encoding)
 				for (name, errs) in errors.items():
 					logger.error(u"Failure while processing %s:" % name)
-					print >> sys.stderr, u"   Failure while processing %s:" % name
+					print >> sys.stderr, _(u"   Failure while processing %s:" % name).encode(self.encoding)
 					for err in errs:
 						logger.error(u"      %s" % err)
-						print >> sys.stderr, u"      %s" % err
+						print >> sys.stderr, (u"      %s" % err).encode(self.encoding)
 				sys.exit(1)
 	
 	def processExtractCommand(self):
@@ -1460,22 +1461,22 @@ class OpsiPackageManagerControl(object):
 			return
 		
 		for (depotId, values) in productOnDepotInfo.items():
-			print u"-"*(len(depotId)+4)
-			print u"- %s -" % depotId
-			print u"-"*(len(depotId)+4)
-			print u"%s%*s %*s %*s" % (indent, -1*idWidth, u'Product ID',
+			print (u"-"*(len(depotId)+4)).encode(self.encoding)
+			print (u"- %s -" % depotId).encode(self.encoding)
+			print (u"-"*(len(depotId)+4)).encode(self.encoding)
+			print (u"%s%*s %*s %*s" % (indent, -1*idWidth, u'Product ID',
 						-1*versionWidth, u'Version',
-						-1*descriptionWidth, u'Description')
-			print u"%s%s" % (indent, "="*(terminalWidth-len(indent)-2))
+						-1*descriptionWidth, u'Description')).encode(self.encoding)
+			print (u"%s%s" % (indent, "="*(terminalWidth-len(indent)-2))).encode(self.encoding)
 			productIds = values.keys()
 			productIds.sort()
 			for productId in productIds:
 				productOnDepot = productOnDepotInfo[depotId][productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
-				print u"%s%*s %*s %*s" % (indent, -1*idWidth, productId,
+				print (u"%s%*s %*s %*s" % (indent, -1*idWidth, productId,
 						-1*versionWidth,     product.productVersion + u'-' + product.packageVersion,
-						-1*descriptionWidth, product.description.replace(u'\n', u'')[:descriptionWidth])
-			print u""
+						-1*descriptionWidth, product.description.replace(u'\n', u'')[:descriptionWidth])).encode(self.encoding)
+			print ""
 		
 	def processDifferencesCommand(self):
 		productOnDepots = self.backend.productOnDepot_getObjects(depotId = self.config['depotIds'], productId = self.config['productIds'])
@@ -1523,7 +1524,7 @@ class OpsiPackageManagerControl(object):
 				
 			if differs:
 				for line in lines:
-					print line
+					print line.encode(self.encoding)
 				print ""
 	
 	def processUploadCommand(self):
@@ -1716,7 +1717,7 @@ if (__name__ == "__main__"):
 	
 	if exception:
 		logger.logException(exception)
-		print >> sys.stderr, u"\nERROR: %s\n" % exception
+		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(self.encoding)
 		sys.exit(1)
 	sys.exit(0)
 
