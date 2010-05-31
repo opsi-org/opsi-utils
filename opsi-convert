@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '0.7.1'
+__version__ = '0.7.2'
 
 import sys, getopt, gettext, re, getpass, socket
 
@@ -259,6 +259,7 @@ def main(argv):
 				write['username'],
 				write['password'],
 				getBackendConfig(write['backend']) ) )
+		b.createOpsiBase()
 		bmWrite = BackendManager( write['username'], write['password'], write['address'], backend = b, authRequired = False )
 	bmWrite.authenticated()
 	
