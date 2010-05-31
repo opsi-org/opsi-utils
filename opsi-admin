@@ -206,7 +206,8 @@ def main(argv):
 			dispatchConfigFile = u'/etc/opsi/backendManager/dispatch.conf',
 			backendConfigDir   = u'/etc/opsi/backends',
 			extensionConfigDir = u'/etc/opsi/backendManager/extend.d',
-			depotbackend       = True
+			depotbackend       = True,
+			hostControlBackend = True
 		)
 	
 	else:
