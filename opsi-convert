@@ -125,6 +125,7 @@ def main(argv):
 	global logLevel
 	newServerId = None
 	cleanupFirst = False
+	convertAudit = False
 	progress = True
 	
 	# Get options
@@ -252,7 +253,8 @@ def main(argv):
 		readBackend  = bmRead,
 		writeBackend = bmWrite,
 		newServerId  = newServerId,
-		cleanupFirst = cleanupFirst
+		cleanupFirst = cleanupFirst,
+		audit        = convertAudit
 	)
 	if progress:
 		progressNotifier = ProgressNotifier(backendReplicator)
