@@ -253,12 +253,11 @@ def main(argv):
 		readBackend  = bmRead,
 		writeBackend = bmWrite,
 		newServerId  = newServerId,
-		cleanupFirst = cleanupFirst,
-		audit        = convertAudit
+		cleanupFirst = cleanupFirst
 	)
 	if progress:
 		progressNotifier = ProgressNotifier(backendReplicator)
-	backendReplicator.replicate()
+	backendReplicator.replicate(audit = convertAudit)
 	
 
 if (__name__ == "__main__"):
