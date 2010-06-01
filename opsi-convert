@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '3.5'
+__version__ = '4.0'
 
 import fcntl, termios, struct, os, sys, getopt, socket
 
@@ -59,7 +59,7 @@ def usage():
 	print u"    -V        show version information"
 	print u"    -q        do not show progress"
 	print u"    -v        increase verbosity (can be used multiple times)"
-	print u"    -n        do not clean destination database before writing"
+	print u"    -c        clean destination database before writing"
 	print u"    -s        use destination host as new server"
 	print u"    -l <file> log to this file"
 	print u""
@@ -124,7 +124,7 @@ class ProgressNotifier(ProgressObserver):
 def main(argv):
 	global logLevel
 	newServerId = None
-	cleanupFirst = True
+	cleanupFirst = False
 	progress = True
 	
 	# Get options
@@ -146,8 +146,8 @@ def main(argv):
 			logLevel += 1
 			logger.setConsoleLevel(logLevel)
 			logger.setFileLevel(logLevel)
-		elif (opt == "-n"):
-			cleanupFirst = False
+		elif (opt == "-c"):
+			cleanupFirst = True
 		elif (opt == "-s"):
 			newServerId = socket.getfqdn()
 		elif (opt == "-q"):
