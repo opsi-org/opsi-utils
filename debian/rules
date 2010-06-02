@@ -22,11 +22,11 @@ install:
 	#install -m 0640 gettext/opsi_newprod_de.mo debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
 	#install -m 0640 gettext/opsi_newprod_fr.mo debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi_newprod.mo
 	
-	install -m 0750 -g opsiadmin  opsi-admin           debian/opsi-utils/usr/bin/
-	install -m 0755               opsi-newprod         debian/opsi-utils/usr/bin/
-	install -m 0755               opsi-makeproductfile debian/opsi-utils/usr/bin/
-	install -m 0755               opsi-package-manager debian/opsi-utils/usr/bin/
-	install -m 0755               opsi-convert         debian/opsi-utils/usr/bin/
+	install -m 0755  opsi-admin           debian/opsi-utils/usr/bin/
+	install -m 0755  opsi-newprod         debian/opsi-utils/usr/bin/
+	install -m 0755  opsi-makeproductfile debian/opsi-utils/usr/bin/
+	install -m 0755  opsi-package-manager debian/opsi-utils/usr/bin/
+	install -m 0755  opsi-convert         debian/opsi-utils/usr/bin/
 	
 	dh_install
 	
