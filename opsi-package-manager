@@ -1717,7 +1717,7 @@ if (__name__ == "__main__"):
 	
 	if exception:
 		logger.logException(exception)
-		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(self.encoding)
+		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding())
 		sys.exit(1)
 	sys.exit(0)
 
