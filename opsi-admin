@@ -272,7 +272,7 @@ def main(argv):
 		read = unicode(sys.stdin.read(), encoding, 'replace')
 		cmdline += u" '%s'" % read.replace('\r', '').replace('\n', '')
 	
-	logger.notice("cmdline: '%s'" % cmdline)
+	logger.debug("cmdline: '%s'" % cmdline)
 	
 	global shell
 	if interactive:
@@ -554,7 +554,7 @@ class Shell:
 	
 	def getParam(self, i):
 		self.parseCmdline()
-		if (len(self.params) >= i):
+		if (len(self.params) > i):
 			return self.params[i]
 		return u''
 	
@@ -566,28 +566,35 @@ class Shell:
 		if not self.cmdline:
 			return
 		
+		self.shellCommand = u''
+		cmdline = self.cmdline
+		if (cmdline.find('|') != -1):
+			split = -1
+			qCount = 0
+			dqCount = 0
+			parts = cmdline.split(u'|')
+			for i in range(len(parts)):
+				qCount  += parts[i].count(u"'")
+				dqCount += parts[i].count(u'"')
+				if (qCount % 2 == 0) and (dqCount % 2 == 0):
+					split = i
+					break
+			if (split >= 0):
+				cmdline = u'|'.join(parts[:split+1])
+				self.shellCommand = u'|'.join(parts[split+1:]).lstrip()
+		
 		cur = 0
 		quote = None
-		pipe = False
-		self.shellCommand = u''
 		
-		for i in range(len(self.cmdline)):
-			logger.debug2(u"parseCmdline(): char '%s', quote: %s, pipe: %s, cur: %d, params: %s" % (self.cmdline[i], quote, pipe, cur, self.params))
-			if (pipe):
-				self.shellCommand += self.cmdline[i]
-				continue
-			
-			elif (not quote and self.cmdline[i] == u"|"):
-				pipe = True
-				continue
-			
+		for i in range(len(cmdline)):
+			logger.debug2(u"parseCmdline(): char '%s', quote: %s, cur: %d, params: %s" % (cmdline[i], quote, cur, self.params))
 			if (len(self.params) < cur+1):
 				self.params.append(u'')
 			
 			if (i == self.pos-1):
 				self.paramPos = cur
 			
-			if (self.cmdline[i] == u"'"):
+			if (cmdline[i] == u"'"):
 				if (quote == None):
 					#self.params[cur] += u'\''
 					quote = u"'"
@@ -599,7 +606,7 @@ class Shell:
 				else:
 					self.params[cur] += u'\''
 			
-			elif (self.cmdline[i] == u'"'):
+			elif (cmdline[i] == u'"'):
 				if (quote == None):
 					self.params[cur] += u'"'
 					quote = u'"'
@@ -611,22 +618,25 @@ class Shell:
 				else:
 					self.params[cur] += u'"'
 			
-			elif (self.cmdline[i] == u" "):
+			elif (cmdline[i] == u" "):
 				if (quote != None):
-					self.params[cur] += self.cmdline[i]
+					self.params[cur] += cmdline[i]
 				elif (len(self.params[cur]) > 0):
 					cur += 1
 			
 			else:
-				self.params[cur] += self.cmdline[i]
+				self.params[cur] += cmdline[i]
 			
-		if not quote and self.params[-1] and self.pos == len(self.cmdline) and self.cmdline.endswith(u' '):
+		if not quote and self.params and self.params[-1] and self.pos == len(cmdline) and cmdline.endswith(u' '):
 			self.params.append(u'')
 			self.paramPos += 1
 		
-		self.currentParam = self.params[self.paramPos]
+		if self.params:
+			self.currentParam = self.params[self.paramPos]
+		else:
+			self.currentParam = u''
 		
-		logger.info(u"cmdline: %s" % self.cmdline)
+		logger.debug(u"cmdline: %s" % cmdline)
 		logger.debug2(u"paramPos: %s, currentParam: %s, params: %s" \
 				% (self.paramPos, self.currentParam, self.params) )
 		if ( self.paramPos >= len(self.params) ):
@@ -653,7 +663,7 @@ class Shell:
 				break
 		
 		if invalid:
-			raise Exception(_(u"Invalid command"))
+			raise Exception(_(u"Invalid command: '%s'" % self.getParam(0)))
 	
 	def question(self, question):
 		question = forceUnicode(question)
@@ -1478,7 +1488,10 @@ if (__name__ == "__main__"):
 	exception = None
 	
 	try:
-		locale.setlocale(locale.LC_ALL, '')
+		try:
+			locale.setlocale(locale.LC_ALL, '')
+		except:
+			pass
 		
 		if (os.name == 'posix'):
 			from signal import *
