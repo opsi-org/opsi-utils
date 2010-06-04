@@ -1054,19 +1054,27 @@ class OpsiPackageManager():
 					title = _(u'Please select product property defaults')
 					text = u'%s: %s\n   %s\n\n%s: %s\n   %s' % (_(u'Product'), product.id, product.name, _(u'Property'), productProperty.propertyId, productProperty.description)
 					cancelLabel = _('Back')
+					addNewValue = False
 					if productProperty.possibleValues:
 						entries = []
 						for possibleValue in productProperty.possibleValues:
 							entries.append({'name': possibleValue, 'value': possibleValue, 'selected': possibleValue in productProperty.defaultValues})
 						radio = not productProperty.multiValue
+						if productProperty.editable:
+							entries.append({'name': _(u'<other value>'), 'value': '<other value>', 'selected': False})
 						selection = ui.getSelection(entries, radio = radio, width = 65, height = 10, title = title, text = text, cancelLabel = cancelLabel)
 						if selection is None:
 							# back
 							i -= 1
 							if (i < 0): i = 0
 							continue
+						if "<other value>" in selection:
+							addNewValue = True
 						productProperties[i].setDefaultValues(selection)
 					else:
+						addNewValue = True
+					
+					if addNewValue:
 						default = u''
 						if productProperty.defaultValues:
 							default = productProperty.defaultValues[0]
@@ -1076,6 +1084,11 @@ class OpsiPackageManager():
 							i -= 1
 							if (i < 0): i = 0
 							continue
+						
+						possibleValues = productProperties[i].getPossibleValues()
+						if not value in possibleValues:
+							possibleValues.append(value)
+							productProperties[i].setPossibleValues(possibleValues)
 						productProperties[i].setDefaultValues(value)
 					logger.notice(u"Product '%s', property '%s': default values set to: %s" % (productProperties[i].productId, productProperties[i].propertyId, productProperties[i].defaultValues))
 					i += 1
