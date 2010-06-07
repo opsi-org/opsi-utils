@@ -247,7 +247,7 @@ def main(argv):
 				print       u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
 			
 			if not quiet: print ""
-			if not quiet: print _(u"Product info:")
+			if not quiet: print _(u"Product info")
 			if not quiet: print u"----------------------------------------------------------------------------"
 			if not quiet: print u"   %-20s : %s" % (u'product id',           product.id)
 			if not quiet and (product.getType() == 'LocalbootProduct'):
@@ -266,7 +266,7 @@ def main(argv):
 				print       u" %-20s : %s" % (u'pxe config template',  product.pxeConfigTemplate)
 			
 			if not quiet: print ""
-			if not quiet: print _(u"Product scripts:")
+			if not quiet: print _(u"Product scripts")
 			if not quiet: print u"----------------------------------------------------------------------------"
 			if not quiet: print u"   %-20s : %s" % (u'setup',      product.setupScript)
 			if not quiet: print u"   %-20s : %s" % (u'uninstall',  product.uninstallScript)
