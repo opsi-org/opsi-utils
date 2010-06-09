@@ -398,10 +398,7 @@ class OpsiPackageUpdater(object):
 				logger.notice(u"%s - download of package is required: local package not found" % availablePackage["filename"])
 			
 			if downloadNeeded:
-				if notifier:
-					self.downloadPackage(availablePackage, notifier = notifier)
-				else:
-					self.downloadPackage(availablePackage)
+				self.downloadPackage(availablePackage, notifier = notifier)
 				#if availablePackage['repository'].opsiDepotId:
 				#	self.syncPackage(availablePackage, localPackageFound)
 				#else:
@@ -453,26 +450,38 @@ class OpsiPackageUpdater(object):
 			
 			propertyDefaultValues = {}
 			try:
-				logger.info(u"Trying to get product property defaults from repository")
+				#logger.info(u"Trying to get product property defaults from repository")
+				#for productPropertyState in self.getConfigBackend().productPropertyState_getObjects(
+				#					productId = package['productId'],
+				#					objectId  = availablePackage['repository'].opsiDepotId):
 				for productPropertyState in self.getConfigBackend().productPropertyState_getObjects(
 									productId = package['productId'],
-									objectId  = availablePackage['repository'].opsiDepotId):
+									objectId  = self.depotId):
 				propertyDefaultValues[productPropertyState.propertyId] = productPropertyState.values
-				logger.notice(u"Using product property defaults from repository: %s" % defaultProperties)
+				logger.notice(u"Using product property defaults: %s" % defaultProperties)
 			except Exception, e:
-				logger.warning(u"Failed to get product property defaults from repository: %s" % e)
+				logger.warning(u"Failed to get product property defaults: %s" % e)
 			
 			logger.notice(u"Installing package '%s'" % packageFile)
 			self.getConfigBackend().depot_installPackage(filename = packageFile, force = True, propertyDefaultValues = propertyDefaultValues)
-			
-			if notifier: notifier.appendLine(u"Paket '%s' erfolgreich installiert" % packageFile)
+			productOnDepots = self.getConfigBackend().productOnDepot_getObjects(
+							depotId   = self.depotId,
+							productId = package['productId'])
+			if not productOnDepots:
+				raise Exception(u"Product '%s' not found on depot '%s' after installation" % (package['productId'], self.depotId))
+			package['product'] = self.getConfigBackend().product_getObjects(
+						id             = productOnDepots[0].productId,
+						productVersion = productOnDepots[0].productVersion,
+						packageVersion = productOnDepots[0].packageVersion)[0]
+			if notifier:
+				notifier.appendLine(u"Package '%s' successfully installed" % packageFile)
 			logger.notice(u"Package '%s' successfully installed" % packageFile)
 			installedPackages.append(package)
 		
 		if not installedPackages:
 			logger.info(u"No new packages installed")
 			if notifier and notifier.hasMessage():
-				logger.notice(u"Sending notify by mail")
+				logger.notice(u"Sending mail notification")
 				notifier.notify()
 			return
 		
@@ -485,8 +494,10 @@ class OpsiPackageUpdater(object):
 				break
 			if not shutdownProduct:
 				logger.error(u"Product 'shutdownwanted' not avaliable on depot '%s'" % self.depotId)
-				
+		
 		for package in installedPackages:
+			if not package['product'].setupScript:
+				continue
 			if package['repository'].autoSetup:
 				logger.notice(u"Setting action 'setup' for product '%s' where installation status 'installed' because auto setup is set for repository '%s'" \
 					% (package['productId'], package['repository'].baseUrl))
@@ -494,6 +505,7 @@ class OpsiPackageUpdater(object):
 				logger.notice(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not set for repository '%s'" \
 					% (package['productId'], package['repository'].baseUrl))
 				continue
+			
 			clientIds = self.getConfigBackend().configState_getClientToDepotserver(depotIds = [ self.depotId ])
 			if clientIds:
 				productOnClients = self.getConfigBackend().productOnClient_getObjects(
@@ -532,11 +544,11 @@ class OpsiPackageUpdater(object):
 					time.sleep(self.config["wolStartGap"])
 				except Exception, e:
 					logger.error(u"Failed to power on client '%s': %s" % (clientId, e))
-					
-		if notifier and notifier.notify:
-			logger.notice(u"Sending notify by mail")
-			notifier.sendMail()
-				
+		
+		if notifier and notifier.hasMessage():
+			logger.notice(u"Sending mail notification")
+			notifier.notify()
+		
 	#def syncPackage(self, remotePackage, localPackage):
 	#	packageFilename = remotePackage['filename']
 	#	localPackageFile = localPackage['packageFile']
@@ -607,7 +619,8 @@ class OpsiPackageUpdater(object):
 						lastCompleted = completed
 					logger.debug(u'Downloading %s: %d%% (%d kbit/s)' % (url, percent, speed))
 		out.close()
-		if notifier: notifier.appendLine(u"Download von '%s' nach /var/lib/opsi/products/ abgeschlossen" % url)
+		if notifier:
+			notifier.appendLine(u"Download of '%s' completed" % url))
 		logger.notice(u"Download of '%s' completed" % url)
 		
 		logger.info(u"Cleaning up in %s" % self.config["packageDir"])
