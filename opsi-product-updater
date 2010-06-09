@@ -35,17 +35,16 @@
 
 
 import urllib, urllib2, htmllib, formatter, sys, re, getopt, socket, base64, pwd, grp, smtplib
-from ConfigParser import *
 
 from OPSI.Logger import *
 from OPSI.Types import *
+from OPSI.Object import *
 from OPSI.Util import compareVersions, md5sum
 from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
-from OPSI.Backend.HostControl import HostControlBackend
 
-__version__ = '0.9'
+__version__ = '1.0'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -65,7 +64,8 @@ class ProductRepositoryInfo(object):
 		self.opsiDepotId = opsiDepotId
 		if self.baseUrl.startswith('webdav'):
 			self.baseUrl = u'http%s' % self.baseUrl[6:]
-		self.proxy = proxy
+		if proxy:
+			self.proxy = proxy
 		
 	def getDownloadUrls(self):
 		urls = []
@@ -92,30 +92,31 @@ class LinksExtractor(htmllib.HTMLParser):
 	def getLinks(self):
 		return self.links
 
-class EmailHandler(object):
-	def __init__(self, mailrelay = u'localhost', smtpport = 25, subject = u'opsi product updater', sender = u'', receivers = []):
+class EmailNotifier(object):
+	def __init__(self, smtphost = u'localhost', smtpport = 25, subject = u'opsi product updater', sender = u'', receivers = []):
 		self.receivers = forceUnicodeList(receivers)
 		if not self.receivers:
 			raise Exception(u"List of mail recipients empty")
-		self.mailrelay = forceUnicode(mailrelay)
+		self.smtphost = forceUnicode(smtphost)
 		self.smtpport = forceInt(smtpport)
 		self.sender = forceUnicode(sender)
 		self.subject = forceUnicode(subject)
 		self.message = u''
-		self.notify = False
 		
 	def appendLine(self, line):
 		self.message += u'%s\n' % forceUnicode(line)
-		self.notify = True
-		
-	def sendMail(self):
+	
+	def hasMessage(self):
+		return bool(self.message)
+	
+	def notify(self):
 		mail =  u'From: %s\n' % self.sender
-		mail += u'To: %s\n' % u', '.join(self.receivers)
+		mail += u'To: %s\n' % u',\n'.join(self.receivers)
 		mail += u'Subject: %s\n' % self.subject
 		mail += _(u"opsi product updater carried out the following actions:") + u"\n"
 		mail += self.message
 		try:
-			smtpObj = smtplib.SMTP(self.mailrelay, self.smtpport)
+			smtpObj = smtplib.SMTP(self.smtphost, self.smtpport)
 			smtpObj.sendmail(self.sender, self.receivers, message)
 			logger.notice(u"Email successfully sent")
 		except SMTPException:
@@ -170,12 +171,13 @@ class OpsiPackageUpdater(object):
 							logger.setLogFile(value)
 						elif (option.lower() == 'loglevel'):
 							logger.setFileLevel(forceInt(value.strip()))
+				
 				elif (section.lower() == 'notification'):
 					for (option, value) in config.items(section):
 						if   (option.lower() == 'active'):
 							self.config["notification"] = forceBool(value)
-						elif   (option.lower() == 'mailrelay'):
-							self.config["mailrelay"] = forceNetworkAddress(value.strip())
+						elif   (option.lower() == 'smtphost'):
+							self.config["smtphost"] = forceNetworkAddress(value.strip())
 						elif   (option.lower() == 'smtpport'):
 							self.config["smtpport"] = forceInt(value.strip())
 						elif   (option.lower() == 'sender'):
@@ -188,6 +190,7 @@ class OpsiPackageUpdater(object):
 								if not receiver:
 									continue
 								self.config["receivers"].append(forceEmailAddress(receiver))
+				
 				elif (section.lower() == 'wol'):
 					for (option, value) in config.items(section):
 						if   (option.lower() == 'active'):
@@ -202,6 +205,11 @@ class OpsiPackageUpdater(object):
 								self.config["wolActionExcludeProductIds"].append(forceProductId(productId))
 						elif (option.lower() == 'shutdownwanted'):
 							self.config["wolShutdownWanted"] = forceBool(value.strip())
+						elif (option.lower() == 'startgap'):
+							self.config["wolStartGap"] = forceInt(value.strip())
+							if (self.config["wolStartGap"] < 0):
+								self.config["wolStartGap"] = 0
+				
 				elif (section.lower() == 'installation'):
 					for (option, value) in config.items(section):
 						if   (option.lower() == 'windowstart'):
@@ -224,6 +232,7 @@ class OpsiPackageUpdater(object):
 								if not productId:
 									continue
 								self.config["installationWindowExceptions"].append(forceProductId(productId))
+				
 				elif section.lower().startswith('repository'):
 					try:
 						if not toBool(config.get(section, 'active')):
@@ -252,9 +261,13 @@ class OpsiPackageUpdater(object):
 					
 					repository = None
 					if opsiDepotId:
-						depot = self.getConfigBackend().getDepot_hash(opsiDepotId)
+						depots = self.getConfigBackend().host_getObjects(type = 'OpsiDepotserver', id = opsiDepotId)
+						if not depots:
+							raise Exception(u"Depot '%s' not found in backend" % opsiDepotId)
+						if not depots[0].repositoryRemoteUrl:
+							raise Exception(u"Repository remote url for depot '%s' not found in backend" % opsiDepotId)
 						repository = ProductRepositoryInfo(
-							baseUrl     = depot['repositoryRemoteUrl'],
+							baseUrl     = depots[0].repositoryRemoteUrl,
 							dirs        = ['/'],
 							username    = self.depotId,
 							password    = self.depotKey,
@@ -262,9 +275,7 @@ class OpsiPackageUpdater(object):
 					elif baseUrl:
 						if proxy:
 							logger.notice(u"Using Proxy: %s" % proxy)
-							repository = ProductRepositoryInfo(baseUrl = baseUrl, proxy = proxy)
-						else:
-							repository = ProductRepositoryInfo(baseUrl = baseUrl)
+						repository = ProductRepositoryInfo(baseUrl = baseUrl, proxy = proxy)
 					else:
 						logger.error(u"Repository section '%s': neither baseUrl nor opsiDepotId set" % section)
 						continue
@@ -280,9 +291,6 @@ class OpsiPackageUpdater(object):
 							repository.autoUpdate = forceBool(value.strip())
 						elif (option.lower() == 'autosetup'):
 							repository.autoSetup = forceBool(value.strip())
-						elif (option.lower() == 'onlyload'):
-							repository.onlyLoad = forceBool(value.strip())
-							
 						elif (option.lower() == 'dirs'):
 							repository.dirs = []
 							dirs = value.split(',')
@@ -321,13 +329,12 @@ class OpsiPackageUpdater(object):
 			
 		if self.config["notification"]:
 			logger.notice(u"Notification is activated")
-			notifier = EmailHandler(
-				self.config["mailrelay"],
-				self.config["smtpport"],
-				self.config["sender"],
-				self.config["receivers"],
-				self.config["templatefile"]
-				)
+			notifier = EmailNotifier(
+				smtphost  = self.config["smtphost"],
+				smtpport  = self.config["smtpport"],
+				sender    = self.config["sender"],
+				receivers = self.config["receivers"],
+			)
 		
 		installedProducts    = self.getInstalledProducts()
 		localPackages        = self.getLocalPackages()
@@ -444,18 +451,19 @@ class OpsiPackageUpdater(object):
 			
 			packageFile = os.path.join(self.config["packageDir"], package["filename"])
 			
-			defaultProperties = {}
+			propertyDefaultValues = {}
 			try:
 				logger.info(u"Trying to get product property defaults from repository")
-				for p in self.getConfigBackend().getProductPropertyDefinitions_listOfHashes(package['productId'], availablePackage['repository'].opsiDepotId):
-					defaultProperties[p['name']] = p['default']
+				for productPropertyState in self.getConfigBackend().productPropertyState_getObjects(
+									productId = package['productId'],
+									objectId  = availablePackage['repository'].opsiDepotId):
+				propertyDefaultValues[productPropertyState.propertyId] = productPropertyState.values
 				logger.notice(u"Using product property defaults from repository: %s" % defaultProperties)
 			except Exception, e:
 				logger.warning(u"Failed to get product property defaults from repository: %s" % e)
 			
 			logger.notice(u"Installing package '%s'" % packageFile)
-			
-			self.getConfigBackend().installPackage(filename = packageFile, force = True, defaultProperties = defaultProperties)
+			self.getConfigBackend().depot_installPackage(filename = packageFile, force = True, propertyDefaultValues = propertyDefaultValues)
 			
 			if notifier: notifier.appendLine(u"Paket '%s' erfolgreich installiert" % packageFile)
 			logger.notice(u"Package '%s' successfully installed" % packageFile)
@@ -463,12 +471,21 @@ class OpsiPackageUpdater(object):
 		
 		if not installedPackages:
 			logger.info(u"No new packages installed")
-			if notifier and notifier.notify:
+			if notifier and notifier.hasMessage():
 				logger.notice(u"Sending notify by mail")
-				notifier.sendMail()
+				notifier.notify()
 			return
 		
 		wakeOnLanClients = []
+		shutdownProduct = None
+		if self.config['wolAction'] and self.config["wolShutdownWanted"]:
+			for product in self.getConfigBackend().productOnDepot_getObjects(depotId = self.depotId, productId = 'shutdownwanted'):
+				shutdownProduct = product
+				logger.info(u"Found 'shutdownwanted' product on depot '%s': %s" % (self.depotId, shutdownProduct))
+				break
+			if not shutdownProduct:
+				logger.error(u"Product 'shutdownwanted' not avaliable on depot '%s'" % self.depotId)
+				
 		for package in installedPackages:
 			if package['repository'].autoSetup:
 				logger.notice(u"Setting action 'setup' for product '%s' where installation status 'installed' because auto setup is set for repository '%s'" \
@@ -477,29 +494,42 @@ class OpsiPackageUpdater(object):
 				logger.notice(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not set for repository '%s'" \
 					% (package['productId'], package['repository'].baseUrl))
 				continue
-			clientIds = self.getConfigBackend().getClientIds_list([], [ self.depotId ], None, package['productId'], "installed")
-			for clientId in clientIds:
-				try:
-					self.getConfigBackend().setProductActionRequest(package['productId'], clientId, 'setup')
-					if self.config['wolAction'] and not package['productId'] in self.config['wolActionExcludeProductIds']:
-						if not clientId in wakeOnLanClients:
-							wakeOnLanClients.append(clientId)
-				except Exception, e:
-					logger.error(u"Failed to set action for product '%s' to 'setup' on client '%s': %s" % (package['productId'], clientId, e))
+			clientIds = self.getConfigBackend().configState_getClientToDepotserver(depotIds = [ self.depotId ])
+			if clientIds:
+				productOnClients = self.getConfigBackend().productOnClient_getObjects(
+					attributes         = [ 'installationStatus' ],
+					productId          = [ package['productId'] ],
+					clientId           = [ clientIds ],
+					installationStatus = [ 'installed' ],
+				)
+				if productOnClients:
+					for i in range(len(productOnClients)):
+						productOnClients[i].setActionRequest('setup')
+						if self.config['wolAction'] and not package['productId'] in self.config['wolActionExcludeProductIds']:
+							if not productOnClients[i].clientId in wakeOnLanClients:
+								wakeOnLanClients.append(productOnClients[i].clientId)
+					self.getConfigBackend().productOnClient_updateObjects(productOnClients)
 		
 		if wakeOnLanClients:
 			logger.notice(u"Powering on clients %s" % wakeOnLanClients)
-			wolBackend = WakeOnLANBackend()
 			for clientId in wakeOnLanClients:
 				try:
 					logger.info(u"Powering on client '%s'" % clientId)
-					mac = self.getConfigBackend().getMacAddress(clientId)
-					if not mac:
-						raise Exception(u"Failed to get mac address")
-					if self.config["wolShutdownWanted"]:
+					if self.config["wolShutdownWanted"] and shutdownProduct:
 						logger.info(u"Setting shutdownwanted to 'setup' for client '%s'" % clientId)
-						self.getConfigBackend().setProductActionRequest('shutdownwanted', clientId, 'setup')
-					wolBackend.powerOnHost(mac)
+						
+						self.getConfigBackend().productOnClient_updateObjects(
+							ProductOnClient(
+								productId      = shutdownProduct.id,
+								productType    = shutdownProduct.getType(),
+								productVersion = shutdownProduct.productVersion,
+								packageVersion = shutdownProduct.packageVersion,
+								clientId       = clientId,
+								actionRequest  = 'setup'
+							)
+						)
+					self.getConfigBackend().hostControl_start(hostIds = [ clientId ])
+					time.sleep(self.config["wolStartGap"])
 				except Exception, e:
 					logger.error(u"Failed to power on client '%s': %s" % (clientId, e))
 					
@@ -742,9 +772,15 @@ def main(argv):
 		"userAgent":                    'opsi product updater %s' % __version__,
 		"packageDir":                   '/var/lib/opsi/products',
 		"configFile":                   '/etc/opsi/opsi-product-updater.conf',
+		"notification":                 False,
+		"smtphost":                     25,
+		"smtpport":                     u'localhost'
+		"sender":                       u'opsi@localhost',
+		"receivers":                    [],
 		"wolAction":                    False,
 		"wolActionExcludeProductIds":   [],
 		"wolShutdownWanted":            False,
+		"wolStartGap":                  0,
 		"installationWindowStartTime":  None,
 		"installationWindowEndTime":    None,
 		"installationWindowExceptions": None,
