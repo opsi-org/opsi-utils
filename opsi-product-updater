@@ -1,0 +1,810 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+   = = = = = = = = = = = = = = =
+   =   opsi product updater    =
+   = = = = = = = = = = = = = = =
+   
+   opsiconfd is part of the desktop management solution opsi
+   (open pc server integration) http://www.opsi.org
+   
+   Copyright (C) 2010 uib GmbH
+   
+   http://www.uib.de/
+   
+   All rights reserved.
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License version 2 as
+   published by the Free Software Foundation.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   
+   @copyright:	uib GmbH <info@uib.de>
+   @author: Jan Schneider <j.schneider@uib.de>
+   @author: Erol Ueluekmen <e.ueluekmen@uib.de>
+   @license: GNU General Public License version 2
+"""
+
+
+import urllib, urllib2, htmllib, formatter, sys, re, getopt, socket, base64, pwd, grp, smtplib
+from ConfigParser import *
+
+from OPSI.Logger import *
+from OPSI.Types import *
+from OPSI.Util import compareVersions, md5sum
+from OPSI import System
+from OPSI.Backend.BackendManager import BackendManager
+from OPSI.Backend.JSONRPC import JSONRPCBackend
+from OPSI.Backend.HostControl import HostControlBackend
+
+__version__ = '0.9'
+
+logger = Logger()
+logger.setConsoleColor(True)
+
+def _(string):
+	return string
+
+class ProductRepositoryInfo(object):
+	def __init__(self, baseUrl, dirs = [], username=u"", password=u"", opsiDepotId = None, autoInstall = False, autoUpdate = True, autoSetup = False, proxy = None):
+		self.baseUrl     = baseUrl
+		self.dirs        = dirs
+		self.username    = username
+		self.password    = password
+		self.autoInstall = autoInstall
+		self.autoUpdate  = autoUpdate
+		self.autoSetup   = autoSetup
+		self.opsiDepotId = opsiDepotId
+		if self.baseUrl.startswith('webdav'):
+			self.baseUrl = u'http%s' % self.baseUrl[6:]
+		self.proxy = proxy
+		
+	def getDownloadUrls(self):
+		urls = []
+		for d in self.dirs:
+			if d in (u'', u'/', u'.'):
+				url = self.baseUrl
+			else:
+				url = u'%s/%s' % (self.baseUrl, d)
+			if not url in urls:
+				urls.append(url)
+		return urls
+	
+class LinksExtractor(htmllib.HTMLParser):
+	def __init__(self, formatter):
+		htmllib.HTMLParser.__init__(self, formatter)
+		self.links = []
+
+	def start_a(self, attrs):
+		if (len(attrs) > 0):
+			for attr in attrs:
+				if (attr[0] != "href"):
+					continue
+				self.links.append(attr[1])
+	def getLinks(self):
+		return self.links
+
+class EmailHandler(object):
+	def __init__(self, mailrelay = u'localhost', smtpport = 25, subject = u'opsi product updater', sender = u'', receivers = []):
+		self.receivers = forceUnicodeList(receivers)
+		if not self.receivers:
+			raise Exception(u"List of mail recipients empty")
+		self.mailrelay = forceUnicode(mailrelay)
+		self.smtpport = forceInt(smtpport)
+		self.sender = forceUnicode(sender)
+		self.subject = forceUnicode(subject)
+		self.message = u''
+		self.notify = False
+		
+	def appendLine(self, line):
+		self.message += u'%s\n' % forceUnicode(line)
+		self.notify = True
+		
+	def sendMail(self):
+		mail =  u'From: %s\n' % self.sender
+		mail += u'To: %s\n' % u', '.join(self.receivers)
+		mail += u'Subject: %s\n' % self.subject
+		mail += _(u"opsi product updater carried out the following actions:") + u"\n"
+		mail += self.message
+		try:
+			smtpObj = smtplib.SMTP(self.mailrelay, self.smtpport)
+			smtpObj.sendmail(self.sender, self.receivers, message)
+			logger.notice(u"Email successfully sent")
+		except SMTPException:
+			raise Exception(u"Failed to send email: %s" % e)
+		
+class OpsiPackageUpdater(object):
+	def __init__(self, config):
+		self.config = config
+		self.httpHeaders = { 'User-Agent' : self.config.get("userAgent", "") }
+		self.configBackend = None
+		self.depotConnections = {}
+		self.depotId = forceHostId(socket.getfqdn().lower())
+		depots = self.getConfigBackend().host_getObjects(type = 'OpsiDepotserver', id = self.depotId)
+		if not depots:
+			raise Exception(u"Depot '%s' not found in backend" % self.depotId)
+		self.depotKey = depots[0].opsiHostKey
+		if not self.depotKey:
+			raise Exception(u"Opsi host key for depot '%s' not found in backend" % self.depotId)
+		self.readConfigFile()
+		
+	def __del__(self):
+		for con in self.depotConnections.values():
+			try:
+				con.backend_exit()
+			except:
+				pass
+		if self.configBackend:
+			try:
+				self.configBackend.backend_exit()
+			except:
+				pass
+	
+	def readConfigFile(self):
+		try:
+			logger.notice(u"Reading config file '%s'" % self.config["configFile"])
+			if not os.path.isfile(self.config["configFile"]):
+				raise Exception(u"File not found")
+			
+			self.config['repositories'] = []
+			
+			iniFile = IniFile(filename = self.config['configFile'], raw = True)
+			config = iniFile.parse()
+			for section in config.sections():
+				if   (section.lower() == 'general'):
+					for (option, value) in config.items(section):
+						if   (option.lower() == 'packagedir'):
+							self.config["packageDir"] = forceFilename(value.strip())
+						elif (option.lower() == 'logfile'):
+							value = forceFilename(value.strip())
+							if os.path.exists(value):
+								os.unlink(value)
+							logger.setLogFile(value)
+						elif (option.lower() == 'loglevel'):
+							logger.setFileLevel(forceInt(value.strip()))
+				elif (section.lower() == 'notification'):
+					for (option, value) in config.items(section):
+						if   (option.lower() == 'active'):
+							self.config["notification"] = forceBool(value)
+						elif   (option.lower() == 'mailrelay'):
+							self.config["mailrelay"] = forceNetworkAddress(value.strip())
+						elif   (option.lower() == 'smtpport'):
+							self.config["smtpport"] = forceInt(value.strip())
+						elif   (option.lower() == 'sender'):
+							self.config["sender"] = forceEmailAddress(value.strip())
+						elif   (option.lower() == 'receivers'):
+							self.config["receivers"] = []
+							receivers = value.split(u",")
+							for receiver in receivers:
+								receiver = receiver.strip()
+								if not receiver:
+									continue
+								self.config["receivers"].append(forceEmailAddress(receiver))
+				elif (section.lower() == 'wol'):
+					for (option, value) in config.items(section):
+						if   (option.lower() == 'active'):
+							self.config["wolAction"] = forceBool(value.strip())
+						elif (option.lower() == 'excludeproductids'):
+							self.config['wolActionExcludeProductIds'] = []
+							productIds = value.split(u',')
+							for productId in productIds:
+								productId = productId.strip()
+								if not productId:
+									continue
+								self.config["wolActionExcludeProductIds"].append(forceProductId(productId))
+						elif (option.lower() == 'shutdownwanted'):
+							self.config["wolShutdownWanted"] = forceBool(value.strip())
+				elif (section.lower() == 'installation'):
+					for (option, value) in config.items(section):
+						if   (option.lower() == 'windowstart'):
+							if not value.strip():
+								continue
+							if not re.search('^\d{1,2}\:\d{1,2}$', value.strip()):
+								raise Exception(u"Start time '%s' not in needed format 'HH:MM'" % value.strip())
+							self.config["installationWindowStartTime"] = value.strip()
+						elif (option.lower() == 'windowend'):
+							if not value.strip():
+								continue
+							if not re.search('^\d{1,2}\:\d{1,2}$', value.strip()):
+								raise Exception(u"End time '%s' not in needed format 'HH:MM'" % value.strip())
+							self.config["installationWindowEndTime"] = value.strip()
+						elif (option.lower() == 'exceptproductids'):
+							self.config['installationWindowExceptions'] = []
+							productIds = value.split(',')
+							for productId in productIds:
+								productId = productId.strip()
+								if not productId:
+									continue
+								self.config["installationWindowExceptions"].append(forceProductId(productId))
+				elif section.lower().startswith('repository'):
+					try:
+						if not toBool(config.get(section, 'active')):
+							continue
+					except NoOptionError:
+						pass
+					active = True
+					baseUrl = None
+					opsiDepotId = None
+					proxy = None
+					for (option, value) in config.items(section):
+						if   (option.lower() == 'active'):
+							active = forceBool(value)
+						elif (option.lower() == 'baseurl'):
+							if value.strip():
+								baseUrl = forceUrl(value.strip())
+						elif (option.lower() == 'opsidepotid'):
+							if value.strip():
+								opsiDepotId = forceHostId(value.strip())
+						elif (option.lower() == 'proxy'):
+							if value.strip():
+								proxy = forceUrl(value.strip())
+					if not active:
+						logger.info(u"Repository %s deactivated" % section)
+						continue
+					
+					repository = None
+					if opsiDepotId:
+						depot = self.getConfigBackend().getDepot_hash(opsiDepotId)
+						repository = ProductRepositoryInfo(
+							baseUrl     = depot['repositoryRemoteUrl'],
+							dirs        = ['/'],
+							username    = self.depotId,
+							password    = self.depotKey,
+							opsiDepotId = opsiDepotId)
+					elif baseUrl:
+						if proxy:
+							logger.notice(u"Using Proxy: %s" % proxy)
+							repository = ProductRepositoryInfo(baseUrl = baseUrl, proxy = proxy)
+						else:
+							repository = ProductRepositoryInfo(baseUrl = baseUrl)
+					else:
+						logger.error(u"Repository section '%s': neither baseUrl nor opsiDepotId set" % section)
+						continue
+					
+					for (option, value) in config.items(section):
+						if   (option.lower() == 'username'):
+							repository.username = forceUnicode(value.strip())
+						elif (option.lower() == 'password'):
+							repository.password = forceUnicode(value.strip())
+						elif (option.lower() == 'autoinstall'):
+							repository.autoInstall = forceBool(value.strip())
+						elif (option.lower() == 'autoupdate'):
+							repository.autoUpdate = forceBool(value.strip())
+						elif (option.lower() == 'autosetup'):
+							repository.autoSetup = forceBool(value.strip())
+						elif (option.lower() == 'onlyload'):
+							repository.onlyLoad = forceBool(value.strip())
+							
+						elif (option.lower() == 'dirs'):
+							repository.dirs = []
+							dirs = value.split(',')
+							for d in dirs:
+								d = d.strip()
+								if not d:
+									continue
+								repository.dirs.append(forceFilename(d))
+							repository.dirs = dirs
+					self.config['repositories'].append(repository)
+				else:
+					logger.error(u"Unhandled section '%s'" % section)
+		except Exception, e:
+			raise Exception(u"Failed to read config file '%s': %s" % (self.config["configFile"], e))
+		
+	def getConfigBackend(self):
+		if not self.configBackend:
+			self.configBackend = BackendManager(
+				dispatchConfigFile = u'/etc/opsi/backendManager/dispatch.conf',
+				backendConfigDir   = u'/etc/opsi/backends',
+				extensionConfigDir = u'/etc/opsi/backendManager/extend.d',
+				depotbackend       = True,
+				hostControlBackend = True
+			)
+		return self.configBackend
+		
+	def getDepotConnection(self, depotId, username, password):
+		if not self.depotConnections.has_key(depotId):
+			self.depotConnections[depotId] = JSONRPCBackend(address = depotId, username = username, password = password)
+		return self.depotConnections[depotId]
+	
+	def processUpdates(self):
+		if not self.config["repositories"]:
+			logger.notice(u"No repositories configured, nothing to do")
+			return
+			
+		if self.config["notification"]:
+			logger.notice(u"Notification is activated")
+			notifier = EmailHandler(
+				self.config["mailrelay"],
+				self.config["smtpport"],
+				self.config["sender"],
+				self.config["receivers"],
+				self.config["templatefile"]
+				)
+		
+		installedProducts    = self.getInstalledProducts()
+		localPackages        = self.getLocalPackages()
+		downloadablePackages = self.onlyNewestPackages(self.getDownloadablePackages())
+		newPackages          = []
+		
+		for availablePackage in downloadablePackages:
+			logger.info(u"Testing if download/installation of package '%s' is needed" % availablePackage["filename"])
+			productInstalled = False
+			updateAvailable = False
+			installationRequired = False
+			for product in installedProducts:
+				if (product['productId'] == availablePackage['productId']):
+					logger.debug(u"Product '%s' is installed" % availablePackage['productId'])
+					productInstalled = True
+					logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" \
+						% (availablePackage['version'], product['productVersion'], product['packageVersion']))
+					updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
+					break
+			
+			if not productInstalled:
+				if availablePackage['repository'].autoInstall:
+					logger.notice(u"%s - installation required: product '%s' is not installed and auto install is set for repository '%s'" \
+						% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
+					installationRequired = True
+				else:
+					logger.notice(u"%s - installation not required: product '%s' is not installed but auto install is not set for repository '%s'" \
+						% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
+			elif updateAvailable:
+				if availablePackage['repository'].autoUpdate:
+					logger.notice(u"%s - installation required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) and auto update is set for repository '%s'" \
+							% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
+					installationRequired = True
+				else:
+					logger.notice(u"%s - installation not required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) but auto update is not set for repository '%s'" \
+							% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
+			else:
+				logger.notice(u"%s - installation not required: installed version '%s-%s' of product '%s' is up to date" \
+							% (availablePackage["filename"], product['productVersion'], product['packageVersion'], availablePackage['productId']))
+			
+			if not installationRequired:
+				continue
+			
+			downloadNeeded = True
+			localPackageFound = None
+			for localPackage in localPackages:
+				if (localPackage['productId'] == availablePackage['productId']):
+					logger.debug(u"Found local package file '%s'" % localPackage['filename'])
+					localPackageFound = localPackage
+					if (localPackage['filename'] == availablePackage['filename']):
+						if (localPackage['md5sum'] == availablePackage['md5sum']):
+							downloadNeeded = False
+							break
+			if not downloadNeeded:
+				logger.notice(u"%s - download of package is not required: found local package %s with matching md5sum" \
+							% (availablePackage["filename"], localPackageFound['filename']))
+			elif localPackageFound:
+				logger.notice(u"%s - download of package is required: found local package %s which differs from available" \
+							% (availablePackage["filename"], localPackageFound['filename']))
+			else:
+				logger.notice(u"%s - download of package is required: local package not found" % availablePackage["filename"])
+			
+			if downloadNeeded:
+				if notifier:
+					self.downloadPackage(availablePackage, notifier = notifier)
+				else:
+					self.downloadPackage(availablePackage)
+				#if availablePackage['repository'].opsiDepotId:
+				#	self.syncPackage(availablePackage, localPackageFound)
+				#else:
+				#	self.downloadPackage(availablePackage)
+			
+			packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
+			
+			logger.info(u"Verifying download of package '%s'" % packageFile)
+			md5sum = md5sum(packageFile)
+			if (md5sum == availablePackage["md5sum"]):
+				logger.info(u"Md5sum match, package download verified")
+			else:
+				raise Exception(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
+			
+			newPackages.append(availablePackage)
+			
+		if not newPackages:
+			logger.info(u"No new packages downloaded")
+			return
+		
+		now = time.localtime()
+		now = '%d:%d' % (now[3], now[4])
+		
+		def tdiff(t1, t2):
+			t1 = int(t1.split(':')[0])*60 + int(t1.split(':')[1])
+			t2 = int(t2.split(':')[0])*60 + int(t2.split(':')[1])
+			if (t1 > t2):
+				return 24*60 - t1 + t2
+		
+		insideInstallWindow = True
+		if not self.config['installationWindowStartTime'] or not self.config['installationWindowEndTime']:
+			logger.notice(u"Installation time window not defined, installing products and setting actions")
+		elif tdiff(self.config['installationWindowStartTime'], self.config['installationWindowEndTime']) >= tdiff(self.config['installationWindowStartTime'], now):
+			logger.notice(u"We are inside the installation time window, installing products and setting actions")
+		else:
+			logger.notice(u"We are outside installation time window, not installing products except for product ids %s" \
+					% self.config['installationWindowExceptions'])
+			insideInstallWindow = False
+		
+		installedPackages = []
+		for package in newPackages:
+			if not insideInstallWindow and not package['productId'] in self.config['installationWindowExceptions']:
+				continue
+			
+			if availablePackage['repository'].autoLoad:
+				continue
+			
+			packageFile = os.path.join(self.config["packageDir"], package["filename"])
+			
+			defaultProperties = {}
+			try:
+				logger.info(u"Trying to get product property defaults from repository")
+				for p in self.getConfigBackend().getProductPropertyDefinitions_listOfHashes(package['productId'], availablePackage['repository'].opsiDepotId):
+					defaultProperties[p['name']] = p['default']
+				logger.notice(u"Using product property defaults from repository: %s" % defaultProperties)
+			except Exception, e:
+				logger.warning(u"Failed to get product property defaults from repository: %s" % e)
+			
+			logger.notice(u"Installing package '%s'" % packageFile)
+			
+			self.getConfigBackend().installPackage(filename = packageFile, force = True, defaultProperties = defaultProperties)
+			
+			if notifier: notifier.appendLine(u"Paket '%s' erfolgreich installiert" % packageFile)
+			logger.notice(u"Package '%s' successfully installed" % packageFile)
+			installedPackages.append(package)
+		
+		if not installedPackages:
+			logger.info(u"No new packages installed")
+			if notifier and notifier.notify:
+				logger.notice(u"Sending notify by mail")
+				notifier.sendMail()
+			return
+		
+		wakeOnLanClients = []
+		for package in installedPackages:
+			if package['repository'].autoSetup:
+				logger.notice(u"Setting action 'setup' for product '%s' where installation status 'installed' because auto setup is set for repository '%s'" \
+					% (package['productId'], package['repository'].baseUrl))
+			else:
+				logger.notice(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not set for repository '%s'" \
+					% (package['productId'], package['repository'].baseUrl))
+				continue
+			clientIds = self.getConfigBackend().getClientIds_list([], [ self.depotId ], None, package['productId'], "installed")
+			for clientId in clientIds:
+				try:
+					self.getConfigBackend().setProductActionRequest(package['productId'], clientId, 'setup')
+					if self.config['wolAction'] and not package['productId'] in self.config['wolActionExcludeProductIds']:
+						if not clientId in wakeOnLanClients:
+							wakeOnLanClients.append(clientId)
+				except Exception, e:
+					logger.error(u"Failed to set action for product '%s' to 'setup' on client '%s': %s" % (package['productId'], clientId, e))
+		
+		if wakeOnLanClients:
+			logger.notice(u"Powering on clients %s" % wakeOnLanClients)
+			wolBackend = WakeOnLANBackend()
+			for clientId in wakeOnLanClients:
+				try:
+					logger.info(u"Powering on client '%s'" % clientId)
+					mac = self.getConfigBackend().getMacAddress(clientId)
+					if not mac:
+						raise Exception(u"Failed to get mac address")
+					if self.config["wolShutdownWanted"]:
+						logger.info(u"Setting shutdownwanted to 'setup' for client '%s'" % clientId)
+						self.getConfigBackend().setProductActionRequest('shutdownwanted', clientId, 'setup')
+					wolBackend.powerOnHost(mac)
+				except Exception, e:
+					logger.error(u"Failed to power on client '%s': %s" % (clientId, e))
+					
+		if notifier and notifier.notify:
+			logger.notice(u"Sending notify by mail")
+			notifier.sendMail()
+				
+	#def syncPackage(self, remotePackage, localPackage):
+	#	packageFilename = remotePackage['filename']
+	#	localPackageFile = localPackage['packageFile']
+	#	depotId = remotePackage['repository'].opsiDepotId
+	#	
+	#	logger.notice(u"Syncing %s" % packageFilename)
+	#	
+	#	depotConnection = self.getDepotConnection(depotId, remotePackage['repository'].username, remotePackage['repository'].password)
+	#	repositoryLocalUrl = depotConnection.getDepot_hash(depotId).get("repositoryLocalUrl")
+	#	logger.info(u"Got repository local url '%s' for depot '%s'" % (repositoryLocalUrl, depotId))
+	#	if not repositoryLocalUrl or not repositoryLocalUrl.startswith('file://'):
+	#		raise Exception(u"Invalid repository local url for depot '%s'" % depotId)
+	#	depotRepositoryPath = repositoryLocalUrl[7:]
+		
+	
+	def downloadPackage(self, availablePackage, notifier = None):
+		
+		url = availablePackage["packageFile"]
+		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
+		
+		passwordManager = urllib2.HTTPPasswordMgrWithDefaultRealm()
+		passwordManager.add_password(None, availablePackage['repository'].baseUrl, availablePackage['repository'].username, availablePackage['repository'].password)
+		handler = urllib2.HTTPBasicAuthHandler(passwordManager)
+		if availablePackage['repository'].proxy:
+			logger.notice(u"Using Proxy: %s" % availablePackage['repository'].proxy)
+			proxy_handler = urllib2.ProxyHandler({'http': availablePackage['repository'].proxy})
+			opener = urllib2.build_opener(proxy_handler, handler)
+		else:
+			opener = urllib2.build_opener(handler)
+		urllib2.install_opener(opener)
+		
+		req = urllib2.Request(url, None, self.httpHeaders)
+		con = opener.open(req)
+		size = int(con.info().get('Content-length', 0))
+		if size:
+			logger.notice(u"Downloading %s (%s MB) to %s" % (url, round(size/(1024.0*1024.0), 2), outFile))
+		else:
+			logger.notice(u"Downloading %s to %s" % (url, outFile))
+		out = open(outFile, 'wb')
+		try:
+			uid = pwd.getpwnam('opsiconfd')[2]
+			gid = grp.getgrnam('pcpatch')[2]
+			os.chmod(outFile, 0660)
+			os.chown(outFile, uid, gid)
+		except Exception, e:
+			logger.warning(u"Failed to set rights on file '%s': %s" % (outFile, e))
+		
+		completed = 0.0
+		percent = 0.0
+		lastTime = time.time()
+		lastCompleted = 0
+		lastPercent = 0
+		speed = 0
+		while True:
+			chunk = con.read(32768)
+			if not chunk:
+				break
+			completed += len(chunk)
+			out.write(chunk)
+			if (size > 0):
+				percent = round(100*completed/size, 1)
+				if (lastPercent != percent):
+					lastPercent = percent
+					now = time.time()
+					if (not speed or (now - lastTime) > 2):
+						speed = 8 * int( ((completed - lastCompleted)/(now - lastTime))/1024 )
+						lastTime = now
+						lastCompleted = completed
+					logger.debug(u'Downloading %s: %d%% (%d kbit/s)' % (url, percent, speed))
+		out.close()
+		if notifier: notifier.appendLine(u"Download von '%s' nach /var/lib/opsi/products/ abgeschlossen" % url)
+		logger.notice(u"Download of '%s' completed" % url)
+		
+		logger.info(u"Cleaning up in %s" % self.config["packageDir"])
+		for f in os.listdir(self.config["packageDir"]):
+			(productId, version) = (None, None)
+			try:
+				productId = '_'.join(f.split('_')[:-1])
+				version = f[:-5].split('_')[-1]
+			except:
+				continue
+			if (productId == availablePackage["productId"]) and (version != availablePackage["version"]):
+				logger.info(u"Deleting obsolete package file '%s'" % os.path.join(self.config["packageDir"], f))
+				os.unlink(os.path.join(self.config["packageDir"], f))
+		
+		
+	def onlyNewestPackages(self, packages):
+		newestPackages = []
+		for package in packages:
+			found = None
+			for i in range(len(newestPackages)):
+				if (newestPackages[i]['productId'] == package['productId']):
+					found = i
+					break
+			if found is None:
+				newestPackages.append(package)
+			elif compareVersions(package['version'], '>', newestPackages[i]['version']):
+				logger.debug("Package version '%s' is newer than version '%s'" % (package['version'], newestPackages[i]['version']))
+				newestPackages[i] = package
+		return newestPackages
+	
+	def getLocalPackages(self):
+		logger.notice(u"Getting info for local packages in '%s'" % self.config["packageDir"])
+		packages = []
+		for f in os.listdir(self.config["packageDir"]):
+			if not f.endswith('.opsi'):
+				continue
+			packageFile = os.path.join(self.config["packageDir"], f)
+			logger.info(u"Found local package '%s'" % packageFile)
+			try:
+				productId = '_'.join(f.split('_')[:-1])
+				version = f[:-5].split('_')[-1]
+				packages.append({
+					"productId":   productId.lower(),
+					"version":     version,
+					"packageFile": packageFile,
+					"filename":    f,
+					"md5sum":      md5sum(packageFile)
+				})
+				logger.debug(u"Local package info: %s" % packages[-1])
+			except Exception ,e:
+				logger.error("Failed to process file '%s': %s" % (f, e))
+		return packages
+	
+	def getInstalledProducts(self):
+		logger.notice(u"Getting installed products")
+		products = []
+		configBackend = self.getConfigBackend()
+		productIds = configBackend.getProductIds_list(objectId = self.depotId)
+		productIds.sort()
+		for productId in productIds:
+			product = configBackend.getProduct_hash(productId, depotId = self.depotId)
+			product['productId'] = productId.lower()
+			logger.info(u"Found installed product '%s_%s-%s'" % (product['productId'], product['productVersion'], product['packageVersion']))
+			products.append(product)
+		return products
+		
+	def getDownloadablePackages(self):
+		downloadablePackages = []
+		for repository in self.config.get("repositories", []):
+			downloadablePackages.extend(self.getDownloadablePackagesFromRepository(repository))
+		return downloadablePackages
+		
+	def getDownloadablePackagesFromRepository(self, repository):
+		logger.notice(u"Getting package infos from repository '%s'" % repository.baseUrl)
+		packages = []
+		
+		depotConnection = None
+		depotRepositoryPath = None
+		if repository.opsiDepotId:
+			depotConnection = self.getDepotConnection(repository.opsiDepotId, repository.username, repository.password)
+			repositoryLocalUrl = depotConnection.getDepot_hash(repository.opsiDepotId).get("repositoryLocalUrl")
+			logger.info(u"Got repository local url '%s' for depot '%s'" % (repositoryLocalUrl, repository.opsiDepotId))
+			if not repositoryLocalUrl or not repositoryLocalUrl.startswith('file://'):
+				raise Exception(u"Invalid repository local url for depot '%s'" % repository.opsiDepotId)
+			depotRepositoryPath = repositoryLocalUrl[7:]
+			
+		passwordManager = urllib2.HTTPPasswordMgrWithDefaultRealm()
+		passwordManager.add_password(None, repository.baseUrl, repository.username, repository.password)
+		handler = urllib2.HTTPBasicAuthHandler(passwordManager)
+		if repository.proxy:
+			logger.notice(u"Using Proxy: %s" % repository.proxy)
+			proxy_handler = urllib2.ProxyHandler({'http': repository.proxy})
+			opener = urllib2.build_opener(proxy_handler, handler)
+		else:
+			opener = urllib2.build_opener(handler)
+		urllib2.install_opener(opener)
+		
+		for url in repository.getDownloadUrls():
+			req = urllib2.Request(url, None, self.httpHeaders)
+			response = opener.open(req)
+			content = response.read()
+			format = formatter.NullFormatter()
+			htmlParser = LinksExtractor(format)
+			htmlParser.feed(content)
+			htmlParser.close()
+			for link in htmlParser.getLinks():
+				if not link.endswith('.opsi'):
+					continue
+				try:
+					productId = '_'.join(link.split('_')[:-1])
+					version = link[:-5].split('_')[-1]
+					packageFile = url + '/' + link
+					logger.info(u"Found opsi package: %s" % packageFile)
+					packages.append( {
+						"repository":  repository,
+						"productId":   productId.lower(),
+						"version":     version,
+						"packageFile": packageFile,
+						"filename":    link,
+						"md5sum":      None } )
+					if depotConnection:
+						packages[-1]["md5sum"] = depotConnection.getMD5Sum(u'%s/%s' % (depotRepositoryPath, link))
+					logger.debug(u"Repository package info: %s" % packages[-1])
+				except Exception ,e:
+					logger.error(u"Failed to process link '%s': %s" % (link, e))
+			
+			if not depotConnection:
+				for link in htmlParser.getLinks():
+					if not link.endswith('.opsi.md5'):
+						continue
+					try:
+						filename = link[:-4]
+						for i in range(len(packages)):
+							if (packages[i].get('filename') == filename):
+								req = urllib2.Request(url + '/' + link, None, self.httpHeaders)
+								con = opener.open(req)
+								md5sum = con.read(32768)
+								match = re.search('([a-z\d]{32})', md5sum)
+								if match:
+									packages[i]["md5sum"] = match.group(1)
+									logger.debug(u"Got md5sum for package '%s': %s" % (filename, packages[i]["md5sum"]))
+								break
+					except Exception ,e:
+						logger.error(u"Failed to process link '%s': %s" % (link, e))
+		return packages
+
+def usage():
+	print u""
+	print u"Usage: %s [options]" % os.path.basename(sys.argv[0])
+	print u"Options:"
+	print u"    -h    Show this help text"
+	print u"    -v    Increase verbosity (can be used multiple times)"
+	print u"    -V    Show version information and exit"
+	print u"    -c    Location of config file"
+	print u""
+
+def main(argv):
+	consoleLevel = LOG_ERROR
+	logger.setConsoleLevel(consoleLevel)
+	
+	config = {
+		"userAgent":                    'opsi product updater %s' % __version__,
+		"packageDir":                   '/var/lib/opsi/products',
+		"configFile":                   '/etc/opsi/opsi-product-updater.conf',
+		"wolAction":                    False,
+		"wolActionExcludeProductIds":   [],
+		"wolShutdownWanted":            False,
+		"installationWindowStartTime":  None,
+		"installationWindowEndTime":    None,
+		"installationWindowExceptions": None,
+		"repositories":                 [],
+	}
+	
+	# Get options
+	try:
+		(opts, args) = getopt.getopt(argv, "hvVc:")
+	
+	except getopt.GetoptError:
+		usage()
+		sys.exit(1)
+	
+	
+	for (opt, arg) in opts:
+		if   (opt == "-h"):
+			usage()
+			return
+		elif (opt == "-V"):
+			print __version__
+			return
+		elif (opt == "-c"):
+			config["configFile"] = arg
+		elif (opt == "-v"):
+			consoleLevel += 1
+			logger.setConsoleLevel(consoleLevel)
+	
+	pid = os.getpid()
+	running = None
+	try:
+		for p in System.execute("%s -x %s" % (System.which("pidof"), os.path.basename(sys.argv[0])))[0].strip().split():
+			if not (int(p) == pid):
+				running = p
+	except Exception, e:
+		logger.error(e)
+	if running:
+		raise Exception(u"Another %s process is running (pid: %s)." % (os.path.basename(sys.argv[0]), running))
+	
+	opu = OpsiPackageUpdater(config)
+	opu.processUpdates()
+	
+	
+	
+	
+	
+if (__name__ == "__main__"):
+
+	try:
+		main(sys.argv[1:])
+	except SystemExit:
+		pass
+
+	except KeyboardInterrupt:
+		sys.exit(1)
+
+	except Exception, e:
+		logger.logException(e)
+		print >> sys.stderr, "ERROR: %s" % e
+		sys.exit(1)
+	
+	sys.exit(0)
+
