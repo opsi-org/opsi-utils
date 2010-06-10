@@ -75,6 +75,7 @@ def usage():
 	print u"   -I          incremental package"
 	print u"   -i          custom name (add custom files)"
 	print u"   -c          custom name (custom only)"
+	print u"   -C          compatibility mode (opsi 3)"
 	print u"   -t          temp dir"
 	print u""
 
@@ -141,25 +142,26 @@ def unlockPackage(tempDir, packageControlFile):
 def main(argv):
 	os.umask(022)
 	
-	logLevel         = LOG_WARNING
-	packageSourceDir = os.getcwd()
-	tempDir          = u'/tmp'
-	lockFile         = None
-	customName       = u''
-	customOnly       = False
-	quiet            = False
-	format           = 'cpio'
-	compression      = 'gzip'
-	dereference      = False
-	requiredVersion  = None
-	incremental      = False
+	logLevel          = LOG_WARNING
+	packageSourceDir  = os.getcwd()
+	tempDir           = u'/tmp'
+	lockFile          = None
+	customName        = u''
+	customOnly        = False
+	quiet             = False
+	format            = 'cpio'
+	compression       = 'gzip'
+	dereference       = False
+	requiredVersion   = None
+	incremental       = False
+	compatibilityMode = False
 	
 	logger.setConsoleLevel(logLevel)
 	logger.setConsoleColor(True)
 	logger.setConsoleFormat(u'%L: %M')
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "hvnqi:c:t:l:F:I:")
+		(opts, args) = getopt.getopt(argv, "Chvnqi:c:t:l:F:I:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -191,7 +193,9 @@ def main(argv):
 			tempDir = forceFilename(arg)
 		elif (opt == "-F"):
 			format = forceUnicode(arg)
-	
+		elif (opt == "-C"):
+			compatibilityMode = True
+		
 	if (len(args) > 1):
 		logger.error(u"To many arguments")
 		usage()
@@ -316,7 +320,7 @@ def main(argv):
 						try:
 							if (newVersion != ''):
 								product.setProductVersion(newVersion)
-								pcf.generate()
+								pcf.generate(opsi3compatible = compatibilityMode)
 							break
 						except:
 							print _(u"Bad product version: %s") % newVersion
@@ -326,14 +330,14 @@ def main(argv):
 						try:
 							if (newVersion != ''):
 								product.setPackageVersion(newVersion)
-								pcf.generate()
+								pcf.generate(opsi3compatible = compatibilityMode)
 							break
 						except:
 							print _(u"Bad package version: %s") % newVersion
 					continue
 			
 			# Regenerating to fix encoding
-			pcf.generate()
+			pcf.generate(opsi3compatible = compatibilityMode)
 			
 			progressSubject = None
 			if not quiet:
