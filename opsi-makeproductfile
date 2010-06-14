@@ -256,7 +256,7 @@ def main(argv):
 			if not quiet: print u"   %-20s : %s" % (u'product id',           product.id)
 			if not quiet and (product.getType() == 'LocalbootProduct'):
 				print       u"   %-20s : %s" % (u'product type',         u'localboot')
-			if not quiet and (product.getType() == 'LocalbootProduct'):
+			if not quiet and (product.getType() == 'NetbootProduct'):
 				print       u"   %-20s : %s" % (u'product type',         u'netboot')
 			if not quiet: print u"   %-20s : %s" % (u'version',              product.productVersion)
 			if not quiet: print u"   %-20s : %s" % (u'name',                 product.name)
@@ -267,7 +267,7 @@ def main(argv):
 			if not quiet: print u"   %-20s : %s" % (u'product classes',      u', '.join(product.productClassIds))
 			if not quiet: print u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds))
 			if not quiet and (product.getType() == 'NetbootProduct'):
-				print       u" %-20s : %s" % (u'pxe config template',  product.pxeConfigTemplate)
+				print       u"   %-20s : %s" % (u'pxe config template',  product.pxeConfigTemplate)
 			
 			if not quiet: print ""
 			if not quiet: print _(u"Product scripts")
