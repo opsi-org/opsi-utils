@@ -54,9 +54,10 @@ def _(string):
 	return string
 
 class ProductRepositoryInfo(object):
-	def __init__(self, baseUrl, dirs = [], username=u"", password=u"", opsiDepotId = None, autoInstall = False, autoUpdate = True, autoSetup = False, proxy = None):
+	def __init__(self, baseUrl, dirs = [], username=u"", password=u"", opsiDepotId = None, autoInstall = False, autoUpdate = True, autoSetup = False, proxy = None, excludes=[]):
 		self.baseUrl     = baseUrl
 		self.dirs        = dirs
+		self.excludes    = excludes
 		self.username    = username
 		self.password    = password
 		self.autoInstall = autoInstall
@@ -302,7 +303,14 @@ class OpsiPackageUpdater(object):
 								if not d:
 									continue
 								repository.dirs.append(forceFilename(d))
-							repository.dirs = dirs
+						elif (option.lower() == 'excludes'):
+							repository.excludes = []
+							excludes = value.split(',')
+							for e in excludes:
+								e = e.strip()
+								if not e:
+									continue
+								repository.excludes.append(re.compile(e))
 					self.config['repositories'].append(repository)
 				else:
 					logger.error(u"Unhandled section '%s'" % section)
@@ -734,6 +742,14 @@ class OpsiPackageUpdater(object):
 				htmlParser.close()
 				for link in htmlParser.getLinks():
 					if not link.endswith('.opsi'):
+						continue
+					excluded = False
+					for exclude in repository.excludes:
+						if exclude.search(link):
+							excluded = True
+							break
+					if excluded:
+						logger.info(u"Package '%s' excluded by regular expression" % link)
 						continue
 					try:
 						productId = '_'.join(link.split('_')[:-1])
