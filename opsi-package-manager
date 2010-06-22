@@ -1215,12 +1215,12 @@ class OpsiPackageManager():
 			
 			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
 			logger.info(u"Using '%s' as repository url" % depot.getRepositoryRemoteUrl())
-			repository = getRepository(depot.getRepositoryRemoteUrl(), depotId, depot.getOpsiHostKey())
-			for destination in repository.content():
-				if not destination['name'].startswith(u'%s_' % productId):
+			repository = getRepository(url = depot.getRepositoryRemoteUrl(), username = depotId, password = depot.getOpsiHostKey())
+			for destination in repository.listdir():
+				if not destination.startswith(u'%s_' % productId):
 					continue
-				logger.info(u"Deleting destination '%s' on depot '%s'" % (destination['name'], depotId))
-				repository.delete(destination['name'])
+				logger.info(u"Deleting destination '%s' on depot '%s'" % (destination, depotId))
+				repository.delete(destination)
 			
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_uninstallPackage(productId, force = self.config['forceUninstall'], deleteFiles = self.config['deleteFilesOnUninstall'])
