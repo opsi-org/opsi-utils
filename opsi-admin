@@ -54,7 +54,7 @@ logFile = None
 logLevel = LOG_NONE
 logger = Logger()
 interactive = False
-
+logger.setLogFormat(u"[%l] %M (%F|%N)")
 
 
 LOGO =[	{"color": COLOR_CYAN, "text": u'                               .:.:::::.                          '},
@@ -1041,7 +1041,30 @@ class CommandMethod(Command):
 			shell.display()
 			return
 		
-		params = deserialize(params[1:])
+		methodInterface = None
+		for m in self.interface:
+			if (method == m['name']):
+				methodInterface = m
+				break
+		if not methodInterface:
+			raise OpsiRpcError(u"Method '%s' is not valid" % method)
+		
+		params = params[1:]
+		keywords = {}
+		if methodInterface['keywords']:
+			l = 0
+			if methodInterface['args']:
+				l += len(methodInterface['args'])
+			if methodInterface['varargs']:
+				l += len(methodInterface['varargs'])
+			if (len(params) >= l):
+				# Do not create Object instances!
+				params[-1] = fromJson(params[-1], preventObjectCreation = True)
+				if not type(params[-1]) is types.DictType:
+					raise Exception(u"kwargs param is not a dict: %s" % params[-1])
+				for (key, value) in params.pop(-1).items():
+					keywords[str(key)] = deserialize(value)
+		
 		for i in range(len(params)):
 			try:
 				params[i] = fromJson(params[i])
@@ -1050,29 +1073,12 @@ class CommandMethod(Command):
 				params[i] = forceUnicode(params[i])
 		
 		pString = unicode(params)[1:-1]
+		if keywords:
+			pString += u', ' + unicode(keywords)
 		if (len(pString) > 200):
 			pString = pString[:200] + u'...'
 		
 		result = None
-		found = False
-		keywords = {}
-		for m in self.interface:
-			if (method == m['name']):
-				if m['keywords']:
-					l = 0
-					if m['args']:
-						l += len(m['args'])
-					if m['varargs']:
-						l += len(m['varargs'])
-					if (len(params) >= l):
-						if not type(params[-1]) is types.DictType:
-							raise Exception(u"Not a dict: %s" % params[-1])
-						for (key, value) in params.pop(-1).items():
-							keywords[str(key)] = deserialize(value)
-				found = True
-				break
-		if not found:
-			raise OpsiRpcError(u"Method '%s' is not valid" %method)
 		
 		logger.info(u"Executing:  %s(%s)" % (method, pString))
 		shell.setInfoline(u"Executing:  %s(%s)" % (method, pString))
