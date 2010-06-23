@@ -196,9 +196,9 @@ def main(argv):
 	
 	global backend
 	
-	encoding = sys.stdin.encoding
-	if not encoding:
-		encoding = locale.getpreferredencoding()
+	#encoding = sys.stdin.encoding
+	#if not encoding:
+	encoding = locale.getpreferredencoding()
 	
 	if direct:
 		# Create BackendManager
@@ -297,11 +297,10 @@ def main(argv):
 			
 			logger.debug(shell.getLines())
 			for line in shell.lines:
-				print >> sys.stdout, line['text'].rstrip()
+				print >> sys.stdout, forceUnicode(line['text']).rstrip().encode(encoding)
 			
 		except Exception, e:
 			logger.logException(e)
-			raise
 	else:
 		usage()
 		sys.exit(1)
@@ -340,9 +339,9 @@ class Shell:
 			CommandLog(),
 			CommandTask() ]
 		
-		self.encoding = sys.stdin.encoding
-		if not self.encoding:
-			self.encoding = locale.getpreferredencoding()
+		#self.encoding = sys.stdin.encoding
+		#if not self.encoding:
+		self.encoding = locale.getpreferredencoding()
 		
 		home = os.environ.get('HOME')
 		if home:
@@ -1135,9 +1134,9 @@ class CommandMethod(Command):
 					stderr	= subprocess.PIPE,
 				)
 				
-				encoding = proc.stdin.encoding
-				if not encoding:
-					encoding = locale.getpreferredencoding()
+				#encoding = proc.stdin.encoding
+				#if not encoding:
+				encoding = locale.getpreferredencoding()
 				
 				flags = fcntl.fcntl(proc.stdout, fcntl.F_GETFL)
 				fcntl.fcntl(proc.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
@@ -1436,9 +1435,9 @@ class CommandTask(Command):
 			shell.appendLine(cleartext)
 		
 		if (params[0] == u'setPcpatchPassword'):
-			encoding = sys.stdin.encoding
-			if not encoding:
-				encoding = locale.getpreferredencoding()
+			#encoding = sys.stdin.encoding
+			#if not encoding:
+			encoding = locale.getpreferredencoding()
 			
 			if (os.getuid() != 0):
 				raise Exception(_(u"You have to be root to change pcpatch password!"))
@@ -1485,8 +1484,10 @@ class CommandTask(Command):
 					f.close()
 			
 if (__name__ == "__main__"):
+	#encoding = sys.stdout.encoding
+	#if not encoding:
+	encoding = locale.getpreferredencoding()
 	exception = None
-	
 	try:
 		try:
 			locale.setlocale(locale.LC_ALL, '')
@@ -1515,7 +1516,7 @@ if (__name__ == "__main__"):
 	if exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
-		print >> sys.stderr, u"ERROR: %s" % exception
+		#print >> sys.stderr, (u"ERROR: %s" % exception).encode(encoding)
 		sys.exit(1)
 	
 	sys.exit(0)

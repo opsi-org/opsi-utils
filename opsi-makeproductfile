@@ -217,9 +217,12 @@ def main(argv):
 	if not os.path.isdir(packageSourceDir):
 		raise Exception(u"No such directory: %s" % packageSourceDir)
 	
-	packageControlFilePath = os.path.join(packageSourceDir, u'OPSI', u'control')
-	if not os.path.exists(packageControlFilePath):
-		raise Exception(u"Control file '%s' not found" % packageControlFilePath)
+	if customName:
+		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI.%s' % customName, u'control')
+	if not customName or not os.path.exists(packageControlFilePath):
+		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI', u'control')
+		if not os.path.exists(packageControlFilePath):
+			raise Exception(u"Control file '%s' not found" % packageControlFilePath)
 	
 	if not quiet: print ""
 	if not quiet: print _(u"Locking package")

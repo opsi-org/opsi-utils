@@ -1041,7 +1041,7 @@ class OpsiPackageManager():
 				product = self.getPackageControlFile(packageFile).getProduct()
 				for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
 					productProperties.append(productProperty)
-					products[productProperty.getIdent(returnType = 'unicode')] = product			
+					products[productProperty.getIdent(returnType = 'unicode')] = product
 			if productProperties:
 				self.userInterface.exit()
 				ui = SnackUI()
@@ -1149,6 +1149,8 @@ class OpsiPackageManager():
 			propertyDefaultValues = {}
 			for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
 				propertyDefaultValues[productProperty.propertyId] = productProperty.defaultValues
+				if propertyDefaultValues[productProperty.propertyId] is None:
+					propertyDefaultValues[productProperty.propertyId] = []
 			
 			if (self.config['properties'] == 'keep'):
 				for productPropertyState in self.backend.productPropertyState_getObjects(
@@ -1156,6 +1158,8 @@ class OpsiPackageManager():
 										objectId  = depotId ):
 					if propertyDefaultValues.has_key(productPropertyState.propertyId):
 						propertyDefaultValues[productPropertyState.propertyId] = productPropertyState.values
+						if propertyDefaultValues[productProperty.propertyId] is None:
+							propertyDefaultValues[productProperty.propertyId] = []
 			
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_installPackage(depotPackageFile, force = self.config['forceInstall'], propertyDefaultValues = propertyDefaultValues, tempDir = self.config['tempDir'])
