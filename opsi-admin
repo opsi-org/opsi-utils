@@ -56,6 +56,12 @@ logger = Logger()
 interactive = False
 logger.setLogFormat(u"[%l] %M (%F|%N)")
 
+outEncoding = sys.stdout.encoding
+inEncoding = sys.stdin.encoding
+if not outEncoding:
+	outEncoding = locale.getpreferredencoding()
+if not inEncoding:
+	inEncoding = outEncoding
 
 LOGO =[	{"color": COLOR_CYAN, "text": u'                               .:.:::::.                          '},
 	{"color": COLOR_CYAN, "text": u'                               ;      ::                          '},
@@ -196,10 +202,6 @@ def main(argv):
 	
 	global backend
 	
-	#encoding = sys.stdin.encoding
-	#if not encoding:
-	encoding = locale.getpreferredencoding()
-	
 	if direct:
 		# Create BackendManager
 		backend = BackendManager(
@@ -215,7 +217,7 @@ def main(argv):
 		if not password:
 			try:
 				import getpass
-				password = unicode(getpass.getpass(), encoding)
+				password = unicode(getpass.getpass(), inEncoding)
 			except:
 				pass
 		
@@ -252,13 +254,12 @@ def main(argv):
 				session.write(u"%s\n" % sessionId)
 				session.close()
 			except Exception, e:
-				print e
 				logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), e))
 	
 	cmdline = u''
 	if (len(args) > 0):
 		for i in range(len(args)):
-			args[i] = unicode(args[i], encoding)
+			args[i] = unicode(args[i], inEncoding)
 			logger.info(u"arg[%d]: %s" % (i, args[i]))
 			if (i == 0):
 				cmdline = args[i]
@@ -269,7 +270,7 @@ def main(argv):
 	
 	(r, w, x) = select.select([ sys.stdin ], [], [], 0.2)
 	if sys.stdin in r:
-		read = unicode(sys.stdin.read(), encoding, 'replace')
+		read = unicode(sys.stdin.read(), inEncoding, 'replace')
 		cmdline += u" '%s'" % read.replace('\r', '').replace('\n', '')
 	
 	logger.debug("cmdline: '%s'" % cmdline)
@@ -297,10 +298,11 @@ def main(argv):
 			
 			logger.debug(shell.getLines())
 			for line in shell.lines:
-				print >> sys.stdout, forceUnicode(line['text']).rstrip().encode(encoding)
+				print >> sys.stdout, forceUnicode(line['text']).rstrip().encode(outEncoding)
 			
 		except Exception, e:
 			logger.logException(e)
+			raise
 	else:
 		usage()
 		sys.exit(1)
@@ -338,10 +340,6 @@ class Shell:
 			CommandHistory(),
 			CommandLog(),
 			CommandTask() ]
-		
-		#self.encoding = sys.stdin.encoding
-		#if not self.encoding:
-		self.encoding = locale.getpreferredencoding()
 		
 		home = os.environ.get('HOME')
 		if home:
@@ -467,7 +465,7 @@ class Shell:
 		self.screen.clrtoeol()
 		s = self.infoline + (self.xMax - len(self.infoline))*u' '
 		try:
-			self.screen.addstr(s.encode(self.encoding), curses.A_REVERSE)
+			self.screen.addstr(s.encode(outEncoding), curses.A_REVERSE)
 		except Exception, e:
 			logger.error(u"Failed to add string '%s': %s" % (s, e))
 		
@@ -479,7 +477,7 @@ class Shell:
 		self.screen.clrtoeol()
 		s = self.prompt + u' ' + self.cmdline + u' '*clear
 		try:
-			self.screen.addstr(s.encode(self.encoding), curses.A_BOLD)
+			self.screen.addstr(s.encode(outEncoding), curses.A_BOLD)
 		except Exception, e:
 			logger.error(u"Failed to add string '%s': %s" % (s, e))
 		
@@ -503,9 +501,9 @@ class Shell:
 			
 			try:
 				if (color != None):
-					self.screen.addstr(s.encode(self.encoding), color)
+					self.screen.addstr(s.encode(outEncoding), color)
 				else:
-					self.screen.addstr(s.encode(self.encoding))
+					self.screen.addstr(s.encode(outEncoding))
 			except Exception, e:
 				logger.error(u"Failed to add string '%s': %s" % (s, e))
 			
@@ -669,7 +667,7 @@ class Shell:
 		if interactive:
 			self.screen.move(self.yMax-1, 0)
 			self.screen.clrtoeol()
-			self.screen.addstr((question + u' (n/y)').encode(self.encoding))
+			self.screen.addstr((question + u' (n/y)').encode(inEncoding))
 			self.screen.refresh()
 			char = None
 			while True:
@@ -688,25 +686,25 @@ class Shell:
 			if interactive:
 				self.screen.move(self.yMax-1, 0)
 				self.screen.clrtoeol()
-				self.screen.addstr(_(u"Please type password:").encode(self.encoding))
+				self.screen.addstr(_(u"Please type password:").encode(outEncoding))
 				self.screen.refresh()
 				password1 = unicode(self.screen.getstr(), self.encoding)
 				
 				self.screen.move(self.yMax-1, 0)
 				self.screen.clrtoeol()
-				self.screen.addstr(_(u"Please retype password:").encode(self.encoding))
+				self.screen.addstr(_(u"Please retype password:").encode(outEncoding))
 				self.screen.refresh()
 				password2 = unicode(self.screen.getstr(), self.encoding)
 				
 				if (password1 != password2):
 					self.screen.move(self.yMax-1, 0)
 					self.screen.clrtoeol()
-					self.screen.addstr(_(u"Supplied passwords do not match").encode(self.encoding))
+					self.screen.addstr(_(u"Supplied passwords do not match").encode(outEncoding))
 					self.screen.refresh()
 					time.sleep(2)
 			else:
 				import getpass
-				password1 = password2 = unicode(getpass.getpass(), self.encoding)
+				password1 = password2 = unicode(getpass.getpass(), inEncoding)
 		
 		logger.confidential(u"Got password '%s'" % password1)
 		return password1
@@ -913,10 +911,10 @@ class Shell:
 						char = self.screen.getkey()
 						
 						try:
-							char = unicode(char, self.encoding)
+							char = unicode(char, inEncoding)
 						except:
 							char += self.screen.getkey()
-							char = unicode(char, self.encoding)
+							char = unicode(char, inEncoding)
 						
 						if (self.reverseSearch != None):
 							self.reverseSearch += char
@@ -1140,16 +1138,15 @@ class CommandMethod(Command):
 					stderr	= subprocess.PIPE,
 				)
 				
-				#encoding = proc.stdin.encoding
-				#if not encoding:
-				encoding = locale.getpreferredencoding()
-				
 				flags = fcntl.fcntl(proc.stdout, fcntl.F_GETFL)
 				fcntl.fcntl(proc.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 				
 				flags = fcntl.fcntl(proc.stderr, fcntl.F_GETFL)
 				fcntl.fcntl(proc.stderr, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-			
+				
+				encoding = proc.stdout.encoding
+				if not encoding:
+					encoding = inEncoding
 				exitCode = None
 				
 				buf = ''
@@ -1159,7 +1156,7 @@ class CommandMethod(Command):
 					exitCode = proc.poll()
 					if lines:
 						for line in lines:
-							proc.stdin.write( (u"%s\n" % line).encode(encoding, 'replace') )
+							proc.stdin.write( (u"%s\n" % line).encode(outEncoding, 'replace') )
 						lines = []
 						proc.stdin.close()
 					
@@ -1441,9 +1438,6 @@ class CommandTask(Command):
 			shell.appendLine(cleartext)
 		
 		if (params[0] == u'setPcpatchPassword'):
-			#encoding = sys.stdin.encoding
-			#if not encoding:
-			encoding = locale.getpreferredencoding()
 			
 			if (os.getuid() != 0):
 				raise Exception(_(u"You have to be root to change pcpatch password!"))
@@ -1472,27 +1466,24 @@ class CommandTask(Command):
 				if not dn:
 					raise Exception(u"Failed to get DN for user pcpatch")
 				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 > /dev/null" % (dn, password)
-				os.system(cmd.encode(encoding))
+				os.system(cmd.encode(outEncoding))
 			except:
 				try:
 					# smbldap
 					f = os.popen(u'%s pcpatch' % which('smbldap-passwd'), 'w')
-					f.write( (u"%s\n%s\n" % (password, password)).encode(encoding) )
+					f.write( (u"%s\n%s\n" % (password, password)).encode(outEncoding) )
 					f.close()
 				except:
 					# unix
 					f = os.popen(which(u'chpasswd'), 'w')
-					f.write( (u"pcpatch:%s\n" % password).encode(encoding) )
+					f.write( (u"pcpatch:%s\n" % password).encode(outEncoding) )
 					f.close()
 				
 					f = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
-					f.write( (u"%s\n%s\n" % (password, password)).encode(encoding) )
+					f.write( (u"%s\n%s\n" % (password, password)).encode(outEncoding) )
 					f.close()
 			
 if (__name__ == "__main__"):
-	#encoding = sys.stdout.encoding
-	#if not encoding:
-	encoding = locale.getpreferredencoding()
 	exception = None
 	try:
 		try:
@@ -1524,6 +1515,7 @@ if (__name__ == "__main__"):
 			pass
 		
 	if exception:
+		#print >> sys.stderr, forceUnicode(exception).encode(outEncoding, 'replace')
 		sys.exit(1)
 	
 	sys.exit(0)
