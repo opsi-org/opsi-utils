@@ -1513,6 +1513,10 @@ if (__name__ == "__main__"):
 	except Exception, e:
 		exception = e
 	
+	if exception:
+		logger.setConsoleLevel(LOG_ERROR)
+		logger.logException(exception)
+	
 	if shell:
 		try:
 			shell.exit()
@@ -1520,9 +1524,6 @@ if (__name__ == "__main__"):
 			pass
 		
 	if exception:
-		logger.setConsoleLevel(LOG_ERROR)
-		logger.logException(exception)
-		#print >> sys.stderr, (u"ERROR: %s" % exception).encode(encoding)
 		sys.exit(1)
 	
 	sys.exit(0)
