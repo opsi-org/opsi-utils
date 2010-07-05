@@ -201,112 +201,118 @@ def main(argv):
 		logger.setConsoleLevel(LOG_NONE)
 	
 	global backend
-	
-	if direct:
-		# Create BackendManager
-		backend = BackendManager(
-			dispatchConfigFile = u'/etc/opsi/backendManager/dispatch.conf',
-			backendConfigDir   = u'/etc/opsi/backends',
-			extensionConfigDir = u'/etc/opsi/backendManager/extend.d',
-			depotbackend       = True,
-			hostControlBackend = True
-		)
-	
-	else:
-		# Connect to opsiconfd
-		if not password:
+	try:
+		if direct:
+			# Create BackendManager
+			backend = BackendManager(
+				dispatchConfigFile = u'/etc/opsi/backendManager/dispatch.conf',
+				backendConfigDir   = u'/etc/opsi/backends',
+				extensionConfigDir = u'/etc/opsi/backendManager/extend.d',
+				depotbackend       = True,
+				hostControlBackend = True
+			)
+		
+		else:
+			# Connect to opsiconfd
+			if not password:
+				try:
+					import getpass
+					password = unicode(getpass.getpass(), inEncoding)
+				except:
+					pass
+			
+			opsiadminUserDir = forceFilename( os.path.join(os.environ.get('HOME'), u'.opsi-admin') )
+			if not os.path.exists(opsiadminUserDir):
+				os.mkdir(opsiadminUserDir)
+			
+			sessionId = None
 			try:
-				import getpass
-				password = unicode(getpass.getpass(), inEncoding)
-			except:
-				pass
-		
-		opsiadminUserDir = forceFilename( os.path.join(os.environ.get('HOME'), u'.opsi-admin') )
-		if not os.path.exists(opsiadminUserDir):
-			os.mkdir(opsiadminUserDir)
-		
-		sessionId = None
-		try:
-			session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'r', 'utf-8')
-			for line in session.readlines():
-				line = line.strip()
-				if line:
-					sessionId = forceUnicode(line)
-					break
-			session.close()
-		except Exception, e:
-			logger.error(u"Failed to read session file '%s': %s" % (os.path.join(opsiadminUserDir, 'session'), e))
-		
-		
-		from OPSI.Backend.JSONRPC import JSONRPCBackend
-		backend = JSONRPCBackend(
-				address	    = address,
-				username    = username,
-				password    = password,
-				application = 'opsi-admin version %s' % __version__,
-				sessionId   = sessionId)
-		logger.info(u'Connected')
-		
-		sessionId = backend.jsonrpc_getSessionId()
-		if sessionId:
-			try:
-				session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'w', 'utf-8')
-				session.write(u"%s\n" % sessionId)
+				session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'r', 'utf-8')
+				for line in session.readlines():
+					line = line.strip()
+					if line:
+						sessionId = forceUnicode(line)
+						break
 				session.close()
 			except Exception, e:
-				logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), e))
-	
-	cmdline = u''
-	if (len(args) > 0):
-		for i in range(len(args)):
-			args[i] = unicode(args[i], inEncoding)
-			logger.info(u"arg[%d]: %s" % (i, args[i]))
-			if (i == 0):
-				cmdline = args[i]
-			elif (args[i].find(u' ') != -1) or (len(args[i]) == 0):
-				cmdline += u" '%s'" % args[i]
-			else:
-				cmdline += u" %s" % args[i]
-	
-	(r, w, x) = select.select([ sys.stdin ], [], [], 0.2)
-	if sys.stdin in r:
-		read = unicode(sys.stdin.read(), inEncoding, 'replace')
-		cmdline += u" '%s'" % read.replace('\r', '').replace('\n', '')
-	
-	logger.debug("cmdline: '%s'" % cmdline)
-	
-	global shell
-	if interactive:
-		try:
-			logger.notice(u"Starting interactive mode")
-			shell = Shell(prompt = u'%s@opsi-admin>' % username, output = output, color = color, cmdline = cmdline)
-			shell.setInfoline(u"Connected to %s" % address)
+				logger.error(u"Failed to read session file '%s': %s" % (os.path.join(opsiadminUserDir, 'session'), e))
 			
-			for line in LOGO:
-				shell.appendLine(line.get('text'), line.get('color'))
-			shell.run()
-		except Exception, e:
-			logger.logException(e)
-			raise
-	elif cmdline:
-		try:
-			shell = Shell(prompt = u'%s@opsi-admin>' % username, output = output, color = color)
-			for cmd in cmdline.split(u'\n'):
-				if cmd:
-					shell.cmdline = cmd
-					shell.execute()
 			
-			logger.debug(shell.getLines())
-			for line in shell.lines:
-				print >> sys.stdout, forceUnicode(line['text']).rstrip().encode(outEncoding)
+			from OPSI.Backend.JSONRPC import JSONRPCBackend
+			backend = JSONRPCBackend(
+					address	    = address,
+					username    = username,
+					password    = password,
+					application = 'opsi-admin version %s' % __version__,
+					sessionId   = sessionId)
+			logger.info(u'Connected')
 			
-		except Exception, e:
-			logger.logException(e)
-			raise
-	else:
-		usage()
-		sys.exit(1)
-
+			sessionId = backend.jsonrpc_getSessionId()
+			if sessionId:
+				try:
+					session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'w', 'utf-8')
+					session.write(u"%s\n" % sessionId)
+					session.close()
+				except Exception, e:
+					logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), e))
+		
+		cmdline = u''
+		if (len(args) > 0):
+			for i in range(len(args)):
+				args[i] = unicode(args[i], inEncoding)
+				logger.info(u"arg[%d]: %s" % (i, args[i]))
+				if (i == 0):
+					cmdline = args[i]
+				elif (args[i].find(u' ') != -1) or (len(args[i]) == 0):
+					cmdline += u" '%s'" % args[i]
+				else:
+					cmdline += u" %s" % args[i]
+		
+		(r, w, x) = select.select([ sys.stdin ], [], [], 0.2)
+		if sys.stdin in r:
+			read = unicode(sys.stdin.read(), inEncoding, 'replace')
+			cmdline += u" '%s'" % read.replace('\r', '').replace('\n', '')
+		
+		logger.debug("cmdline: '%s'" % cmdline)
+		
+		global shell
+		if interactive:
+			try:
+				logger.notice(u"Starting interactive mode")
+				shell = Shell(prompt = u'%s@opsi-admin>' % username, output = output, color = color, cmdline = cmdline)
+				shell.setInfoline(u"Connected to %s" % address)
+				
+				for line in LOGO:
+					shell.appendLine(line.get('text'), line.get('color'))
+				shell.run()
+			except Exception, e:
+				logger.logException(e)
+				raise
+		elif cmdline:
+			try:
+				shell = Shell(prompt = u'%s@opsi-admin>' % username, output = output, color = color)
+				for cmd in cmdline.split(u'\n'):
+					if cmd:
+						shell.cmdline = cmd
+						shell.execute()
+				
+				logger.debug(shell.getLines())
+				for line in shell.lines:
+					print >> sys.stdout, forceUnicode(line['text']).rstrip().encode(outEncoding)
+				
+			except Exception, e:
+				logger.logException(e)
+				raise
+		else:
+			usage()
+			sys.exit(1)
+	finally:
+		if backend:
+			try:
+				backend.backend_exit()
+			except:
+				pass
+	
 class Shell:
 	
 	def __init__(self, prompt = u'opsi-admin>', output = u'JSON', color = True, cmdline = u''):

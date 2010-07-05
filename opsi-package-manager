@@ -775,6 +775,30 @@ class OpsiPackageManager():
 			subject.setMessage( _("Error: %s") % e, severity = 2 )
 			raise
 	
+	def purgeProductPropertyStates(self, productId, depotId):
+		try:
+			subject = self.getDepotSubject(depotId)
+			subject.setMessage( _(u"Purging product property states for product %s") % productId )
+			clientIds = []
+			for clientToDepot in self.backend.configState_getClientToDepotserver(depotIds = [ depotId ]):
+				clientIds.append(clientToDepot['clientId'])
+			if not clientIds:
+				return
+			
+			logger.notice(u"Purging product property states for product '%s' on client(s): %s" % (productId, ', '.join(clientIds)))
+			subject.setMessage( _(u"Purging product property states for product '%s' on client(s): %s") % (productId, ', '.join(clientIds)) )
+			
+			self.backend.productPropertyState_deleteObjects(
+				self.backend.productPropertyState_getObjects(
+					productId = productId,
+					objectId  = clientIds))
+			
+		except Exception, e:
+			logger.error(e)
+			if type(e) is dict and e.has_key('message'): e = e['message']
+			subject.setMessage( _("Error: %s") % e, severity = 2 )
+			raise
+	
 	def uploadToRepositories(self):
 		for packageFile in self.config['packageFiles']:
 			self.openProductPackageFile(packageFile)
@@ -1174,6 +1198,9 @@ class OpsiPackageManager():
 				else:
 					logger.warning(u"Cannot set action 'setup' for product '%s': setupScript not defined" % productId)
 			
+			if self.config['purgeClientProperties']:
+				self.purgeProductPropertyStates(productId = productId, depotId = depotId)
+				
 			if self.config['updateWhereInstalled']:
 				if product.getUpdateScript():
 					self.setActionRequestWhereInstalled(productId = productId, depotId = depotId, actionRequest = u'update')
@@ -1257,28 +1284,29 @@ class OpsiPackageManagerControl(object):
 		
 		parser = OptionParser( add_help_option = False )
 		
-		parser.add_option("-h", "--help",           action="store_true", dest="help")
-		parser.add_option("-V", "--version",        action="store_true", dest="version")
-		parser.add_option("-v", "--verbose",        action="count",      dest="verbose")
-		parser.add_option("-q", "--quiet",          action="store_true", dest="quiet")
-		parser.add_option("-i", "--install",        action="store_true", dest="COMMAND_INSTALL")
-		parser.add_option("-u", "--upload",         action="store_true", dest="COMMAND_UPLOAD")
-		parser.add_option("-p", "--properties",     action="store",      dest="properties",   default="keep", choices=['ask', 'package', 'keep'])
-		parser.add_option(      "--max-transfers",  action="store",      dest="maxTransfers", default = 0,    type="int")
-		parser.add_option(      "--max-bandwidth",  action="store",      dest="maxBandwidth", default = 0,    type="int")
-		parser.add_option("-l", "--list",           action="store_true", dest="COMMAND_LIST")
-		parser.add_option("-D", "--differences",    action="store_true", dest="COMMAND_DIFFERENCES")
-		parser.add_option("-r", "--remove",         action="store_true", dest="COMMAND_REMOVE")
-		parser.add_option("-x", "--extract",        action="store_true", dest="COMMAND_EXTRACT")
-		parser.add_option(      "--new-product-id", action="store",      dest="newProductId")
-		parser.add_option("-d", "--depots",         action="store",      dest="depots")
-		parser.add_option("-f", "--force",          action="store_true", dest="force")
-		parser.add_option("-k", "--keep-files",     action="store_true", dest="keepFiles")
-		parser.add_option("-t", "--temp-dir",       action="store",      dest="tempDir")
-		parser.add_option("-o", "--overwrite",      action="store_true", dest="overwriteAlways")
-		parser.add_option("-S", "--setup",          action="store_true", dest="setupWhereInstalled")
-		parser.add_option("-U", "--update",         action="store_true", dest="updateWhereInstalled")
-		parser.add_option(      "--log-file",       action="store",      dest="logFile")
+		parser.add_option("-h", "--help",                    action="store_true", dest="help")
+		parser.add_option("-V", "--version",                 action="store_true", dest="version")
+		parser.add_option("-v", "--verbose",                 action="count",      dest="verbose")
+		parser.add_option("-q", "--quiet",                   action="store_true", dest="quiet")
+		parser.add_option("-i", "--install",                 action="store_true", dest="COMMAND_INSTALL")
+		parser.add_option("-u", "--upload",                  action="store_true", dest="COMMAND_UPLOAD")
+		parser.add_option("-p", "--properties",              action="store",      dest="properties",   default="keep", choices=['ask', 'package', 'keep'])
+		parser.add_option(      "--max-transfers",           action="store",      dest="maxTransfers", default = 0,    type="int")
+		parser.add_option(      "--max-bandwidth",           action="store",      dest="maxBandwidth", default = 0,    type="int")
+		parser.add_option("-l", "--list",                    action="store_true", dest="COMMAND_LIST")
+		parser.add_option("-D", "--differences",             action="store_true", dest="COMMAND_DIFFERENCES")
+		parser.add_option("-r", "--remove",                  action="store_true", dest="COMMAND_REMOVE")
+		parser.add_option("-x", "--extract",                 action="store_true", dest="COMMAND_EXTRACT")
+		parser.add_option(      "--new-product-id",          action="store",      dest="newProductId")
+		parser.add_option("-d", "--depots",                  action="store",      dest="depots")
+		parser.add_option("-f", "--force",                   action="store_true", dest="force")
+		parser.add_option("-k", "--keep-files",              action="store_true", dest="keepFiles")
+		parser.add_option("-t", "--temp-dir",                action="store",      dest="tempDir")
+		parser.add_option("-o", "--overwrite",               action="store_true", dest="overwriteAlways")
+		parser.add_option("-S", "--setup",                   action="store_true", dest="setupWhereInstalled")
+		parser.add_option("-U", "--update",                  action="store_true", dest="updateWhereInstalled")
+		parser.add_option(      "--log-file",                action="store",      dest="logFile")
+		parser.add_option(      "--purge-client-properties", action="store_true", dest="purgeClientProperties")
 		
 		# Get commandline options and arguments
 		try:
@@ -1455,7 +1483,6 @@ class OpsiPackageManagerControl(object):
 		idWidth = versionWidth = int((terminalWidth-len(indent))/3)
 		if (idWidth > 25): idWidth = 25
 		if (versionWidth > 25): versionWidth = 25
-		descriptionWidth = terminalWidth-len(indent)-idWidth-versionWidth-4
 		
 		productOnDepots = self.backend.productOnDepot_getObjects(depotId = self.config['depotIds'], productId = self.config['productIds'])
 		products = self.backend.product_getObjects(id = self.config['productIds'])
@@ -1467,6 +1494,10 @@ class OpsiPackageManagerControl(object):
 			if not productInfo[product.id].has_key(product.productVersion):
 				productInfo[product.id][product.productVersion] = {}
 			productInfo[product.id][product.productVersion][product.packageVersion] = product
+			if (len(product.id) > idWidth):
+				idWidth = len(product.id)
+		
+		descriptionWidth = terminalWidth-len(indent)-idWidth-versionWidth-4
 		
 		productOnDepotInfo = {}
 		for depotId in self.config['depotIds']:
@@ -1590,27 +1621,29 @@ class OpsiPackageManagerControl(object):
 			'deleteFilesOnUninstall' : True,
 			'overwriteAlways'        : False,
 			'setupWhereInstalled'    : False,
-			'updateWhereInstalled'   : False
+			'updateWhereInstalled'   : False,
+			'purgeClientProperties'  : False
 		}
 	
 	def setCommandlineConfig(self):
 		if (self.opts.properties == 'ask') and self.opts.quiet:
 			raise Exception(u"You cannot use properties=ask in quiet mode")
 		
-		if self.opts.quiet:                self.config['quiet'] = True
-		if self.opts.verbose:              self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
-		if self.opts.logFile:              self.config['logFile'] = self.opts.logFile
-		if self.opts.tempDir:              self.config['tempDir'] = self.opts.tempDir
-		if self.opts.depots:               self.config['depotIds'] = self.opts.depots.split(',')
-		if self.opts.newProductId:         self.config['newProductId'] = self.opts.newProductId
-		if self.opts.maxBandwidth:         self.config['maxBandwidth'] = self.opts.maxBandwidth
-		if self.opts.maxTransfers:         self.config['maxTransfers'] = self.opts.maxTransfers
-		if self.opts.overwriteAlways:      self.config['overwriteAlways'] = self.opts.overwriteAlways
-		if self.opts.keepFiles:            self.config['deleteFilesOnUninstall'] = False
-		if self.opts.properties:           self.config['properties'] = self.opts.properties
-		if self.opts.force:                self.config['forceInstall'] = self.config['forceUninstall'] = True
-		if self.opts.setupWhereInstalled:  self.config['setupWhereInstalled'] = True
-		if self.opts.updateWhereInstalled: self.config['updateWhereInstalled'] = True
+		if self.opts.quiet:                 self.config['quiet'] = True
+		if self.opts.verbose:               self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
+		if self.opts.logFile:               self.config['logFile'] = self.opts.logFile
+		if self.opts.tempDir:               self.config['tempDir'] = self.opts.tempDir
+		if self.opts.depots:                self.config['depotIds'] = self.opts.depots.split(',')
+		if self.opts.newProductId:          self.config['newProductId'] = self.opts.newProductId
+		if self.opts.maxBandwidth:          self.config['maxBandwidth'] = self.opts.maxBandwidth
+		if self.opts.maxTransfers:          self.config['maxTransfers'] = self.opts.maxTransfers
+		if self.opts.overwriteAlways:       self.config['overwriteAlways'] = self.opts.overwriteAlways
+		if self.opts.keepFiles:             self.config['deleteFilesOnUninstall'] = False
+		if self.opts.properties:            self.config['properties'] = self.opts.properties
+		if self.opts.force:                 self.config['forceInstall'] = self.config['forceUninstall'] = True
+		if self.opts.setupWhereInstalled:   self.config['setupWhereInstalled'] = True
+		if self.opts.updateWhereInstalled:  self.config['updateWhereInstalled'] = True
+		if self.opts.purgeClientProperties: self.config['purgeClientProperties'] = True
 		
 		# Get command
 		if self.opts.COMMAND_INSTALL:
@@ -1675,37 +1708,25 @@ class OpsiPackageManagerControl(object):
 		print u""
 		print u"Options:"
 		print u"  -v, --verbose                    increase verbosity (can be used multiple times)"
-		print u""
 		print u"  -q, --quiet                      do not display any messages"
-		print u""
 		print u"  --log-file         <log-file>    path to debug log file"
-		print u""
 		print u"  -d, --depots       <depots>      comma separated list of depot ids to process"
 		print u"			 	      all = all known depots"
-		print u""
 		print u"  -p, --properties   <mode>        mode for default product property values"
 		print u"		                      ask     = display dialog"
 		print u"		                      package = use defaults from package"
 		print u"		                      keep    = keep depot defaults (default)"
-		print u""
+		print u"  --purge-client-properties        remove product property states of the installed product(s)"
 		print u"  -f, --force                      force install/uninstall (use with extreme caution)"
-		print u""
 		print u"  -U, --update                     set action \"update\" on hosts where installation status is \"installed\""
-		print u""
 		print u"  -S, --setup                      set action \"setup\" on hosts where installation status is \"installed\""
-		print u""
 		print u"  -o, --overwrite                  overwrite existing package on upload even if size matches"
-		print u""
 		print u"  -k, --keep-files                 do not delete client data dir on uninstall"
-		print u""
 		print u"  -t, --temp-dir     <path>        tempory directory for package install"
-		print u""
 		print u"  --max-transfers    <num>         maximum number of simultaneous uploads"
 		print u"                                      0 = unlimited (default)"
-		print u""
 		print u"  --max-bandwidth    <kbps>        maximum transfer rate for each transfer (in kilobytes per second)"
 		print u"                                      0 = unlimited (default)"
-		print u""
 		print u"  --new-product-id   <product-id>  set a new product id when extracting opsi package"
 		print u""
 
