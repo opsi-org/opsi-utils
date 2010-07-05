@@ -1503,7 +1503,7 @@ class OpsiPackageManagerControl(object):
 			if (len(product.id) > idWidth):
 				idWidth = len(product.id)
 		
-		descriptionWidth = terminalWidth-len(indent)-idWidth-versionWidth-4
+		nameWidth = terminalWidth-len(indent)-idWidth-versionWidth-4
 		
 		productOnDepotInfo = {}
 		for depotId in self.config['depotIds']:
@@ -1520,7 +1520,7 @@ class OpsiPackageManagerControl(object):
 			print (u"-"*(len(depotId)+4)).encode(self.encoding)
 			print (u"%s%*s %*s %*s" % (indent, -1*idWidth, u'Product ID',
 						-1*versionWidth, u'Version',
-						-1*descriptionWidth, u'Description')).encode(self.encoding)
+						-1*nameWidth, u'Name')).encode(self.encoding)
 			print (u"%s%s" % (indent, "="*(terminalWidth-len(indent)-2))).encode(self.encoding)
 			productIds = values.keys()
 			productIds.sort()
@@ -1529,7 +1529,7 @@ class OpsiPackageManagerControl(object):
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
 				print (u"%s%*s %*s %*s" % (indent, -1*idWidth, productId,
 						-1*versionWidth,     product.productVersion + u'-' + product.packageVersion,
-						-1*descriptionWidth, product.description.replace(u'\n', u'')[:descriptionWidth])).encode(self.encoding)
+						-1*nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding)
 			print ""
 		
 	def processDifferencesCommand(self):
