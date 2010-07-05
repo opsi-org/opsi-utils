@@ -779,19 +779,25 @@ class OpsiPackageManager():
 		try:
 			subject = self.getDepotSubject(depotId)
 			subject.setMessage( _(u"Purging product property states for product %s") % productId )
-			clientIds = []
+			depotClientIds = []
 			for clientToDepot in self.backend.configState_getClientToDepotserver(depotIds = [ depotId ]):
-				clientIds.append(clientToDepot['clientId'])
-			if not clientIds:
+				depotClientIds.append(clientToDepot['clientId'])
+			if not depotClientIds:
 				return
+			
+			productPropertyStates = []
+			clientIds = []
+			for productPropertyState in self.backend.productPropertyState_getObjects(
+											productId = productId,
+											objectId  = depotClientIds):
+				productPropertyStates.append(productPropertyState)
+				if not productPropertyState.objectId in clientIds:
+					clientIds.append(productPropertyState.objectId)
 			
 			logger.notice(u"Purging product property states for product '%s' on client(s): %s" % (productId, ', '.join(clientIds)))
 			subject.setMessage( _(u"Purging product property states for product '%s' on client(s): %s") % (productId, ', '.join(clientIds)) )
 			
-			self.backend.productPropertyState_deleteObjects(
-				self.backend.productPropertyState_getObjects(
-					productId = productId,
-					objectId  = clientIds))
+			self.backend.productPropertyState_deleteObjects(productPropertyStates)
 			
 		except Exception, e:
 			logger.error(e)
