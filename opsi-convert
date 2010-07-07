@@ -257,6 +257,7 @@ def main(argv):
 	)
 	if progress:
 		progressNotifier = ProgressNotifier(backendReplicator)
+		print ""
 	backendReplicator.replicate(audit = convertAudit)
 	
 
