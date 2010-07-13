@@ -420,8 +420,8 @@ class OpsiPackageUpdater(object):
 					packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 					
 					logger.info(u"Verifying download of package '%s'" % packageFile)
-					md5sum = md5sum(packageFile)
-					if (md5sum == availablePackage["md5sum"]):
+					md5 = md5sum(packageFile)
+					if (md5 == availablePackage["md5sum"]):
 						logger.info(u"Md5sum match, package download verified")
 					else:
 						raise Exception(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
@@ -454,9 +454,6 @@ class OpsiPackageUpdater(object):
 				installedPackages = []
 				for package in newPackages:
 					if not insideInstallWindow and not package['productId'] in self.config['installationWindowExceptions']:
-						continue
-					
-					if availablePackage['repository'].autoLoad:
 						continue
 					
 					packageFile = os.path.join(self.config["packageDir"], package["filename"])
