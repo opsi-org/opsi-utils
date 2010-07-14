@@ -505,13 +505,13 @@ Maintainer of this opsi package.
 ''')
 	while True:
 		values = [
-			{ "name": _(u"Maintainer name"),           "value": maintainer },
-			{ "name": _(u"Maintainer e-mail address"), "value": maintainerEmail }
+			{ "name": _(u"Maintainer name"),   "value": maintainer },
+			{ "name": _(u"Maintainer e-mail"), "value": maintainerEmail }
 		]
 		
 		values = ui.getValues(
 			title   = _(u'Maintainer info'),
-			width   = 80,
+			width   = 70,
 			height  = 10,
 			text    = helpText,
 			entries = values )
