@@ -55,13 +55,13 @@ def usage():
 	print u"\nUsage: %s [options] <from> <to>" % os.path.basename(sys.argv[0])
 	print u"Convert an opsi database into an other."
 	print u"Options:"
-	print u"    -h        show this help text"
-	print u"    -V        show version information"
-	print u"    -q        do not show progress"
-	print u"    -v        increase verbosity (can be used multiple times)"
-	print u"    -c        clean destination database before writing"
-	print u"    -s        use destination host as new server"
-	print u"    -l <file> log to this file"
+	print u"    -h                 show this help text"
+	print u"    -V                 show version information"
+	print u"    -q                 do not show progress"
+	print u"    -v                 increase verbosity (can be used multiple times)"
+	print u"    -c                 clean destination database before writing"
+	print u"    -s <old server id> use destination host as new server"
+	print u"    -l <file>          log to this file"
 	print u""
 	print u"<from> and <to> can be:"
 	print u"     - the name of a backend as defined in /etc/opsi/backends (file, ldap, ...)"
@@ -124,13 +124,14 @@ class ProgressNotifier(ProgressObserver):
 def main(argv):
 	global logLevel
 	newServerId = None
+	oldServerId = None
 	cleanupFirst = False
 	convertAudit = False
 	progress = True
 	
 	# Get options
 	try:
-		(opts, args) = getopt.getopt(argv, "qhvVnsl:")
+		(opts, args) = getopt.getopt(argv, "qhvVcs:l:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -151,6 +152,7 @@ def main(argv):
 			cleanupFirst = True
 		elif (opt == "-s"):
 			newServerId = socket.getfqdn()
+			oldServerId = forceHostId(arg)
 		elif (opt == "-q"):
 			progress = False
 		elif (opt == "-l"):
@@ -253,6 +255,7 @@ def main(argv):
 		readBackend  = bmRead,
 		writeBackend = bmWrite,
 		newServerId  = newServerId,
+		oldServerId  = oldServerId,
 		cleanupFirst = cleanupFirst
 	)
 	if progress:
