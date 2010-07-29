@@ -433,7 +433,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 			
 			if not values:
 				break
-			
+				
 			error = None
 			try:
 				productProperty.setPropertyId( values[0].get('value') )
@@ -452,11 +452,13 @@ Editable:             Is it allowed to specify a value which is not in the list 
 					v = v.strip()
 					if (v != u''):
 						possibleValues.append(v)
-				try:
-					productProperty.setPossibleValues(possibleValues)
-				except Exception, e:
-					if not error: error = _(u'Please specify valid possible values')
-			
+				if possibleValues:
+					try:
+						productProperty.setPossibleValues(possibleValues)
+					except Exception, e:
+						if not error: error = _(u'Please specify valid possible values')
+				else:
+					productProperty.possibleValues = []
 			if error:
 				ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
 				continue
@@ -487,7 +489,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 					
 				productProperty.setDefaultValues(defaultValues)
 			except Exception, e:
-				if not error: error = _(u'Please specify valid default values')
+				if not error: error = _(u'Please specify valid default values: %s' % e)
 			
 			if error:
 				ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
