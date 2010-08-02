@@ -313,6 +313,10 @@ class OpsiPackageUpdater(object):
 								if not e:
 									continue
 								repository.excludes.append(re.compile(e))
+					if self.config.get('installAllAvailable'):
+						repository.autoInstall = True
+						repository.autoUpdate = True
+						repository.excludes = []
 					self.config['repositories'].append(repository)
 				else:
 					logger.error(u"Unhandled section '%s'" % section)
@@ -798,6 +802,7 @@ def usage():
 	print u"    -v    Increase verbosity (can be used multiple times)"
 	print u"    -V    Show version information and exit"
 	print u"    -c    Location of config file"
+	print u"    -i    Install all downloadable packages from configured repositories (ignores excludes)"
 	print u""
 
 def main(argv):
@@ -821,11 +826,12 @@ def main(argv):
 		"installationWindowEndTime":    None,
 		"installationWindowExceptions": None,
 		"repositories":                 [],
+		"installAllAvailable":          False,
 	}
 	
 	# Get options
 	try:
-		(opts, args) = getopt.getopt(argv, "hvVc:")
+		(opts, args) = getopt.getopt(argv, "hivVc:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -844,7 +850,9 @@ def main(argv):
 		elif (opt == "-v"):
 			consoleLevel += 1
 			logger.setConsoleLevel(consoleLevel)
-	
+		elif (opt == "-i"):
+			config["installAllAvailable"] = True
+		
 	pid = os.getpid()
 	running = None
 	try:
