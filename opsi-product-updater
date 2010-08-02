@@ -176,7 +176,7 @@ class OpsiPackageUpdater(object):
 						elif (option.lower() == 'loglevel'):
 							logger.setFileLevel(forceInt(value.strip()))
 						elif (option.lower() == 'timeout'):
-							socket.setdefaulttimeout(float(value))
+							socket.setdefaulttimeout(float(value.strip()))
 				
 				elif (section.lower() == 'notification'):
 					for (option, value) in config.items(section):
