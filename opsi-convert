@@ -60,6 +60,7 @@ def usage():
 	print u"    -q                 do not show progress"
 	print u"    -v                 increase verbosity (can be used multiple times)"
 	print u"    -c                 clean destination database before writing"
+	print u"    -a                 including software/hardware inventory"
 	print u"    -s <old server id> use destination host as new server"
 	print u"    -l <file>          log to this file"
 	print u""
@@ -131,7 +132,7 @@ def main(argv):
 	
 	# Get options
 	try:
-		(opts, args) = getopt.getopt(argv, "qhvVcs:l:")
+		(opts, args) = getopt.getopt(argv, "aqhvVcs:l:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -158,6 +159,8 @@ def main(argv):
 		elif (opt == "-l"):
 			logger.setLogFile(arg)
 			logger.setFileLevel(logLevel)
+		elif (opt == "-a"):
+			convertAudit = True
 		
 	if (len(args) < 2):
 		usage()
