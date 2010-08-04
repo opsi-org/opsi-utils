@@ -120,6 +120,7 @@ def usage():
 	print _(u"  -p, --password       Password (default: prompt for password)")
 	print _(u"  -a, --address        URL of opsiconfd (default: https://localhost:4447/rpc)")
 	print _(u"  -d, --direct         Do not use opsiconfd")
+	print _(u"      --no-depot       Do not use depotserver backend")
 	print _(u"  -l, --loglevel       Set log level (default: 3)")
 	print _(u"                       0=nothing, 1=essential, 2=critical, 3=error, 4=warning")
 	print _(u"                       5=notice, 6=info, 7=debug, 8=debug2, 9=confidential")
@@ -142,16 +143,17 @@ def main(argv):
 	except:
 		pass
 	
-	password = u''
-	address  = u'https://localhost:4447/rpc'
-	output   = u'JSON'
-	color    = False
-	direct   = False
+	password     = u''
+	address      = u'https://localhost:4447/rpc'
+	output       = u'JSON'
+	color        = False
+	direct       = False
+	depotBackend = True
 	
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsShV", 
 					[ "username=", "password=", "address=", 
-					  "loglevel=", "log-file=", "interactive", "direct",
+					  "loglevel=", "log-file=", "interactive", "direct", "no-depot"
 					  "colorize", "shell-output", "simple-output", "help", "version" ])
 
 	except getopt.GetoptError:
@@ -178,6 +180,8 @@ def main(argv):
 			address = forceUnicode(arg)
 		elif opt in ("-d", "--direct"):
 			direct = True
+		elif opt in ("--no-depot",):
+			depotBackend = False
 		elif opt in ("-i", "--interactive"):
 			interactive = True
 		elif opt in ("-c", "--colorize"):
@@ -208,7 +212,7 @@ def main(argv):
 				dispatchConfigFile = u'/etc/opsi/backendManager/dispatch.conf',
 				backendConfigDir   = u'/etc/opsi/backends',
 				extensionConfigDir = u'/etc/opsi/backendManager/extend.d',
-				depotbackend       = True,
+				depotBackend       = depotBackend,
 				hostControlBackend = True
 			)
 		
