@@ -153,7 +153,7 @@ def main(argv):
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsShV", 
 					[ "username=", "password=", "address=", 
-					  "loglevel=", "log-file=", "interactive", "direct", "no-depot"
+					  "loglevel=", "log-file=", "interactive", "direct", "no-depot",
 					  "colorize", "shell-output", "simple-output", "help", "version" ])
 
 	except getopt.GetoptError:
