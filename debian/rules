@@ -25,7 +25,7 @@ build-indep-stamp:
 clean:
 	rm -f *-stamp
 	rm debian/files || true
-	rm gettext/*.mo
+	rm gettext/*.mo || true
 
 binary: binary-arch binary-indep
 
