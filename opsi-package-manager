@@ -1048,6 +1048,30 @@ class OpsiPackageManager():
 		for packageFile in self.config['packageFiles']:
 			self.openProductPackageFile(packageFile)
 		
+		sequence = []
+		for packageFile in self.config['packageFiles']:
+			product = self.getPackageControlFile(packageFile).getProduct()
+			sequence.append(product.id)
+		
+		for packageFile in self.config['packageFiles']:
+			productId = self.getPackageControlFile(packageFile).getProduct().id
+			for dependency in self.getPackageControlFile(packageFile).getPackageDependencies():
+				try:
+					ppos = sequence.index(productId)
+					dpos = sequence.index(dependency['package'])
+					sequence.remove(dependency['package'])
+					sequence.insert(ppos, dependency['package'])
+				except Exception, e:
+					logger.debug(u"While processing package '%s', dependency '%s': %s" % (packageFile, dependency['package'], e))
+		
+		sortedPackageFiles = []
+		for productId in sequence:
+			for packageFile in self.config['packageFiles']:
+				if (productId == self.getPackageControlFile(packageFile).getProduct().id):
+					sortedPackageFiles.append(packageFile)
+					break
+		self.config['packageFiles'] = sortedPackageFiles
+		
 		if not self.config['forceInstall']:
 			logger.info(u"Checking product locks")
 			productIds = []

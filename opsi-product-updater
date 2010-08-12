@@ -457,11 +457,40 @@ class OpsiPackageUpdater(object):
 							% self.config['installationWindowExceptions'])
 					insideInstallWindow = False
 				
-				installedPackages = []
+				sequence = []
 				for package in newPackages:
 					if not insideInstallWindow and not package['productId'] in self.config['installationWindowExceptions']:
 						continue
-					
+					sequence.append(package['productId'])
+				
+				for package in newPackages:
+					if not package['productId'] in sequence:
+						continue
+					packageFile = os.path.join(self.config["packageDir"], package["filename"])
+					productId = package['productId']
+					ppf = ProductPackageFile(packageFile)
+					ppf.getMetaData()
+					dependencies = ppf.getPackageDependencies()
+					ppf.cleanup()
+					for dependency in dependencies:
+						try:
+							ppos = sequence.index(productId)
+							dpos = sequence.index(dependency['package'])
+							sequence.remove(dependency['package'])
+							sequence.insert(ppos, dependency['package'])
+						except Exception, e:
+							logger.debug(u"While processing package '%s', dependency '%s': %s" % (packageFile, dependency['package'], e))
+				
+				sortedPackageFiles = []
+				for productId in sequence:
+					for package in newPackages:
+						if (productId == package['productId']):
+							sortedPackageFiles.append(packageFile)
+							break
+				newPackages = sortedPackageFiles
+				
+				installedPackages = []
+				for package in newPackages:
 					packageFile = os.path.join(self.config["packageDir"], package["filename"])
 					
 					propertyDefaultValues = {}
