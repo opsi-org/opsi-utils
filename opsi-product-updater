@@ -41,6 +41,7 @@ from OPSI.Types import *
 from OPSI.Object import *
 from OPSI.Util import compareVersions, md5sum
 from OPSI.Util.File import IniFile
+from OPSI.Util.Product import ProductPackageFile
 from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -470,7 +471,7 @@ class OpsiPackageUpdater(object):
 					productId = package['productId']
 					ppf = ProductPackageFile(packageFile)
 					ppf.getMetaData()
-					dependencies = ppf.getPackageDependencies()
+					dependencies = ppf.packageControlFile.getPackageDependencies()
 					ppf.cleanup()
 					for dependency in dependencies:
 						try:
@@ -481,13 +482,13 @@ class OpsiPackageUpdater(object):
 						except Exception, e:
 							logger.debug(u"While processing package '%s', dependency '%s': %s" % (packageFile, dependency['package'], e))
 				
-				sortedPackageFiles = []
+				sortedPackages = []
 				for productId in sequence:
 					for package in newPackages:
 						if (productId == package['productId']):
-							sortedPackageFiles.append(packageFile)
+							sortedPackages.append(package)
 							break
-				newPackages = sortedPackageFiles
+				newPackages = sortedPackages
 				
 				installedPackages = []
 				for package in newPackages:
