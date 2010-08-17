@@ -7,7 +7,7 @@
 #
 
 Name:           opsi-utils
-#BuildRequires:  python
+BuildRequires:  python >= 2.5
 Requires:       python-opsi >= 3.99
 Url:            http://www.opsi.org
 License:        GPL v2 or later
