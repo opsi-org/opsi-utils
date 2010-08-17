@@ -8,7 +8,7 @@
 
 Name:           opsi-utils
 BuildRequires:  python >= 2.5
-Requires:       python-opsi >= 3.99
+Requires:       python-opsi >= 3.99 python-curses
 Url:            http://www.opsi.org
 License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi
