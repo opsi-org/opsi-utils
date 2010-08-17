@@ -29,7 +29,7 @@ install:
 	install -m 0755  opsi-convert         debian/opsi-utils/usr/bin/
 	install -m 0755  opsi-product-updater debian/opsi-utils/usr/bin/
 	
-	install -m 0644  data/opsi-product-updater.conf  debian/opsi-utils/etc/opsi/
+	install -m 0660 -o root -g opsiadmin  data/opsi-product-updater.conf  debian/opsi-utils/etc/opsi/
 	
 	dh_install
 	
