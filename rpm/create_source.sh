@@ -22,10 +22,10 @@ rm /tmp/${packagename}.spec
 test -e $tmpdir && rm -rf $tmpdir
 mkdir $tmpdir
 cp -r opsi-* data ${tmpdir}/
-find ${tmpdir} -iname *.pyc -exec rm {} \;
-find ${tmpdir} -iname *.marks -exec rm {} \;
-find ${tmpdir} -iname *~ -exec rm {} \;
-find ${tmpdir} -iname *.svn -exec rm -rf {} \; 2>/dev/null
+find ${tmpdir} -iname "*.pyc"   -exec rm "{}" \;
+find ${tmpdir} -iname "*.marks" -exec rm "{}" \;
+find ${tmpdir} -iname "*~"      -exec rm "{}" \;
+find ${tmpdir} -iname "*.svn"   -exec rm -rf "{}" \; 2>/dev/null
 
 cd ${tmpdir}/..
 tar cjf /tmp/${packagename}-${version}.tar.bz2 ${packagename}-${version}

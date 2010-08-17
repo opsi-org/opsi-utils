@@ -7,12 +7,12 @@
 #
 
 Name:           opsi-utils
-Requires:       python-opsi
+Requires:       python-opsi >= 3.99
 Url:            http://www.opsi.org
 License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        3.99
+Version:        3.99.0
 Release:        1
 Summary:        opsi utils
 %define tarname opsi-utils
@@ -92,13 +92,3 @@ rm -rf $RPM_BUILD_ROOT
 
 # ===[ changelog ]==================================
 %changelog
-
-
-
-
-
-
-
-
-
-
