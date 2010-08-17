@@ -52,6 +52,8 @@ install -m 0755 opsi-makeproductfile $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-package-manager $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-product-updater $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-convert $RPM_BUILD_ROOT/usr/bin/
+
+mkdir -p $RPM_BUILD_ROOT/etc/opsi
 install -m 0644 data/opsi-product-updater.conf $RPM_BUILD_ROOT/etc/opsi/
 
 # ===[ clean ]======================================
@@ -89,6 +91,7 @@ rm -rf $RPM_BUILD_ROOT
 # directories
 #%dir /usr/share/locale/de/LC_MESSAGES
 #%dir /usr/share/locale/fr/LC_MESSAGES
+%dir /etc/opsi
 
 # ===[ changelog ]==================================
 %changelog
