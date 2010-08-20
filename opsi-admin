@@ -32,9 +32,14 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '1.0'
+__version__ = '1.0.1'
 
-import os, sys, termios, getopt, time, fcntl, struct, gettext, json, subprocess
+import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess
+from sys import version_info
+if (version_info >= (2,6)):
+	import json
+else:
+	import simplejson as json
 
 # OPSI imports
 from OPSI import Tools
@@ -1015,11 +1020,7 @@ class CommandMethod(Command):
 				pass
 			elif ( params[i].strip()[0] not in ('{', '[', '"') ):
 				params[i] = '"%s"' % params[i]
-			if hasattr(json, 'loads'):
-				# Python 2.6 json module
-				params[i] = json.loads(params[i])
-			else:
-				params[i] = json.read(params[i])
+			params[i] = json.loads(params[i])
 			#logger.debug( "Type of param: %s" % type(params[i]) )
 		
 		#if (len(params) == 1) and (isinstance(params[0], list) or isinstance(params[0], tuple)):
