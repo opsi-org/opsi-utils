@@ -8,7 +8,7 @@
 
 Name:           opsi-utils
 BuildRequires:  python >= 2.4
-Requires:       python-opsi >= 3.99 python-curses
+Requires:       python-opsi >= 3.99
 Url:            http://www.opsi.org
 License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi
@@ -21,6 +21,7 @@ Source:         %{tarname}-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
+Requires:       python-curses
 %{py_requires}
 %endif
 
