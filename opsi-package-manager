@@ -627,7 +627,7 @@ class TaskQueue(threading.Thread):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # -                                         OPSIPACKAGEMANAGER                                        -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class OpsiPackageManager():
+class OpsiPackageManager(object):
 	
 	def __init__(self, config, backend):
 		self.config = config
