@@ -16,14 +16,15 @@ AutoReqProv:    on
 Version:        3.99.0
 Release:        1
 Summary:        opsi utils
-%define tarname opsi-utils
-Source:         %{tarname}-%{version}.tar.bz2
+Source:         opsi-utils_3.99.0-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
 Requires:       python-curses
 %{py_requires}
 %endif
+
+%define toplevel_dir %{name}-%{version}
 
 # ===[ description ]================================
 %description
@@ -36,7 +37,7 @@ This package contains the opsi util collection.
 %prep
 
 # ===[ setup ]======================================
-%setup -n %{tarname}-%{version}
+%setup -n %{name}-%{version}
 
 # ===[ build ]======================================
 %build
