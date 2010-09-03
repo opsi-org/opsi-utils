@@ -23,6 +23,11 @@ BuildArch:      noarch
 Requires:       python-curses
 %{py_requires}
 %endif
+%if 0%{?centos_version} || 0%{?rhel_version}
+BuildRequires:  gettext
+%else
+BuildRequires:  gettext-runtime
+%endif
 
 %define toplevel_dir %{name}-%{version}
 
@@ -47,10 +52,11 @@ This package contains the opsi util collection.
 # ===[ install ]==================================== 
 %install
 mkdir -p $RPM_BUILD_ROOT/usr/bin
-#mkdir -p $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES
-#mkdir -p $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES
-#install -m 0640 gettext/opsi_newprod_de.mo $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
-#install -m 0640 gettext/opsi_newprod_fr.mo $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi_newprod.mo
+
+mkdir -p $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES
+msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_de.po
+chmod 644 $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
+
 install -m 0755 opsi-admin $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-newprod $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-makeproductfile $RPM_BUILD_ROOT/usr/bin/
@@ -80,9 +86,6 @@ rm -rf $RPM_BUILD_ROOT
 #%doc LICENSE README RELNOTES doc
 
 # configfiles
-#%attr(644,root,root) %config /usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
-#%attr(644,root,root) %config /usr/share/locale/fr/LC_MESSAGES/opsi_newprod.mo
-
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-product-updater.conf
 
 # other files
@@ -93,9 +96,10 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/opsi-convert
 /usr/bin/opsi-product-updater
 
+%attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
+
 # directories
-#%dir /usr/share/locale/de/LC_MESSAGES
-#%dir /usr/share/locale/fr/LC_MESSAGES
+%dir /usr/share/locale/de/LC_MESSAGES
 %dir /etc/opsi
 
 # ===[ changelog ]==================================
