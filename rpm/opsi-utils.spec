@@ -96,7 +96,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/opsi-convert
 /usr/bin/opsi-product-updater
 
-%attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi_newprod.mo
+%attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
 
 # directories
 %dir /usr/share/locale/de/LC_MESSAGES
