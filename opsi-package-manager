@@ -36,7 +36,7 @@ __version__ = '3.99.0'
 
 
 # Imports
-import os, sys, threading, time, termios, socket, random, base64, curses, locale, fcntl, termios, struct
+import os, sys, threading, time, termios, socket, random, base64, curses, locale, fcntl, termios, struct, gettext
 from signal import *
 from optparse import OptionParser
 from duplicity import librsync
@@ -55,9 +55,13 @@ from OPSI.Backend.JSONRPC import JSONRPCBackend
 # Get logger instance
 logger = Logger()
 
-
-def _(string):
-	return string
+try:
+	t = gettext.translation('opsi-utils', '/usr/share/locale')
+	_ = t.ugettext
+except Exception, e:
+	logger.error(u"Locale not found: %s" % e)
+	def _(string):
+		return string
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # -                                               TASK                                                -
@@ -712,7 +716,7 @@ class OpsiPackageManager(object):
 		return self.depotSubjects.get(depotId)
 	
 	def openProductPackageFile(self, packageFile):
-		self.infoSubject.setMessage( _(u'Opening package file %s' % os.path.basename(packageFile)) )
+		self.infoSubject.setMessage( _(u'Opening package file %s') % os.path.basename(packageFile) )
 		self.productPackageFilesLock.acquire()
 		try:
 			if not self.productPackageFiles.has_key(os.path.basename(packageFile)):
@@ -1443,7 +1447,7 @@ class OpsiPackageManagerControl(object):
 				print >> sys.stderr, _(u"Errors occured: ").encode(self.encoding)
 				for (name, errs) in errors.items():
 					logger.error(u"Failure while processing %s:" % name)
-					print >> sys.stderr, _(u"   Failure while processing %s:" % name).encode(self.encoding)
+					print >> sys.stderr, "   " + (_(u"Failure while processing %s:") % name).encode(self.encoding)
 					for err in errs:
 						logger.error(u"      %s" % err)
 						print >> sys.stderr, (u"      %s" % err).encode(self.encoding)

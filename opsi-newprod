@@ -50,25 +50,20 @@ logger = Logger()
 # Globals
 ui = None
 
-# Get locale
 try:
-	t = gettext.translation('opsi_newprod', LOCALE_DIR)
-	def _(string):
-		return t.ugettext(string).encode('utf-8', 'replace')
-	
+	t = gettext.translation('opsi-utils', '/usr/share/locale')
+	_ = t.ugettext
 except Exception, e:
-	logger.error("Locale not found: %s" % e)
+	logger.error(u"Locale not found: %s" % e)
 	def _(string):
-		"""Dummy method, created and called when no locale is found.
-		Uses the fallback language (called C; means english) then."""
 		return string
 
 def usage():
-	print _(u"\nUsage: %s [options] [destination directory]") % os.path.basename(sys.argv[0])
+	print u"\n" + _(u"Usage: %s [options] [destination directory]") % os.path.basename(sys.argv[0])
 	print _(u"Creates an opsi product source dir in the destination directory.")
 	print _(u"If no destination directory is supplied, the current directory is used.")
 	print _(u"Options:")
-	print _(u"   -h          show this help")
+	print "   -h          " + _ (u"show this help")
 	print u""
 
 def main(argv):
@@ -87,7 +82,7 @@ def main(argv):
 			return
 	
 	if (len(args) > 1):
-		logger.error(u"To many arguments")
+		logger.error(u"Too many arguments")
 		usage()
 		sys.exit(1)
 	
@@ -97,10 +92,10 @@ def main(argv):
 	global ui
 	ui = UIFactory()
 	
-	ui.drawRootText(1, 1, _('Open PC ServerIntegration'))
+	ui.drawRootText(1, 1, 'opsi')
 	
 	# Get product type
-	helpText  = _('\n')
+	helpText  = '\n'
 	values = [
 		{ "name": u"localboot",	"selected": True },
 		{ "name": u"netboot" }
@@ -130,9 +125,9 @@ Product name:     The full name of the product.
 Description:      A description (use \\n for line breaks).
 Advice:           An additional important advice.
 Product version:  Version defined by software producer.
-Package version:  Opsi package version of the product version.
+Package version:  Opsi package version of the product.
 License required: Is a license required (0|1)?
-Priority:         The installation priority class of this product (default: 0).
+Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral).
 ''')
 	while True:
 		values = [
@@ -203,13 +198,13 @@ Priority:         The installation priority class of this product (default: 0).
 		
 	helpText  = _(\
 u'''
-Uninstall script:    Relative path to script for action "setup".
+Setup script:        Relative path to script for action "setup".
 Uninstall script:    Relative path to script for action "uninstall".
 Update script:       Relative path to script for action "update".
 Always script:       Relative path to script for action "always".
 Once script:         Relative path to script for action "once".
 Custom script:       Relative path to script for action "custom".
-User script:         Relative path to script for user login.
+User login script:   Relative path to script for user login.
 PXE config template: path to a custom pxelinux config template.
 ''')
 	while True:
@@ -489,7 +484,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 					
 				productProperty.setDefaultValues(defaultValues)
 			except Exception, e:
-				if not error: error = _(u'Please specify valid default values: %s' % e)
+				if not error: error = _(u'Please specify valid default values: %s') % e
 			
 			if error:
 				ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)

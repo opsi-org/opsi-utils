@@ -48,17 +48,12 @@ from OPSI.Util import md5sum
 # Get logger instance
 logger = Logger()
 
-# Get locale
 try:
-	t = gettext.translation('opsi_makeproductfile', LOCALE_DIR)
-	def _(string):
-		return t.ugettext(string).encode('utf-8', 'replace')
-	
+	t = gettext.translation('opsi-utils', '/usr/share/locale')
+	_ = t.ugettext
 except Exception, e:
-	logger.error("Locale not found: %s" % e)
+	logger.error(u"Locale not found: %s" % e)
 	def _(string):
-		"""Dummy method, created and called when no locale is found.
-		Uses the fallback language (called C; means english) then."""
 		return string
 	
 def usage():
@@ -296,7 +291,7 @@ def main(argv):
 				dereference        = dereference)
 			
 			if not quiet and os.path.exists(pps.getPackageFile()):
-				print _(u"Package file '%s' already exists." % pps.getPackageFile())
+				print _(u"Package file '%s' already exists.") % pps.getPackageFile()
 				print _(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"),
 				newVersion = False
 				fd = sys.stdin.fileno()
@@ -346,11 +341,11 @@ def main(argv):
 			if not quiet:
 				progressSubject = ProgressSubject('packing')
 				progressSubject.attachObserver(ProgressNotifier())
-				print _(u"Creating package file '%s'" % pps.getPackageFile())
+				print _(u"Creating package file '%s'") % pps.getPackageFile()
 			pps.pack(progressSubject = progressSubject)
 			
 			if not quiet: print "\n"
-			if not quiet: print _(u"Creating md5sum file '%s.md5'" % pps.getPackageFile())
+			if not quiet: print _(u"Creating md5sum file '%s.md5'") % pps.getPackageFile()
 			md5 = md5sum(pps.packageFile)
 			f = open(pps.packageFile + u'.md5', 'w')
 			f.write(md5)

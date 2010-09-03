@@ -44,7 +44,6 @@ from OPSI.System import which
 from OPSI.Backend.BackendManager import *
 from OPSI.Backend.Backend import *
 
-
 import curses
 
 # Globals
@@ -90,17 +89,13 @@ LOGO =[	{"color": COLOR_CYAN, "text": u'                               .:.:::::.
 	{"color": COLOR_CYAN, "text": u'                            -~+++||||++~--                        '},
 	{"color": COLOR_CYAN, "text": u'      opsi-admin %-10s                              ' % __version__},
 	{"color": COLOR_CYAN, "text": u'                                                                  '} ]
-	
 
-# Get locale
 try:
-	t = gettext.translation('opsi-admin', LOCALE_DIR)
+	t = gettext.translation('opsi-utils', '/usr/share/locale')
 	_ = t.ugettext
 except Exception, e:
 	logger.error(u"Locale not found: %s" % e)
 	def _(string):
-		"""Dummy method, created and called when no locale is found.
-		Uses the fallback language (called C; means english) then."""
 		return string
 
 
@@ -112,23 +107,23 @@ def signalHandler(signo, stackFrame):
 		sys.exit(0)
 	
 def usage():
-	print _(u"\nUsage: %s [options] [command] [args...]") % os.path.basename(sys.argv[0])
+	print u"\n" + _(u"Usage: %s [options] [command] [args...]") % os.path.basename(sys.argv[0])
 	print _(u"Options:")
-	print _(u"  -h, --help           Display this text")
-	print _(u"  -V, --version        Display this text")
-	print _(u"  -u, --username       Username (default: current user)")
-	print _(u"  -p, --password       Password (default: prompt for password)")
-	print _(u"  -a, --address        URL of opsiconfd (default: https://localhost:4447/rpc)")
-	print _(u"  -d, --direct         Do not use opsiconfd")
-	print _(u"      --no-depot       Do not use depotserver backend")
-	print _(u"  -l, --loglevel       Set log level (default: 3)")
-	print _(u"                       0=nothing, 1=essential, 2=critical, 3=error, 4=warning")
-	print _(u"                       5=notice, 6=info, 7=debug, 8=debug2, 9=confidential")
-	print _(u"  -f, --log-file       Path to log file")
-	print _(u"  -i, --interactive    Start in interactive mode")
-	print _(u"  -c, --colorize       Colorize output")
-	print _(u"  -S, --simple-output  Simple output (only for scalars, lists)")
-	print _(u"  -s, --shell-output   Shell output")
+	print u"  -h, --help           " + _(u"Display this text")
+	print u"  -V, --version        " + _(u"Show version and exit")
+	print u"  -u, --username       " + _(u"Username (default: current user)")
+	print u"  -p, --password       " + _(u"Password (default: prompt for password)")
+	print u"  -a, --address        " + _(u"URL of opsiconfd (default: https://localhost:4447/rpc)")
+	print u"  -d, --direct         " + _(u"Do not use opsiconfd")
+	print u"      --no-depot       " + _(u"Do not use depotserver backend")
+	print u"  -l, --loglevel       " + _(u"Set log level (default: 3)")
+	print u"                       " + _(u"0=nothing, 1=essential, 2=critical, 3=error, 4=warning")
+	print u"                       " + _(u"5=notice, 6=info, 7=debug, 8=debug2, 9=confidential")
+	print u"  -f, --log-file       " + _(u"Path to log file")
+	print u"  -i, --interactive    " + _(u"Start in interactive mode")
+	print u"  -c, --colorize       " + _(u"Colorize output")
+	print u"  -S, --simple-output  " + _(u"Simple output (only for scalars, lists)")
+	print u"  -s, --shell-output   " + _(u"Shell output")
 	print u""
 	
 def main(argv):
@@ -445,7 +440,7 @@ class Shell:
 	
 	def exit(self):
 		if interactive and logFile and os.path.exists(logFile):
-			if self.question(u"Delete log-file '%s'?" % logFile):
+			if self.question(_("Delete log-file '%s'?") % logFile):
 				try:
 					os.unlink(logFile)
 				except Exception, e:
@@ -670,7 +665,7 @@ class Shell:
 				break
 		
 		if invalid:
-			raise Exception(_(u"Invalid command: '%s'" % self.getParam(0)))
+			raise Exception(_(u"Invalid command: '%s'") % self.getParam(0))
 	
 	def question(self, question):
 		question = forceUnicode(question)
@@ -1007,7 +1002,7 @@ class CommandMethod(Command):
 		return _(u"Execute a config-interface-method")
 	
 	def help(self, shell):
-		shell.appendLine(_(u"\rMethods are:\n"))
+		shell.appendLine(u"\r" + _(u"Methods are:") + u'\n')
 		for m in backend.backend_getInterface():
 			logger.debug(m)
 			shell.appendLine(u"\r%s\n" % m.get('name'))
@@ -1098,8 +1093,8 @@ class CommandMethod(Command):
 			result = eval( "backend.%s(*params)" % method )
 		
 		duration = (time.time() - start)
-		logger.debug( u'Took %0.3f to process: %s(%s)' % (duration, method, pString) )
-		shell.setInfoline( _(u'Took %0.3f to process: %s(%s)') % (duration, method, pString) )
+		logger.debug( u'Took %0.3f seconds to process: %s(%s)' % (duration, method, pString) )
+		shell.setInfoline( _(u'Took %0.3f seconds to process: %s(%s)') % (duration, method, pString) )
 		result = serialize(result)
 		logger.debug2(result)
 		
@@ -1272,7 +1267,7 @@ class CommandHelp(Command):
 		return _(u"Show this text")
 	
 	def execute(self, shell, params):
-		shell.appendLine( _(u"\rCommands are:\n"), refresh = False )
+		shell.appendLine( u'\r' + _(u"Commands are:") + u'\n', refresh = False )
 		for cmd in shell.commands:
 			shell.appendLine( u"\r\t%-20s%s\n" % (cmd.getName() + ':', cmd.getDescription()), refresh = False )
 		shell.display()
@@ -1318,7 +1313,7 @@ class CommandHistory(Command):
 			# By default: show history
 			params = [u'show']
 		elif(params[0] not in (u'clear', u'show')):
-			raise Exception(_(u'unknown command: %s') % params[0])
+			raise Exception(_(u'Unknown command: %s') % params[0])
 			
 		if (params[0] == u'show'):
 			for line in shell.cmdList:
@@ -1353,7 +1348,7 @@ class CommandLog(Command):
 			# By default: show log
 			params = [u'show']
 		elif(params[0] not in (u'show',)):
-			raise Exception(_(u'unknown command: %s') % params[0])
+			raise Exception(_(u'Unknown command: %s') % params[0])
 			
 		if (params[0] == u'show'):
 			if not logFile:
@@ -1454,7 +1449,7 @@ class CommandTask(Command):
 			
 			fqdn = socket.getfqdn()
 			if (fqdn.count('.') < 2 ):
-				raise Exception(u"Failed to get my own fully qualified domainname")
+				raise Exception(_(u"Failed to get my own fully qualified domainname"))
 			
 			password = u''
 			if (len(params) < 2):
