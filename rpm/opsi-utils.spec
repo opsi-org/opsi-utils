@@ -99,7 +99,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
 
 # directories
-%dir /usr/share/locale/de/LC_MESSAGES
+#%dir /usr/share/locale/de/LC_MESSAGES
 %dir /etc/opsi
 
 # ===[ changelog ]==================================
