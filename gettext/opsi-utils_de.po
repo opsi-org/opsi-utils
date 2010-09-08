@@ -487,7 +487,7 @@ msgstr "Das Verzeichnis %s existiert bereits, überschreiben?"
 
 #: ../opsi-newprod:279 ../opsi-newprod:310 ../opsi-newprod:390
 msgid "Yes"
-msgstr "JA"
+msgstr "Ja"
 
 #: ../opsi-newprod:280 ../opsi-newprod:311 ../opsi-newprod:391
 msgid "No"

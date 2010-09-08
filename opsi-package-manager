@@ -1126,7 +1126,7 @@ class OpsiPackageManager(object):
 							i -= 1
 							if (i < 0): i = 0
 							continue
-						if "<other value>" in selection:
+						if _(u'<other value>') in selection:
 							addNewValue = True
 						productProperties[i].setDefaultValues(selection)
 					else:
