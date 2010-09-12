@@ -140,6 +140,7 @@ class OpsiPackageUpdater(object):
 		self.depotKey = depots[0].opsiHostKey
 		if not self.depotKey:
 			raise Exception(u"Opsi host key for depot '%s' not found in backend" % self.depotId)
+		logger.addConfidentialString(self.depotKey)
 		self.readConfigFile()
 		
 	def __del__(self):
@@ -292,6 +293,7 @@ class OpsiPackageUpdater(object):
 							repository.username = forceUnicode(value.strip())
 						elif (option.lower() == 'password'):
 							repository.password = forceUnicode(value.strip())
+							logger.addConfidentialString(repository.password)
 						elif (option.lower() == 'autoinstall'):
 							repository.autoInstall = forceBool(value.strip())
 						elif (option.lower() == 'autoupdate'):
@@ -417,14 +419,16 @@ class OpsiPackageUpdater(object):
 					else:
 						logger.notice(u"%s - download of package is required: local package not found" % availablePackage["filename"])
 					
-					if downloadNeeded:
-						self.downloadPackage(availablePackage, notifier = notifier)
-						#if availablePackage['repository'].opsiDepotId:
-						#	self.syncPackage(availablePackage, localPackageFound)
-						#else:
-						#	self.downloadPackage(availablePackage)
-					
 					packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
+					if downloadNeeded:
+						if self.config["zsyncCommand"] and availablePackage['zsyncFile'] and localPackageFound:
+							if (localPackageFound['filename'] != availablePackage['filename']):
+								os.rename(os.path.join(self.config["packageDir"], localPackageFound["filename"]), packageFile)
+								localPackageFound["filename"] = availablePackage['filename']
+							self.zsyncPackage(availablePackage, notifier = notifier)
+						else:
+							self.downloadPackage(availablePackage, notifier = notifier)
+						self.cleanupPackages(availablePackage)
 					
 					logger.info(u"Verifying download of package '%s'" % packageFile)
 					md5 = md5sum(packageFile)
@@ -612,7 +616,50 @@ class OpsiPackageUpdater(object):
 	#		raise Exception(u"Invalid repository local url for depot '%s'" % depotId)
 	#	depotRepositoryPath = repositoryLocalUrl[7:]
 		
-	
+	def zsyncPackage(self, availablePackage, notifier = None):
+		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
+		
+		logger.notice(u"Zsyncing %s to %s" % (availablePackage["packageFile"], outFile))
+		try:
+			uid = pwd.getpwnam('opsiconfd')[2]
+			gid = grp.getgrnam('pcpatch')[2]
+			os.chmod(outFile, 0660)
+			os.chown(outFile, uid, gid)
+		except Exception, e:
+			logger.warning(u"Failed to set rights on file '%s': %s" % (outFile, e))
+		
+		cmd = u"%s -A %s='%s:%s' -o '%s' %s 2>&1" % (
+				self.config["zsyncCommand"],
+				availablePackage['repository'].baseUrl.split('/')[2].split(':')[0],
+				availablePackage['repository'].username,
+				availablePackage['repository'].password,
+				outFile,
+				availablePackage["zsyncFile"])
+		
+		stateRegex = re.compile('\s([\d\.]+)%\s+([\d\.]+)\skBps(.*)$')
+		data = ''
+		percent = 0.0
+		speed = 0
+		handle = System.execute(cmd, getHandle=True)
+		while True:
+			inp = handle.read(16)
+			if not inp:
+				handle.close()
+				break
+			data += inp
+			match = stateRegex.search(data)
+			if not match:
+				continue
+			data = match.group(3)
+			if (percent == 0) and (float(match.group(1)) == 100):
+				continue
+			percent = float(match.group(1))
+			speed   = float(match.group(2))*8
+			logger.debug(u'Zsyncing %s: %d%% (%d kbit/s)' % (availablePackage["packageFile"], percent, speed))
+		if notifier:
+			notifier.appendLine(u"Zsync of '%s' completed" % availablePackage["packageFile"])
+		logger.notice(u"Zsync of '%s' completed" % availablePackage["packageFile"])
+		
 	def downloadPackage(self, availablePackage, notifier = None):
 		
 		url = availablePackage["packageFile"]
@@ -671,7 +718,8 @@ class OpsiPackageUpdater(object):
 		if notifier:
 			notifier.appendLine(u"Download of '%s' completed" % url)
 		logger.notice(u"Download of '%s' completed" % url)
-		
+	
+	def cleanupPackages(self, newPackage):
 		logger.info(u"Cleaning up in %s" % self.config["packageDir"])
 		for f in os.listdir(self.config["packageDir"]):
 			(productId, version) = (None, None)
@@ -680,7 +728,7 @@ class OpsiPackageUpdater(object):
 				version = f[:-5].split('_')[-1]
 			except:
 				continue
-			if (productId == availablePackage["productId"]) and (version != availablePackage["version"]):
+			if (productId == newPackage["productId"]) and (version != newPackage["version"]):
 				logger.info(u"Deleting obsolete package file '%s'" % os.path.join(self.config["packageDir"], f))
 				os.unlink(os.path.join(self.config["packageDir"], f))
 		
@@ -795,7 +843,8 @@ class OpsiPackageUpdater(object):
 							"version":     version,
 							"packageFile": packageFile,
 							"filename":    link,
-							"md5sum":      None } )
+							"md5sum":      None,
+							"zsyncFile":   None } )
 						if depotConnection:
 							packages[-1]["md5sum"] = depotConnection.getMD5Sum(u'%s/%s' % (depotRepositoryPath, link))
 						logger.debug(u"Repository package info: %s" % packages[-1])
@@ -804,19 +853,29 @@ class OpsiPackageUpdater(object):
 				
 				if not depotConnection:
 					for link in htmlParser.getLinks():
-						if not link.endswith('.opsi.md5'):
-							continue
+						isMd5   = link.endswith('.opsi.md5')
+						isZsync = link.endswith('.opsi.zsync')
 						try:
-							filename = link[:-4]
+							filename = None
+							if isMd5:
+								filename = link[:-4]
+							elif isZsync:
+								filename = link[:-6]
+							else:
+								continue
 							for i in range(len(packages)):
 								if (packages[i].get('filename') == filename):
-									req = urllib2.Request(url + '/' + link, None, self.httpHeaders)
-									con = opener.open(req)
-									md5sum = con.read(32768)
-									match = re.search('([a-z\d]{32})', md5sum)
-									if match:
-										packages[i]["md5sum"] = match.group(1)
-										logger.debug(u"Got md5sum for package '%s': %s" % (filename, packages[i]["md5sum"]))
+									if isMd5:
+										req = urllib2.Request(url + '/' + link, None, self.httpHeaders)
+										con = opener.open(req)
+										md5sum = con.read(32768)
+										match = re.search('([a-z\d]{32})', md5sum)
+										if match:
+											packages[i]["md5sum"] = match.group(1)
+											logger.debug(u"Got md5sum for package '%s': %s" % (filename, packages[i]["md5sum"]))
+									elif isZsync:
+										packages[i]["zsyncFile"] = url + '/' + link
+										logger.debug(u"Found zsync file for package '%s': %s" % (filename, packages[i]["zsyncFile"]))
 									break
 						except Exception ,e:
 							logger.error(u"Failed to process link '%s': %s" % (link, e))
@@ -857,8 +916,8 @@ def main(argv):
 		"installationWindowExceptions": None,
 		"repositories":                 [],
 		"installAllAvailable":          False,
+		"zsyncCommand":                 None
 	}
-	
 	# Get options
 	try:
 		(opts, args) = getopt.getopt(argv, "hivVc:")
@@ -882,7 +941,13 @@ def main(argv):
 			logger.setConsoleLevel(consoleLevel)
 		elif (opt == "-i"):
 			config["installAllAvailable"] = True
-		
+	
+	try:
+		config["zsyncCommand"] = System.which("zsync")
+		logger.notice(u"Zsync command found: %s" % config["zsyncCommand"])
+	except:
+		logger.info(u"Zsync command not found")
+	
 	pid = os.getpid()
 	running = None
 	try:
