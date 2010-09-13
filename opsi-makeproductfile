@@ -57,7 +57,7 @@ except Exception, e:
 		return string
 	
 def usage():
-	print u"\nUsage: %s [-h] [-v|-q] [-F format] [-l log-level] [-i|-c custom name] [-I required version] [-t temp dir] [source directory]" % os.path.basename(sys.argv[0])
+	print u"\nUsage: %s [-h] [-z] [-m] [-v|-q] [-F format] [-l log-level] [-i|-c custom name] [-I required version] [-t temp dir] [source directory]" % os.path.basename(sys.argv[0])
 	print u"Provides an opsi package from a package source directory."
 	print u"If no source directory is supplied, the current directory will be used."
 	print u"Options:"
@@ -72,6 +72,8 @@ def usage():
 	print u"   -c          custom name (custom only)"
 	print u"   -C          compatibility mode (opsi 3)"
 	print u"   -t          temp dir"
+	print u"   -m          create md5sum file"
+	print u"   -z          create zsync file"
 	print u""
 
 
@@ -150,13 +152,15 @@ def main(argv):
 	requiredVersion   = None
 	incremental       = False
 	compatibilityMode = False
+	createMd5SumFile  = False
+	createZsyncFile   = False
 	
 	logger.setConsoleLevel(logLevel)
 	logger.setConsoleColor(True)
 	logger.setConsoleFormat(u'%L: %M')
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "Chvnqi:c:t:l:F:I:")
+		(opts, args) = getopt.getopt(argv, "Chvzmnqi:c:t:l:F:I:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -190,6 +194,10 @@ def main(argv):
 			format = forceUnicode(arg)
 		elif (opt == "-C"):
 			compatibilityMode = True
+		elif (opt == "-m"):
+			createMd5SumFile = True
+		elif (opt == "-z"):
+			createZsyncFile = True
 		
 	if (len(args) > 1):
 		logger.error(u"To many arguments")
@@ -345,11 +353,17 @@ def main(argv):
 			pps.pack(progressSubject = progressSubject)
 			
 			if not quiet: print "\n"
-			if not quiet: print _(u"Creating md5sum file '%s.md5'") % pps.getPackageFile()
-			md5 = md5sum(pps.packageFile)
-			f = open(pps.packageFile + u'.md5', 'w')
-			f.write(md5)
-			f.close()
+			if createMd5SumFile:
+				if not quiet: print _(u"Creating md5sum file '%s.md5'") % pps.getPackageFile()
+				md5 = md5sum(pps.packageFile)
+				f = open(pps.packageFile + u'.md5', 'w')
+				f.write(md5)
+				f.close()
+			if createZsyncFile:
+				if not quiet: print _(u"Creating zsync file '%s.zsync'") % pps.getPackageFile()
+				cmd = u"%s -u '%s' -o '%s.zsync' '%s'" % (which('zsyncmake'), os.path.basename(pps.getPackageFile()), pps.getPackageFile(), pps.getPackageFile())
+				for line in execute(cmd):
+					logger.debug(line)
 			break
 	finally:
 		if pps:
