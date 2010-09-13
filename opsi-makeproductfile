@@ -309,6 +309,10 @@ def main(argv):
 					while True:
 						ch = sys.stdin.read(1)
 						if   ch in ('o', 'O'):
+							if os.path.exists(pps.packageFile + u'.md5'):
+								os.remove(pps.packageFile + u'.md5')
+							if os.path.exists(pps.packageFile + u'.zsync'):
+								os.remove(pps.packageFile + u'.zsync')
 							break
 						elif ch in ('c', 'C'):
 							raise Exception(_(u"Aborted"))
