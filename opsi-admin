@@ -1462,7 +1462,7 @@ class CommandTask(Command):
 			try:
 				# Univention
 				dn = None
-				f = os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % (which('univention-admin'), 'r'))
+				f = os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % which('univention-admin'), 'r')
 				for line in f.readlines():
 					if line.startswith('DN'):
 						dn = line.strip().split(' ')[1]
