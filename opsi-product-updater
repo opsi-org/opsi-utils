@@ -293,7 +293,8 @@ class OpsiPackageUpdater(object):
 							repository.username = forceUnicode(value.strip())
 						elif (option.lower() == 'password'):
 							repository.password = forceUnicode(value.strip())
-							logger.addConfidentialString(repository.password)
+							if repository.password:
+								logger.addConfidentialString(repository.password)
 						elif (option.lower() == 'autoinstall'):
 							repository.autoInstall = forceBool(value.strip())
 						elif (option.lower() == 'autoupdate'):
