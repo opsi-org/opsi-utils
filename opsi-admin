@@ -1470,7 +1470,8 @@ class CommandTask(Command):
 				f.close()
 				if not dn:
 					raise Exception(u"Failed to get DN for user pcpatch")
-				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 > /dev/null" % (dn, password)
+				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 > /dev/null" \
+						% (which('univention-admin'), dn, password)
 				os.system(cmd.encode(outEncoding))
 			except:
 				try:
