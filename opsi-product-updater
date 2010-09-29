@@ -717,6 +717,12 @@ class OpsiPackageUpdater(object):
 		gid = grp.getgrnam('pcpatch')[2]
 		for f in os.listdir(self.config["packageDir"]):
 			path = os.path.join(self.config["packageDir"], f)
+			if os.path.isfile(path):
+				try:
+					os.chmod(path, 0660)
+					os.chown(path, uid, gid)
+				except Exception, e:
+					logger.warning(u"Failed to set rights on file '%s': %s" % (path, e))
 			(productId, version) = (None, None)
 			try:
 				productId = '_'.join(f.split('_')[:-1])
@@ -724,15 +730,9 @@ class OpsiPackageUpdater(object):
 			except:
 				continue
 			if (productId == newPackage["productId"]) and (version != newPackage["version"]):
-				logger.info(u"Deleting obsolete package file '%s'" % os.path.join(self.config["packageDir"], f))
-				os.unlink()
-			elif os.path.isfile(path):
-				try:
-					os.chmod(path, 0660)
-					os.chown(path, uid, gid)
-				except Exception, e:
-					logger.warning(u"Failed to set rights on file '%s': %s" % (path, e))
-		
+				logger.info(u"Deleting obsolete package file '%s'" % path)
+				os.unlink(path)
+	
 	def onlyNewestPackages(self, packages):
 		newestPackages = []
 		for package in packages:
