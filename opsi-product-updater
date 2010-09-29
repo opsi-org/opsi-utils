@@ -622,13 +622,6 @@ class OpsiPackageUpdater(object):
 		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 		
 		logger.notice(u"Zsyncing %s to %s" % (availablePackage["packageFile"], outFile))
-		try:
-			uid = pwd.getpwnam('opsiconfd')[2]
-			gid = grp.getgrnam('pcpatch')[2]
-			os.chmod(outFile, 0660)
-			os.chown(outFile, uid, gid)
-		except Exception, e:
-			logger.warning(u"Failed to set rights on file '%s': %s" % (outFile, e))
 		
 		cmd = u"%s -A %s='%s:%s' -o '%s' %s 2>&1" % (
 				self.config["zsyncCommand"],
@@ -662,6 +655,8 @@ class OpsiPackageUpdater(object):
 			notifier.appendLine(u"Zsync of '%s' completed" % availablePackage["packageFile"])
 		logger.notice(u"Zsync of '%s' completed" % availablePackage["packageFile"])
 		
+		
+		
 	def downloadPackage(self, availablePackage, notifier = None):
 		
 		url = availablePackage["packageFile"]
@@ -686,13 +681,6 @@ class OpsiPackageUpdater(object):
 		else:
 			logger.notice(u"Downloading %s to %s" % (url, outFile))
 		out = open(outFile, 'wb')
-		try:
-			uid = pwd.getpwnam('opsiconfd')[2]
-			gid = grp.getgrnam('pcpatch')[2]
-			os.chmod(outFile, 0660)
-			os.chown(outFile, uid, gid)
-		except Exception, e:
-			logger.warning(u"Failed to set rights on file '%s': %s" % (outFile, e))
 		
 		completed = 0.0
 		percent = 0.0
@@ -723,7 +711,18 @@ class OpsiPackageUpdater(object):
 	
 	def cleanupPackages(self, newPackage):
 		logger.info(u"Cleaning up in %s" % self.config["packageDir"])
+		uid = -1
+		if (os.geteuid() == 0):
+			uid = pwd.getpwnam('opsiconfd')[2]
+		gid = grp.getgrnam('pcpatch')[2]
 		for f in os.listdir(self.config["packageDir"]):
+			path = os.path.join(self.config["packageDir"], f)
+			if os.path.isfile(path):
+				try:
+					os.chmod(path, 0660)
+					os.chown(path, uid, gid)
+				except Exception, e:
+					logger.warning(u"Failed to set rights on file '%s': %s" % (path, e))
 			(productId, version) = (None, None)
 			try:
 				productId = '_'.join(f.split('_')[:-1])
@@ -731,10 +730,9 @@ class OpsiPackageUpdater(object):
 			except:
 				continue
 			if (productId == newPackage["productId"]) and (version != newPackage["version"]):
-				logger.info(u"Deleting obsolete package file '%s'" % os.path.join(self.config["packageDir"], f))
-				os.unlink(os.path.join(self.config["packageDir"], f))
-		
-		
+				logger.info(u"Deleting obsolete package file '%s'" % path)
+				os.unlink(path)
+	
 	def onlyNewestPackages(self, packages):
 		newestPackages = []
 		for package in packages:

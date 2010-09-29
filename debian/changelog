@@ -1,3 +1,15 @@
+opsi-utils (4.0-4) stable; urgency=low
+
+  * opsi-product-updater: fix unlink
+
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 29 Sep 2010 22:59:23 +0200
+
+opsi-utils (4.0-3) stable; urgency=low
+
+  * opsi-product-updater: set right in repository dir
+
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 29 Sep 2010 22:49:59 +0200
+
 opsi-utils (4.0-2) stable; urgency=low
 
   * Fix package sorting in opsi-product-updater and opsi-package-manager
