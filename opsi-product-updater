@@ -717,12 +717,16 @@ class OpsiPackageUpdater(object):
 		gid = grp.getgrnam('pcpatch')[2]
 		for f in os.listdir(self.config["packageDir"]):
 			path = os.path.join(self.config["packageDir"], f)
-			if os.path.isfile(path):
-				try:
-					os.chmod(path, 0660)
-					os.chown(path, uid, gid)
-				except Exception, e:
-					logger.warning(u"Failed to set rights on file '%s': %s" % (path, e))
+			if not os.path.isfile(path):
+				continue
+			if path.endswith('.zs-old'):
+				os.unlink(path)
+				continue
+			try:
+				os.chmod(path, 0660)
+				os.chown(path, uid, gid)
+			except Exception, e:
+				logger.warning(u"Failed to set rights on file '%s': %s" % (path, e))
 			(productId, version) = (None, None)
 			try:
 				productId = '_'.join(f.split('_')[:-1])
