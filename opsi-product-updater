@@ -482,8 +482,9 @@ class OpsiPackageUpdater(object):
 						try:
 							ppos = sequence.index(productId)
 							dpos = sequence.index(dependency['package'])
-							sequence.remove(dependency['package'])
-							sequence.insert(ppos, dependency['package'])
+							if (ppos < dpos):
+								sequence.remove(dependency['package'])
+								sequence.insert(ppos, dependency['package'])
 						except Exception, e:
 							logger.debug(u"While processing package '%s', dependency '%s': %s" % (packageFile, dependency['package'], e))
 				
