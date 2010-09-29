@@ -1,82 +1,166 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-   =============================
+   = = = = = = = = = = = = = = =
    =   opsi-makeproductfile    =
-   =============================
+   = = = = = = = = = = = = = = =
    
-   @copyright: Jan Schneider <j.schneider@uib.de>
-   @license: GNU GPL, see COPYING for details.
+   opsi-makeproductfile is part of the desktop management solution opsi
+   (open pc server integration) http://www.opsi.org
+   
+   Copyright (C) 2010 uib GmbH
+   
+   http://www.uib.de/
+   
+   All rights reserved.
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License version 2 as
+   published by the Free Software Foundation.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   
+   @copyright:	uib GmbH <info@uib.de>
+   @author: Jan Schneider <j.schneider@uib.de>
+   @license: GNU General Public License version 2
 """
 
-__version__ = '0.7.3'
+__version__ = '4.0'
 
-import os, time, getopt, gettext, re, pwd, grp, socket
+import sys, os, getopt, gettext, re, tty, termios
 
 # OPSI imports
 from OPSI.Logger import *
 from OPSI.System import *
-from OPSI.Product import *
-from OPSI.Tools import md5sum
-from OPSI.Backend.BackendManager import BackendManager
+from OPSI.Types import *
+from OPSI.Util.Message import ProgressObserver, ProgressSubject
+from OPSI.Util.Product import *
+from OPSI.Util.File.Opsi import PackageControlFile
+from OPSI.Util import md5sum
 
 # Get logger instance
 logger = Logger()
 
-# Get locale
 try:
-	t = gettext.translation('opsi_makeproductfile', LOCALE_DIR)
-	def _(string):
-		return t.ugettext(string).encode('utf-8', 'replace')
-	
+	t = gettext.translation('opsi-utils', '/usr/share/locale')
+	_ = t.ugettext
 except Exception, e:
-	logger.error("Locale not found: %s" % e)
+	logger.error(u"Locale not found: %s" % e)
 	def _(string):
-		"""Dummy method, created and called when no locale is found.
-		Uses the fallback language (called C; means english) then."""
 		return string
 	
 def usage():
-	print _("\nUsage: %s [-h] [-v|-s] [-f] [-F format] [-l log-level] [-i|-c custom name] [-I required version] [-t temp dir] [source directory]") % os.path.basename(sys.argv[0])
-	print _("Provides an opsi package from a package source directory.")
-	print _("If no source directory is supplied, the current directory will be used.")
-	print _("Options:")
-	print _("   -v          verbose")
-	print _("   -s          silent")
-	print _("   -l          log-level 0..6")
-	print _("   -f          fast, no topicality test")
-	print _("   -n          do not compress")
-	print _("   -F          archive format [tar|cpio], default: cpio")
-	print _("   -h          follow symlinks")
-	print _("   -I          incremental package")
-	print _("   -i          custom name (add custom files)")
-	print _("   -c          custom name (custom only)")
-	print _("   -t          temp dir")
-	print ""
+	print u"\nUsage: %s [-h] [-z] [-m] [-v|-q] [-F format] [-l log-level] [-i|-c custom name] [-I required version] [-t temp dir] [source directory]" % os.path.basename(sys.argv[0])
+	print u"Provides an opsi package from a package source directory."
+	print u"If no source directory is supplied, the current directory will be used."
+	print u"Options:"
+	print u"   -v          verbose"
+	print u"   -q          quiet"
+	print u"   -l          log-level 0..9"
+	print u"   -n          do not compress"
+	print u"   -F          archive format [tar|cpio], default: cpio"
+	print u"   -h          follow symlinks"
+	print u"   -I          incremental package"
+	print u"   -i          custom name (add custom files)"
+	print u"   -c          custom name (custom only)"
+	print u"   -C          compatibility mode (opsi 3)"
+	print u"   -t          temp dir"
+	print u"   -m          create md5sum file"
+	print u"   -z          create zsync file"
+	print u""
+
+
+class ProgressNotifier(ProgressObserver):
+	def __init__(self):
+		self.usedWidth = 60
+		try:
+			tty = os.popen('tty').readline().strip()
+			fd = open(tty)
+			terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+			if (self.usedWidth > terminalWidth):
+				self.usedWidth = terminalWidth
+			fd.close()
+		except:
+			pass
+		
+	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+		if (subject.getEnd() <= 0):
+			return
+		barlen = self.usedWidth - 10
+		filledlen = int("%0.0f" % (barlen*percent/100))
+		bar = u'='*filledlen + u' '*(barlen-filledlen)
+		percent = '%0.2f%%' % percent
+		sys.stderr.write('\r %8s [%s]\r' % (percent, bar))
+		sys.stderr.flush()
+		
+	def messageChanged(self, subject, message):
+		sys.stderr.write('\n%s\n' % message)
+		sys.stderr.flush()
+
+def lockPackage(tempDir, packageControlFile):
+	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	# Test if other processes are accessing same product
+	try:
+		lf = open(lockFile, 'r')
+		p = lf.read().strip()
+		lf.close()
+		
+		if p:
+			for line in execute(u"ps -A"):
+				line = line.strip()
+				if not line:
+					continue
+				if (p == line.split()[0].strip()):
+					pName = line.split()[-1].strip()
+					# process is running
+					raise Exception(u"Product '%s' is currently locked by process %s (%s)." \
+								% (packageControlFile.getProduct().id, pName, p) )
 	
+	except IOError:
+		pass
+	
+	# Write lock-file
+	lf = open(lockFile, 'w')
+	lf.write(str(os.getpid()))
+	lf.close()
+	
+def unlockPackage(tempDir, packageControlFile):
+	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	if os.path.isfile(lockFile):
+		os.unlink(lockFile)
+
 def main(argv):
 	os.umask(022)
 	
-	logLevel = LOG_WARNING
-	topicalityTest = True
-	sourceDir = os.getcwd()
-	tempDir = '/tmp'
-	lockFile = None
-	customName = None
-	customOnly = False
-	silent = False
-	format = 'cpio'
-	compress = 'gz'
-	dereference = False
-	requiredVersion = None
-	incremental = False
+	logLevel          = LOG_WARNING
+	packageSourceDir  = os.getcwd()
+	tempDir           = u'/tmp'
+	lockFile          = None
+	customName        = u''
+	customOnly        = False
+	quiet             = False
+	format            = 'cpio'
+	compression       = 'gzip'
+	dereference       = False
+	requiredVersion   = None
+	incremental       = False
+	compatibilityMode = False
+	createMd5SumFile  = False
+	createZsyncFile   = False
 	
 	logger.setConsoleLevel(logLevel)
 	logger.setConsoleColor(True)
-	logger.setConsoleFormat('%L: %M')
+	logger.setConsoleFormat(u'%L: %M')
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "hvnsfi:c:t:l:F:I:")
+		(opts, args) = getopt.getopt(argv, "Chvzmnqi:c:t:l:F:I:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -89,15 +173,13 @@ def main(argv):
 			logLevel = LOG_DEBUG
 			logger.setColor(True)
 		elif (opt == "-l"):
-			logLevel = int(arg)
+			logLevel = forceInt(arg)
 			logger.setColor(True)
 		elif (opt == "-n"):
-			compress = False
-		elif (opt == "-s"):
+			compression = None
+		elif (opt == "-q"):
 			logLevel = LOG_NONE
-			silent = True
-		elif (opt == "-f"):
-			topicalityTest = False
+			quiet = True
 		elif (opt == "-i"):
 			customName = arg
 		elif (opt == "-c"):
@@ -107,129 +189,193 @@ def main(argv):
 			requiredVersion = arg
 			incremental = True
 		elif (opt == "-t"):
-			tempDir = arg
+			tempDir = forceFilename(arg)
 		elif (opt == "-F"):
-			format = arg
-	
+			format = forceUnicode(arg)
+		elif (opt == "-C"):
+			compatibilityMode = True
+		elif (opt == "-m"):
+			createMd5SumFile = True
+		elif (opt == "-z"):
+			createZsyncFile = True
+		
 	if (len(args) > 1):
-		logger.error("To much arguments")
+		logger.error(u"To many arguments")
 		usage()
 		sys.exit(1)
 	
 	elif (len(args) > 0):
-		sourceDir = os.path.abspath( args[0] )
+		packageSourceDir = os.path.abspath( args[0] )
 	
 	logger.setConsoleLevel(logLevel)
 	
-	logger.notice("Source dir: %s" % sourceDir)
-	logger.notice("Temp dir: %s" % tempDir)
-	logger.notice("Custom name: %s" % customName)
-	logger.notice("Topicality test: %s" % topicalityTest)
-	logger.notice("Archive format: %s" % format)
+	logger.info(u"Source dir: %s" % packageSourceDir)
+	logger.info(u"Temp dir: %s" % tempDir)
+	logger.info(u"Custom name: %s" % customName)
+	logger.info(u"Archive format: %s" % format)
 	
 	if format not in ['tar', 'cpio']:
-		raise Exception("Unsupported archive format: %s" % format)
+		raise Exception(u"Unsupported archive format: %s" % format)
 	
-	if not os.path.isdir(sourceDir):
-		raise Exception("No such directory: %s" % sourceDir)
+	if not os.path.isdir(packageSourceDir):
+		raise Exception(u"No such directory: %s" % packageSourceDir)
 	
-	bm = BackendManager(authRequired=False, configFile='/etc/opsi/backendManager.d')
+	if customName:
+		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI.%s' % customName, u'control')
+	if not customName or not os.path.exists(packageControlFilePath):
+		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI', u'control')
+		if not os.path.exists(packageControlFilePath):
+			raise Exception(u"Control file '%s' not found" % packageControlFilePath)
 	
-	pps = ProductPackageSource(sourceDir = sourceDir, tempDir = tempDir, customName = customName, customOnly = customOnly, packageFileDestDir = os.getcwd())
+	if not quiet: print ""
+	if not quiet: print _(u"Locking package")
+	pcf = PackageControlFile(packageControlFilePath, opsi3compatible = compatibilityMode)
 	
-	clientDataDir = '/opt/pcbin/install'
-	depotId = socket.getfqdn()
+	lockPackage(tempDir, pcf)
+	pps = None
 	try:
-		# If the local computer is not a depot an error will occur
-		depot = bm.getDepot_hash(depotId)
-		clientDataDir = depot['depotLocalUrl']
-		if not clientDataDir.startswith('file:///'):
-			raise Exception("Value '%s' not allowed for depot local url (has to start with 'file:///')" % clientDataDir)
-		clientDataDir = os.path.join(clientDataDir[7:], pps.product.productId)
-	except Exception, e:
-		logger.info("Failed to get info for depot '%s': %s" % (depotId, e))
-	
-	logger.info("Setting client data dir to '%s'" % clientDataDir)
-	pps.setClientDataDir(clientDataDir)
-	
-	if not silent: print _("Locking product...")
-	pps.lock()
-	
-	if incremental:
-		match = re.search('^\s*([<>]?=?[\w\.]+-*[\w\.]*)\s*$', requiredVersion)
-		if not match:
-			raise Exception("Bad version string '%s' in dependency" % requiredVersion)
-		
-		sectionRegex = re.compile('^\[([^\]]+)\]\s*$')
-		lines = []
-		packageSection = []
-		section = ''
-		f = open(pps.controlFile, 'r')
-		for line in f.readlines():
-			line = line.rstrip()
-			match = re.search(sectionRegex, line)
-			if match:
-				section = match.group(1)
-				if (section.lower() == 'package'):
-					packageSection.append(line)
+		while True:
+			product = pcf.getProduct()
+			if incremental:
+				match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
+				if not match:
+					raise Exception(u"Bad version string '%s' in dependency" % requiredVersion)
+				packageDependency = { 'package': product.id, 'condition': match.group(1), 'version': match.group(2) }
+				pcf.setPackageDependencies([ packageDependency ])
+				pcf.setIncrementalPackage(True)
+			
+			if not quiet: print u""
+			if not quiet: print _(u"Package info")
+			if not quiet: print u"----------------------------------------------------------------------------"
+			if not quiet: print u"   %-20s : %s" % (u'version',             product.packageVersion)
+			if not quiet: print u"   %-20s : %s" % (u'custom package name', customName)
+			if not quiet: print u"   %-20s : %s" % (u'incremental package', incremental)
+			if not quiet:
+				dependencies = []
+				for dep in pcf.getPackageDependencies():
+					dependencies.append(u'%s(%s%s)' % (dep['package'], dep['condition'], dep['version']))
+				print       u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
+			
+			if not quiet: print ""
+			if not quiet: print _(u"Product info")
+			if not quiet: print u"----------------------------------------------------------------------------"
+			if not quiet: print u"   %-20s : %s" % (u'product id',           product.id)
+			if not quiet and (product.getType() == 'LocalbootProduct'):
+				print       u"   %-20s : %s" % (u'product type',         u'localboot')
+			if not quiet and (product.getType() == 'NetbootProduct'):
+				print       u"   %-20s : %s" % (u'product type',         u'netboot')
+			if not quiet: print u"   %-20s : %s" % (u'version',              product.productVersion)
+			if not quiet: print u"   %-20s : %s" % (u'name',                 product.name)
+			if not quiet: print u"   %-20s : %s" % (u'description',          product.description)
+			if not quiet: print u"   %-20s : %s" % (u'advice',               product.advice)
+			if not quiet: print u"   %-20s : %s" % (u'priority',             product.priority)
+			if not quiet: print u"   %-20s : %s" % (u'licenseRequired',      product.licenseRequired)
+			if not quiet: print u"   %-20s : %s" % (u'product classes',      u', '.join(product.productClassIds))
+			if not quiet: print u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds))
+			if not quiet and (product.getType() == 'NetbootProduct'):
+				print       u"   %-20s : %s" % (u'pxe config template',  product.pxeConfigTemplate)
+			
+			if not quiet: print ""
+			if not quiet: print _(u"Product scripts")
+			if not quiet: print u"----------------------------------------------------------------------------"
+			if not quiet: print u"   %-20s : %s" % (u'setup',      product.setupScript)
+			if not quiet: print u"   %-20s : %s" % (u'uninstall',  product.uninstallScript)
+			if not quiet: print u"   %-20s : %s" % (u'update',     product.updateScript)
+			if not quiet: print u"   %-20s : %s" % (u'always',     product.alwaysScript)
+			if not quiet: print u"   %-20s : %s" % (u'once',       product.onceScript)
+			if not quiet: print u"   %-20s : %s" % (u'custom',     product.customScript)
+			if not quiet and (product.getType() == 'LocalbootProduct'):
+				print       u"   %-20s : %s" % (u'user login', product.userLoginScript)
+			if not quiet: print u""
+			
+			pps = ProductPackageSource(
+				packageSourceDir   = packageSourceDir,
+				tempDir            = tempDir,
+				customName         = customName,
+				customOnly         = customOnly,
+				packageFileDestDir = os.getcwd(),
+				format             = format,
+				compression        = compression,
+				dereference        = dereference)
+			
+			if not quiet and os.path.exists(pps.getPackageFile()):
+				print _(u"Package file '%s' already exists.") % pps.getPackageFile()
+				print _(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"),
+				newVersion = False
+				fd = sys.stdin.fileno()
+				savedSettings = termios.tcgetattr(fd)
+				tty.setraw(fd)
+				try:
+					while True:
+						ch = sys.stdin.read(1)
+						if   ch in ('o', 'O'):
+							if os.path.exists(pps.packageFile + u'.md5'):
+								os.remove(pps.packageFile + u'.md5')
+							if os.path.exists(pps.packageFile + u'.zsync'):
+								os.remove(pps.packageFile + u'.zsync')
+							break
+						elif ch in ('c', 'C'):
+							raise Exception(_(u"Aborted"))
+						elif ch in ('n', 'N'):
+							newVersion = True
+							break
+				finally:
+					termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
+					print '\r\033[0K'
+				
+				if newVersion:
+					while True:
+						print '\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion,
+						newVersion = sys.stdin.readline().strip()
+						try:
+							if (newVersion != ''):
+								product.setProductVersion(newVersion)
+								pcf.generate()
+							break
+						except:
+							print _(u"Bad product version: %s") % newVersion
+					while True:
+						print '\r%s' % _(u"Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion,
+						newVersion = sys.stdin.readline().strip()
+						try:
+							if (newVersion != ''):
+								product.setPackageVersion(newVersion)
+								pcf.generate()
+							break
+						except:
+							print _(u"Bad package version: %s") % newVersion
 					continue
-			elif (section.lower() == 'package'):
-				if not line.startswith('depends:') and not line.startswith('incremental:'):
-					packageSection.append(line)
-				continue
-			lines.append(line)
-		f.close()
-		if not packageSection:
-			packageSection = ['[Package]', '']
-		
-		f = open(pps.controlFile, 'w')
-		for i in range(len(packageSection)):
-			print >> f, packageSection[i]
-			if (i == 0):
-				print >> f, 'depends: %s (%s)' % (pps.product.productId, requiredVersion)
-				print >> f, 'incremental: True'
-		for line in lines:
-			print >> f, line
-		f.close()
-	
-	if not silent: print _("Product info:")
-	if not silent: print _("     productId:         %s" % pps.product.productId)
-	if not silent: print _("     customName:        %s" % pps.customName)
-	if not silent: print _("     name:              %s" % pps.product.name)
-	if not silent: print _("     productVersion:    %s" % pps.product.productVersion)
-	if not silent: print _("     packageVersion:    %s" % pps.product.packageVersion)
-	if not silent: print _("     licenseRequired:   %s" % pps.product.licenseRequired)
-	if not silent: print _("     setupScript:       %s" % pps.product.setupScript)
-	if not silent: print _("     uninstallScript:   %s" % pps.product.uninstallScript)
-	if not silent: print _("     updateScript:      %s" % pps.product.updateScript)
-	if not silent: print _("     alwaysScript:      %s" % pps.product.alwaysScript)
-	if not silent: print _("     onceScript:        %s" % pps.product.onceScript)
-	if not silent: print _("     priority:          %s" % pps.product.priority)
-	if not silent: print _("     description:       %s" % pps.product.description)
-	if not silent: print _("     advice:            %s" % pps.product.advice)
-	if not silent: print _("     productClassNames: %s" % pps.product.productClassNames)
-	if not silent: print _("     pxeConfigTemplate: %s" % pps.product.pxeConfigTemplate)
-	
-	if topicalityTest:
-		if not silent: print _("Testing topicality...")
-		pps.testTopicality()
-	
-	#if not silent: print _("Setting access rights...")
-	#pps.setAccessRights()
-	
-	if not silent: print _("Creating packagefile...")
-	pps.pack(format, compress, dereference)
-	
-	if not silent: print _("Unlocking product...")
-	pps.unlock()
-	
-	if not silent: print _("Package file is '%s'" % pps.packageFile)
-	
-	if not silent: print _("Creating md5sum file '%s.md5'" % pps.packageFile)
-	md5 = md5sum(pps.packageFile)
-	f = open(pps.packageFile + '.md5', 'w')
-	print >> f, md5,
-	f.close
+			
+			# Regenerating to fix encoding
+			pcf.generate()
+			
+			progressSubject = None
+			if not quiet:
+				progressSubject = ProgressSubject('packing')
+				progressSubject.attachObserver(ProgressNotifier())
+				print _(u"Creating package file '%s'") % pps.getPackageFile()
+			pps.pack(progressSubject = progressSubject)
+			
+			if not quiet: print "\n"
+			if createMd5SumFile:
+				if not quiet: print _(u"Creating md5sum file '%s.md5'") % pps.getPackageFile()
+				md5 = md5sum(pps.packageFile)
+				f = open(pps.packageFile + u'.md5', 'w')
+				f.write(md5)
+				f.close()
+			if createZsyncFile:
+				if not quiet: print _(u"Creating zsync file '%s.zsync'") % pps.getPackageFile()
+				cmd = u"%s -u '%s' -o '%s.zsync' '%s'" % (which('zsyncmake'), os.path.basename(pps.getPackageFile()), pps.getPackageFile(), pps.getPackageFile())
+				for line in execute(cmd):
+					logger.debug(line)
+			break
+	finally:
+		if pps:
+			if not quiet: print _(u"Cleaning up")
+			pps.cleanup()
+		if not quiet: print _(u"Unlocking package")
+		unlockPackage(tempDir, pcf)
+		if not quiet: print ""
 	
 if (__name__ == "__main__"):
 	exception = None
@@ -246,7 +392,7 @@ if (__name__ == "__main__"):
 	if exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
-		print >> sys.stderr, "ERROR:", str(exception)
+		print >> sys.stderr, u"ERROR: %s" % exception
 		sys.exit(1)
 	
 	sys.exit(0)

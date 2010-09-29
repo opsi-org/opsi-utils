@@ -1,0 +1,18 @@
+#! /bin/bash -e
+
+case "$1" in
+	configure)
+		chown root:opsiadmin /etc/opsi/opsi-product-updater.conf
+		chmod 660 /etc/opsi/opsi-product-updater.conf
+	;;
+	
+	abort-upgrade|abort-remove|abort-deconfigure)
+	
+	;;
+	
+	*)
+		echo "postinst called with unknown argument \`$1'" >&2
+		exit 1
+	;;
+esac
+
