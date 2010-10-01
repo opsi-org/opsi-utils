@@ -1,3 +1,9 @@
+opsi-utils (4.0-7) stable; urgency=low
+
+  * opsi-package-manager 4.0
+
+ -- Jan Schneider <j.schneider@uib.de>  Fri, 01 Oct 2010 22:01:26 +0200
+
 opsi-utils (4.0-6) stable; urgency=low
 
   * opsi-product-updater: workaround cross device link
