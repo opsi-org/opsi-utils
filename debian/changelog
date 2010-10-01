@@ -1,4 +1,4 @@
-opsi-utils (4.0-5) stable; urgency=low
+opsi-utils (4.0-6) stable; urgency=low
 
   * opsi-product-updater: workaround cross device link
 
