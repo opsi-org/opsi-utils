@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0'
+__version__ = '4.0.0.1'
 
 
 # Imports
@@ -1042,6 +1042,7 @@ class OpsiPackageManager(object):
 			subject.setMessage( _(u"Upload of %s successful") % os.path.basename(packageFile), severity = 4)
 			
 		except Exception, e:
+			logger.logException(e, LOG_INFO)
 			logger.error(e)
 			if depotConnection: depotConnection.backend_exit()
 			if type(e) is dict and e.has_key('message'): e = e['message']
