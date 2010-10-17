@@ -859,6 +859,7 @@ class OpsiPackageManager(object):
 			repository = None
 			# Process upload
 			if self.maxTransfersReached():
+				logger.notice(u"Waiting for free upload slot for upload of '%s' to depot '%s'" % (os.path.basename(packageFile), depotId))
 				subject.setMessage( _(u"Waiting for free upload slot for %s") % os.path.basename(packageFile) )
 				while self.maxTransfersReached():
 					time.sleep(0.1 * random.randint(1, 20))
@@ -1385,6 +1386,7 @@ class OpsiPackageManagerControl(object):
 		logger.setConsoleLevel(self.config['consoleLogLevel'])
 		logger.setConsoleColor(True)
 		
+		self.backend = None
 		self.backend = BackendManager(
 			backendConfigDir   = self.config['backendConfigDir'],
 			dispatchConfigFile = self.config['dispatchConfigFile'],
