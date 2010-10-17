@@ -652,6 +652,7 @@ class OpsiPackageManager(object):
 		self.userInterface = None
 		self.taskQueues = []
 		self.productPackageFiles = {}
+		self.productPackageFileMd5sums = {}
 		self.runningTransfers = 0
 		
 		self.infoSubject = MessageSubject(u'info')
@@ -659,6 +660,7 @@ class OpsiPackageManager(object):
 		self.depotSubjects = {}
 		
 		self.productPackageFilesLock = threading.Lock()
+		self.productPackageFilesMd5sumLock = threading.Lock()
 		self.runningTransfersLock = threading.Lock()
 		
 		self.infoSubject.setMessage(u'opsi-package-manager')
@@ -742,6 +744,15 @@ class OpsiPackageManager(object):
 		if not self.productPackageFiles.has_key(os.path.basename(packageFile)):
 			self.openProductPackageFile(packageFile)
 		return self.productPackageFiles[os.path.basename(packageFile)].packageControlFile
+	
+	def getPackageMd5Sum(self, packageFile):
+		self.productPackageFilesMd5sumLock.acquire()
+		try:
+			if not self.productPackageFileMd5sums.has_key(os.path.basename(packageFile)):
+				self.productPackageFileMd5sums[os.path.basename(packageFile)] = md5sum(packageFile)
+			return self.productPackageFileMd5sums[os.path.basename(packageFile)]
+		finally:
+			self.productPackageFilesMd5sumLock.release()
 		
 	def waitForTaskQueues(self):
 		self.infoSubject.setMessage( _(u'Waiting for task queues to finish up') )
@@ -858,7 +869,7 @@ class OpsiPackageManager(object):
 			subject.setMessage( _(u"Processing upload of %s") % os.path.basename(packageFile) )
 			
 			packageSize = os.stat(packageFile)[stat.ST_SIZE]
-			lMD5 = md5sum(packageFile)
+			lMD5 = self.getPackageMd5Sum(packageFile)
 			destination = os.path.basename(packageFile)
 			
 			productId = self.getPackageControlFile(packageFile).getProduct().getId()
