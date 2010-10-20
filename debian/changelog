@@ -1,3 +1,12 @@
+opsi-utils (4.0-8) lucid; urgency=low
+
+  * opsi-package-manager 4.0.0.1
+     - fix curses encoding
+  * opsi-make-productfile 4.0.0.1
+     - adapt zsync headers for older zsync versions
+
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 20 Oct 2010 17:05:36 +0200
+
 opsi-utils (4.0-7) stable; urgency=low
 
   * opsi-package-manager 4.0

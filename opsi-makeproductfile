@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0'
+__version__ = '4.0.0.1'
 
 import sys, os, getopt, gettext, re, tty, termios
 
@@ -365,9 +365,27 @@ def main(argv):
 				f.close()
 			if createZsyncFile:
 				if not quiet: print _(u"Creating zsync file '%s.zsync'") % pps.getPackageFile()
-				cmd = u"%s -u '%s' -o '%s.zsync' '%s'" % (which('zsyncmake'), os.path.basename(pps.getPackageFile()), pps.getPackageFile(), pps.getPackageFile())
+				zsyncFile = u'%s.zsync' % pps.getPackageFile()
+				cmd = u"%s -u '%s' -o '%s' '%s'" % (which('zsyncmake'), os.path.basename(pps.getPackageFile()), zsyncFile, pps.getPackageFile())
 				for line in execute(cmd):
 					logger.debug(line)
+				# Remove MTime tag from header for compatibility with older zsync versions
+				header = ''
+				f = open(zsyncFile, 'rb')
+				while True:
+					line = f.readline()
+					if line.lower().startswith('mtime:'):
+						continue
+					header += line
+					if not line.strip():
+						break
+				data = f.read()
+				f.close()
+				f = open(zsyncFile, 'wb')
+				f.write(header)
+				f.write(data)
+				f.close()
+				
 			break
 	finally:
 		if pps:
