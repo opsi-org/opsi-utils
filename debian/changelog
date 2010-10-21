@@ -1,4 +1,4 @@
-opsi-utils (4.0-8) lucid; urgency=low
+opsi-utils (4.0.0.1-1) stable; urgency=low
 
   * opsi-package-manager 4.0.0.1
      - fix curses encoding
