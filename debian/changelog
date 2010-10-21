@@ -1,3 +1,14 @@
+opsi-utils (4.0.0.1-1) stable; urgency=low
+
+  * opsi-package-manager 4.0.0.1
+     - fix curses encoding
+  * opsi-make-productfile 4.0.0.1
+     - adapt zsync headers for older zsync versions
+  * opsi-admin 4.0.0.1
+     - force exceptions to unicode
+
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 20 Oct 2010 17:05:36 +0200
+
 opsi-utils (4.0-7) stable; urgency=low
 
   * opsi-package-manager 4.0
