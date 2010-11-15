@@ -46,7 +46,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '1.0'
+__version__ = '1.0.1'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -557,22 +557,27 @@ class OpsiPackageUpdater(object):
 							% (package['productId'], package['repository'].baseUrl))
 						continue
 					
-					clientIds = self.getConfigBackend().configState_getClientToDepotserver(depotIds = [ self.depotId ])
-					if clientIds:
-						productOnClients = self.getConfigBackend().productOnClient_getObjects(
-							attributes         = [ 'installationStatus' ],
-							productId          = [ package['productId'] ],
-							productType        = [ 'LocalbootProduct' ],
-							clientId           = [ clientIds ],
-							installationStatus = [ 'installed' ],
-						)
-						if productOnClients:
-							for i in range(len(productOnClients)):
-								productOnClients[i].setActionRequest('setup')
-								if self.config['wolAction'] and not package['productId'] in self.config['wolActionExcludeProductIds']:
-									if not productOnClients[i].clientId in wakeOnLanClients:
-										wakeOnLanClients.append(productOnClients[i].clientId)
-							self.getConfigBackend().productOnClient_updateObjects(productOnClients)
+					clientToDepotserver = self.getConfigBackend().configState_getClientToDepotserver(depotIds = [ self.depotId ])
+					if clientToDepotserver:
+						clientIds = []
+						for ctd in clientToDepotserver:
+							if ctd['clientId'] and not ctd['clientId'] in clientIds:
+								clientIds.append(ctd['clientId'])
+						if clientIds:
+							productOnClients = self.getConfigBackend().productOnClient_getObjects(
+								attributes         = [ 'installationStatus' ],
+								productId          = [ package['productId'] ],
+								productType        = [ 'LocalbootProduct' ],
+								clientId           = clientIds,
+								installationStatus = [ 'installed' ],
+							)
+							if productOnClients:
+								for i in range(len(productOnClients)):
+									productOnClients[i].setActionRequest('setup')
+									if self.config['wolAction'] and not package['productId'] in self.config['wolActionExcludeProductIds']:
+										if not productOnClients[i].clientId in wakeOnLanClients:
+											wakeOnLanClients.append(productOnClients[i].clientId)
+								self.getConfigBackend().productOnClient_updateObjects(productOnClients)
 				
 				if wakeOnLanClients:
 					logger.notice(u"Powering on clients %s" % wakeOnLanClients)

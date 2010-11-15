@@ -1,3 +1,10 @@
+opsi-utils (4.0.0.2-1) stable; urgency=low
+
+  * opsi-product-updater 1.0.1
+     - fixed setting product action requests
+
+ -- Jan Schneider <j.schneider@uib.de>  Mon, 15 Nov 2010 10:56:51 +0100
+
 opsi-utils (4.0.0.1-1) stable; urgency=low
 
   * opsi-package-manager 4.0.0.1
