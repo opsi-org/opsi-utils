@@ -2,8 +2,9 @@ opsi-utils (4.0.0.2-1) stable; urgency=low
 
   * opsi-product-updater 1.0.1
      - fixed setting product action requests
+     - create md5 and zsync files after download
 
- -- Jan Schneider <j.schneider@uib.de>  Mon, 15 Nov 2010 10:56:51 +0100
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 17 Nov 2010 11:21:49 +0100
 
 opsi-utils (4.0.0.1-1) stable; urgency=low
 

@@ -431,12 +431,15 @@ class OpsiPackageUpdater(object):
 							self.downloadPackage(availablePackage, notifier = notifier)
 						self.cleanupPackages(availablePackage)
 					
-					logger.info(u"Verifying download of package '%s'" % packageFile)
-					md5 = md5sum(packageFile)
-					if (md5 == availablePackage["md5sum"]):
-						logger.info(u"Md5sum match, package download verified")
+					if availablePackage['md5sum']:
+						logger.info(u"Verifying download of package '%s'" % packageFile)
+						md5 = md5sum(packageFile)
+						if (md5 == availablePackage["md5sum"]):
+							logger.info(u"Md5sum match, package download verified")
+						else:
+							raise Exception(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
 					else:
-						raise Exception(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
+						logger.warning(u"Cannot verify download of package: missing md5sum file")
 					
 					newPackages.append(availablePackage)
 					
@@ -743,7 +746,45 @@ class OpsiPackageUpdater(object):
 			if (productId == newPackage["productId"]) and (version != newPackage["version"]):
 				logger.info(u"Deleting obsolete package file '%s'" % path)
 				os.unlink(path)
-	
+		
+		packageFile = os.path.join(self.config["packageDir"], newPackage["filename"])
+		
+		md5sumFile = packageFile + u'.md5'
+		logger.info(u"Creating md5sum file '%s'" % md5sumFile)
+		md5 = md5sum(packageFile)
+		f = open(md5sumFile, 'w')
+		os.chmod(md5sumFile, 0660)
+		os.chown(md5sumFile, uid, gid)
+		f.write(md5)
+		f.close()
+		
+		logger.info(u"Creating zsync file '%s.zsync'" % packageFile)
+		zsyncFile = u'%s.zsync' % packageFile
+		try:
+			cmd = u"%s -u '%s' -o '%s' '%s'" % (System.which('zsyncmake'), os.path.basename(packageFile), zsyncFile, packageFile)
+			for line in System.execute(cmd):
+				logger.debug(line)
+			# Remove MTime tag from header for compatibility with older zsync versions
+			header = ''
+			f = open(zsyncFile, 'rb')
+			os.chmod(zsyncFile, 0660)
+			os.chown(zsyncFile, uid, gid)
+			while True:
+				line = f.readline()
+				if line.lower().startswith('mtime:'):
+					continue
+				header += line
+				if not line.strip():
+					break
+			data = f.read()
+			f.close()
+			f = open(zsyncFile, 'wb')
+			f.write(header)
+			f.write(data)
+			f.close()
+		except Exception, e:
+			logger.error(u"Failed to create zsync file '%s': %s" % (zsyncFile, e))
+		
 	def onlyNewestPackages(self, packages):
 		newestPackages = []
 		for package in packages:
