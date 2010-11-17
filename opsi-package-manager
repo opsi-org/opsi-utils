@@ -1268,7 +1268,7 @@ class OpsiPackageManager(object):
 	def uninstallPackages(self):
 		for depotId in self.config['depotIds']:
 			productIds = []
-			for productOnDepot in self.backend.productOnDepot_getObjects(productId = self.config['productIds']):
+			for productOnDepot in self.backend.productOnDepot_getObjects(depotId = depotId, productId = self.config['productIds']):
 				productIds.append(productOnDepot.productId)
 			if not productIds:
 				continue

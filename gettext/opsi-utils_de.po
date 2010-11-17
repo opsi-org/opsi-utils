@@ -815,7 +815,7 @@ msgstr "Warnung: %d%% des Dateisystems belegt"
 
 #: ../opsi-package-manager:1042
 msgid "Upload of %s successful"
-msgstr "Übetragung von %s erfolgreich"
+msgstr "Übertragung von %s erfolgreich"
 
 #: ../opsi-package-manager:1112
 msgid "Please select product property defaults"
