@@ -46,7 +46,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -640,6 +640,9 @@ class OpsiPackageUpdater(object):
 					availablePackage['repository'].password,
 					outFile,
 					availablePackage["zsyncFile"])
+			
+			if availablePackage['repository'].proxy:
+				cmd = u"http_proxy=%s %s" % (availablePackage['repository'].proxy, cmd)
 			
 			stateRegex = re.compile('\s([\d\.]+)%\s+([\d\.]+)\skBps(.*)$')
 			data = ''

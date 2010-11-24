@@ -1,3 +1,10 @@
+opsi-utils (4.0.0.3-1) stable; urgency=low
+
+  * opsi-product-updater 1.0.2
+     - http_proxy for zsync
+
+ -- Jan Schneider <j.schneider@uib.de>  Fri, 19 Nov 2010 13:31:43 +0100
+
 opsi-utils (4.0.0.2-1) stable; urgency=low
 
   * opsi-product-updater 1.0.1
