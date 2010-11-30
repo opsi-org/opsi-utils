@@ -46,7 +46,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -592,8 +592,8 @@ class OpsiPackageUpdater(object):
 								
 								self.getConfigBackend().productOnClient_updateObjects(
 									ProductOnClient(
-										productId      = shutdownProduct.id,
-										productType    = shutdownProduct.getType(),
+										productId      = shutdownProduct.productId,
+										productType    = shutdownProduct.productType,
 										productVersion = shutdownProduct.productVersion,
 										packageVersion = shutdownProduct.packageVersion,
 										clientId       = clientId,

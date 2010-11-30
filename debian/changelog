@@ -1,3 +1,10 @@
+opsi-utils (4.0.0.4-1) stable; urgency=low
+
+  * opsi-product-updater 1.0.3
+     - fix setting of action for shutdownProduct
+
+ -- Jan Schneider <j.schneider@uib.de>  Tue, 30 Nov 2010 17:03:24 +0100
+
 opsi-utils (4.0.0.3-1) stable; urgency=low
 
   * opsi-product-updater 1.0.2
