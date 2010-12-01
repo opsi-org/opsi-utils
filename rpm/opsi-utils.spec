@@ -8,7 +8,7 @@
 
 Name:           opsi-utils
 BuildRequires:  python >= 2.4
-Requires:       python-opsi >= 4.0 zsync
+Requires:       python-opsi >= 4.0.0.17 zsync
 Url:            http://www.opsi.org
 License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi

@@ -244,11 +244,11 @@ msgid "Creating package file '%s'"
 msgstr ""
 
 #: ../opsi-makeproductfile:357
-msgid "Creating md5sum file '%s.md5'"
+msgid "Creating md5sum file '%s'"
 msgstr ""
 
 #: ../opsi-makeproductfile:363
-msgid "Creating zsync file '%s.zsync'"
+msgid "Creating zsync file '%s'"
 msgstr ""
 
 #: ../opsi-makeproductfile:370

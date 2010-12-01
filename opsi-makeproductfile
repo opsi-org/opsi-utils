@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.0.1'
+__version__ = '4.0.0.2'
 
 import sys, os, getopt, gettext, re, tty, termios
 
@@ -43,6 +43,7 @@ from OPSI.Types import *
 from OPSI.Util.Message import ProgressObserver, ProgressSubject
 from OPSI.Util.Product import *
 from OPSI.Util.File.Opsi import PackageControlFile
+from OPSI.Util.File import ZsyncFile
 from OPSI.Util import md5sum
 
 # Get logger instance
@@ -358,34 +359,17 @@ def main(argv):
 			
 			if not quiet: print "\n"
 			if createMd5SumFile:
-				if not quiet: print _(u"Creating md5sum file '%s.md5'") % pps.getPackageFile()
-				md5 = md5sum(pps.packageFile)
-				f = open(pps.packageFile + u'.md5', 'w')
+				md5sumFile = u'%s.md5' % pps.getPackageFile()
+				if not quiet: print _(u"Creating md5sum file '%s'") % md5sumFile
+				md5 = md5sum(pps.getPackageFile())
+				f = open(md5sumFile, 'w')
 				f.write(md5)
 				f.close()
 			if createZsyncFile:
-				if not quiet: print _(u"Creating zsync file '%s.zsync'") % pps.getPackageFile()
 				zsyncFile = u'%s.zsync' % pps.getPackageFile()
-				cmd = u"%s -u '%s' -o '%s' '%s'" % (which('zsyncmake'), os.path.basename(pps.getPackageFile()), zsyncFile, pps.getPackageFile())
-				for line in execute(cmd):
-					logger.debug(line)
-				# Remove MTime tag from header for compatibility with older zsync versions
-				header = ''
-				f = open(zsyncFile, 'rb')
-				while True:
-					line = f.readline()
-					if line.lower().startswith('mtime:'):
-						continue
-					header += line
-					if not line.strip():
-						break
-				data = f.read()
-				f.close()
-				f = open(zsyncFile, 'wb')
-				f.write(header)
-				f.write(data)
-				f.close()
-				
+				if not quiet: print _(u"Creating zsync file '%s'") % zsyncFile
+				zsyncFile = ZsyncFile(zsyncFile)
+				zsyncFile.generate(pps.getPackageFile())
 			break
 	finally:
 		if pps:

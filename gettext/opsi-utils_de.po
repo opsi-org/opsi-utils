@@ -254,12 +254,12 @@ msgid "Creating package file '%s'"
 msgstr "Erzeuge Paket-Datei '%s'"
 
 #: ../opsi-makeproductfile:357
-msgid "Creating md5sum file '%s.md5'"
-msgstr "Erzeuge MD5-Summen-Datei '%s.md5'"
+msgid "Creating md5sum file '%s'"
+msgstr "Erzeuge MD5-Summen-Datei '%s'"
 
 #: ../opsi-makeproductfile:363
-msgid "Creating zsync file '%s.zsync'"
-msgstr "Erzeuge zsync-Datei '%s.zsync'"
+msgid "Creating zsync file '%s'"
+msgstr "Erzeuge zsync-Datei '%s'"
 
 #: ../opsi-makeproductfile:370
 msgid "Cleaning up"
