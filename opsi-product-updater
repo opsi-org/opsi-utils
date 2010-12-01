@@ -40,13 +40,13 @@ from OPSI.Logger import *
 from OPSI.Types import *
 from OPSI.Object import *
 from OPSI.Util import compareVersions, md5sum
-from OPSI.Util.File import IniFile
+from OPSI.Util.File import IniFile, ZsyncFile
 from OPSI.Util.Product import ProductPackageFile
 from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -761,30 +761,11 @@ class OpsiPackageUpdater(object):
 		f.write(md5)
 		f.close()
 		
-		logger.info(u"Creating zsync file '%s.zsync'" % packageFile)
-		zsyncFile = u'%s.zsync' % packageFile
 		try:
-			cmd = u"%s -u '%s' -o '%s' '%s'" % (System.which('zsyncmake'), os.path.basename(packageFile), zsyncFile, packageFile)
-			for line in System.execute(cmd):
-				logger.debug(line)
-			# Remove MTime tag from header for compatibility with older zsync versions
-			header = ''
-			f = open(zsyncFile, 'rb')
-			os.chmod(zsyncFile, 0660)
-			os.chown(zsyncFile, uid, gid)
-			while True:
-				line = f.readline()
-				if line.lower().startswith('mtime:'):
-					continue
-				header += line
-				if not line.strip():
-					break
-			data = f.read()
-			f.close()
-			f = open(zsyncFile, 'wb')
-			f.write(header)
-			f.write(data)
-			f.close()
+			zsyncFile = u'%s.zsync' % packageFile
+			logger.info(u"Creating zsync file '%s'" % zsyncFile)
+			zsyncFile = ZsyncFile(zsyncFile)
+			zsyncFile.generate(packageFile)
 		except Exception, e:
 			logger.error(u"Failed to create zsync file '%s': %s" % (zsyncFile, e))
 		

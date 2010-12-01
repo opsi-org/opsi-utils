@@ -1,6 +1,7 @@
 opsi-utils (4.0.0.5-1) stable; urgency=low
 
-  * opsi-makeproductfile: Use ZsynFile from OPSI.Util.File
+  * opsi-makeproductfile 4.0.0.2: Use ZsynFile from OPSI.Util.File
+  * opsi-product-updater 1.0.4: Use ZsynFile from OPSI.Util.File
 
  -- Jan Schneider <j.schneider@uib.de>  Wed, 01 Dec 2010 14:31:00 +0100
 
