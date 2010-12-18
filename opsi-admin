@@ -1104,7 +1104,7 @@ class CommandMethod(Command):
 		if result:
 			lines = []
 			if   (shell.output == u'RAW'):
-				lines = result.split(u'\n')
+				lines.append( forceUnicode(result) )
 			
 			elif (shell.output == u'JSON'):
 				lines = objectToBeautifiedText(result, 0).split(u'\n')
