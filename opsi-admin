@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.0.2'
+__version__ = '4.0.0.3'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codecs, locale, types, select
 
@@ -124,6 +124,7 @@ def usage():
 	print u"  -c, --colorize       " + _(u"Colorize output")
 	print u"  -S, --simple-output  " + _(u"Simple output (only for scalars, lists)")
 	print u"  -s, --shell-output   " + _(u"Shell output")
+	print u"  -r, --raw-output     " + _(u"Raw output")
 	print u""
 	
 def main(argv):
@@ -146,10 +147,10 @@ def main(argv):
 	depotBackend = True
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsShV", 
+		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV", 
 					[ "username=", "password=", "address=", 
 					  "loglevel=", "log-file=", "interactive", "direct", "no-depot",
-					  "colorize", "shell-output", "simple-output", "help", "version" ])
+					  "colorize", "shell-output", "simple-output", "raw-output", "help", "version" ])
 
 	except getopt.GetoptError:
 		usage()
@@ -185,6 +186,8 @@ def main(argv):
 			output = u'SHELL'
 		elif opt in ("-S", "--simple-output"):
 			output = u'SIMPLE'
+		elif opt in ("-r", "--raw-output"):
+			output = u'RAW'
 		
 	if logFile:
 		f = codecs.open(logFile, 'w', 'utf-8')
@@ -1100,7 +1103,10 @@ class CommandMethod(Command):
 		
 		if result:
 			lines = []
-			if   (shell.output == u'JSON'):
+			if   (shell.output == u'RAW'):
+				lines = result.split(u'\n')
+			
+			elif (shell.output == u'JSON'):
 				lines = objectToBeautifiedText(result, 0).split(u'\n')
 				
 			elif (shell.output == u'SHELL'):
