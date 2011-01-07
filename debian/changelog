@@ -1,6 +1,6 @@
 opsi-utils (4.0.0.6-1) stable; urgency=low
 
-  * opsi-admin 4.0.0.3: Add raw output options
+  * opsi-admin 4.0.0.3: Add raw output option
 
  -- Jan Schneider <j.schneider@uib.de>  Sat, 18 Dec 2010 14:01:51 +0100
 
