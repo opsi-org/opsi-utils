@@ -273,7 +273,9 @@ def main(argv):
 		(r, w, x) = select.select([ sys.stdin ], [], [], 0.2)
 		if sys.stdin in r:
 			read = unicode(sys.stdin.read(), inEncoding, 'replace')
-			cmdline += u" '%s'" % read.replace('\r', '').replace('\n', '')
+			read = read.replace('\r', '').replace('\n', '')
+			if read:
+				cmdline += u" '%s'" % read
 		
 		logger.debug("cmdline: '%s'" % cmdline)
 		
