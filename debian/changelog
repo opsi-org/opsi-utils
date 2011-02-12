@@ -1,3 +1,9 @@
+opsi-utils (4.0.0.7-1) stable; urgency=low
+
+  * opsi-admin 4.0.0.4: dismiss stdin if empty string
+
+ -- Jan Schneider <j.schneider@uib.de>  Sat, 12 Feb 2011 12:34:28 +0100
+
 opsi-utils (4.0.0.6-1) stable; urgency=low
 
   * opsi-admin 4.0.0.3: Add raw output option
