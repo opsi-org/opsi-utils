@@ -1,8 +1,9 @@
 opsi-utils (4.0.0.7-1) stable; urgency=low
 
   * opsi-admin 4.0.0.4: dismiss stdin if empty
+  * opsi-product-updater 1.0.5: Do not use zsync for https
 
- -- Jan Schneider <j.schneider@uib.de>  Sat, 12 Feb 2011 12:34:28 +0100
+ -- Jan Schneider <j.schneider@uib.de>  Thu, 17 Feb 2011 10:49:33 +0100
 
 opsi-utils (4.0.0.6-1) stable; urgency=low
 

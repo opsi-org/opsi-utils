@@ -46,7 +46,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '1.0.4'
+__version__ = '1.0.5'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -423,10 +423,14 @@ class OpsiPackageUpdater(object):
 					packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 					if downloadNeeded:
 						if self.config["zsyncCommand"] and availablePackage['zsyncFile'] and localPackageFound:
-							if (localPackageFound['filename'] != availablePackage['filename']):
-								os.rename(os.path.join(self.config["packageDir"], localPackageFound["filename"]), packageFile)
-								localPackageFound["filename"] = availablePackage['filename']
-							self.zsyncPackage(availablePackage, notifier = notifier)
+							if availablePackage['repository'].baseUrl.split(':')[0].lower().endswith('s'):
+								logger.warning(u"Cannot use zsync, because zsync does not support https")
+								self.downloadPackage(availablePackage, notifier = notifier)
+							else:
+								if (localPackageFound['filename'] != availablePackage['filename']):
+									os.rename(os.path.join(self.config["packageDir"], localPackageFound["filename"]), packageFile)
+									localPackageFound["filename"] = availablePackage['filename']
+								self.zsyncPackage(availablePackage, notifier = notifier)
 						else:
 							self.downloadPackage(availablePackage, notifier = notifier)
 						self.cleanupPackages(availablePackage)
@@ -606,7 +610,7 @@ class OpsiPackageUpdater(object):
 							logger.error(u"Failed to power on client '%s': %s" % (clientId, e))
 			except Exception, e:
 				if notifier:
-					notifier.appendLine(u"Error occured: %s" % e)
+					notifier.appendLine(u"Error occurred: %s" % e)
 				raise
 		finally:
 			if notifier and notifier.hasMessage():
@@ -708,15 +712,18 @@ class OpsiPackageUpdater(object):
 			completed += len(chunk)
 			out.write(chunk)
 			if (size > 0):
-				percent = round(100*completed/size, 1)
-				if (lastPercent != percent):
-					lastPercent = percent
-					now = time.time()
-					if (not speed or (now - lastTime) > 2):
-						speed = 8 * int( ((completed - lastCompleted)/(now - lastTime))/1024 )
-						lastTime = now
-						lastCompleted = completed
-					logger.debug(u'Downloading %s: %d%% (%d kbit/s)' % (url, percent, speed))
+				try:
+					percent = round(100*completed/size, 1)
+					if (lastPercent != percent):
+						lastPercent = percent
+						now = time.time()
+						if (not speed or (now - lastTime) > 2):
+							speed = 8 * int( ((completed - lastCompleted)/(now - lastTime))/1024 )
+							lastTime = now
+							lastCompleted = completed
+						logger.debug(u'Downloading %s: %d%% (%d kbit/s)' % (url, percent, speed))
+				except:
+					pass
 		out.close()
 		if notifier:
 			notifier.appendLine(u"Download of '%s' completed" % url)
