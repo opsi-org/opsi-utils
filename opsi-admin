@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.0.4'
+__version__ = '4.0.1'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codecs, locale, types, select
 
@@ -1122,12 +1122,15 @@ class CommandMethod(Command):
 			elif (shell.output == u'SIMPLE'):
 				if type(result) is types.DictType:
 					for (key, value) in result.items():
+						if type(value) is bool:
+							value = forceUnicodeLower(value)
 						lines.append(u'%s=%s' % (key, value))
-				
-				if type(result) in (types.TupleType, types.ListType):
+				elif type(result) in (types.TupleType, types.ListType):
 					for r in result:
 						if type(r) is types.DictType:
 							for (key, value) in r.items():
+								if type(value) is bool:
+									value = forceUnicodeLower(value)
 								lines.append(u'%s=%s' % (key, value))
 							lines.append(u'')
 						elif type(r) in (types.TupleType, types.ListType):
