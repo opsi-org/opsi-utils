@@ -1,3 +1,9 @@
+opsi-utils (4.0.1-2) stable; urgency=low
+
+  * opsi-product-updater 1.0.5: fixed several unicode errors
+
+ -- Christian Kampka <c.kampka@uib.de>  Fri, 18 Mar 2011 12:27:08 +0100
+
 opsi-utils (4.0.1-1) stable; urgency=low
 
   * opsi-admin 4.0.1: fix simple output

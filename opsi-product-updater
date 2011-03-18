@@ -46,7 +46,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '1.0.5'
+__version__ = '1.0.6'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -56,11 +56,11 @@ def _(string):
 
 class ProductRepositoryInfo(object):
 	def __init__(self, baseUrl, dirs = [], username=u"", password=u"", opsiDepotId = None, autoInstall = False, autoUpdate = True, autoSetup = False, proxy = None, excludes=[]):
-		self.baseUrl     = baseUrl
-		self.dirs        = dirs
+		self.baseUrl     = forceUnicode(baseUrl)
+		self.dirs        = [forceUnicode(dir) for dir in dirs]
 		self.excludes    = excludes
-		self.username    = username
-		self.password    = password
+		self.username    = forceUnicode(username)
+		self.password    = forceUnicode(password)
 		self.autoInstall = autoInstall
 		self.autoUpdate  = autoUpdate
 		self.autoSetup   = autoSetup
@@ -845,7 +845,7 @@ class OpsiPackageUpdater(object):
 			depotRepositoryPath = repositoryLocalUrl[7:]
 			
 		passwordManager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-		passwordManager.add_password(None, repository.baseUrl, repository.username, repository.password)
+		passwordManager.add_password(None, repository.baseUrl.encode('utf-8'), repository.username.encode('utf-8'), repository.password.encode('utf-8'))
 		handler = urllib2.HTTPBasicAuthHandler(passwordManager)
 		if repository.proxy:
 			logger.notice(u"Using Proxy: %s" % repository.proxy)
@@ -857,7 +857,8 @@ class OpsiPackageUpdater(object):
 		
 		for url in repository.getDownloadUrls():
 			try:
-				req = urllib2.Request(url, None, self.httpHeaders)
+				url = urllib.quote(url.encode('utf-8'), safe="/#%[]=:;$&()+,!?*@'~")
+				req = urllib2.Request(url , None, self.httpHeaders)
 				response = opener.open(req)
 				content = response.read()
 				format = formatter.NullFormatter()
@@ -923,6 +924,7 @@ class OpsiPackageUpdater(object):
 						except Exception ,e:
 							logger.error(u"Failed to process link '%s': %s" % (link, e))
 			except Exception, e:
+				logger.logException(e)
 				raise Exception(u"Failed to process url '%s': %s" % (url, e))
 		return packages
 
