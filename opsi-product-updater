@@ -924,7 +924,7 @@ class OpsiPackageUpdater(object):
 						except Exception ,e:
 							logger.error(u"Failed to process link '%s': %s" % (link, e))
 			except Exception, e:
-				logger.logException(e)
+				logger.logException(e, LOG_INFO)
 				raise Exception(u"Failed to process url '%s': %s" % (url, e))
 		return packages
 
