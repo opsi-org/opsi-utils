@@ -1,3 +1,9 @@
+opsi-utils (4.0.1-3) stable; urgency=low
+
+  * opsi-admin 4.0.1.1: RAW output in json
+
+ -- Jan Schneider <j.schneider@uib.de>  Tue, 12 Apr 2011 17:17:19 +0200
+
 opsi-utils (4.0.1-2) stable; urgency=low
 
   * opsi-product-updater 1.0.5: fixed several unicode errors
