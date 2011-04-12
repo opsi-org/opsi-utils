@@ -329,7 +329,7 @@ class Shell:
 		self.prompt = forceUnicode(prompt)
 		self.infoline = u'opsi admin started'
 		self.yMax = 0
-		self.xMax = sys.maxint
+		self.xMax = 0
 		self.pos = len(cmdline)
 		self.lines = []
 		self.linesBack = 0
@@ -538,7 +538,7 @@ class Shell:
 		for c in COLORS_AVAILABLE:
 			line = line.replace(c, u'')
 		
-		while (len(line) > self.xMax):
+		while self.xMax and (len(line) > self.xMax):
 			self.lines.append( { "text": line[:self.xMax], "color": color } )
 			line = line[self.xMax:]
 		self.lines.append( { "text": line, "color": color } )
