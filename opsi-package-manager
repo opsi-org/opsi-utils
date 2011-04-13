@@ -1795,10 +1795,13 @@ class OpsiPackageManagerControl(object):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if (__name__ == "__main__"):
 	exception = None
-	
-	# save terminal settings
-	fileno = sys.stdin.fileno()
-	orig = termios.tcgetattr(fileno)
+	try:
+		# save terminal settings
+		fileno = sys.stdin.fileno()
+		orig = termios.tcgetattr(fileno)
+	except Exception,e:
+		orig = None
+		logger.warning(u"WARNING: '%s'" % str(e))
 	
 	try:
 		OpsiPackageManagerControl()
@@ -1810,7 +1813,8 @@ if (__name__ == "__main__"):
 		exception = e
 	
 	# restore terminal settings
-	termios.tcsetattr(fileno, termios.TCSANOW, orig)
+	if orig:
+		termios.tcsetattr(fileno, termios.TCSANOW, orig)
 	
 	if exception:
 		logger.logException(exception)
