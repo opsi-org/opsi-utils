@@ -35,6 +35,7 @@
 __version__ = '4.0.0.1'
 
 import sys, os, getopt, gettext, socket
+from datetime import time, date, datetime
 
 #OPSI imports
 from OPSI.Logger import *
@@ -115,6 +116,12 @@ def getSysConfig():
 				sysConfig['winDomain'] = match.group(1).upper()
 				break
 		f.close()
+	sysConfig['opsiVersion'] = u''
+	if os.path.exists('/etc/opsi/version'):
+		f = os.popen('cat /etc/opsi/version')
+		sysConfig['opsiVersion'] = f.read()
+	else:
+		raise Exception(u"Failed to read opsi Version, file /etc/opsi/version not found")
 	
 	logger.notice(u"System information:")
 	logger.notice(u"   distributor  : %s" % sysConfig['distributor'])
@@ -127,25 +134,78 @@ def getSysConfig():
 	logger.notice(u"   hostname     : %s" % sysConfig['hostname'])
 	logger.notice(u"   domain       : %s" % sysConfig['domain'])
 	logger.notice(u"   win domain   : %s" % sysConfig['winDomain'])
+	logger.notice(u"   opsi Version : %s" % sysconfig['opsiVersion'])
 	
 	return sysConfig
+
+
+
+def writeSystemConfig(sysConfig, systemfile):
+	f = file(systemfile, 'w')
+	for (key,value) in sysConfig:
+		f.writeline("%s:%s" % (key,value)
+
+
+def backupOpsiConfigs(target):
+	logger.notice(u"Try to writing opsi-confgs")
+	filename = os.path.join(target,"opsi-configs.tar")
+	if os.system(u"tar cf %s /etc/opsi" % filename):
+		raise Exception(u"Error during writing backup from opsi-configs")
+	else:
+		logger.notice(u"Finished writing backup from opsi-configs to: '%s'" % filename)
+
+def backupMySQLBackend(target):
+	filename = os.path.join(target,"opsi-mysql-backend.sql")
+	logger.notice(u"Try to creating opsi-mysql-backend backup")
+	l = { 'config': {} }
 	
-def getOpsiConfig():
-	pass
+	execfile('/etc/opsi/backends/mysql.conf',l)
+	config = l['config']
+	
+	logger.notice(u"Finished to read backend-configuration")
+	logger.notice(u"Try to dump database")
+	
+	if os.system('mysqldump --add-drop-database --user=%s --password=%s --database %s > filename' \
+				% (	config['username'],
+					config['password'],
+					config['database']  ) ):
+		raise Exception(u"Error during writing dump from opsi-mysql-database")
+	else:
+		logger.notice("Finished to write backup from opsi-mysql-backend")
 
-def backupOpsiConfigs():
-	pass
+def backupLdapBackend(target):
+	#logger.notice(u"Try to creating opsi-ldap-backend backup")
+	#filename = os.path.join(target,"opsi-ldap-backend.ldif")
+	
+	#l = {  }
+	logger.notice(u"Backup LDAP-backend not implemented yet")
 
-def backupMySQLBackend():
-	pass
+def backupUniventionBackend(target):
+	logger.notice(u"Backup univention LDAP-backend not implemented yet")
+	
 
-def backupLdapBackend():
-	pass
+def backupFileBackend(target):
+	logger.notice('Try to creating opsi-file-backend backup')
+	filename = os.path.join(target,"opsi-file-backend.tar")
+	l = { 'config': {} }
+	execfile('/etc/opsi/backends/file.conf', l)
+	config = l['config']
+	
+	if os.system('tar cf %s %s %s %s' % (filename, config['baseDir'], config['hostKeyFile'],'/etc/opsi/passwd' ) ):
+		raise Exception(u"Error during writing backup from opsi-configs")
+	else:
+		logger.notice("Finished to write backup from opsi-file-backend")
 
-def backupFileBackend():
-	pass
-
-
+def backupDhcpBackend(target):
+	logger.notice('Try to creating opsi-dhcp-backend backup')
+	
+	l = { 'socket': socket, 'config' = {} }
+	execfile('/etc/opsi/backends/dhcpd.conf', l)
+	config = l['config']
+	
+	if os.system("cp %s %s/." % (config['dhcpdConfigFile'], target) )
+		raise Exception(u"Error during writing backup from opsi-dhcpd-backend")
+	
 
 def usage():
 	print u"\nUsage: %s [options]" % os.path.basename(sys.argv[0])
@@ -218,7 +278,7 @@ def main(argv):
 		elif (opt in ('-t','--targetpath')):
 			config['targetpath'] = forceFilename(arg)
 		
-	config['sysConfig'] = getSysConfig()
+	
 	
 	from OPSI.Backend.BackendManager import BackendManager
 	backend = BackendManager {
@@ -231,8 +291,34 @@ def main(argv):
 	if config['backupmode']['backends'] or config['backupmode']['full']:
 		backends = backend.dispatcher_getBackendNames()
 	
+	if not os.path.exists(config['targetpath']):
+		logger.notice(u"Creating Backup-Root-Directory")
+		os.path.mkdir(config['targetpath'])
+	
+	logger.notice(u"Creating Actual Backup-Directory")
+	backupdirectory = os.path.join(config['targetpath'],datetime.now())
+	os.path.mkdir(backupdirectory)
+	
+	logger.notice(u"Getting Sysconfig")
+	config['sysConfig'] = getSysConfig()
+	
+	logger.notice(u"Try to write systemconfig to Backuparchive.")
+	writeSystemConfig(sysConfig, systemfile)
+	
+	logger.notice(u"Try to backup Opsi Configuration")
+	backupOpsiConfigs(backupdirectory)
+	
+	logger.notice(u"Try to backup Opsi Backends")	
 	if 'mysql' in backends:
-		
+		backupMySQLBackend(backupdirectory)
+	if 'file' in backends:
+		backupFileBackend(backupdirectory)
+	if 'dhcpd' in backends:
+		backupDhcpBackend(backupdirectory)
+	if 'ldap' in backends:
+		backupLdapBackend(backupdirectory)
+	if 'univention' in backends:
+		backupUniventionBackend(backupdirectory)
 	
 
 
