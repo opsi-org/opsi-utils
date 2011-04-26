@@ -46,6 +46,7 @@ from OPSI.System import *
 logger = Logger()
 
 SMB_CONF         = u'/etc/samba/smb.conf'
+DHCPD_CONF	 = u'/etc/dhcp3/dhcpd.conf'
 
 
 
@@ -165,10 +166,11 @@ def backupMySQLBackend(target):
 	logger.notice(u"Finished to read backend-configuration")
 	logger.notice(u"Try to dump database")
 	
-	if os.system('mysqldump --add-drop-database --user=%s --password=%s --database %s > filename' \
+	if os.system('mysqldump --add-drop-database --user=%s --password=%s --database %s > %s' \
 				% (	config['username'],
 					config['password'],
-					config['database']  ) ):
+					config['database'],
+					filename) ):
 		raise Exception(u"Error during writing dump from opsi-mysql-database")
 	else:
 		logger.notice("Finished to write backup from opsi-mysql-backend")
@@ -244,7 +246,8 @@ def main(argv):
 	logger.setLogFile(config['logfile'])
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "hVfcb:t:l:")
+		(opts, args) = getopt.getopt(argv, "hVfcbt:l:",
+			['help','log-file=','version','full','configs','backends','targetpath='])
 	
 	except getopt.GetoptError:
 		usage()
@@ -259,6 +262,7 @@ def main(argv):
 			logger.setFileLevel(LOG_DEBUG)
 		elif (opt == "-l"):
 			logger.setConsoleLevel(int(arg))
+			logger.setColor(True)
 		elif (opt in ("-V", "--version")):
 			print __version__
 			return
@@ -267,13 +271,8 @@ def main(argv):
 		elif (opt in ('-c','--configs')):
 			config['backupmode']['configs'] = True
 		elif (opt in ('-b','--backends')):
+			print "BACKENDS!!!!"
 			config['backupmode']['backends'] = True
-		#elif (opt in ('-d','--depot-files')):
-		#	config['backupmode']['depot-files'] = True
-		#elif (opt in ('-r','--repository')):
-		#	config['backupmode']['repository'] = True
-		#elif (opt in ('-r','--workbench')):
-		#	config['backupmode']['workbench'] = True
 		elif (opt in ('-t','--targetpath')):
 			config['targetpath'] = forceFilename(arg)
 		
@@ -303,21 +302,21 @@ def main(argv):
 	backupdirectory = os.path.join(config['targetpath'],now)
 	backupdirectory = backupdirectory.replace(":","-")
 	backupdirectory = backupdirectory.replace(" ","_")
+	backupdirectory = backupdirectory.split(".")[0]
 	os.makedirs(backupdirectory)
 	
 	logger.notice(u"Getting Sysconfig")
 	config['sysConfig'] = getSysConfig()
 	
 	logger.notice(u"Try to write systemconfig to Backuparchive.")
-	print backupdirectory
 	systemfile = os.path.join(backupdirectory,"system.txt")
-	print systemfile 
 	writeSystemConfig(sysConfig, systemfile)
 	
-	logger.notice(u"Try to backup Opsi Configuration")
-	backupOpsiConfigs(backupdirectory)
+	if config['backupmode']['configs']:
+		logger.notice(u"Try to backup Opsi Configuration")
+		backupOpsiConfigs(backupdirectory)
 	
-	logger.notice(u"Try to backup Opsi Backends")	
+	
 	if 'mysql' in backends:
 		backupMySQLBackend(backupdirectory)
 	if 'file' in backends:
@@ -328,6 +327,7 @@ def main(argv):
 		backupLdapBackend(backupdirectory)
 	if 'univention' in backends:
 		backupUniventionBackend(backupdirectory)
+	
 	
 
 
