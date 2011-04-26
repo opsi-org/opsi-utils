@@ -46,6 +46,8 @@ logger = Logger()
 
 SMB_CONF         = u'/etc/samba/smb.conf'
 
+
+
 sysConfig = {}
 
 
@@ -131,6 +133,20 @@ def getSysConfig():
 def getOpsiConfig():
 	pass
 
+def backupOpsiConfigs():
+	pass
+
+def backupMySQLBackend():
+	pass
+
+def backupLdapBackend():
+	pass
+
+def backupFileBackend():
+	pass
+
+
+
 def usage():
 	print u"\nUsage: %s [options]" % os.path.basename(sys.argv[0])
 	print u""
@@ -146,9 +162,10 @@ def usage():
 	print u"  -f, --full            creates full backup (like -cbdrw)"
 	print u"  -c, --configs         creates backup from opsi configfiles"
 	print u"  -b, --backends	creates backup from used opsi-backends"
-	print u"  -d, --depot-files	creates backup from depot-files /opt/pcbin/install"
-	print u"  -r, --repository	creates backup from repository /var/lib/opsi/repository"
-	print u"  -w, --workbench	creates backup from opsi-workbench /home/opsiproducts"
+	print u"  -t  --tempdir         temp dir for creating backup files"
+	#print u"  -d, --depot-files	creates backup from depot-files /opt/pcbin/install"
+	#print u"  -r, --repository	creates backup from repository /var/lib/opsi/repository"
+	#print u"  -w, --workbench	creates backup from opsi-workbench /home/opsiproducts"
 	print u"  -v          		verbose"
 	print u""
 
@@ -158,19 +175,17 @@ def main(argv):
 			       'full': False,
 			    'configs': False,
 			   'backends': False,
-			'depot-files': False,
-			 'repository': False,
-			  'workbench': False,
 				}
 		'targetpath': u'/var/lib/opsi/backup',
 		'logfile'   : u'/var/log/opsi/opsi-backup.log',
+		'temdir'    : u'/tmp'
 		'sysConfig' : {},
 	}
 	
 	logger.setLogFile(config['logfile'])
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "hvVfcbdrw:t:")
+		(opts, args) = getopt.getopt(argv, "hvVfcb:t:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -194,12 +209,12 @@ def main(argv):
 			config['backupmode']['configs'] = True
 		elif (opt in ('-b','--backends')):
 			config['backupmode']['backends'] = True
-		elif (opt in ('-d','--depot-files')):
-			config['backupmode']['depot-files'] = True
-		elif (opt in ('-r','--repository')):
-			config['backupmode']['repository'] = True
-		elif (opt in ('-r','--workbench')):
-			config['backupmode']['workbench'] = True
+		#elif (opt in ('-d','--depot-files')):
+		#	config['backupmode']['depot-files'] = True
+		#elif (opt in ('-r','--repository')):
+		#	config['backupmode']['repository'] = True
+		#elif (opt in ('-r','--workbench')):
+		#	config['backupmode']['workbench'] = True
 		elif (opt in ('-t','--targetpath')):
 			config['targetpath'] = forceFilename(arg)
 		
@@ -215,7 +230,10 @@ def main(argv):
 	
 	if config['backupmode']['backends'] or config['backupmode']['full']:
 		backends = backend.dispatcher_getBackendNames()
+	
+	if 'mysql' in backends:
 		
+	
 
 
 if (__name__ == "__main__"):
