@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.0.1'
+__version__ = '4.0.1.1'
 
 import sys, os, getopt, gettext, socket
 from datetime import time, date, datetime
@@ -134,17 +134,17 @@ def getSysConfig():
 	logger.notice(u"   hostname     : %s" % sysConfig['hostname'])
 	logger.notice(u"   domain       : %s" % sysConfig['domain'])
 	logger.notice(u"   win domain   : %s" % sysConfig['winDomain'])
-	logger.notice(u"   opsi Version : %s" % sysconfig['opsiVersion'])
+	logger.notice(u"   opsi Version : %s" % sysConfig['opsiVersion'])
 	
 	return sysConfig
 
 
 
 def writeSystemConfig(sysConfig, systemfile):
-	f = file(systemfile, 'w')
-	for (key,value) in sysConfig:
-		f.writeline("%s:%s" % (key,value)
-
+	f = open(systemfile, 'w')
+	for (key,value) in sysConfig.items():
+		f.write("%s:%s\n" % (key,value))
+	f.close()
 
 def backupOpsiConfigs(target):
 	logger.notice(u"Try to writing opsi-confgs")
@@ -199,11 +199,11 @@ def backupFileBackend(target):
 def backupDhcpBackend(target):
 	logger.notice('Try to creating opsi-dhcp-backend backup')
 	
-	l = { 'socket': socket, 'config' = {} }
+	l = { 'socket': socket, 'config': {} }
 	execfile('/etc/opsi/backends/dhcpd.conf', l)
 	config = l['config']
 	
-	if os.system("cp %s %s/." % (config['dhcpdConfigFile'], target) )
+	if os.system("cp %s %s/." % (config['dhcpdConfigFile'], target) ):
 		raise Exception(u"Error during writing backup from opsi-dhcpd-backend")
 	
 
@@ -226,7 +226,6 @@ def usage():
 	#print u"  -d, --depot-files	creates backup from depot-files /opt/pcbin/install"
 	#print u"  -r, --repository	creates backup from repository /var/lib/opsi/repository"
 	#print u"  -w, --workbench	creates backup from opsi-workbench /home/opsiproducts"
-	print u"  -v          		verbose"
 	print u""
 
 def main(argv):
@@ -235,17 +234,17 @@ def main(argv):
 			       'full': False,
 			    'configs': False,
 			   'backends': False,
-				}
+				},
 		'targetpath': u'/var/lib/opsi/backup',
 		'logfile'   : u'/var/log/opsi/opsi-backup.log',
-		'temdir'    : u'/tmp'
+		'temdir'    : u'/tmp',
 		'sysConfig' : {},
 	}
 	
 	logger.setLogFile(config['logfile'])
 	
 	try:
-		(opts, args) = getopt.getopt(argv, "hvVfcb:t:")
+		(opts, args) = getopt.getopt(argv, "hVfcb:t:l:")
 	
 	except getopt.GetoptError:
 		usage()
@@ -281,28 +280,38 @@ def main(argv):
 	
 	
 	from OPSI.Backend.BackendManager import BackendManager
-	backend = BackendManager {
+	backend = BackendManager(
 		dispatchConfigFile = u'/etc/opsi/backendManager/dispatch.conf',
 		backendConfigDir   = u'/etc/opsi/backends',
 		exensionConfigDir  = u'/etc/opsi/backendManager/extend.d',
-		depotbackend       = False
-	}
+		depotbackend       = False,
+	)
 	
 	if config['backupmode']['backends'] or config['backupmode']['full']:
 		backends = backend.dispatcher_getBackendNames()
+	else:
+		backends = ""
 	
 	if not os.path.exists(config['targetpath']):
 		logger.notice(u"Creating Backup-Root-Directory")
-		os.path.mkdir(config['targetpath'])
+		os.makedirs(config['targetpath'])
 	
 	logger.notice(u"Creating Actual Backup-Directory")
-	backupdirectory = os.path.join(config['targetpath'],datetime.now())
-	os.path.mkdir(backupdirectory)
+	from datetime import datetime
+	now = str(datetime.now())
+	
+	backupdirectory = os.path.join(config['targetpath'],now)
+	backupdirectory = backupdirectory.replace(":","-")
+	backupdirectory = backupdirectory.replace(" ","_")
+	os.makedirs(backupdirectory)
 	
 	logger.notice(u"Getting Sysconfig")
 	config['sysConfig'] = getSysConfig()
 	
 	logger.notice(u"Try to write systemconfig to Backuparchive.")
+	print backupdirectory
+	systemfile = os.path.join(backupdirectory,"system.txt")
+	print systemfile 
 	writeSystemConfig(sysConfig, systemfile)
 	
 	logger.notice(u"Try to backup Opsi Configuration")
