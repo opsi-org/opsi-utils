@@ -8,7 +8,7 @@
 
 Name:           opsi-utils
 BuildRequires:  python >= 2.4
-Requires:       python-opsi >= 4.0.0.17 zsync
+Requires:       python-opsi >= 4.0.1 zsync
 Url:            http://www.opsi.org
 License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi
@@ -96,6 +96,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/opsi-package-manager
 /usr/bin/opsi-convert
 /usr/bin/opsi-product-updater
+/usr/bin/opsi-backup
 
 %attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
 
