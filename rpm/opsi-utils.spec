@@ -14,9 +14,9 @@ License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
 Version:        4.0.1
-Release:        4
+Release:        5
 Summary:        opsi utils
-Source:         opsi-utils_4.0.1-4.tar.gz
+Source:         opsi-utils_4.0.1-5.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
