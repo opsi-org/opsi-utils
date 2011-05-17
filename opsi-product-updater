@@ -65,6 +65,8 @@ class ProductRepositoryInfo(object):
 		self.autoUpdate  = autoUpdate
 		self.autoSetup   = autoSetup
 		self.opsiDepotId = opsiDepotId
+		self.onlyDownload= None
+
 		self.proxy       = None
 		if proxy:
 			self.proxy = proxy
@@ -301,6 +303,8 @@ class OpsiPackageUpdater(object):
 							repository.autoUpdate = forceBool(value.strip())
 						elif (option.lower() == 'autosetup'):
 							repository.autoSetup = forceBool(value.strip())
+						elif (option.lower() == 'onlydownload'):
+							repository.onlyDownload = forceBool(value.strip())
 						elif (option.lower() == 'dirs'):
 							repository.dirs = []
 							dirs = value.split(',')
@@ -317,6 +321,8 @@ class OpsiPackageUpdater(object):
 								if not e:
 									continue
 								repository.excludes.append(re.compile(e))
+						
+							
 					if self.config.get('installAllAvailable'):
 						repository.autoInstall = True
 						repository.autoUpdate = True
@@ -507,6 +513,9 @@ class OpsiPackageUpdater(object):
 				for package in newPackages:
 					packageFile = os.path.join(self.config["packageDir"], package["filename"])
 					
+					if availablePackage['repository'].onlyDownload:
+						continue
+					
 					propertyDefaultValues = {}
 					try:
 						#logger.info(u"Trying to get product property defaults from repository")
@@ -530,7 +539,7 @@ class OpsiPackageUpdater(object):
 						raise Exception(u"Product '%s' not found on depot '%s' after installation" % (package['productId'], self.depotId))
 					package['product'] = self.getConfigBackend().product_getObjects(
 								id             = productOnDepots[0].productId,
-								productVersion = productOnDepots[0].productVersion,
+									 = productOnDepots[0].productVersion,
 								packageVersion = productOnDepots[0].packageVersion)[0]
 					if notifier:
 						notifier.appendLine(u"Package '%s' successfully installed" % packageFile)

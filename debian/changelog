@@ -1,3 +1,9 @@
+opsi-utils (4.0.1-7) lucid; urgency=low
+
+  * OnlyDownload added to opsi-product-updater
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Tue, 17 May 2011 12:15:35 +0200
+
 opsi-utils (4.0.1-6) stable; urgency=low
 
   * Fix spec file
