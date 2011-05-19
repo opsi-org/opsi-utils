@@ -539,7 +539,7 @@ class OpsiPackageUpdater(object):
 						raise Exception(u"Product '%s' not found on depot '%s' after installation" % (package['productId'], self.depotId))
 					package['product'] = self.getConfigBackend().product_getObjects(
 								id             = productOnDepots[0].productId,
-									 = productOnDepots[0].productVersion,
+								productVersion = productOnDepots[0].productVersion,
 								packageVersion = productOnDepots[0].packageVersion)[0]
 					if notifier:
 						notifier.appendLine(u"Package '%s' successfully installed" % packageFile)
