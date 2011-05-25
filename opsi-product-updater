@@ -46,13 +46,31 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '1.0.6'
+__version__ = '1.0.7'
 
 logger = Logger()
 logger.setConsoleColor(True)
 
 def _(string):
 	return string
+
+
+"""
+	Patch from urllib2 HTTPBasicAuthHandler issue9639
+	Only for Python >= 2.6.6
+"""
+if sys.version_info[:2] == (2, 6) and sys.version_info[2] >= 6:
+    def fixed_http_error_401(self, req, fp, code, msg, headers):
+        url = req.get_full_url()
+        response = self.http_error_auth_reqed('www-authenticate',
+                                          url, req, headers)
+        self.retried = 0
+        return response
+
+    urllib2.HTTPBasicAuthHandler.http_error_401 = fixed_http_error_401
+"""
+	End of Patch
+"""
 
 class ProductRepositoryInfo(object):
 	def __init__(self, baseUrl, dirs = [], username=u"", password=u"", opsiDepotId = None, autoInstall = False, autoUpdate = True, autoSetup = False, proxy = None, excludes=[]):
@@ -118,7 +136,7 @@ class EmailNotifier(object):
 	def notify(self):
 		logger.notice(u"Sending mail notification")
 		mail =  u'From: %s\n' % self.sender
-		mail += u'To: %s\n' % u',\n'.join(self.receivers)
+		mail += u'To: %s\n' % u','.join(self.receivers)
 		mail += u'Subject: %s\n' % self.subject
 		#mail += _(u"opsi product updater carried out the following actions:") + u"\n"
 		mail += self.message
@@ -548,8 +566,8 @@ class OpsiPackageUpdater(object):
 				
 				if not installedPackages:
 					logger.info(u"No new packages installed")
-					if notifier and notifier.hasMessage():
-						notifier.notify()
+					#if notifier and notifier.hasMessage():
+					#	notifier.notify()
 					return
 				
 				wakeOnLanClients = []
