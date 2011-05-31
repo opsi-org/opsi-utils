@@ -1,3 +1,9 @@
+opsi-utils (4.0.1.1-1) stable; urgency=low
+
+  * Change version number
+
+ -- Jan Schneider <j.schneider@uib.de>  Tue, 31 May 2011 12:47:33 +0200
+
 opsi-utils (4.0.1-9) stable; urgency=low
 
   * Fix opsi-product-updater HTTPBasicAuthFailure for python >= 2.6.6
