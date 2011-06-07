@@ -1461,8 +1461,12 @@ class OpsiPackageManagerControl(object):
 		finally:
 			if self.backend:
 				self.backend.backend_exit()
-			#for thread in threading.enumerate():
-			#	logger.essential(u"THREAD: %s" % thread)
+			for thread in threading.enumerate():
+				try:
+					#logger.essential(u"THREAD: %s" % thread)
+					thread.join(5)
+				except:
+					pass
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
 			if errors:
