@@ -1044,8 +1044,9 @@ class OpsiPackageManager(object):
 				logger.notice(u"Verifying upload")
 				subject.setMessage( _(u"Verifying upload") )
 				
+				remotePackageFile = depotRepositoryPath + u'/' + os.path.basename(packageFile)
 				depotConnection = self.getDepotConnection(depotId)
-				rMD5 = depotConnection.depot_getMD5Sum(depotRepositoryPath + u'/' + os.path.basename(packageFile))
+				rMD5 = depotConnection.depot_getMD5Sum(remotePackageFile)
 				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
 				if (lMD5 != rMD5):
 					# md5sum differ
@@ -1057,7 +1058,18 @@ class OpsiPackageManager(object):
 				
 				logger.notice(u"Upload of '%s' to depot '%s' successful" % (os.path.basename(packageFile), depotId))
 				subject.setMessage( _(u"Upload of %s successful") % os.path.basename(packageFile), severity = 4)
-			
+				
+				remotePackageMd5sumFile = remotePackageFile + u'.md5'
+				try:
+					depotConnection.depot_createMd5SumFile(remotePackageFile, remotePackageMd5sumFile)
+				except Exception, e:
+					logger.warning(u"Failed to create md5sum file '%s': %s" % (remotePackageMd5sumFile, e))
+				
+				remotePackageZsyncFile = remotePackageFile + u'.zsync'
+				try:
+					depotConnection.depot_createZsyncFile(remotePackageFile, remotePackageZsyncFile)
+				except Exception, e:
+					logger.warning(u"Failed to create zsync file '%s': %s" % (remotePackageZsyncFile, e))
 			finally:
 				self.setRunningTransfers(self.getRunningTransfers() - 1)
 				repository = None

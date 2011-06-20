@@ -1,3 +1,9 @@
+opsi-utils (4.0.1.3-1) stable; urgency=low
+
+  * Create .md5 and .zsync file after upload to repository
+
+ -- Jan Schneider <j.schneider@uib.de>  Mon, 20 Jun 2011 13:15:39 +0200
+
 opsi-utils (4.0.1.2-1) stable; urgency=low
 
   * opsi-package-manager: join running threads on exit
