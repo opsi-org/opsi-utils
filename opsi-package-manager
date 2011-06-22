@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.0.2'
+__version__ = '4.0.1'
 
 
 # Imports
@@ -704,13 +704,28 @@ class OpsiPackageManager(object):
 		self.runningTransfersLock.acquire()
 		self.runningTransfers = num
 		self.runningTransfersLock.release()
+		self.updateRunningTransfersSubject()
+	
+	def addRunningTransfer(self):
+		self.runningTransfersLock.acquire()
+		self.runningTransfers += 1
+		self.runningTransfersLock.release()
+		self.updateRunningTransfersSubject()
+	
+	def removeRunningTransfer(self):
+		self.runningTransfersLock.acquire()
+		self.runningTransfers -= 1
+		self.runningTransfersLock.release()
+		self.updateRunningTransfersSubject()
+	
+	def updateRunningTransfersSubject(self):
 		if self.config['maxTransfers']:
 			self.transferSubject.setMessage( _("%d/%d transfers running") \
 				% (self.runningTransfers, self.config['maxTransfers']) )
 		else:
 			self.transferSubject.setMessage( _("%d transfers running") \
 				% self.runningTransfers )
-		
+	
 	def maxTransfersReached(self):
 		if self.config['maxTransfers'] and (self.getRunningTransfers() >= self.config['maxTransfers']):
 			return True
@@ -863,7 +878,7 @@ class OpsiPackageManager(object):
 				subject.setMessage( _(u"Waiting for free upload slot for %s") % os.path.basename(packageFile) )
 				while self.maxTransfersReached():
 					time.sleep(0.1 * random.randint(1, 20))
-			self.setRunningTransfers(self.getRunningTransfers() + 1)
+			self.addRunningTransfer()
 			
 			logger.notice(u"Processing upload of '%s' to depot '%s'" \
 					% (os.path.basename(packageFile), depotId))
@@ -916,8 +931,6 @@ class OpsiPackageManager(object):
 								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
 								logger.notice(u"No need to upload, '%s' is up to date on '%s'" % (os.path.basename(packageFile), depotId))
 								subject.setMessage( _(u"No need to upload, %s is up to date") % os.path.basename(packageFile), severity = 4 )
-								self.setRunningTransfers(self.getRunningTransfers() - 1)
-								repository = None
 								return
 							# md5sums differ => overwrite
 							logger.info(u"MD5sum of source and destination differs on depot '%s'" % depotId)
@@ -1071,7 +1084,7 @@ class OpsiPackageManager(object):
 				except Exception, e:
 					logger.warning(u"Failed to create zsync file '%s': %s" % (remotePackageZsyncFile, e))
 			finally:
-				self.setRunningTransfers(self.getRunningTransfers() - 1)
+				self.removeRunningTransfer()
 				repository = None
 			
 		except Exception, e:
