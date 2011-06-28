@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.1'
+__version__ = '4.0.1.1'
 
 
 # Imports
@@ -1376,6 +1376,7 @@ class OpsiPackageManagerControl(object):
 		parser.add_option("-k", "--keep-files",              action="store_true", dest="keepFiles")
 		parser.add_option("-t", "--temp-dir",                action="store",      dest="tempDir")
 		parser.add_option("-o", "--overwrite",               action="store_true", dest="overwriteAlways")
+		parser.add_option("-n", "--no-delta",                action="store_true", dest="noDelta")
 		parser.add_option("-S", "--setup",                   action="store_true", dest="setupWhereInstalled")
 		parser.add_option("-U", "--update",                  action="store_true", dest="updateWhereInstalled")
 		parser.add_option(      "--log-file",                action="store",      dest="logFile")
@@ -1722,7 +1723,8 @@ class OpsiPackageManagerControl(object):
 		if self.opts.newProductId:          self.config['newProductId'] = self.opts.newProductId
 		if self.opts.maxBandwidth:          self.config['maxBandwidth'] = self.opts.maxBandwidth
 		if self.opts.maxTransfers:          self.config['maxTransfers'] = self.opts.maxTransfers
-		if self.opts.overwriteAlways:       self.config['overwriteAlways'] = self.opts.overwriteAlways
+		if self.opts.overwriteAlways:       self.config['overwriteAlways'] = True
+		if self.opts.noDelta:               self.config['deltaUpload'] = False
 		if self.opts.keepFiles:             self.config['deleteFilesOnUninstall'] = False
 		if self.opts.properties:            self.config['properties'] = self.opts.properties
 		if self.opts.force:                 self.config['forceInstall'] = self.config['forceUninstall'] = True
@@ -1809,6 +1811,7 @@ class OpsiPackageManagerControl(object):
 		print u"  -U, --update                     set action \"update\" on hosts where installation status is \"installed\""
 		print u"  -S, --setup                      set action \"setup\" on hosts where installation status is \"installed\""
 		print u"  -o, --overwrite                  overwrite existing package on upload even if size matches"
+		print u"  -n, --no-delta                   full pacakge transfers on uploads (do not use librsync)"
 		print u"  -k, --keep-files                 do not delete client data dir on uninstall"
 		print u"  -t, --temp-dir     <path>        tempory directory for package install"
 		print u"  --max-transfers    <num>         maximum number of simultaneous uploads"

@@ -1,3 +1,10 @@
+opsi-utils (4.0.1.5-1) stable; urgency=low
+
+  * opsi-package-manager 4.0.1.1
+     - add param -n/--no-delta
+
+ -- Jan Schneider <j.schneider@uib.de>  Tue, 28 Jun 2011 14:52:02 +0200
+
 opsi-utils (4.0.1.4-1) stable; urgency=low
 
   * opsi-package-manager 4.0.1
