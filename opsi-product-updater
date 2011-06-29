@@ -445,6 +445,7 @@ class OpsiPackageUpdater(object):
 						logger.notice(u"%s - download of package is required: local package not found" % availablePackage["filename"])
 					
 					packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
+					zsynced = False
 					if downloadNeeded:
 						if self.config["zsyncCommand"] and availablePackage['zsyncFile'] and localPackageFound:
 							if availablePackage['repository'].baseUrl.split(':')[0].lower().endswith('s'):
@@ -455,6 +456,7 @@ class OpsiPackageUpdater(object):
 									os.rename(os.path.join(self.config["packageDir"], localPackageFound["filename"]), packageFile)
 									localPackageFound["filename"] = availablePackage['filename']
 								self.zsyncPackage(availablePackage, notifier = notifier)
+								zsynced = True
 						else:
 							self.downloadPackage(availablePackage, notifier = notifier)
 						self.cleanupPackages(availablePackage)
@@ -465,7 +467,16 @@ class OpsiPackageUpdater(object):
 						if (md5 == availablePackage["md5sum"]):
 							logger.info(u"Md5sum match, package download verified")
 						else:
-							raise Exception(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
+							if zsynced:
+								logger.warning(u"zsynced Download has failed, try once to load full package")
+								self.downloadPackage(availablePackage, notifier = notifier)
+								self.cleanupPackages(availablePackage)
+								
+								md5 = md5sum(packageFile)
+								if (md5 == availablePackage["md5sum"]):
+									logger.info(u"Md5sum match, package download verified")
+								else:
+									raise Exception(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
 					else:
 						logger.warning(u"Cannot verify download of package: missing md5sum file")
 					
