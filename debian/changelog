@@ -1,3 +1,10 @@
+opsi-utils (4.0.1.6-1) stable; urgency=low
+
+  * opsi-product-updater 1.0.8
+    - zsync-workarround for problems by using proxy
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Tue, 05 Jul 2011 10:32:37 +0200
+
 opsi-utils (4.0.1.5-1) stable; urgency=low
 
   * opsi-package-manager 4.0.1.1

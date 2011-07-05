@@ -46,7 +46,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 
 logger = Logger()
 logger.setConsoleColor(True)
