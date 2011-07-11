@@ -32,11 +32,11 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.1.1'
+__version__ = '4.0.1.2'
 
 
 # Imports
-import os, sys, threading, time, termios, socket, random, base64, curses, locale, fcntl, termios, struct, gettext
+import os, sys, threading, time, socket, random, base64, curses, locale, fcntl, termios, struct, gettext
 from signal import *
 from optparse import OptionParser
 from duplicity import librsync
@@ -1827,13 +1827,13 @@ class OpsiPackageManagerControl(object):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if (__name__ == "__main__"):
 	exception = None
+	originalTerminalSettings = None
 	try:
-		# save terminal settings
+		# Save terminal settings
 		fileno = sys.stdin.fileno()
-		orig = termios.tcgetattr(fileno)
-	except Exception,e:
-		orig = None
-		logger.warning(u"WARNING: '%s'" % str(e))
+		originalTerminalSettings = termios.tcgetattr(fileno)
+	except Exception, e:
+		logger.warning(e)
 	
 	try:
 		OpsiPackageManagerControl()
@@ -1844,9 +1844,9 @@ if (__name__ == "__main__"):
 	except Exception, e:
 		exception = e
 	
-	# restore terminal settings
-	if orig:
-		termios.tcsetattr(fileno, termios.TCSANOW, orig)
+	# Restore terminal settings
+	if originalTerminalSettings:
+		termios.tcsetattr(fileno, termios.TCSANOW, originalTerminalSettings)
 	
 	if exception:
 		logger.logException(exception)
