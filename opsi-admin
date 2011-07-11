@@ -39,7 +39,7 @@ import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codec
 # OPSI imports
 from OPSI.Types import *
 from OPSI.Logger import *
-from OPSI.Util import objectToBeautifiedText, objectToBash, fromJson
+from OPSI.Util import objectToBeautifiedText, objectToBash, fromJson, getfqdn
 from OPSI.System import which
 from OPSI.Backend.BackendManager import *
 from OPSI.Backend.Backend import *
@@ -1458,7 +1458,7 @@ class CommandTask(Command):
 			if (os.getuid() != 0):
 				raise Exception(_(u"You have to be root to change pcpatch password!"))
 			
-			fqdn = socket.getfqdn()
+			fqdn = getfqdn(conf='/etc/opsi/global.conf')
 			if (fqdn.count('.') < 2 ):
 				raise Exception(_(u"Failed to get my own fully qualified domainname"))
 			

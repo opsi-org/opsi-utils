@@ -1701,7 +1701,7 @@ class OpsiPackageManagerControl(object):
 			'newProductId'           : None,
 			'depotIds'               : None,
 			'uploadToLocalDepot'     : False,
-			'localDepotId'           : forceHostId(socket.getfqdn()),
+			'localDepotId'           : forceHostId(getfqdn(conf='/etc/opsi/global.conf')),
 			'forceInstall'           : False,
 			'forceUninstall'         : False,
 			'deleteFilesOnUninstall' : True,

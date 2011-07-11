@@ -39,6 +39,7 @@ import fcntl, termios, struct, os, sys, getopt, socket
 # OPSI imports
 from OPSI.Logger import *
 from OPSI.Types import *
+from OPSI.Util import getfqdn
 from OPSI.Util.Message import ProgressObserver
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.Replicator import BackendReplicator
@@ -152,7 +153,7 @@ def main(argv):
 		elif (opt == "-c"):
 			cleanupFirst = True
 		elif (opt == "-s"):
-			newServerId = socket.getfqdn()
+			newServerId = getfqdn(conf='/etc/opsi/global.conf')
 			oldServerId = forceHostId(arg)
 		elif (opt == "-q"):
 			progress = False
@@ -213,7 +214,7 @@ def main(argv):
 				newServerId = match.group(3).split(':')[0]
 				if re.search('^[\d\.]+$', newServerId):
 					# Is an ip address
-					newServerId = socket.getfqdn(newServerId)
+					newServerId = getfqdn(name=newServerId)
 					if re.search('^[\d\.]+$', newServerId):
 						raise Exception(u"Cannot resolve '%s'" % newServerId)
 		else:

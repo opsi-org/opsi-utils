@@ -39,7 +39,7 @@ import urllib, urllib2, htmllib, formatter, sys, re, getopt, socket, base64, pwd
 from OPSI.Logger import *
 from OPSI.Types import *
 from OPSI.Object import *
-from OPSI.Util import compareVersions, md5sum
+from OPSI.Util import compareVersions, md5sum, getfqdn
 from OPSI.Util.File import IniFile, ZsyncFile
 from OPSI.Util.Product import ProductPackageFile
 from OPSI import System
@@ -153,7 +153,7 @@ class OpsiPackageUpdater(object):
 		self.httpHeaders = { 'User-Agent' : self.config.get("userAgent", "") }
 		self.configBackend = None
 		self.depotConnections = {}
-		self.depotId = forceHostId(socket.getfqdn().lower())
+		self.depotId = forceHostId(getfqdn(conf='/etc/opsi/global.conf').lower())
 		depots = self.getConfigBackend().host_getObjects(type = 'OpsiDepotserver', id = self.depotId)
 		if not depots:
 			raise Exception(u"Depot '%s' not found in backend" % self.depotId)
