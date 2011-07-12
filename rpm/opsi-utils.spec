@@ -13,10 +13,10 @@ Url:            http://www.opsi.org
 License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        4.0.1.6
-Release:        1
+Version:        4.0.1.7.1
+Release:        4.0.1.7.1
 Summary:        opsi utils
-Source:         opsi-utils_4.0.1.6-1.tar.gz
+Source:         opsi-utils_4.0.1.7.1-4.0.1.7.1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}

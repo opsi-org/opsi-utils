@@ -1,3 +1,10 @@
+opsi-utils (4.0.1.7.1) stable; urgency=low
+
+  * all
+    - use virtual fqdn if available
+
+ -- Christian Kampka <c.kampka@uib.de>  Tue, 12 Jul 2011 13:10:57 +0200
+
 opsi-utils (4.0.1.6-1) stable; urgency=low
 
   * opsi-product-updater 1.0.8
