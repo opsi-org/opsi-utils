@@ -1,4 +1,4 @@
-opsi-utils (4.0.1.7.1) stable; urgency=low
+opsi-utils (4.0.1.7-1) stable; urgency=low
 
   * all
     - use virtual fqdn if available
