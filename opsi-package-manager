@@ -45,7 +45,7 @@ from duplicity import librsync
 from OPSI.Logger import *
 from OPSI.Types import *
 from OPSI.UI import *
-from OPSI.Util import md5sum
+from OPSI.Util import md5sum, getfqdn
 from OPSI.Util.Message import MessageSubject, ProgressSubject, ChoiceSubject, SubjectsObserver, ProgressObserver
 from OPSI.Util.Repository import *
 from OPSI.Util.Product import ProductPackageFile

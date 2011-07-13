@@ -1,3 +1,9 @@
+opsi-utils (4.0.1.8-1) stable; urgency=low
+
+  * opsi-package-manager: import getfqdn
+
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 13 Jul 2011 13:59:48 +0200
+
 opsi-utils (4.0.1.7-1) stable; urgency=low
 
   * all
