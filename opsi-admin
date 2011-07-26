@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.1.2'
+__version__ = '4.0.1.3'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codecs, locale, types, select
 
@@ -57,9 +57,12 @@ logger.setLogFormat(u"[%l] %M (%F|%N)")
 
 outEncoding = sys.stdout.encoding
 inEncoding = sys.stdin.encoding
-if not outEncoding:
+if not outEncoding or (outEncoding == 'ascii'):
 	outEncoding = locale.getpreferredencoding()
-if not inEncoding:
+if not outEncoding or (outEncoding == 'ascii'):
+	outEncoding = 'utf-8'
+
+if not inEncoding or (inEncoding == 'ascii'):
 	inEncoding = outEncoding
 
 LOGO =[	{"color": COLOR_CYAN, "text": u'                               .:.:::::.                          '},
@@ -107,25 +110,25 @@ def signalHandler(signo, stackFrame):
 		sys.exit(0)
 	
 def usage():
-	print u"\n" + _(u"Usage: %s [options] [command] [args...]") % os.path.basename(sys.argv[0])
-	print _(u"Options:")
-	print u"  -h, --help           " + _(u"Display this text")
-	print u"  -V, --version        " + _(u"Show version and exit")
-	print u"  -u, --username       " + _(u"Username (default: current user)")
-	print u"  -p, --password       " + _(u"Password (default: prompt for password)")
-	print u"  -a, --address        " + _(u"URL of opsiconfd (default: https://localhost:4447/rpc)")
-	print u"  -d, --direct         " + _(u"Do not use opsiconfd")
-	print u"      --no-depot       " + _(u"Do not use depotserver backend")
-	print u"  -l, --loglevel       " + _(u"Set log level (default: 3)")
-	print u"                       " + _(u"0=nothing, 1=essential, 2=critical, 3=error, 4=warning")
-	print u"                       " + _(u"5=notice, 6=info, 7=debug, 8=debug2, 9=confidential")
-	print u"  -f, --log-file       " + _(u"Path to log file")
-	print u"  -i, --interactive    " + _(u"Start in interactive mode")
-	print u"  -c, --colorize       " + _(u"Colorize output")
-	print u"  -S, --simple-output  " + _(u"Simple output (only for scalars, lists)")
-	print u"  -s, --shell-output   " + _(u"Shell output")
-	print u"  -r, --raw-output     " + _(u"Raw output")
-	print u""
+	print (u"\n" + _(u"Usage: %s [options] [command] [args...]") % os.path.basename(sys.argv[0])     ).encode(outEncoding)
+	print (_(u"Options:")                                                                            ).encode(outEncoding)
+	print (u"  -h, --help           " + _(u"Display this text")                                      ).encode(outEncoding)
+	print (u"  -V, --version        " + _(u"Show version and exit")                                  ).encode(outEncoding)
+	print (u"  -u, --username       " + _(u"Username (default: current user)")                       ).encode(outEncoding)
+	print (u"  -p, --password       " + _(u"Password (default: prompt for password)")                ).encode(outEncoding)
+	print (u"  -a, --address        " + _(u"URL of opsiconfd (default: https://localhost:4447/rpc)") ).encode(outEncoding)
+	print (u"  -d, --direct         " + _(u"Do not use opsiconfd")                                   ).encode(outEncoding)
+	print (u"      --no-depot       " + _(u"Do not use depotserver backend")                         ).encode(outEncoding)
+	print (u"  -l, --loglevel       " + _(u"Set log level (default: 3)")                             ).encode(outEncoding)
+	print (u"                       " + _(u"0=nothing, 1=essential, 2=critical, 3=error, 4=warning") ).encode(outEncoding)
+	print (u"                       " + _(u"5=notice, 6=info, 7=debug, 8=debug2, 9=confidential")    ).encode(outEncoding)
+	print (u"  -f, --log-file       " + _(u"Path to log file")                                       ).encode(outEncoding)
+	print (u"  -i, --interactive    " + _(u"Start in interactive mode")                              ).encode(outEncoding)
+	print (u"  -c, --colorize       " + _(u"Colorize output")                                        ).encode(outEncoding)
+	print (u"  -S, --simple-output  " + _(u"Simple output (only for scalars, lists)")                ).encode(outEncoding)
+	print (u"  -s, --shell-output   " + _(u"Shell output")                                           ).encode(outEncoding)
+	print (u"  -r, --raw-output     " + _(u"Raw output")                                             ).encode(outEncoding)
+	print (u""                                                                                       ).encode(outEncoding)
 	
 def main(argv):
 	os.umask(077)
