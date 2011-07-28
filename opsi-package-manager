@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.1.2'
+__version__ = '4.0.1.3'
 
 
 # Imports
@@ -698,7 +698,10 @@ class OpsiPackageManager(object):
 		return self.depotConnections[depotId]
 		
 	def getRunningTransfers(self):
-		return self.runningTransfers
+		self.runningTransfersLock.acquire()
+		num = self.runningTransfers
+		self.runningTransfersLock.release()
+		return num
 	
 	def setRunningTransfers(self, num):
 		self.runningTransfersLock.acquire()
@@ -931,6 +934,7 @@ class OpsiPackageManager(object):
 								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
 								logger.notice(u"No need to upload, '%s' is up to date on '%s'" % (os.path.basename(packageFile), depotId))
 								subject.setMessage( _(u"No need to upload, %s is up to date") % os.path.basename(packageFile), severity = 4 )
+								self.removeRunningTransfer()
 								return
 							# md5sums differ => overwrite
 							logger.info(u"MD5sum of source and destination differs on depot '%s'" % depotId)
