@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.1.3'
+__version__ = '4.0.1.4'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codecs, locale, types, select
 
@@ -1382,6 +1382,7 @@ class CommandTask(Command):
 			(u'setupWhereInstalled', u'productId'),
 			(u'setupWhereNotInstalled', u'productId'),
 			(u'updateWhereInstalled', 'productId'),
+			(u'setActionRequestWhereOutdated', 'actionRequest', 'productId'),
 			(u'decodePcpatchPassword', u'encodedPassword', u'opsiHostKey'),
 			(u'setPcpatchPassword', u'*password')
 		)
@@ -1412,10 +1413,14 @@ class CommandTask(Command):
 		return completions
 		
 	def execute(self, shell, params):
+		tns = []
+		for t in self._tasks:
+			tns.append(t[0])
+		
 		if (len(params) <= 0):
 			return
 		
-		elif(params[0] not in (u'setupWhereInstalled', u'setupWhereNotInstalled', u'updateWhereInstalled', u'decodePcpatchPassword', u'setPcpatchPassword')):
+		elif params[0] not in tns:
 			raise Exception(_(u'Unknown task: %s') % params[0])
 		
 		if (params[0] == u'setupWhereInstalled'):
@@ -1447,6 +1452,33 @@ class CommandTask(Command):
 				for clientId in clientIds:
 					shell.appendLine(clientId)
 					backend.setProductActionRequest(productId, clientId, u'update')
+		
+		if (params[0] == u'setActionRequestWhereOutdated'):
+			if (len(params) < 2):
+				raise Exception(_(u'Missing action request'))
+			if (len(params) < 3):
+				raise Exception(_(u'Missing product-id'))
+			actionRequest = params[1]
+			productId = params[2]
+			
+			# Get depot to client assignment
+			depotToClients = {}
+			for clientToDepot in backend.configState_getClientToDepotserver():
+				if not depotToClients.has_key(clientToDepot['depotId']):
+					depotToClients[clientToDepot['depotId']] = []
+				depotToClients[clientToDepot['depotId']].append(clientToDepot['clientId'])
+			
+			updateProductOnClients = []
+			for (depotId, clientIds) in depotToClients.items():
+				if not clientIds:
+					continue
+				for productOnDepot in backend.productOnDepot_getObjects(productId = productId):
+					for productOnClient in backend.productOnClient_getObjects(clientId = clientIds, productId = productOnDepot.productId, installationStatus = u'installed'):
+						if (productOnClient.productVersion != productOnDepot.productVersion) or (productOnClient.packageVersion != productOnDepot.packageVersion):
+							productOnClient.setActionRequest(actionRequest)
+							updateProductOnClients.append(productOnClient)
+							shell.appendLine(productOnClient.clientId)
+			backend.productOnClient_updateObjects(updateProductOnClients)
 		
 		if (params[0] == u'decodePcpatchPassword'):
 			if (len(params) < 3):
