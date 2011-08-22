@@ -46,7 +46,7 @@ from OPSI.Util import argparse
 logger = Logger()
 
 USAGE = '''
-Usage: %s [options] <command>
+Usage: %s [common-options] <command> [command-options]
 
 Creates and restores opsi backups.
 
