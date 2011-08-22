@@ -32,17 +32,160 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = (1,0)
+__version__ = "1.0.1"
 
-import sys
+import sys, locale
 
 
 #OPSI imports
 from OPSI.Logger import *
+from OPSI.Util.Task.Backup import OpsiBackup
+from OPSI.Util.Collections import DefaultList
+from OPSI.Util import argparse
+
 logger = Logger()
 
-from OPSI.Util.Task.Backup import main
+USAGE = '''
+Usage: %s [options] <command>
+
+Creates and restores opsi backups.
+
+Common options:
+   -V, --version                       Show program's version info and exit
+   -h, --help                          Show this help message and exit
+   -l, --log-level    <log-level>      Set log level to <log-level> (default: 5)
+                                          0=nothing, 1=essential, 2=critical, 3=error, 4=warning
+                                          5=notice, 6=info, 7=debug, 8=debug2, 9=confidential
+   -v, --verbose                       Log to standard error
+   --log-file         <log-file>       Log to <log-file>
+
+Commands:
+   verify     <backup-archive>         Verify integrity of <backup-archive>.
+
+   restore    <backup-archive>         Restore data from <backup-archive>.
+      --mode        {raw|data}         Select a mode that should be used for restoration (default: raw).
+      --backends    <backend>          Select a backend to restore or 'all' for all backends.
+                                          Can be given multiple times.
+      --configuration                  Restore opsi configuration.
+      -f, --force                      Ignore sanity checks and try to apply anyways. Use with caution!
+
+   create     [destination]            Create a new backup.
+                                          If [destination] is omitted, a backup archive will be created
+                                          in the current directory. If [destination] is an existing
+                                          directory, the backup archive will be created in that directory.
+                                          If [destination] does not exist or is a file, [destination]
+                                          will be used as backup archive destination file.
+      --mode        {raw|data}         Select a mode that should be used for creation (default: raw).
+      --flush-logs                        Causes mysql to flush table logs to disk before the backup (recommended).
+      --backends    <backend>          Select a backend to restore, 'auto' for automatic detection of used backends
+                                          or 'all' for all backends. Can be given multiple times.
+      --no-configuration               Do not backup opsi configuration.
+      -c, --compression {gz|bz2|none}  Sets the compression format for the archive (default: bz2).
+
+''' % os.path.basename(sys.argv[0])
+
+def usage():
+	print USAGE
+
+class HelpFormatter(argparse.HelpFormatter):
+	def format_help(self):
+		return USAGE
+	
+def main():
+
+	logger.setLogFormat('[%l] [%D] %M')
+	logger.setConsoleLevel(LOG_WARNING)
+	
+	parser = argparse.ArgumentParser(prog="opsi-backup", add_help = False, usage = USAGE, formatter_class = HelpFormatter)
+	parser.add_argument("-h", "--help",      action="help")
+	parser.add_argument("-v", "--verbose",   action="store_true", default=False)
+	parser.add_argument("-V", "--version",   action="version",    version = "%s %s" % (os.path.basename(sys.argv[0]), __version__))
+	parser.add_argument("-l", "--log-level", action="store",      default=5, type=int)
+	parser.add_argument("--log-file",        metavar='FILE',      default="/var/log/opsi/opsi-backup.log")
+	
+	subs = parser.add_subparsers(title="commands", dest="command")
+	
+	parser_verify = subs.add_parser("verify")
+	parser_verify.add_argument("file", nargs="+")
+	
+	parser_restore = subs.add_parser("restore")
+	parser_restore.add_argument("file",            nargs=1)
+	parser_restore.add_argument("--mode",          nargs=1, choices=['raw', 'data'], default="raw")
+	parser_restore.add_argument("--backends",      action="append")
+	parser_restore.add_argument("--configuration", action="store_true", default=False)
+	parser_restore.add_argument("-f", "--force",   action="store_true", default=False)
+	
+	parser_create = subs.add_parser("create")
+	parser_create.add_argument("destination",         nargs="?")
+	parser_create.add_argument("--mode",              nargs=1, choices=['raw', 'data'], default="raw")
+	parser_create.add_argument("--flush-logs",        action="store_true", default=False)
+	parser_create.add_argument("--backends",          action="append", default=DefaultList(["auto"]))
+	parser_create.add_argument("--no-configuration",  action="store_true", default=False)
+	parser_create.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz','bz2', 'none'])
+	
+	try:
+		args = parser.parse_args(sys.argv[1:])
+	except Exception, e:
+		usage()
+		return 1
+	
+	if args.verbose:
+		logger.setConsoleColor(True)
+		logger.setConsoleLevel(args.log_level)
+
+	if args.log_file:
+		logger.setLogFile(args.log_file)
+		logger.setFileLevel(args.log_level)
+
+	backup = OpsiBackup(stdout = sys.stdout)
+	result = 0
+	if   (args.command == 'restore'):
+		result = backup._restore(file = args.file, mode = args.mode, backends = args.backends,
+				configuration = args.configuration, force = args.force)
+	elif (args.command == 'verify'):
+		result = backup._verify(file = args.file)
+		if (result == 0):
+			print "Verified"
+		else:
+			print "Verification failed"
+	elif (args.command == 'create'):
+		result = backup._create(destination = args.destination, mode = args.mode, backends = args.backends,
+				no_configuration = args.no_configuration, compression = args.compression, flush_logs = args.flush_logs)
+	try:
+		result = int(result)
+	except:
+		pass
+	return result
+
+if (__name__ == "__main__"):
+	exception = None
+	ret = 0
+	try:
+		ret = main()
+		
+	except SystemExit, e:
+		pass
+	
+	except Exception, e:
+		exception = e
+	
+	if exception:
+		logger.logException(exception, LOG_INFO)
+		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace')
+		sys.exit(1)
+	sys.exit(ret)
 
 
-if __name__ == "__main__":
-	sys.exit(main(sys.argv[1:]))
+
+
+
+
+
+
+
+
+
+
+
+
+
