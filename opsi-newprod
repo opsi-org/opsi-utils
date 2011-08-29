@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0'
+__version__ = '4.0.1'
 
 import getopt, gettext, os, sys, re, shutil, time
 
@@ -95,7 +95,7 @@ def main(argv):
 	ui.drawRootText(1, 1, 'opsi')
 	
 	# Get product type
-	helpText  = '\n'
+	helpText  = ''
 	values = [
 		{ "name": u"localboot",	"selected": True },
 		{ "name": u"netboot" }
@@ -106,9 +106,9 @@ def main(argv):
 			text    = helpText,
 			entries = values,
 			width   = 30,
-			height  = 3)
+			height  = 14)
 	if not productType:
-		raise Exception(_('Cancelled'))
+		raise Exception(_(u'Cancelled'))
 	productType = productType[0]
 	
 	product = None
