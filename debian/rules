@@ -16,6 +16,8 @@ install:
 	
 	msgfmt -o debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_de.po
 	chmod 644 debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
+	msgfmt -o debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
+	chmod 644 debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
 	
 	install -m 0755  opsi-admin           debian/opsi-utils/usr/bin/
 	install -m 0755  opsi-newprod         debian/opsi-utils/usr/bin/
