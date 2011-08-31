@@ -84,9 +84,8 @@ msgid "Shell output"
 msgstr "Shell-Ausgabe"
 
 #: ../opsi-admin:130
-#, fuzzy
 msgid "Raw output"
-msgstr "Shell-Ausgabe"
+msgstr "Rohdaten-Ausgabe"
 
 #: ../opsi-admin:451
 msgid "Delete log-file '%s'?"
@@ -189,9 +188,8 @@ msgid "Missing product-id"
 msgstr "Fehlende Produkt-ID"
 
 #: ../opsi-admin:1458
-#, fuzzy
 msgid "Missing action request"
-msgstr "Fehlendes Argument"
+msgstr "Fehlende angeforderte Aktion"
 
 #: ../opsi-admin:1485
 msgid "Missing argument"
