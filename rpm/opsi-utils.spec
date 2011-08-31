@@ -56,6 +56,9 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_de.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
+mkdir -p $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES
+msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
+chmod 644 $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
 
 install -m 0755 opsi-admin $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-newprod $RPM_BUILD_ROOT/usr/bin/
@@ -99,6 +102,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/opsi-backup
 
 %attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
+%attr(644,root,root) /usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
 
 # directories
 #%dir /usr/share/locale/de/LC_MESSAGES
