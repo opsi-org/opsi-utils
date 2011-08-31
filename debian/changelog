@@ -1,3 +1,9 @@
+opsi-utils (4.0.1.14-1) stable; urgency=low
+
+  * french localization
+
+ -- Jan Schneider <j.schneider@uib.de>  Wed, 31 Aug 2011 16:30:52 +0200
+
 opsi-utils (4.0.1.13-1) stable; urgency=low
 
   * opsi-newprod 4.0.1
