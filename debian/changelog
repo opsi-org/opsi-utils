@@ -1,3 +1,13 @@
+opsi-utils (4.0.1.15-1) stable; urgency=low
+
+  * package control-file: opsi-product-updater
+    - added conflicts, replaces and provides (deb)
+  * opsi-package-manager: fix for custom installing custom-packages:
+    - trying to convert custom-package-name to normal package-name
+      before syncing in opsi-repository on depot-server (option -d)
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Tue, 25 Oct 2011 16:48:39 +0200
+
 opsi-utils (4.0.1.14-1) stable; urgency=low
 
   * french localization

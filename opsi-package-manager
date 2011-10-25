@@ -891,6 +891,10 @@ class OpsiPackageManager(object):
 			lMD5 = self.getPackageMd5Sum(packageFile)
 			destination = os.path.basename(packageFile)
 			
+			if u"~" in destination:
+				logger.notice(u"Custom-package detected, try to fix that.")
+				destination = "%s%s" % (destination.split("~")[0], ".opsi")
+			
 			productId = self.getPackageControlFile(packageFile).getProduct().getId()
 			
 			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
@@ -928,7 +932,7 @@ class OpsiPackageManager(object):
 							# Sizes match => check md5sum
 							logger.info(u"Size of source and destination matches on depot '%s'" % depotId)
 							depotConnection = self.getDepotConnection(depotId)
-							rMD5 = depotConnection.depot_getMD5Sum(depotRepositoryPath + u'/' + os.path.basename(packageFile))
+							rMD5 = depotConnection.depot_getMD5Sum(depotRepositoryPath + u'/' + destination)
 							if (lMD5 == rMD5):
 								# md5sum match => do not overwrite
 								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
@@ -1061,7 +1065,7 @@ class OpsiPackageManager(object):
 				logger.notice(u"Verifying upload")
 				subject.setMessage( _(u"Verifying upload") )
 				
-				remotePackageFile = depotRepositoryPath + u'/' + os.path.basename(packageFile)
+				remotePackageFile = depotRepositoryPath + u'/' + destination
 				depotConnection = self.getDepotConnection(depotId)
 				rMD5 = depotConnection.depot_getMD5Sum(remotePackageFile)
 				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
@@ -1234,6 +1238,7 @@ class OpsiPackageManager(object):
 		
 		try:
 			depotPackageFile = packageFile
+				
 			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
 			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
 				if not depot.repositoryLocalUrl.startswith('file://'):
@@ -1243,9 +1248,15 @@ class OpsiPackageManager(object):
 					depotPackageFile = depotPackageFile[:-1]
 				depotPackageFile += u'/' + os.path.basename(packageFile)
 			
+			if u"~" in depotPackageFile and not os.path.exists(depotPackageFile):
+				depotPackageFile = depotPackageFile.split(u"~")[0] + u".opsi"
+			
 			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
 			
 			packageFile = os.path.basename(packageFile)
+			
+			##if u"~" in packageFile:
+			#	packageFile = packageFile.split(u"~")[0] + u".opsi"
 			
 			logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
 			subject.setMessage( _(u"Installing package %s") % packageFile )
