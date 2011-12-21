@@ -591,21 +591,14 @@ class OpsiPackageUpdater(object):
 					if not shutdownProduct:
 						logger.error(u"Product 'shutdownwanted' not avaliable on depot '%s'" % self.depotId)
 						
-				autoSetupExcludes = []
-				autoSetupExcludes.append(re.compile('^win.*'))
 				
 				for package in installedPackages:
 					if not package['product'].setupScript:
 						continue
 					if package['repository'].autoSetup:
-						exclude = False
-						for exclude in autoSetupExcludes:
-							if exclude.search(package['productId']):
-								logger.notice(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is excluded for package" \
+						if isinstance(package['product'], NetbootProduct):
+							logger.notice(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not allowed for netboot products" \
 									% (package['productId']))
-								exclude = True
-								break
-						if exclude:
 							continue
 						
 						logger.notice(u"Setting action 'setup' for product '%s' where installation status 'installed' because auto setup is set for repository '%s'" \

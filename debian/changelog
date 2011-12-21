@@ -1,3 +1,9 @@
+opsi-utils (4.0.1.16-1) lucid; urgency=low
+
+  * opsi-product-updater: autoSetup is not allowed for netbootproduct.
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Wed, 21 Dec 2011 15:32:06 +0100
+
 opsi-utils (4.0.1.15-1) stable; urgency=low
 
   * package control-file: opsi-product-updater
