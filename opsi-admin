@@ -32,7 +32,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.1.4'
+__version__ = '4.0.1.5'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codecs, locale, types, select
 
@@ -1383,6 +1383,7 @@ class CommandTask(Command):
 			(u'setupWhereNotInstalled', u'productId'),
 			(u'updateWhereInstalled', 'productId'),
 			(u'setActionRequestWhereOutdated', 'actionRequest', 'productId'),
+			(u'setActionRequestWithDependencies', 'actionRequest', 'productId', 'clientId'),
 			(u'decodePcpatchPassword', u'encodedPassword', u'opsiHostKey'),
 			(u'setPcpatchPassword', u'*password')
 		)
@@ -1479,6 +1480,23 @@ class CommandTask(Command):
 							updateProductOnClients.append(productOnClient)
 							shell.appendLine(productOnClient.clientId)
 			backend.productOnClient_updateObjects(updateProductOnClients)
+		
+		if (params[0] == u'setActionRequestWithDependencies'):
+			if (len(params) < 2):
+				raise Exception(_(u'Missing action request'))
+			if (len(params) < 3):
+				raise Exception(_(u'Missing product-id'))
+			if (len(params) < 4):
+				raise Exception(_(u'Missing client-id'))
+			actionRequest = params[1]
+			productId = params[2]
+			clientId = params[3]
+			modified = False
+			
+			if productId and clientId and actionRequest:
+				backend.setProductActionRequestWithDependencies(productId, clientId, actionRequest)
+				
+				
 		
 		if (params[0] == u'decodePcpatchPassword'):
 			if (len(params) < 3):
