@@ -1,4 +1,4 @@
-opsi-utils (4.0.1.17-1) stable; urgency=low
+opsi-utils (4.0.1.17-1) testing; urgency=low
 
   * opsi-product-updater.conf: added tempdir in general section to
       configure the tempdirectory for package installation.
