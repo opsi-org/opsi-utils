@@ -1,3 +1,9 @@
+opsi-utils (4.0.2.2-1) testing; urgency=low
+
+  * Added opsiFileAdminGroup handling.
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Thu, 19 Jul 2012 11:44:37 +0200
+
 opsi-utils (4.0.2.1-1) stable; urgency=low
 
   * Featurepack-Release 4.0.2

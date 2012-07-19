@@ -46,7 +46,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.0.2.1'
+__version__ = '4.0.2.2'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -780,7 +780,12 @@ class OpsiPackageUpdater(object):
 		uid = -1
 		if (os.geteuid() == 0):
 			uid = pwd.getpwnam('opsiconfd')[2]
-		gid = grp.getgrnam('pcpatch')[2]
+		try:
+			from OPSI.Util.File.Opsi import OpsiConfFile
+			FILE_ADMIN_GROUP = OpsiConfFile(OPSI_CONF).getOpsiFileAdminGroup()
+		except:
+			FILE_ADMIN_GROUP = u'pcpatch'
+		gid = grp.getgrnam(FILE_ADMIN_GROUP)[2]
 		for f in os.listdir(self.config["packageDir"]):
 			path = os.path.join(self.config["packageDir"], f)
 			if not os.path.isfile(path):
