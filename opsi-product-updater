@@ -782,7 +782,7 @@ class OpsiPackageUpdater(object):
 			uid = pwd.getpwnam('opsiconfd')[2]
 		try:
 			from OPSI.Util.File.Opsi import OpsiConfFile
-			FILE_ADMIN_GROUP = OpsiConfFile(OPSI_CONF).getOpsiFileAdminGroup()
+			FILE_ADMIN_GROUP = OpsiConfFile().getOpsiFileAdminGroup()
 		except:
 			FILE_ADMIN_GROUP = u'pcpatch'
 		gid = grp.getgrnam(FILE_ADMIN_GROUP)[2]
