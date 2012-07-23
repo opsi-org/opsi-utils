@@ -34,7 +34,7 @@
 """
 
 
-import urllib, urllib2, htmllib, formatter, sys, re, getopt, socket, base64, pwd, grp, smtplib
+import urllib, urllib2, htmllib, formatter, sys, re, getopt, socket, base64, pwd, grp, smtplib, time
 
 from OPSI.Logger import *
 from OPSI.Types import *
@@ -128,7 +128,8 @@ class EmailNotifier(object):
 		self.message = u''
 		
 	def appendLine(self, line):
-		self.message += u'%s\n' % forceUnicode(line)
+		now = unicode(time.strftime(u"%b %d %H:%M:%S", time.localtime()), 'utf-8', 'replace')
+		self.message += u'%s %s\n' % (now, forceUnicode(line))
 	
 	def hasMessage(self):
 		return bool(self.message)
@@ -143,6 +144,8 @@ class EmailNotifier(object):
 		try:
 			smtpObj = smtplib.SMTP(self.smtphost, self.smtpport)
 			smtpObj.sendmail(self.sender, self.receivers, mail)
+			logger.debug(u"SMTP-Host: '%s' SMTP-Port: '%s'" % (self.smtphost, self.smtpport))
+			logger.debug(u"Sender: '%s' Reveivers: '%s' Message: '%s'" % (self.sender, self.receivers, mail))
 			logger.notice(u"Email successfully sent")
 		except Exception, e:
 			raise Exception(u"Failed to send email using smtp server '%s': %s" % (self.smtphost, e))
