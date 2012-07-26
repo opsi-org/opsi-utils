@@ -775,7 +775,10 @@ class OpsiPackageUpdater(object):
 					pass
 		out.close()
 		if notifier:
-			notifier.appendLine(u"Download of '%s' completed" % url)
+			if size:
+				notifier.appendLine(u"Download of '%s' completed (~ %s MB)" % (url, round(size/(1024.0*1024.0), 2)))
+			else:
+				notifier.appendLine(u"Download of '%s' completed" % url)
 		logger.notice(u"Download of '%s' completed" % url)
 	
 	def cleanupPackages(self, newPackage):
