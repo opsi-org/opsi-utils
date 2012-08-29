@@ -90,7 +90,7 @@ def main(argv):
 		destDir = os.path.abspath(forceFilename(args[0]))
 	
 	global ui
-	ui = UIFactory()
+	ui = UIFactory(type=u'snack')
 	
 	ui.drawRootText(1, 1, 'opsi')
 	
