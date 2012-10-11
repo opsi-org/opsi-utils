@@ -547,7 +547,7 @@ class OpsiPackageUpdater(object):
 				for package in newPackages:
 					packageFile = os.path.join(self.config["packageDir"], package["filename"])
 					
-					if availablePackage['repository'].onlyDownload:
+					if package['repository'].onlyDownload:
 						continue
 					
 					propertyDefaultValues = {}
