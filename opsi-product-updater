@@ -46,7 +46,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.0.2.2'
+__version__ = '4.0.2.3'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -139,6 +139,7 @@ class EmailNotifier(object):
 		mail =  u'From: %s\n' % self.sender
 		mail += u'To: %s\n' % u','.join(self.receivers)
 		mail += u'Subject: %s\n' % self.subject
+		mail += u'\n'
 		#mail += _(u"opsi product updater carried out the following actions:") + u"\n"
 		mail += self.message
 		try:
