@@ -1,4 +1,4 @@
-opsi-utils (4.0.2.3-1ubuntu1) precise; urgency=low
+opsi-utils (4.0.2.4-1) testing; urgency=low
 
   *  opsi-product-updater: Added Blank line between header and message-body to fix empty body mails on exchange environment.
 
