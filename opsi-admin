@@ -214,7 +214,8 @@ def main(argv):
 				backendConfigDir   = u'/etc/opsi/backends',
 				extensionConfigDir = u'/etc/opsi/backendManager/extend.d',
 				depotBackend       = depotBackend,
-				hostControlBackend = True
+				hostControlBackend = True,
+				hostControlSafeBackend = True
 			)
 		
 		else:

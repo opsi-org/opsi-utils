@@ -919,6 +919,7 @@ class OpsiPackageUpdater(object):
 				req = urllib2.Request(url , None, self.httpHeaders)
 				response = opener.open(req)
 				content = response.read()
+				logger.debug("content: '%s'" % content)
 				format = formatter.NullFormatter()
 				htmlParser = LinksExtractor(format)
 				htmlParser.feed(content)

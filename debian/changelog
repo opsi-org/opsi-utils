@@ -1,8 +1,10 @@
-opsi-utils (4.0.2.4-1) testing; urgency=low
+opsi-utils (4.0.3.1-1) testing; urgency=low
 
-  *  opsi-product-updater: Added Blank line between header and message-body to fix empty body mails on exchange environment.
+  * opsi-product-updater: Added Blank line between header and message-body to fix empty body mails on exchange environment.
+  * opsi-product-updater: fix for handling with custom products.
+  * opsi-admin: added new HostControlSafeBackend in BackendManager initialization.
 
- -- Erol Ueluekmen <e.ueluekmen@uib.de>  Thu, 25 Oct 2012 15:52:44 +0200
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Tue, 12 Feb 2013 12:42:44 +0200
 
 opsi-utils (4.0.2.3-1) stable; urgency=low
 
