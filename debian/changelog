@@ -1,3 +1,9 @@
+opsi-utils (4.0.3.2-1) testing; urgency=low
+
+  * opsi-admin: added task uninstallWhereInstalled
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Fri, 06 Sep 2013 10:04:53 +0200
+
 opsi-utils (4.0.3.1-1) testing; urgency=low
 
   * opsi-product-updater: Added Blank line between header and message-body to fix empty body mails on exchange environment.

@@ -33,7 +33,7 @@
    @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.3.1'
+__version__ = '4.0.3.2'
 
 import os, sys, termios, getopt, time, fcntl, struct, gettext, subprocess, codecs, locale, types, select
 
@@ -1384,6 +1384,7 @@ class CommandTask(Command):
 			(u'setupWhereInstalled', u'productId'),
 			(u'setupWhereNotInstalled', u'productId'),
 			(u'updateWhereInstalled', 'productId'),
+			(u'uninstallWhereInstalled', 'productId'),
 			(u'setActionRequestWhereOutdated', 'actionRequest', 'productId'),
 			(u'setActionRequestWithDependencies', 'actionRequest', 'productId', 'clientId'),
 			(u'decodePcpatchPassword', u'encodedPassword', u'opsiHostKey'),
@@ -1430,31 +1431,61 @@ class CommandTask(Command):
 			if (len(params) < 2):
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
-			clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'installed')
-			if clientIds:
-				for clientId in clientIds:
-					shell.appendLine(clientId)
-					backend.setProductActionRequest(productId, clientId, 'setup')
-		
+			products = backend.product_getObjects(id=productId)
+			if not products:
+				raise Exception(_(u'Given productId not found'))
+			else:
+				if products[0].getSetupScript():
+					clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'installed')
+					if clientIds:
+						for clientId in clientIds:
+							shell.appendLine(clientId)
+							backend.setProductActionRequest(productId, clientId, 'setup')
+				
 		if (params[0] == u'setupWhereNotInstalled'):
 			if (len(params) < 2):
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
-			clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'not_installed')
-			if clientIds:
-				for clientId in clientIds:
-					shell.appendLine(clientId)
-					backend.setProductActionRequest(productId, clientId, u'setup')
-		
+			products = backend.product_getObjects(id=productId)
+			if not products:
+				raise Exception(_(u'Given productId not found'))
+			else:
+				if products[0].getSetupScript():
+					clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'not_installed')
+					if clientIds:
+						for clientId in clientIds:
+							shell.appendLine(clientId)
+							backend.setProductActionRequest(productId, clientId, u'setup')
+				
 		if (params[0] == u'updateWhereInstalled'):
 			if (len(params) < 2):
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
-			clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'installed')
-			if clientIds:
-				for clientId in clientIds:
-					shell.appendLine(clientId)
-					backend.setProductActionRequest(productId, clientId, u'update')
+			products = backend.product_getObjects(id=productId)
+			if not products:
+				raise Exception(_(u'Given productId not found'))
+			else:
+				if products[0].getUpdateScript():
+					clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'installed')
+					if clientIds:
+						for clientId in clientIds:
+							shell.appendLine(clientId)
+							backend.setProductActionRequest(productId, clientId, u'update')
+				
+		if (params[0] == u'uninstallWhereInstalled'):
+			if (len(params) < 2):
+				raise Exception(_(u'Missing product-id'))
+			productId = params[1]
+			products = backend.product_getObjects(id=productId)
+			if not products:
+				raise Exception(_(u'Given productId not found'))
+			else:
+				if products[0].getUninstallScript():
+					clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'installed')
+					if clientIds:
+						for clientId in clientIds:
+							shell.appendLine(clientId)
+							backend.setProductActionRequest(productId, clientId, u'uninstall')
 		
 		if (params[0] == u'setActionRequestWhereOutdated'):
 			if (len(params) < 2):
