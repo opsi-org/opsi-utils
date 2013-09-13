@@ -115,6 +115,7 @@ try:
 	_ = t.ugettext
 except Exception, e:
 	logger.error(u"Locale not found: %s" % e)
+
 	def _(string):
 		return string
 
@@ -122,9 +123,11 @@ except Exception, e:
 def signalHandler(signo, stackFrame):
 	logger.info(u"Received signal %s" % signo)
 	if (signo == SIGINT):
-		if shell: shell.sigint()
+		if shell:
+			shell.sigint()
 	if (signo == SIGQUIT):
 		sys.exit(0)
+
 
 def usage():
 	print(u"\n" + _(u"Usage: %s [options] [command] [args...]") % os.path.basename(sys.argv[0])).encode(outEncoding)
@@ -147,6 +150,7 @@ def usage():
 	print(u"  -r, --raw-output     " + _(u"Raw output")).encode(outEncoding)
 	print (u"").encode(outEncoding)
 
+
 def main(argv):
 	os.umask(077)
 	global interactive
@@ -168,16 +172,19 @@ def main(argv):
 
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV",
-			["username=", "password=", "address=", "loglevel=", "log-file=",
-			 "interactive", "direct", "no-depot", "colorize", "shell-output",
-			 "simple-output", "raw-output", "help", "version"]
+			[
+				"username=", "password=", "address=", "loglevel=", "log-file=",
+				"interactive", "direct", "no-depot", "colorize",
+				"shell-output", "simple-output", "raw-output", "help",
+				"version"
+			]
 		)
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)
 
 	for (opt, arg) in opts:
-		if   opt in ("-h", "--help"):
+		if opt in ("-h", "--help"):
 			usage()
 			sys.exit(0)
 		elif opt in ("-V", "--version"):
@@ -227,12 +234,12 @@ def main(argv):
 		if direct:
 			# Create BackendManager
 			backend = BackendManager(
-				dispatchConfigFile = u'/etc/opsi/backendManager/dispatch.conf',
-				backendConfigDir = u'/etc/opsi/backends',
-				extensionConfigDir = u'/etc/opsi/backendManager/extend.d',
-				depotBackend = depotBackend,
-				hostControlBackend = True,
-				hostControlSafeBackend = True
+				dispatchConfigFile=u'/etc/opsi/backendManager/dispatch.conf',
+				backendConfigDir=u'/etc/opsi/backends',
+				extensionConfigDir=u'/etc/opsi/backendManager/extend.d',
+				depotBackend=depotBackend,
+				hostControlBackend=True,
+				hostControlSafeBackend=True
 			)
 
 		else:
@@ -259,7 +266,6 @@ def main(argv):
 				session.close()
 			except Exception, e:
 				logger.error(u"Failed to read session file '%s': %s" % (os.path.join(opsiadminUserDir, 'session'), forceUnicode(e)))
-
 
 			from OPSI.Backend.JSONRPC import JSONRPCBackend
 			backend = JSONRPCBackend(
@@ -292,7 +298,7 @@ def main(argv):
 				else:
 					cmdline += u" %s" % args[i]
 
-		(r, w, x) = select.select([ sys.stdin ], [], [], 0.2)
+		(r, w, x) = select.select([sys.stdin], [], [], 0.2)
 		if sys.stdin in r:
 			read = unicode(sys.stdin.read(), inEncoding, 'replace')
 			read = read.replace('\r', '').replace('\n', '')
@@ -338,6 +344,7 @@ def main(argv):
 				backend.backend_exit()
 			except:
 				pass
+
 
 class Shell:
 
@@ -415,16 +422,16 @@ class Shell:
 		self.screen.clear()
 
 		self.yMax, self.xMax = self.screen.getmaxyx()
-		self.linesMax = self.yMax-2
+		self.linesMax = self.yMax - 2
 
 		if self.color:
 			curses.start_color()
 
-			curses.init_pair(1, curses.COLOR_GREEN,   curses.COLOR_BLACK)
-			curses.init_pair(2, curses.COLOR_CYAN,    curses.COLOR_BLACK)
-			curses.init_pair(3, curses.COLOR_YELLOW,  curses.COLOR_BLACK)
+			curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+			curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
+			curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
 			curses.init_pair(4, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-			curses.init_pair(5, curses.COLOR_RED,     curses.COLOR_BLACK)
+			curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
 
 	def exitScreen(self):
 		if self.screen:
@@ -456,9 +463,8 @@ class Shell:
 						for line in lines:
 							self.appendLine(line, COLOR_RED)
 
-				if (len(self.lines) > self.yMax-2):
+				if (len(self.lines) > self.yMax - 2):
 					self.linesBack = 0
-					#logger.debug(u"linesBack: %s" % self.linesBack)
 		else:
 			self.display()
 
@@ -502,29 +508,29 @@ class Shell:
 			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(e)))
 
 		height = int(len(self.prompt + u' ' + self.cmdline) / self.xMax) + 1
-		clear = self.xMax - (len(self.prompt + u' ' + self.cmdline) % self.xMax) -1
-		#logger.debug( u"cmdline: %s, height: %s" % (self.cmdline, height) )
+		clear = self.xMax - (len(self.prompt + u' ' + self.cmdline) % self.xMax) - 1
+
 		self.linesMax = self.yMax - height - 1
 		self.screen.move(self.yMax - height, 0)
 		self.screen.clrtoeol()
-		s = self.prompt + u' ' + self.cmdline + u' '*clear
+		s = self.prompt + u' ' + self.cmdline + u' ' * clear
 		try:
 			self.screen.addstr(s.encode(outEncoding), curses.A_BOLD)
 		except Exception, e:
 			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(e)))
 
 		for i in range(0, self.linesMax):
-			self.screen.move(self.linesMax-i, 0)
+			self.screen.move(self.linesMax - i, 0)
 			self.screen.clrtoeol()
 			s = u''
 			color = None
 			if (len(self.lines) - self.linesBack > i):
-				s = self.lines[len(self.lines) - self.linesBack-1-i]['text']
+				s = self.lines[len(self.lines) - self.linesBack - 1 - i]['text']
 				if self.color:
-					color = self.lines[len(self.lines) - self.linesBack-1-i]['color']
+					color = self.lines[len(self.lines) - self.linesBack - 1 - i]['color']
 
 			if color:
-				if   (color == COLOR_NORMAL):
+				if (color == COLOR_NORMAL):
 					color = curses.A_BOLD
 				elif (color == COLOR_GREEN):
 					color = curses.color_pair(1)
@@ -557,7 +563,7 @@ class Shell:
 		line = forceUnicode(line)
 
 		if not color:
-			if   line.startswith(COLOR_NORMAL):
+			if line.startswith(COLOR_NORMAL):
 				color = COLOR_NORMAL
 			elif line.startswith(COLOR_GREEN):
 				color = COLOR_GREEN
@@ -625,22 +631,22 @@ class Shell:
 					split = i
 					break
 			if (split >= 0):
-				cmdline = u'|'.join(parts[:split+1])
-				self.shellCommand = u'|'.join(parts[split+1:]).lstrip()
+				cmdline = u'|'.join(parts[:split + 1])
+				self.shellCommand = u'|'.join(parts[split + 1:]).lstrip()
 
 		cur = 0
 		quote = None
 
 		for i in range(len(cmdline)):
 			logger.debug2(u"parseCmdline(): char '%s', quote: %s, cur: %d, params: %s" % (cmdline[i], quote, cur, self.params))
-			if (len(self.params) < cur+1):
+			if (len(self.params) < cur + 1):
 				self.params.append(u'')
 
-			if (i == self.pos-1):
+			if (i == self.pos - 1):
 				self.paramPos = cur
 
 			if (cmdline[i] == u"'"):
-				if (quote == None):
+				if (quote is None):
 					#self.params[cur] += u'\''
 					quote = u"'"
 				elif (quote == u"'"):
@@ -652,7 +658,7 @@ class Shell:
 					self.params[cur] += u'\''
 
 			elif (cmdline[i] == u'"'):
-				if (quote == None):
+				if (quote is None):
 					self.params[cur] += u'"'
 					quote = u'"'
 				elif (quote == u'"'):
@@ -664,7 +670,7 @@ class Shell:
 					self.params[cur] += u'"'
 
 			elif (cmdline[i] == u" "):
-				if (quote != None):
+				if (quote is not None):
 					self.params[cur] += cmdline[i]
 				elif (len(self.params[cur]) > 0):
 					cur += 1
@@ -683,10 +689,15 @@ class Shell:
 
 		logger.debug(u"cmdline: %s" % cmdline)
 		logger.debug2(u"paramPos: %s, currentParam: %s, params: %s" \
-				% (self.paramPos, self.currentParam, self.params) )
+				% (self.paramPos, self.currentParam, self.params))
 		if self.paramPos >= len(self.params):
-			logger.error(u"Assertion 'self.paramPos < len(self.params)' failed: " +
-				u"self.paramPos: %s, len(self.params): %s" % (self.paramPos, len(self.params)) )
+			logger.error(
+				u"Assertion 'self.paramPos < len(self.params)' failed: " +
+				u"self.paramPos: %s, len(self.params): %s" % (
+					self.paramPos,
+					len(self.params)
+				)
+			)
 			self.paramPos = len(self.params) - 1
 
 	def execute(self):
@@ -732,20 +743,20 @@ class Shell:
 		password2 = u''
 		while not password1 or (password1 != password2):
 			if interactive:
-				self.screen.move(self.yMax-1, 0)
+				self.screen.move(self.yMax - 1, 0)
 				self.screen.clrtoeol()
 				self.screen.addstr(_(u"Please type password:").encode(outEncoding))
 				self.screen.refresh()
 				password1 = unicode(self.screen.getstr(), inEncoding)
 
-				self.screen.move(self.yMax-1, 0)
+				self.screen.move(self.yMax - 1, 0)
 				self.screen.clrtoeol()
 				self.screen.addstr(_(u"Please retype password:").encode(outEncoding))
 				self.screen.refresh()
 				password2 = unicode(self.screen.getstr(), inEncoding)
 
 				if (password1 != password2):
-					self.screen.move(self.yMax-1, 0)
+					self.screen.move(self.yMax - 1, 0)
 					self.screen.clrtoeol()
 					self.screen.addstr(_(u"Supplied passwords do not match").encode(outEncoding))
 					self.screen.refresh()
@@ -811,7 +822,7 @@ class Shell:
 				self.setCmdline(self.cmdline)
 
 			elif (char == curses.KEY_NPAGE):
-				if (len(self.lines) > self.yMax-2):
+				if (len(self.lines) > self.yMax - 2):
 					self.linesBack -= 5
 					if (self.linesBack < 0):
 						self.linesBack = 0
@@ -819,10 +830,10 @@ class Shell:
 					self.display()
 
 			elif (char == curses.KEY_PPAGE):
-				if (len(self.lines) > self.yMax-2):
+				if (len(self.lines) > self.yMax - 2):
 					self.linesBack += 5
-					if (self.linesBack > len(self.lines)-self.yMax+2):
-						self.linesBack = len(self.lines)-self.yMax+2
+					if (self.linesBack > len(self.lines)-self.yMax + 2):
+						self.linesBack = len(self.lines)-self.yMax + 2
 
 					self.display()
 
@@ -837,7 +848,7 @@ class Shell:
 
 			elif (char == 18):
 				# ^R
-				if (self.reverseSearch == None):
+				if (self.reverseSearch is None):
 					self.setInfoline("reverse-i-search")
 					self.reverseSearch = ''
 				else:
@@ -900,7 +911,7 @@ class Shell:
 						while (i < len(completions)) and (not curLine or (len(curLine) + longest < self.xMax - 5)):
 							pf = '%s %-' + str(longest) + 's'
 							curLine = pf % (curLine, completions[i])
-							i+=1
+							i += 1
 						lines.append({"text": curLine, "color": None})
 						curLine = ''
 
@@ -910,7 +921,7 @@ class Shell:
 					self.lines.append(
 						{
 							"text": self.prompt + ' ' + \
-						  			self.cmdline[:self.pos-len(self.currentParam)] + \
+						  			self.cmdline[:self.pos - len(self.currentParam)] + \
 									match.strip() + \
 									self.cmdline[self.pos:],
 							"color": None
@@ -919,11 +930,11 @@ class Shell:
 
 					self.lines.extend(lines)
 
-					self.setCmdline(self.cmdline[:self.pos-len(self.currentParam)] + \
+					self.setCmdline(self.cmdline[:self.pos - len(self.currentParam)] + \
 						match.strip() + \
 						self.cmdline[self.pos:])
 
-					self.pos += len(match)-len(self.currentParam)
+					self.pos += len(match) - len(self.currentParam)
 
 					self.setCmdline(self.cmdline)
 				else:
@@ -936,7 +947,7 @@ class Shell:
 
 				if (char == 263):
 					# backspace	<--
-					if (self.reverseSearch != None):
+					if (self.reverseSearch is not None):
 						self.reverseSearch = self.reverseSearch[:-1]
 						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
 					elif (self.pos > 0):
@@ -944,10 +955,10 @@ class Shell:
 						newCmdline = self.cmdline[:newPos] + self.cmdline[self.pos:]
 				elif (char == 330):
 					# del
-					if (self.reverseSearch != None):
+					if (self.reverseSearch is not None):
 						pass
 					elif (len(self.cmdline) > 0):
-						newCmdline = self.cmdline[:self.pos] + self.cmdline[self.pos+1:]
+						newCmdline = self.cmdline[:self.pos] + self.cmdline[self.pos + 1:]
 
 				else:
 					try:
@@ -960,7 +971,7 @@ class Shell:
 							char += self.screen.getkey()
 							char = unicode(char, inEncoding)
 
-						if (self.reverseSearch != None):
+						if (self.reverseSearch is not None):
 							self.reverseSearch += char
 						else:
 							newPos = self.pos + 1
@@ -968,7 +979,7 @@ class Shell:
 					except Exception, e:
 						logger.error("Failed to add char '%s': %s" % (char, forceUnicode(e)))
 				try:
-					if (self.reverseSearch != None):
+					if (self.reverseSearch is not None):
 						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
 						found = False
 						for i in range(len(self.cmdList) - 1, -1, -1):
@@ -987,7 +998,7 @@ class Shell:
 					pass
 
 			if not textInput:
-				if (self.reverseSearch != None):
+				if (self.reverseSearch is not None):
 					self.reverseSearch = None
 					self.setInfoline("")
 
@@ -1002,8 +1013,9 @@ class Shell:
 				lines[0] = "ERROR: %s" % lines[0]
 				for line in lines:
 					self.appendLine(line, COLOR_RED)
-		if (len(self.lines) > self.yMax-2):
+		if (len(self.lines) > self.yMax - 2):
 			self.linesBack = 0
+
 
 class Command:
 	def __init__(self, name):
@@ -1045,35 +1057,35 @@ class CommandMethod(Command):
 		if paramPos == 0:
 			completions.append(u'list')
 			for m in self.interface:
-				completions.append( m.get(u'name') )
+				completions.append(m.get(u'name'))
 
 		elif paramPos == 1:
 			method = None
-			if u'list'.startswith( params[0] ):
+			if u'list'.startswith(params[0]):
 				completions.append(u'list')
 			for m in self.interface:
-				if m.get('name').startswith( params[0] ):
-					completions.append( m.get('name') )
+				if m.get('name').startswith(params[0]):
+					completions.append(m.get('name'))
 
-		elif paramPos >=2:
+		elif paramPos >= 2:
 			for m in self.interface:
 				if (m.get('name') == params[0]):
-					if ( len(m.get('params')) >= len(params)-1 ):
-						completions = [ m.get('params')[paramPos-2] ]
+					if (len(m.get('params')) >= len(params) - 1):
+						completions = [m.get('params')[paramPos - 2]]
 					break
 
 		return completions
 
 	def execute(self, shell, params):
 		if (len(params) <= 0):
-			shell.appendLine( _(u'No method defined') )
+			shell.appendLine(_(u'No method defined'))
 			return
 
 		method = params[0]
 
 		if (method == u'list'):
 			for m in self.interface:
-				shell.appendLine(u"%s%s" % (m.get('name'), tuple(m.get('params'))), refresh = False )
+				shell.appendLine(u"%s%s" % (m.get('name'), tuple(m.get('params'))), refresh=False)
 			shell.display()
 			return
 
@@ -1122,9 +1134,9 @@ class CommandMethod(Command):
 		start = time.time()
 
 		if keywords:
-			result = eval( "backend.%s(*params, **keywords)" % method )
+			result = eval("backend.%s(*params, **keywords)" % method)
 		else:
-			result = eval( "backend.%s(*params)" % method )
+			result = eval("backend.%s(*params)" % method)
 
 		duration = (time.time() - start)
 		logger.debug(u'Took %0.3f seconds to process: %s(%s)' % (duration, method, pString))
@@ -1135,7 +1147,7 @@ class CommandMethod(Command):
 		if result:
 			lines = []
 			if (shell.output == u'RAW'):
-				lines.append( toJson(result) )
+				lines.append(toJson(result))
 
 			elif (shell.output == u'JSON'):
 				lines = objectToBeautifiedText(result, 0).split(u'\n')
@@ -1169,9 +1181,9 @@ class CommandMethod(Command):
 						else:
 							lines.append(forceUnicode(r))
 				else:
-					lines.append( forceUnicode(result) )
+					lines.append(forceUnicode(result))
 			else:
-				lines.append( forceUnicode(result) )
+				lines.append(forceUnicode(result))
 
 			if shell.shellCommand:
 				logger.notice(u"Executing: '%s'" % shell.shellCommand)
@@ -1202,7 +1214,7 @@ class CommandMethod(Command):
 					exitCode = proc.poll()
 					if lines:
 						for line in lines:
-							proc.stdin.write( (u"%s\n" % line).encode(outEncoding, 'replace') )
+							proc.stdin.write((u"%s\n" % line).encode(outEncoding, 'replace'))
 						lines = []
 						proc.stdin.close()
 
@@ -1223,12 +1235,12 @@ class CommandMethod(Command):
 							raise
 
 				if (exitCode != 0):
-					raise Exception(u'Exitcode: %s\n%s' % ((exitCode*-1), unicode(err, encoding, 'replace')))
+					raise Exception(u'Exitcode: %s\n%s' % ((exitCode * -1), unicode(err, encoding, 'replace')))
 
 				lines = unicode(buf, encoding, 'replace').split(u'\n')
 
 			for line in lines:
-				shell.appendLine( line, COLOR_GREEN )
+				shell.appendLine(line, COLOR_GREEN)
 
 
 class CommandSet(Command):
@@ -1252,7 +1264,7 @@ class CommandSet(Command):
 			if u'log-level'.startswith(params[0]):
 				completions.append(u'log-level')
 
-		elif ( paramPos == 2 ):
+		elif (paramPos == 2):
 			if (params[0] == u'color'):
 				completions = [u'on', u'off']
 			elif (params[0] == u'log-file'):
@@ -1276,7 +1288,7 @@ class CommandSet(Command):
 		if (params[0] == u'color'):
 			if (params[1] == u'on'):
 				shell.setColor(True)
-			elif  (params[1] == u'off'):
+			elif (params[1] == u'off'):
 				shell.setColor(False)
 			else:
 				raise Exception(_(u'Bad value: %s') % params[1])
@@ -1307,9 +1319,9 @@ class CommandHelp(Command):
 		return _(u"Show this text")
 
 	def execute(self, shell, params):
-		shell.appendLine( u'\r' + _(u"Commands are:") + u'\n', refresh=False )
+		shell.appendLine(u'\r' + _(u"Commands are:") + u'\n', refresh=False)
 		for cmd in shell.commands:
-			shell.appendLine( u"\r\t%-20s%s\n" % (cmd.getName() + ':', cmd.getDescription()), refresh=False )
+			shell.appendLine(u"\r\t%-20s%s\n" % (cmd.getName() + ':', cmd.getDescription()), refresh=False)
 		shell.display()
 
 
@@ -1438,7 +1450,7 @@ class CommandTask(Command):
 		elif (paramPos >= 2):
 			for task in self._tasks:
 				if (params[0] == task[0]) and (paramPos <= len(task)):
-					completions.append(task[paramPos-1])
+					completions.append(task[paramPos - 1])
 
 		return completions
 
@@ -1462,7 +1474,7 @@ class CommandTask(Command):
 				raise Exception(_(u'Given productId not found'))
 			else:
 				if products[0].getSetupScript():
-					clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'installed')
+					clientIds = backend.getClientIds_list(productId=productId, installationStatus=u'installed')
 					if clientIds:
 						for clientId in clientIds:
 							shell.appendLine(clientId)
@@ -1477,7 +1489,7 @@ class CommandTask(Command):
 				raise Exception(_(u'Given productId not found'))
 			else:
 				if products[0].getSetupScript():
-					clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'not_installed')
+					clientIds = backend.getClientIds_list(productId=productId, installationStatus=u'not_installed')
 					if clientIds:
 						for clientId in clientIds:
 							shell.appendLine(clientId)
@@ -1492,7 +1504,7 @@ class CommandTask(Command):
 				raise Exception(_(u'Given productId not found'))
 			else:
 				if products[0].getUpdateScript():
-					clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'installed')
+					clientIds = backend.getClientIds_list(productId=productId, installationStatus=u'installed')
 					if clientIds:
 						for clientId in clientIds:
 							shell.appendLine(clientId)
@@ -1507,7 +1519,7 @@ class CommandTask(Command):
 				raise Exception(_(u'Given productId not found'))
 			else:
 				if products[0].getUninstallScript():
-					clientIds = backend.getClientIds_list(productId = productId, installationStatus = u'installed')
+					clientIds = backend.getClientIds_list(productId=productId, installationStatus=u'installed')
 					if clientIds:
 						for clientId in clientIds:
 							shell.appendLine(clientId)
@@ -1524,7 +1536,7 @@ class CommandTask(Command):
 			# Get depot to client assignment
 			depotToClients = {}
 			for clientToDepot in backend.configState_getClientToDepotserver():
-				if not depotToClients.has_key(clientToDepot['depotId']):
+				if clientToDepot['depotId'] not in depotToClients:
 					depotToClients[clientToDepot['depotId']] = []
 				depotToClients[clientToDepot['depotId']].append(clientToDepot['clientId'])
 
@@ -1532,8 +1544,8 @@ class CommandTask(Command):
 			for (depotId, clientIds) in depotToClients.items():
 				if not clientIds:
 					continue
-				for productOnDepot in backend.productOnDepot_getObjects(productId = productId):
-					for productOnClient in backend.productOnClient_getObjects(clientId = clientIds, productId = productOnDepot.productId, installationStatus = u'installed'):
+				for productOnDepot in backend.productOnDepot_getObjects(productId=productId):
+					for productOnClient in backend.productOnClient_getObjects(clientId=clientIds, productId=productOnDepot.productId, installationStatus=u'installed'):
 						if (productOnClient.productVersion != productOnDepot.productVersion) or (productOnClient.packageVersion != productOnDepot.packageVersion):
 							productOnClient.setActionRequest(actionRequest)
 							updateProductOnClients.append(productOnClient)
@@ -1555,8 +1567,6 @@ class CommandTask(Command):
 			if productId and clientId and actionRequest:
 				backend.setProductActionRequestWithDependencies(productId, clientId, actionRequest)
 
-
-
 		if (params[0] == u'decodePcpatchPassword'):
 			if (len(params) < 3):
 				raise Exception(_(u'Missing argument'))
@@ -1570,7 +1580,7 @@ class CommandTask(Command):
 				raise Exception(_(u"You have to be root to change pcpatch password!"))
 
 			fqdn = getfqdn(conf='/etc/opsi/global.conf')
-			if (fqdn.count('.') < 2 ):
+			if (fqdn.count('.') < 2):
 				raise Exception(_(u"Failed to get my own fully qualified domainname"))
 
 			password = u''
@@ -1579,7 +1589,7 @@ class CommandTask(Command):
 			else:
 				password = params[1]
 
-			backend.user_setCredentials(username = 'pcpatch', password = password)
+			backend.user_setCredentials(username='pcpatch', password=password)
 
 			try:
 				# Univention
@@ -1599,16 +1609,16 @@ class CommandTask(Command):
 				try:
 					# smbldap
 					f = os.popen(u'%s pcpatch 1>/dev/null 2>/dev/null' % which('smbldap-passwd'), 'w')
-					f.write( (u"%s\n%s\n" % (password, password)).encode(outEncoding) )
+					f.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
 					f.close()
 				except:
 					# unix
 					f = os.popen(u'%s 1>/dev/null 2>/dev/null' % which(u'chpasswd'), 'w')
-					f.write( (u"pcpatch:%s\n" % password).encode(outEncoding) )
+					f.write((u"pcpatch:%s\n" % password).encode(outEncoding))
 					f.close()
 
 					f = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
-					f.write( (u"%s\n%s\n" % (password, password)).encode(outEncoding) )
+					f.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
 					f.close()
 
 if (__name__ == "__main__"):
