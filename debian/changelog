@@ -1,3 +1,9 @@
+opsi-utils (4.0.3.2-1ubuntu1) UNRELEASED; urgency=low
+
+  * opsi-admin: Code cleanups resulting in an depending on python-opsi 4.0.3.4
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 13 Sep 2013 11:55:33 +0200
+
 opsi-utils (4.0.3.2-1) testing; urgency=low
 
   * opsi-admin: added task uninstallWhereInstalled
@@ -247,7 +253,7 @@ opsi-utils (4.0.0.2-1) stable; urgency=low
      - fix double uninstall caused by wrong filter
   * opsi-admin 4.0.0.2
      - fix setPcpatchPassword in shell
-  
+
  -- Jan Schneider <j.schneider@uib.de>  Wed, 17 Nov 2010 11:21:49 +0100
 
 opsi-utils (4.0.0.1-1) stable; urgency=low
@@ -465,7 +471,7 @@ opsi-utils (3.2.0.3-1) stable; urgency=low
 
   * opsi-makeproductfile 0.7 (new feature: custom only packages)
   * opsiinst 0.5.5
-  
+
  -- Jan Schneider <j.schneider@uib.de>  Wed, 13 Feb 2008 11:51:03 +0100
 
 opsi-utils (3.2.0.2-1) stable; urgency=low
@@ -490,12 +496,12 @@ opsi-utils (3.2.0-2) stable; urgency=low
 opsi-utils (3.2.0-1) stable; urgency=low
 
   * opsiinst: option -k becomes default
-  * opsi-convert: improved logging 
-  
+  * opsi-convert: improved logging
+
  -- Jan Schneider <j.schneider@uib.de>  Fri,  2 Nov 2007 11:32:03 +0100
 
 opsi-utils (3.1.0-1) stable; urgency=low
-  
+
   * opsi 3.1 stable release
   * opsi-admin 0.9.7
 
@@ -522,7 +528,7 @@ opsi-utils (3.1rc1-1) unstable; urgency=low
   * opsiinst 0.4.6
   * opsiuninst 0.1
   * renamed binaries to opsi*
-  
+
  -- Jan Schneider <j.schneider@uib.de>  Tue, 26 Jun 2007 15:24:43 +0200
 
 opsi-utils (0.9.5.3-1) stable; urgency=low
@@ -584,20 +590,20 @@ opsi-utils (0.9.2-1) stable; urgency=low
 
   * makeproductfile 0.3
        Added ability to use custom temp dir (-t)
-  
+
   * opsiinst 0.3
        Added ability to use custom temp dir (-t)
-  
+
  -- Jan Schneider <j.schneider@uib.de>  Thu, 08 Mar 2007 11:28:19 +0200
 
 opsi-utils (0.9.1-1) stable; urgency=low
 
   * opsi-convert 0.1.1
        Bugfixes, improved status messages
-  
+
   * opsiinst 0.2
-       Added ability to extract package source (-x) from opsi package 
-  
+       Added ability to extract package source (-x) from opsi package
+
  -- Jan Schneider <j.schneider@uib.de>  Wed, 14 Feb 2007 12:55:01 +0200
 
 opsi-utils (0.9-1) stable; urgency=low
