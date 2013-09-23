@@ -1,43 +1,40 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-   = = = = = = = = = = = = = = =
-   =   opsi-backup             =
-   = = = = = = = = = = = = = = =
-   
-   opsi-backup is part of the desktop management solution opsi
-   (open pc server integration) http://www.opsi.org
-   
-   Copyright (C) 2010 uib GmbH
-   
-   http://www.uib.de/
-   
-   All rights reserved.
-   
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License version 2 as
-   published by the Free Software Foundation.
-   
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-   
-   @copyright:	uib GmbH <info@uib.de>
-   @author: Christian Kampka <c.kampka@uib.de>
-   @license: GNU General Public License version 2
+opsi-backup
+
+opsi-backup is part of the desktop management solution opsi
+(open pc server integration) http://www.opsi.org
+
+Copyright (C) 2010 uib GmbH
+
+http://www.uib.de/
+
+All rights reserved.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+@copyright:	uib GmbH <info@uib.de>
+@author: Christian Kampka <c.kampka@uib.de>
+@license: GNU General Public License version 2
 """
 
 __version__ = "4.0.2.1"
 
-import sys, locale
+import locale
+import sys
 
-
-#OPSI imports
 from OPSI.Logger import *
 from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI.Util.Collections import DefaultList
@@ -84,51 +81,53 @@ Commands:
 
 ''' % os.path.basename(sys.argv[0])
 
+
 def usage():
 	print USAGE
+
 
 class HelpFormatter(argparse.HelpFormatter):
 	def format_help(self):
 		return USAGE
-	
-def main():
 
+
+def main():
 	logger.setLogFormat('[%l] [%D] %M')
 	logger.setConsoleLevel(LOG_WARNING)
-	
-	parser = argparse.ArgumentParser(prog="opsi-backup", add_help = False, usage = USAGE, formatter_class = HelpFormatter)
-	parser.add_argument("-h", "--help",      action="help")
-	parser.add_argument("-v", "--verbose",   action="store_true", default=False)
-	parser.add_argument("-V", "--version",   action="version",    version = "%s %s" % (os.path.basename(sys.argv[0]), __version__))
-	parser.add_argument("-l", "--log-level", action="store",      default=5, type=int)
-	parser.add_argument("--log-file",        metavar='FILE',      default="/var/log/opsi/opsi-backup.log")
-	
+
+	parser = argparse.ArgumentParser(prog="opsi-backup", add_help=False, usage=USAGE, formatter_class=HelpFormatter)
+	parser.add_argument("-h", "--help", action="help")
+	parser.add_argument("-v", "--verbose", action="store_true", default=False)
+	parser.add_argument("-V", "--version", action="version", version="%s %s" % (os.path.basename(sys.argv[0]), __version__))
+	parser.add_argument("-l", "--log-level", action="store", default=5, type=int)
+	parser.add_argument("--log-file", metavar='FILE', default="/var/log/opsi/opsi-backup.log")
+
 	subs = parser.add_subparsers(title="commands", dest="command")
-	
+
 	parser_verify = subs.add_parser("verify")
 	parser_verify.add_argument("file", nargs="+")
-	
+
 	parser_restore = subs.add_parser("restore")
-	parser_restore.add_argument("file",            nargs=1)
-	parser_restore.add_argument("--mode",          nargs=1, choices=['raw', 'data'], default="raw")
-	parser_restore.add_argument("--backends",      action="append")
+	parser_restore.add_argument("file", nargs=1)
+	parser_restore.add_argument("--mode", nargs=1, choices=['raw', 'data'], default="raw")
+	parser_restore.add_argument("--backends", action="append")
 	parser_restore.add_argument("--configuration", action="store_true", default=False)
-	parser_restore.add_argument("-f", "--force",   action="store_true", default=False)
-	
+	parser_restore.add_argument("-f", "--force", action="store_true", default=False)
+
 	parser_create = subs.add_parser("create")
-	parser_create.add_argument("destination",         nargs="?")
-	parser_create.add_argument("--mode",              nargs=1, choices=['raw', 'data'], default="raw")
-	parser_create.add_argument("--flush-logs",        action="store_true", default=False)
-	parser_create.add_argument("--backends",          action="append", default=DefaultList(["auto"]))
-	parser_create.add_argument("--no-configuration",  action="store_true", default=False)
-	parser_create.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz','bz2', 'none'])
-	
+	parser_create.add_argument("destination", nargs="?")
+	parser_create.add_argument("--mode", nargs=1, choices=['raw', 'data'], default="raw")
+	parser_create.add_argument("--flush-logs", action="store_true", default=False)
+	parser_create.add_argument("--backends", action="append", default=DefaultList(["auto"]))
+	parser_create.add_argument("--no-configuration", action="store_true", default=False)
+	parser_create.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz', 'bz2', 'none'])
+
 	try:
 		args = parser.parse_args(sys.argv[1:])
-	except Exception, e:
+	except Exception:
 		usage()
 		return 1
-	
+
 	if args.verbose:
 		logger.setConsoleColor(True)
 		logger.setConsoleLevel(args.log_level)
@@ -137,20 +136,26 @@ def main():
 		logger.setLogFile(args.log_file)
 		logger.setFileLevel(args.log_level)
 
-	backup = OpsiBackup(stdout = sys.stdout)
+	backup = OpsiBackup(stdout=sys.stdout)
 	result = 0
-	if   (args.command == 'restore'):
-		result = backup._restore(file = args.file, mode = args.mode, backends = args.backends,
-				configuration = args.configuration, force = args.force)
+	if (args.command == 'restore'):
+		result = backup._restore(
+            file=args.file, mode=args.mode, backends=args.backends,
+            configuration=args.configuration, force=args.force
+        )
 	elif (args.command == 'verify'):
-		result = backup._verify(file = args.file)
+		result = backup._verify(file=args.file)
 		if (result == 0):
 			print "Verified"
 		else:
 			print "Verification failed"
 	elif (args.command == 'create'):
-		result = backup._create(destination = args.destination, mode = args.mode, backends = args.backends,
-				no_configuration = args.no_configuration, compression = args.compression, flush_logs = args.flush_logs)
+		result = backup._create(
+            destination=args.destination, mode=args.mode,
+            backends=args.backends, no_configuration=args.no_configuration,
+            compression=args.compression, flush_logs=args.flush_logs
+        )
+
 	try:
 		result = int(result)
 	except:
@@ -158,34 +163,14 @@ def main():
 	return result
 
 if (__name__ == "__main__"):
-	exception = None
 	ret = 0
 	try:
 		ret = main()
-		
-	except SystemExit, e:
+	except SystemExit:
 		pass
-	
-	except Exception, e:
-		exception = e
-	
-	if exception:
+	except Exception as exception:
 		logger.logException(exception, LOG_INFO)
 		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace')
 		sys.exit(1)
+
 	sys.exit(ret)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
