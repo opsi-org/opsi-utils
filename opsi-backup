@@ -46,6 +46,7 @@ USAGE = '''
 Usage: %s [common-options] <command> [command-options]
 
 Creates and restores opsi backups.
+Version %s.
 
 Common options:
    -V, --version                       Show program's version info and exit
@@ -79,7 +80,7 @@ Commands:
       --no-configuration               Do not backup opsi configuration.
       -c, --compression {gz|bz2|none}  Sets the compression format for the archive (default: bz2).
 
-''' % os.path.basename(sys.argv[0])
+''' % (os.path.basename(sys.argv[0]), __version__)
 
 
 def usage():
@@ -98,7 +99,6 @@ def main():
 	parser = argparse.ArgumentParser(prog="opsi-backup", add_help=False, usage=USAGE, formatter_class=HelpFormatter)
 	parser.add_argument("-h", "--help", action="help")
 	parser.add_argument("-v", "--verbose", action="store_true", default=False)
-	parser.add_argument("-V", "--version", action="version", version="%s %s" % (os.path.basename(sys.argv[0]), __version__))
 	parser.add_argument("-l", "--log-level", action="store", default=5, type=int)
 	parser.add_argument("--log-file", metavar='FILE', default="/var/log/opsi/opsi-backup.log")
 
