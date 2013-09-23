@@ -49,7 +49,6 @@ Creates and restores opsi backups.
 Version %s.
 
 Common options:
-   -V, --version                       Show program's version info and exit
    -h, --help                          Show this help message and exit
    -l, --log-level    <log-level>      Set log level to <log-level> (default: 5)
                                           0=nothing, 1=essential, 2=critical, 3=error, 4=warning
