@@ -139,9 +139,9 @@ def main():
 	result = 0
 	if (args.command == 'restore'):
 		result = backup._restore(
-            file=args.file, mode=args.mode, backends=args.backends,
-            configuration=args.configuration, force=args.force
-        )
+			file=args.file, mode=args.mode, backends=args.backends,
+			configuration=args.configuration, force=args.force
+		)
 	elif (args.command == 'verify'):
 		result = backup._verify(file=args.file)
 		if (result == 0):
@@ -150,10 +150,10 @@ def main():
 			print "Verification failed"
 	elif (args.command == 'create'):
 		result = backup._create(
-            destination=args.destination, mode=args.mode,
-            backends=args.backends, no_configuration=args.no_configuration,
-            compression=args.compression, flush_logs=args.flush_logs
-        )
+			destination=args.destination, mode=args.mode,
+			backends=args.backends, no_configuration=args.no_configuration,
+			compression=args.compression, flush_logs=args.flush_logs
+		)
 
 	try:
 		result = int(result)
