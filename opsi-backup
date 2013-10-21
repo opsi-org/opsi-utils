@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 __version__ = "4.0.4.1"
 
 import locale
+import os
 import sys
 
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO
