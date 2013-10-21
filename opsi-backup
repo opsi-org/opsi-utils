@@ -30,12 +30,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 @license: GNU General Public License version 2
 """
 
-__version__ = "4.0.2.1"
+__version__ = "4.0.4.1"
 
 import locale
 import sys
 
-from OPSI.Logger import *
+from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO
 from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI.Util.Collections import DefaultList
 from OPSI.Util import argparse
@@ -74,8 +74,9 @@ Commands:
                                           will be used as backup archive destination file.
       --mode        {raw|data}         Select a mode that should be used for creation (default: raw).
       --flush-logs                        Causes mysql to flush table logs to disk before the backup (recommended).
-      --backends    <backend>          Select a backend to restore, 'auto' for automatic detection of used backends
-                                          or 'all' for all backends. Can be given multiple times.
+      --backends    <backend>          Select a backend to create a backup for. Use 'auto' for automatic detection
+                                          of used backends or 'all' for all backends.
+                                          Can be given multiple times.
       --no-configuration               Do not backup opsi configuration.
       -c, --compression {gz|bz2|none}  Sets the compression format for the archive (default: bz2).
 
