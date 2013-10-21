@@ -1,0 +1,112 @@
+OPSI-BACKUP(1)
+==============
+:doctype: manpage
+
+
+NAME
+----
+opsi-backup - tool to create and restore OPSI backups.
+
+
+SYNOPSIS
+--------
+*opsi-backup* ['COMMON_OPTIONS'] <COMMAND> ['COMMAND_OPTIONS']
+
+
+DESCRIPTION
+-----------
+opsi-backup creates and restores OPSI backups.
+
+
+COMMON OPTIONS
+--------------
+
+These options can be set independent of the used command.
+
+*-h, --help*::
+Show a help message and exit.
+
+*-l, --log-level*='LEVEL'::
+Set log level to 'LEVEL'. Default is 5.
+Possible levels are: 0=nothing, 1=essential, 2=critical, 3=error, 4=warning, 5=notice, 6=info, 7=debug, 8=debug2, 9=confidential
+
+*-v, --verbose*::
+Log to standard error (stderr).
+
+*--logfile*='LOG_FILE'::
+Write log to 'LOG_FILE'.
+
+
+COMMANDS
+--------
+
+*verify* 'BACKUP_ARCHIVE'::
+Verify the integrity of 'BACKUP_ARCHIVE'.
+
+*create* 'BACKUP_ARCHIVE'::
+Creates a new backup. If 'BACKUP_ARCHIVE' is omitted, a backup archive
+will be created in the current directory. If 'BACKUP_ARCHIVE' is an
+existing directory, the backup archive will be created in that directory.
+If 'BACKUP_ARCHIVE' does not exist or is a file, 'BACKUP_ARCHIVE'
+will be used as backup archive destination file.
+See <<CREATE_OPTIONS,*CREATE OPTIONS*>> for more options.
+
+*restore* 'BACKUP_ARCHIVE'::
+Restores data from 'BACKUP_ARCHIVE'.
+See <<RESTORE_OPTIONS,*RESTORE OPTIONS*>> for more options.
+
+[[CREATE_OPTIONS]]
+CREATE OPTIONS
+--------------
+The create command accepts the following options.
+
+*--mode*=[raw|data]::
+Select a mode that should be used for creation. Default is _raw_.
+
+*--flush-logs*::
+Causes mysql to flush table logs to disk before the backup (recommended).
+
+*--no-configuration*::
+Do not backup opsi configuration.
+
+*-c, --compression*=[gz|bz2|none]::
+Sets the compression format for the archive. Default is "bz2".
+
+
+[[RESTORE_OPTIONS]]
+RESTORE_OPTIONS
+---------------
+
+*--mode*=[raw|data]::
+Select a mode that should be used for restoration (default: raw).
+
+*--backends*='BACKEND'::
+Select a backend to restore. Use "auto" for automatic detection of used
+backends or "all" for all backends. Can be given multiple times.
+
+*--backends*='BACKEND'::
+Select a backend to restore or 'all' for all backends.
+Can be given multiple times.
+
+*--configuration*::
+Restore opsi configuration.
+
+*-f, --force*::
+Ignore sanity checks and try to apply anyways. Use with caution!
+
+
+AUTHOR
+------
+opsi-backup was created by Christian Kampka.
+This manpage was written by Niko Wenselowski.
+
+
+RESOURCES
+---------
+See <http://www.opsi.org/> for more information.
+
+
+COPYING
+-------
+Copyright \(C) 2013 uib GmbH.
+This software is released under the GNU General Public License version 2.

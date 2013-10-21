@@ -6,19 +6,34 @@ clean:
 	dh_testroot
 	dh_clean
 	rm -f debian/files || true
-	#rm gettext/*.mo
+	rm doc/*.1 || true
+	rm doc/*.1.gz || true
 
 install:
 	dh_testdir
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
-	
+
+	# Compiling manpages
+	a2x --doctype manpage --format manpage doc/opsi-admin.asciidoc
+	a2x --doctype manpage --format manpage doc/opsi-backup.asciidoc
+	a2x --doctype manpage --format manpage doc/opsi-convert.asciidoc
+
+	# gzip'ing as requested by http://www.debian.org/doc/debian-policy/ch-docs.html#s12.1
+	gzip -9 doc/opsi-admin.1
+	gzip -9 doc/opsi-backup.1
+	gzip -9 doc/opsi-convert.1
+
+	install -m 644 doc/opsi-admin.1.gz debian/opsi-utils/usr/share/man/man1/
+	install -m 644 doc/opsi-backup.1.gz debian/opsi-utils/usr/share/man/man1/
+	install -m 644 doc/opsi-convert.1.gz debian/opsi-utils/usr/share/man/man1/
+
 	msgfmt -o debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_de.po
 	chmod 644 debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
 	msgfmt -o debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
 	chmod 644 debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
-	
+
 	install -m 0755  opsi-admin           debian/opsi-utils/usr/bin/
 	install -m 0755  opsi-newprod         debian/opsi-utils/usr/bin/
 	install -m 0755  opsi-makeproductfile debian/opsi-utils/usr/bin/
@@ -26,11 +41,11 @@ install:
 	install -m 0755  opsi-convert         debian/opsi-utils/usr/bin/
 	install -m 0755  opsi-product-updater debian/opsi-utils/usr/bin/
 	install -m 0755  opsi-backup          debian/opsi-utils/usr/bin/
-	
+
 	install -m 0660 -o root data/opsi-product-updater.conf  debian/opsi-utils/etc/opsi/
-	
+
 	dh_install
-	
+
 binary-indep: install
 	dh_testdir -i
 	dh_testroot -i

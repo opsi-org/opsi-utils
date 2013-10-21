@@ -1,0 +1,85 @@
+OPSI-ADMIN(1)
+===========
+:doctype: manpage
+
+
+NAME
+----
+opsi-admin - commandline interface for OPSI
+
+
+SYNOPSIS
+--------
+*opsi-admin* ['OPTIONS']
+
+
+DESCRIPTION
+-----------
+opsi-admin allows to work with OPSI from the commandline.
+
+
+OPTIONS
+-------
+
+*-h, --help*::
+Display a help text.
+
+*-V, --version*::
+Show version and exit.
+
+*-u, --username*='USERNAME'::
+Username used to connecto to the backend.
+As a default the current username will be used.
+
+*-p, --password*='PASSWORD'::
+Use 'PASSWORD' for the user. If this is not set an interactive prompt
+will ask for the password.
+
+*-a, --address*='ADDRESS'::
+URL of opsiconfd webinterface.
+Default is "https://localhost:4447/rpc".
+
+*-d, --direct*::
+Direkt backend access. This bypasses the opsiconfd.
+
+*--no-depot*::
+Do not use depotserver backend.
+
+*-l, --loglevel*='LEVEL'::
+Set log level to 'LEVEL'. Default is 3.
+Possible levels are: 0=nothing, 1=essential, 2=critical, 3=error, 4=warning, 5=notice, 6=info, 7=debug, 8=debug2, 9=confidential
+
+*-f, --log-file*='LOGFILE'::
+Write logs to 'LOGFILE'.
+
+*-i, --interactive*::
+Start in interactive mode.
+
+*-c, --colorize*::
+Enables colorized output.
+
+*-S, --simple-output*::
+Simple output (only for scalars, lists).
+
+*-s, --shell-output*::
+Shell output.
+
+*-r, --raw-output*::
+Raw output.
+
+
+AUTHOR
+------
+opsi-admin was created by Jan Schneider and modified by Erol Ueluekmen.
+This manpage was written by Niko Wenselowski.
+
+
+RESOURCES
+---------
+See <http://www.opsi.org/> for more information.
+
+
+COPYING
+-------
+Copyright \(C) 2013 uib GmbH.
+This software is released under the GNU General Public License version 2.

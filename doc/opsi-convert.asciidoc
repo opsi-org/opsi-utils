@@ -1,0 +1,70 @@
+OPSI-CONVERT(1)
+===============
+:doctype: manpage
+
+
+NAME
+----
+opsi-convert - Convert an opsi database into an other.
+
+
+SYNOPSIS
+--------
+*opsi-convert* ['OPTIONS'] 'FROM' 'TO'
+
+
+DESCRIPTION
+-----------
+opsi-convert converts OPSI databases into other formats.
+
+
+'FROM' and 'TO' can be:
+
+* The name of a backend as defined in /etc/opsi/backends (file, ldap, ...)
+* The url of a opsi configuration service in format "http(s)://<user>@<host>:<port>/rpc"
+
+
+OPTIONS
+-------
+
+*-h*::
+Display a help text.
+
+*-V*::
+Show version and exit.
+
+*-q*::
+Do not show progress.
+
+*-v*::
+Increase verbosity. Can be used multiple times.
+
+*-l*='LOG_FILE'::
+Write log into 'LOG_FILE'.
+
+*-c*::
+Clean destination database before writing.
+
+*-a*::
+Including software/hardware inventory.
+
+*-s* 'OLD_SERVER_ID'::
+Use destination host as new server.
+
+
+
+AUTHOR
+------
+opsi-convert was created by Jan Schneider.
+This manpage was written by Niko Wenselowski.
+
+
+RESOURCES
+---------
+See <http://www.opsi.org/> for more information.
+
+
+COPYING
+-------
+Copyright \(C) 2013 uib GmbH.
+This software is released under the GNU General Public License version 2.
