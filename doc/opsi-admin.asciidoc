@@ -1,5 +1,5 @@
 OPSI-ADMIN(1)
-===========
+=============
 :doctype: manpage
 
 

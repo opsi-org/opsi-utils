@@ -1,0 +1,125 @@
+OPSI-PACKAGE-MANAGER(1)
+=======================
+:doctype: manpage
+
+
+NAME
+----
+opsi-package-manager - commandline interface for managing OPSI packages.
+
+
+SYNOPSIS
+--------
+*opsi-package-manager* ['OPTIONS'] 'COMMAND'
+
+
+DESCRIPTION
+-----------
+opsi-package-manager allows the management of OPSI  packages from the commandline.
+
+
+OPTIONS
+-------
+
+*-v, --verbose*::
+Increase verbosity. Can be used multiple times.
+
+*-q, --quiet*::
+Do not display any messages.
+
+*--log-file* 'LOG_FILE'::
+Path to debug log file.
+
+*-d, --depots* 'DEPOTS'::
+Comma separated list of depot ids to process or "all".
+If "all" is specified it will process all known depots.
+
+*-p, --properties* 'MODE'::
+Mode for default product property values:
+ * ask     = display dialog
+ * package = use defaults from package
+ * keep    = keep depot defaults (default)
+
+*--purge-client-properties*::
+Remove product property states of the installed product(s).
+
+*-f, --force*::
+Force install/uninstall. Please use with extreme caution!
+
+*-U, --update*::
+Set action "update" on hosts where installation status is "installed".
+
+
+*-S, --setup*::
+Set action "setup" on hosts where installation status is "installed".
+
+*-o, --overwrite*::
+Overwrite existing package on upload even if size matches.
+
+*-n, --no-delta*
+Full package transfers on uploads (do not use librsync).
+
+*-k, --keep-files*::
+Do not delete client data dir on uninstall.
+
+*-t, --temp-dir* 'DIRECTORY'
+Use 'DIRECTORY' as tempory directory for package installation.
+
+*--max-transfers* 'NUMBER'::
+Maximum number of simultaneous uploads.
+If 'NUMBER' is "0" the there will be unlimited simultaneous uploads.
+The default is "0".
+
+*--max-bandwidth* 'KBPS'::
+Maximum transfer rate for each transfer (in kilobytes per second).
+If 'KBPS' is "0" there will be no limit.
+The default is "0".
+
+*--new-product-id* 'PRODUCT_ID'::
+Set a new product id when extracting opsi package.
+
+
+COMMANDS
+--------
+
+*-h, --help*::
+Display a help text.
+
+*-V, --version*::
+Show version and exit.
+
+*-i, --install* 'OPSI_PACKAGES'::
+Install opsi packages.
+
+*-u, --upload* 'OPSI-PACKAGES'::
+Upload opsi packages to repositories.
+
+*-l, --list* 'REGEX'::
+List opsi packages matching regex.
+
+*-D, --differences* 'REGEX'::
+Show depot differences of opsi packages matching regex.
+
+*-r, --remove* 'OPSI-PRODUCT-ID'::
+Uninstall opsi package.
+
+*-x, --extract* 'OPSI-PACKAGE'::
+Extract opsi packages to local directory"
+
+
+
+AUTHOR
+------
+opsi-package-manager was created by Jan Schneider.
+This manpage was written by Niko Wenselowski.
+
+
+RESOURCES
+---------
+See <http://www.opsi.org/> for more information.
+
+
+COPYING
+-------
+Copyright \(C) 2013 uib GmbH.
+This software is released under the GNU General Public License version 2.

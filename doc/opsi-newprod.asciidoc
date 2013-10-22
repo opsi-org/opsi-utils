@@ -1,0 +1,45 @@
+OPSI-NEWPROD(1)
+===============
+:doctype: manpage
+
+
+NAME
+----
+opsi-newprod - commandline interface for OPSI
+
+
+SYNOPSIS
+--------
+*opsi-newprod* ['OPTIONS'] ['DESTINATION_DIRECTORY']
+
+Creates an opsi product source directory in the destination directory.
+If 'DESTINATION_DIRECTORY' is not supplied, the current directory is used.
+
+
+DESCRIPTION
+-----------
+opsi-makeproductfile creates an opsi product source directories.
+
+
+OPTIONS
+-------
+
+*-h*::
+Show a help.
+
+
+AUTHOR
+------
+opsi-newprod was created by Jan Schneider.
+This manpage was written by Niko Wenselowski.
+
+
+RESOURCES
+---------
+See <http://www.opsi.org/> for more information.
+
+
+COPYING
+-------
+Copyright \(C) 2013 uib GmbH.
+This software is released under the GNU General Public License version 2.

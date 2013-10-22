@@ -1,0 +1,82 @@
+OPSI-MAKEPRODUCTFILE(1)
+=======================
+:doctype: manpage
+
+
+NAME
+----
+opsi-makeproductfile - commandline interface for OPSI
+
+
+SYNOPSIS
+--------
+*opsi-makeproductfile* ['OPTIONS'] ['SOURCE_DIRECTORY']
+
+Provides an opsi package from a package source directory.
+If no source directory is supplied, the current directory will be used.
+
+
+DESCRIPTION
+-----------
+opsi-makeproductfile provides an opsi package from a package source directory.
+
+
+OPTIONS
+-------
+
+*-q*::
+Quiet.
+
+*-v*::
+Verbose output.
+
+*-l* 'LEVEL'::
+Set log level to 'LEVEL'.
+Possible levels are: 0=nothing, 1=essential, 2=critical, 3=error, 4=warning, 5=notice, 6=info, 7=debug, 8=debug2, 9=confidential
+
+*-n*::
+Do not compress.
+
+*-F* [tar|cpio]::
+The archive format. Defaults to "cpio".
+
+*-h*::
+Follow symlinks.
+
+*-I*::
+Incremental package.
+
+*-i*::
+Custom name (add custom files).
+
+*-c*::
+Custom name (custom only).
+
+*-C*::
+Enable compatibility with Opsi 3.
+
+*-t* 'DIRECTORY'::
+Use 'DIRECTORY' as temp directory.
+
+*-m*::
+Create md5sum file.
+
+*-z*::
+Create zsync file.
+
+
+AUTHOR
+------
+opsi-makeproductfile was created by Jan Schneider.
+This manpage was written by Niko Wenselowski.
+
+
+RESOURCES
+---------
+See <http://www.opsi.org/> for more information.
+
+
+COPYING
+-------
+Copyright \(C) 2013 uib GmbH.
+This software is released under the GNU General Public License version 2.
