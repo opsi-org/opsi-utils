@@ -72,10 +72,11 @@ if sys.version_info[:2] == (2, 6) and sys.version_info[2] >= 6:
 """
 
 class ProductRepositoryInfo(object):
-	def __init__(self, baseUrl, dirs = [], username=u"", password=u"", opsiDepotId = None, autoInstall = False, autoUpdate = True, autoSetup = False, proxy = None, excludes=[]):
+	def __init__(self, baseUrl, dirs = [], username=u"", password=u"", opsiDepotId = None, autoInstall = False, autoUpdate = True, autoSetup = False, proxy = None, excludes=[], includes=[]):
 		self.baseUrl     = forceUnicode(baseUrl)
 		self.dirs        = [forceUnicode(dir) for dir in dirs]
 		self.excludes    = excludes
+		self.includes    = includes
 		self.username    = forceUnicode(username)
 		self.password    = forceUnicode(password)
 		self.autoInstall = autoInstall
@@ -345,13 +346,13 @@ class OpsiPackageUpdater(object):
 									continue
 								repository.excludes.append(re.compile(e))
 						elif (option.lower() == 'includeproductids'):
-							repository.includeProductIds = []
-							include = value.split(',')
+							repository.includes = []
+							includes = value.split(',')
 							for i in includes:
 								i = i.strip()
 								if not i:
 									continue
-								repository.includeProductIds.append(re.compile(i))
+								repository.includes.append(re.compile(i))
 							
 					if self.config.get('installAllAvailable'):
 						repository.autoInstall = True
@@ -943,7 +944,6 @@ class OpsiPackageUpdater(object):
 							if include.search(link):
 								included = True
 								break
-					
 					if not included:
 						logger.info(u"Package '%s' is not included. Please check your includeProductIds-entry in configurationfile." % link)
 						continue
