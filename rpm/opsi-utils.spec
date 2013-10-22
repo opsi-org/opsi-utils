@@ -8,12 +8,12 @@
 
 Name:           opsi-utils
 BuildRequires:  python >= 2.4
-Requires:       python-opsi >= 4.0.1 zsync
+Requires:       python-opsi >= 4.0.3.4 zsync
 Url:            http://www.opsi.org
 License:        GPL v2 or later
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        4.0.2.2
+Version:        4.0.4.1
 Release:        1
 Summary:        opsi utils
 Source:         opsi-utils_4.0.2.2-1.tar.gz
@@ -26,7 +26,7 @@ Requires:       python-curses
 %if 0%{?centos_version} || 0%{?rhel_version}
 BuildRequires:  gettext
 %else
-BuildRequires:  gettext-runtime
+BuildRequires:  gettext-runtime, asciidoc
 %endif
 
 %define toplevel_dir %{name}-%{version}
@@ -46,13 +46,20 @@ This package contains the opsi util collection.
 
 # ===[ build ]======================================
 %build
-#msgfmt -o gettext/opsi_newprod_de.mo gettext/opsi_newprod_de.po
-#msgfmt -o gettext/opsi_newprod_fr.mo gettext/opsi_newprod_fr.po
+%if 0%{?centos_version} || 0%{?rhel_version}
+# No asciidoc in repos. No docs.
+%else
+a2x --doctype manpage --format manpage doc/opsi-admin.asciidoc
+a2x --doctype manpage --format manpage doc/opsi-backup.asciidoc
+a2x --doctype manpage --format manpage doc/opsi-convert.asciidoc
+a2x --doctype manpage --format manpage doc/opsi-makeproductfile.asciidoc
+a2x --doctype manpage --format manpage doc/opsi-newprod.asciidoc
+a2x --doctype manpage --format manpage doc/opsi-package-manager.asciidoc
+a2x --doctype manpage --format manpage doc/opsi-product-updater.asciidoc
+%endif
 
-# ===[ install ]==================================== 
+# ===[ install ]====================================
 %install
-mkdir -p $RPM_BUILD_ROOT/usr/bin
-
 mkdir -p $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_de.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
@@ -60,6 +67,20 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
 
+%if 0%{?centos_version} || 0%{?rhel_version}
+# No asciidoc in repos. No docs.
+%else
+mkdir -p $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/opsi-admin.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/opsi-backup.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/opsi-convert.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/opsi-makeproductfile.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/opsi-newprod.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/opsi-package-manager.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/opsi-product-updater.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+%endif
+
+mkdir -p $RPM_BUILD_ROOT/usr/bin
 install -m 0755 opsi-admin $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-newprod $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-makeproductfile $RPM_BUILD_ROOT/usr/bin/
