@@ -1,7 +1,8 @@
-opsi-utils (4.0.4.1-1) UNRELEASED; urgency=low
+opsi-utils (4.0.4.1-1) testing; urgency=low
 
   * opsi-admin: Code cleanups resulting in an depending on python-opsi 4.0.3.4
   * added manpages 
+  * added includeProductIds in repostory-configuration for opsi-product-updater.conf
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 22 Oct 2013 11:31:19 +0200
 
