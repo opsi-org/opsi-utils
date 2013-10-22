@@ -1,8 +1,9 @@
-opsi-utils (4.0.3.2-1ubuntu1) UNRELEASED; urgency=low
+opsi-utils (4.0.4.1-1) UNRELEASED; urgency=low
 
   * opsi-admin: Code cleanups resulting in an depending on python-opsi 4.0.3.4
+  * added manpages 
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 13 Sep 2013 11:55:33 +0200
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 22 Oct 2013 11:31:19 +0200
 
 opsi-utils (4.0.3.2-1) testing; urgency=low
 
