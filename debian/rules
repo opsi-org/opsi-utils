@@ -6,8 +6,6 @@ clean:
 	dh_testroot
 	dh_clean
 	rm -f debian/files || true
-	rm doc/*.1 || true
-	rm doc/*.1.gz || true
 
 install:
 	dh_testdir
