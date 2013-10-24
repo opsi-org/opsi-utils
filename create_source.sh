@@ -12,6 +12,7 @@ tmpdir=/tmp/${packagename}-${version}
 
 
 cd $dir
+sh recreate_manpages.sh
 rm ${destdir}/${packagename}*.tar.gz  2>/dev/null || true
 rm ${destdir}/${packagename}*.dsc     2>/dev/null || true
 rm ${destdir}/${packagename}*.spec    2>/dev/null || true
@@ -37,7 +38,6 @@ find ${tmpdir} -iname "*.gitignore" -exec rm "{}" \;
 find ${tmpdir} -iname "*.svn"   -exec rm -rf "{}" \; 2>/dev/null
 
 cd ${tmpdir}/
-bash recreate_manpages.sh
 dpkg-buildpackage -S
 mv ${tmpdir}/../${packagename}_${version}-${release}.tar.gz $destdir/
 mv ${tmpdir}/../${packagename}_${version}-${release}.dsc    $destdir/
