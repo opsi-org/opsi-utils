@@ -57,13 +57,13 @@ msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
 
 mkdir -p $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-admin.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-backup.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-convert.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-makeproductfile.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-newprod.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-package-manager.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-product-updater.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-admin.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-backup.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-convert.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-makeproductfile.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-newprod.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-package-manager.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-product-updater.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 install -m 0755 opsi-admin $RPM_BUILD_ROOT/usr/bin/
@@ -94,6 +94,13 @@ rm -rf $RPM_BUILD_ROOT
 
 # documentation
 #%doc LICENSE README RELNOTES doc
+%doc /usr/share/man/man1/opsi-admin.1.gz
+%doc /usr/share/man/man1/opsi-backup.1.gz
+%doc /usr/share/man/man1/opsi-convert.1.gz
+%doc /usr/share/man/man1/opsi-makeproductfile.1.gz
+%doc /usr/share/man/man1/opsi-newprod.1.gz
+%doc /usr/share/man/man1/opsi-package-manager.1.gz
+%doc /usr/share/man/man1/opsi-product-updater.1.gz
 
 # configfiles
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-product-updater.conf
