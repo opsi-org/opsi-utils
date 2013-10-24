@@ -26,7 +26,7 @@ Requires:       python-curses
 %if 0%{?centos_version} || 0%{?rhel_version}
 BuildRequires:  gettext
 %else
-BuildRequires:  gettext-runtime, asciidoc, xsltproc
+BuildRequires:  gettext-runtime
 %endif
 
 %define toplevel_dir %{name}-%{version}
@@ -46,17 +46,6 @@ This package contains the opsi util collection.
 
 # ===[ build ]======================================
 %build
-%if 0%{?centos_version} || 0%{?rhel_version}
-# No asciidoc in repos. No docs.
-%else
-a2x --doctype manpage --format manpage doc/opsi-admin.asciidoc
-a2x --doctype manpage --format manpage doc/opsi-backup.asciidoc
-a2x --doctype manpage --format manpage doc/opsi-convert.asciidoc
-a2x --doctype manpage --format manpage doc/opsi-makeproductfile.asciidoc
-a2x --doctype manpage --format manpage doc/opsi-newprod.asciidoc
-a2x --doctype manpage --format manpage doc/opsi-package-manager.asciidoc
-a2x --doctype manpage --format manpage doc/opsi-product-updater.asciidoc
-%endif
 
 # ===[ install ]====================================
 %install
@@ -67,18 +56,14 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
 
-%if 0%{?centos_version} || 0%{?rhel_version}
-# No asciidoc in repos. No docs.
-%else
 mkdir -p $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/opsi-admin.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/opsi-backup.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/opsi-convert.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/opsi-makeproductfile.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/opsi-newprod.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/opsi-package-manager.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/opsi-product-updater.1 $RPM_BUILD_ROOT/usr/share/man/man1/
-%endif
+install -m 644 doc/compiled/opsi-admin.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-backup.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-convert.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-makeproductfile.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-newprod.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-package-manager.1 $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-product-updater.1 $RPM_BUILD_ROOT/usr/share/man/man1/
 
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 install -m 0755 opsi-admin $RPM_BUILD_ROOT/usr/bin/

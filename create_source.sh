@@ -32,9 +32,12 @@ cp -r debian gettext opsi-* data doc ${tmpdir}/
 find ${tmpdir} -iname "*.pyc"   -exec rm "{}" \;
 find ${tmpdir} -iname "*.marks" -exec rm "{}" \;
 find ${tmpdir} -iname "*~"      -exec rm "{}" \;
+find ${tmpdir} -iname "*.git" -exec rm "{}" \;
+find ${tmpdir} -iname "*.gitignore" -exec rm "{}" \;
 find ${tmpdir} -iname "*.svn"   -exec rm -rf "{}" \; 2>/dev/null
 
 cd ${tmpdir}/
+bash recreate_manpages.sh
 dpkg-buildpackage -S
 mv ${tmpdir}/../${packagename}_${version}-${release}.tar.gz $destdir/
 mv ${tmpdir}/../${packagename}_${version}-${release}.dsc    $destdir/
