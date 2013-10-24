@@ -2,7 +2,7 @@ Source: opsi-utils
 Section: opsi
 Priority: optional
 Maintainer: uib GmbH <info@uib.de>
-Build-Depends: gettext, debhelper (>= 4.0.0), asciidoc
+Build-Depends: gettext, debhelper (>= 4.0.0), asciidoc, xsltproc
 Standards-Version: 3.6.1
 
 Package: opsi-utils

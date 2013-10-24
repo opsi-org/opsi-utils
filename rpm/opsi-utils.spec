@@ -16,7 +16,7 @@ AutoReqProv:    on
 Version:        4.0.4.1
 Release:        1
 Summary:        opsi utils
-Source:         opsi-utils_4.0.2.2-1.tar.gz
+Source:         opsi-utils_4.0.4.1-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
@@ -26,7 +26,7 @@ Requires:       python-curses
 %if 0%{?centos_version} || 0%{?rhel_version}
 BuildRequires:  gettext
 %else
-BuildRequires:  gettext-runtime, asciidoc
+BuildRequires:  gettext-runtime, asciidoc, xsltproc
 %endif
 
 %define toplevel_dir %{name}-%{version}
