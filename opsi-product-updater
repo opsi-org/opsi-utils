@@ -914,7 +914,7 @@ class OpsiPackageUpdater(object):
 		handler = urllib2.HTTPBasicAuthHandler(passwordManager)
 		if repository.proxy:
 			logger.notice(u"Using Proxy: %s" % repository.proxy)
-			proxy_handler = urllib2.ProxyHandler({'http': repository.proxy})
+			proxy_handler = urllib2.ProxyHandler({'http': repository.proxy, 'https':repository.proxy})
 			opener = urllib2.build_opener(proxy_handler, handler)
 		else:
 			opener = urllib2.build_opener(handler)
