@@ -29,6 +29,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @author: Erol Ueluekmen <e.ueluekmen@uib.de>
 @license: GNU Affero GPL version 3
 """
+
+import formatter
+import htmllib
+import getopt
+import grp
+import pwd
+import re
+import smtplib
+import socket
+import sys
+import time
+import urllib
+import urllib2
+
+from OPSI.Logger import LOG_INFO, LOG_ERROR
 from OPSI.Types import *
 from OPSI.Object import *
 from OPSI.Util import compareVersions, md5sum, getfqdn
