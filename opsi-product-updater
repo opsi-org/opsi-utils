@@ -62,10 +62,8 @@ def _(string):
 	return string
 
 
-"""
-	Patch from urllib2 HTTPBasicAuthHandler issue9639
-	Only for Python >= 2.6.6
-"""
+# Patch from urllib2 HTTPBasicAuthHandler issue9639
+# Only for Python >= 2.6.6
 if sys.version_info[:2] == (2, 6) and sys.version_info[2] >= 6:
     def fixed_http_error_401(self, req, fp, code, msg, headers):
         url = req.get_full_url()
@@ -75,9 +73,8 @@ if sys.version_info[:2] == (2, 6) and sys.version_info[2] >= 6:
         return response
 
     urllib2.HTTPBasicAuthHandler.http_error_401 = fixed_http_error_401
-"""
-	End of Patch
-"""
+# End of Patch
+
 
 class ProductRepositoryInfo(object):
 	def __init__(self, baseUrl, dirs = [], username=u"", password=u"", opsiDepotId = None, autoInstall = False, autoUpdate = True, autoSetup = False, proxy = None, excludes=[], includes=[]):
