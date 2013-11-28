@@ -278,7 +278,7 @@ class OpsiPackageUpdater(object):
 
 				elif section.lower().startswith('repository'):
 					try:
-						if not toBool(config.get(section, 'active')):
+						if not forceBool(config.get(section, 'active')):
 							continue
 					except:
 						pass
