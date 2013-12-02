@@ -32,11 +32,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __version__ = '4.0.2.1'
 
-import fcntl, termios, struct, os, sys, getopt, socket
+import fcntl
+import getopt
+import getpass
+import os
+import struct
+import sys
+import termios
 
-# OPSI imports
-from OPSI.Logger import *
-from OPSI.Types import *
+from OPSI.Logger import LOG_NONE, LOG_ERROR, Logger
+from OPSI.Types import forceUnicode, forceHostId
 from OPSI.Util import getfqdn
 from OPSI.Util.Message import ProgressObserver
 from OPSI.Backend.BackendManager import BackendManager
@@ -69,6 +74,7 @@ def usage():
 	print u"       http(s)://<user>@<host>:<port>/rpc"
 	print u""
 
+
 class ProgressNotifier(ProgressObserver):
 	def __init__(self, backendReplicator):
 		self.usedWidth = 120
@@ -80,7 +86,7 @@ class ProgressNotifier(ProgressObserver):
 		self.logSubject.attachObserver(self)
 		logger.setMessageSubjectLevel(LOG_ERROR)
 		self.error = None
-		
+
 	def displayProgress(self):
 		usedWidth = self.usedWidth
 		try:
@@ -92,7 +98,7 @@ class ProgressNotifier(ProgressObserver):
 			fd.close()
 		except:
 			pass
-		
+
 		if (logLevel <= LOG_NONE):
 			sys.stdout.write("\033[2A")
 		if self.error:
@@ -111,10 +117,10 @@ class ProgressNotifier(ProgressObserver):
 			bar = u'='*filledlen + u' '*(barlen - filledlen)
 			percent = '%0.2f%%' % subject.getPercent()
 			print '%35s : %8s [%s] %5s/%-5s' % (text, percent, bar, subject.getState(), subject.getEnd())
-		
+
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
 		self.displayProgress()
-		
+
 	def messageChanged(self, subject, message):
 		if (subject == self.logSubject):
 			self.error = message
@@ -128,15 +134,15 @@ def main(argv):
 	cleanupFirst = False
 	convertAudit = False
 	progress = True
-	
+
 	# Get options
 	try:
 		(opts, args) = getopt.getopt(argv, "aqhvVcs:l:")
-	
+
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)
-	
+
 	for (opt, arg) in opts:
 		if   (opt == "-h"):
 			usage()
@@ -160,14 +166,14 @@ def main(argv):
 			logger.setFileLevel(logLevel)
 		elif (opt == "-a"):
 			convertAudit = True
-		
+
 	if (len(args) < 2):
 		usage()
 		sys.exit(1)
-	
+
 	readBackend  = forceUnicode(args[0])
 	writeBackend = forceUnicode(args[1])
-	
+
 	# Define read/write backend
 	read = {
 		'username'	: u'',
@@ -179,10 +185,9 @@ def main(argv):
 		'password'	: u'',
 		'address'	: u'',
 		'backend'	: u'' }
-	
+
 	logger.comment(u"Converting from backend '%s' to backend '%s'." % (readBackend, writeBackend) )
-	
-	
+
 	# Parse read backend
 	match = re.search('^(\w+://)', readBackend)
 	if match:
@@ -197,8 +202,7 @@ def main(argv):
 	else:
 		# Assuming a backend name
 		read['backend'] = readBackend
-	
-	
+
 	# Parse write backend
 	match = re.search('^(\w+://)', writeBackend)
 	if match:
@@ -220,8 +224,7 @@ def main(argv):
 	else:
 		# Assuming a backend name
 		write['backend'] = writeBackend
-	
-	
+
 	# Sanity checks
 	if read['backend'] and write['backend']:
 		if (read['backend'] == write['backend']):
@@ -230,29 +233,29 @@ def main(argv):
 					raise Exception(u"Source and destination backend are the same.")
 			else:
 				raise Exception(u"Source and destination backend are the same.")
-	
+
 	if newServerId:
 		try:
 			newServerId = forceHostId(newServerId)
 		except:
 			raise Exception(u"Bad server-id '%s' for new server" % newServerId)
-	
+
 	# Creating BackendManager instance for reading
 	bmRead = None
 	if read['address']:
 		logger.comment( u"Connecting to %s" % read['address'] )
 		read['password'] = getpass.getpass()
-		
+
 	bmRead = BackendManager(backendConfigDir = u'/etc/opsi/backends', **read)
-	
+
 	# Creating BackendManager instance for writing
 	bmWrite = None
 	if read['address']:
 		logger.comment( u"Connecting to %s" % bmWrite['address'] )
 		write['password'] = getpass.getpass()
-		
+
 	bmWrite = BackendManager(backendConfigDir = u'/etc/opsi/backends', **write)
-	
+
 	backendReplicator = BackendReplicator(
 		readBackend  = bmRead,
 		writeBackend = bmWrite,
@@ -264,22 +267,17 @@ def main(argv):
 		progressNotifier = ProgressNotifier(backendReplicator)
 		print ""
 	backendReplicator.replicate(audit = convertAudit)
-	
+
 
 if (__name__ == "__main__"):
-	
 	try:
 		main(sys.argv[1:])
-		
 	except SystemExit:
 		pass
-		
-	except Exception, e:
+	except Exception as e:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(e)
 		print >> sys.stderr, u"ERROR: %s" % e
 		sys.exit(1)
-	
+
 	sys.exit(0)
-
-
