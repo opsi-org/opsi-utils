@@ -1,42 +1,50 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-   = = = = = = = = = = = = = = =
-   =   opsi-package-manager    =
-   = = = = = = = = = = = = = = =
+opsi-package-manager
 
-   opsi-package-manager is part of the desktop management solution opsi
-   (open pc server integration) http://www.opsi.org
+opsi-package-manager is part of the desktop management solution opsi
+(open pc server integration) http://www.opsi.org
 
-   Copyright (C) 2010 uib GmbH
+Copyright (C) 2010-2013 uib GmbH
 
-   http://www.uib.de/
+http://www.uib.de/
 
-   All rights reserved.
+All rights reserved.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License version 2 as
-   published by the Free Software Foundation.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-   @copyright:	uib GmbH <info@uib.de>
-   @author: Jan Schneider <j.schneider@uib.de>
-   @license: GNU General Public License version 2
+@copyright: uib GmbH <info@uib.de>
+@author: Jan Schneider <j.schneider@uib.de>
+@license: GNU General Public License version 2
 """
 
 __version__ = '4.0.2.1'
 
 
-# Imports
-import os, sys, threading, time, socket, random, base64, curses, locale, fcntl, termios, struct, gettext
+import base64
+import curses
+import fcntl
+import gettext
+import locale
+import os
+import random
+import struct
+import sys
+import termios
+import threading
+import time
 from signal import *
 from optparse import OptionParser
 from duplicity import librsync
@@ -46,13 +54,14 @@ from OPSI.Logger import *
 from OPSI.Types import *
 from OPSI.UI import *
 from OPSI.Util import md5sum, getfqdn
-from OPSI.Util.Message import MessageSubject, ProgressSubject, ChoiceSubject, SubjectsObserver, ProgressObserver
+from OPSI.Util.Message import (MessageSubject, ProgressObserver,
+	ProgressSubject, SubjectsObserver)
 from OPSI.Util.Repository import *
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-# Get logger instance
+
 logger = Logger()
 
 try:
@@ -60,12 +69,11 @@ try:
 	_ = t.ugettext
 except Exception, e:
 	logger.error(u"Locale not found: %s" % e)
+
 	def _(string):
 		return string
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# -                                               TASK                                                -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 class Task:
 	def __init__(self, name, opsiPackageManager, method, params):
 		self.name = forceUnicode(name)
@@ -96,6 +104,7 @@ class Task:
 			raise
 		self.ended = True
 
+
 class UploadTask(Task):
 	def __init__(self, name, opsiPackageManager, method, params):
 		Task.__init__(self, name, opsiPackageManager, method, params)
@@ -109,18 +118,17 @@ class UploadTask(Task):
 	def abort(self):
 		pass
 
+
 class InstallTask(Task):
 	def __init__(self, name, opsiPackageManager, method, params):
 		Task.__init__(self, name, opsiPackageManager, method, params)
+
 
 class UninstallTask(Task):
 	def __init__(self, name, opsiPackageManager, method, params):
 		Task.__init__(self, name, opsiPackageManager, method, params)
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# -                                           USERINTERFACE                                           -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class CursesWindow:
 	def __init__(self, height, width, y, x, title = u'', border = False):
 		self.height   = forceInt(height)
@@ -226,6 +234,7 @@ class CursesWindow:
 			self.win.refresh()
 		except: pass
 
+
 class CursesMainWindow(CursesWindow):
 	def __init__(self):
 		self.initScreen()
@@ -253,7 +262,6 @@ class CursesMainWindow(CursesWindow):
 		return
 		self.exitScreen()
 		self.initScreen()
-		#(self.height, self.width) = self.win.getmaxyx()
 
 
 class CursesTextWindow(CursesWindow):
@@ -318,6 +326,7 @@ class CursesTextWindow(CursesWindow):
 				line = line[:self.width-1]
 			newLines.append( (line, params) )
 		self.lines = newLines
+
 
 class UserInterface(SubjectsObserver):
 	def __init__(self, config = {}, subjects = []):
@@ -570,19 +579,12 @@ class UserInterface(SubjectsObserver):
 					self.progressWindow.clrtoeol()
 				y += 1
 
-			#while (y < self.progressWindow.height):
-			#	y += 1
-			#	self.progressWindow.move(y, 0)
-			#	self.progressWindow.clrtoeol()
-
 			self.progressWindow.refresh()
 
 		finally:
 			self.__lock.release()
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# -                                             TASKQUEUE                                             -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 class TaskQueue(threading.Thread):
 	def __init__(self, name):
 		threading.Thread.__init__(self)
@@ -639,9 +641,7 @@ class TaskQueue(threading.Thread):
 			raise ValueError(u"Task wanted, '%s' passed" % task)
 		self.tasks.append(task)
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# -                                         OPSIPACKAGEMANAGER                                        -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 class OpsiPackageManager(object):
 
 	def __init__(self, config, backend):
@@ -792,7 +792,6 @@ class OpsiPackageManager(object):
 				continue
 			errors[tq.name] = tq.errors
 		return errors
-
 
 	def setActionRequestWhereInstalled(self, productId, depotId, actionRequest = u'setup'):
 		try:
@@ -1354,9 +1353,6 @@ class OpsiPackageManager(object):
 			raise
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# -                                      OPSIPACKAGEMANAGERCONTROL                                    -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class OpsiPackageManagerControl(object):
 	def __init__(self):
 		logger.debug(u"OpsiPackageManagerControl")
@@ -1837,9 +1833,6 @@ class OpsiPackageManagerControl(object):
 		print u""
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# -                                               MAIN                                                -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if (__name__ == "__main__"):
 	exception = None
 	originalTerminalSettings = None
@@ -1852,10 +1845,8 @@ if (__name__ == "__main__"):
 
 	try:
 		OpsiPackageManagerControl()
-
-	except SystemExit, e:
+	except SystemExit:
 		pass
-
 	except Exception, e:
 		exception = e
 
@@ -1868,5 +1859,3 @@ if (__name__ == "__main__"):
 		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace')
 		sys.exit(1)
 	sys.exit(0)
-
-
