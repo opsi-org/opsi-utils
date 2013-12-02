@@ -45,12 +45,11 @@ import sys
 import termios
 import threading
 import time
-from signal import *
+from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 from duplicity import librsync
 
-# OPSI Imports
-from OPSI.Logger import *
+from OPSI.Logger import LOG_DEBUG2, LOG_INFO, LOG_NONE, LOG_WARNING, Logger
 from OPSI.Types import *
 from OPSI.UI import *
 from OPSI.Util import md5sum, getfqdn
