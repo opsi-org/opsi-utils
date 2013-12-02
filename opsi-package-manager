@@ -205,7 +205,8 @@ class CursesWindow:
 					newAttr.append(attr[i])
 			newAttr = tuple(newAttr)
 			self.win.addstr(*newAttr)
-		except Exception,e : pass
+		except Exception:
+			pass
 
 	def clrtoeol(self):
 		try:
@@ -376,26 +377,26 @@ class UserInterface(SubjectsObserver):
 
 		if curses.has_colors():
 			logger.debug('init colors')
-			curses.init_pair(1, curses.COLOR_BLACK,  curses.COLOR_GREEN)
-			curses.init_pair(2, curses.COLOR_BLACK,  curses.COLOR_WHITE)
-			curses.init_pair(3, curses.COLOR_GREEN,  curses.COLOR_BLACK)
-			curses.init_pair(4, curses.COLOR_WHITE,  curses.COLOR_BLACK)
-			curses.init_pair(5, curses.COLOR_RED,    curses.COLOR_BLACK)
+			curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
+			curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
+			curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_BLACK)
+			curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLACK)
+			curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
 			curses.init_pair(6, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-			curses.init_pair(7, curses.COLOR_WHITE,  curses.COLOR_BLUE)
+			curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
 			self._colors = {
-					'INFO_WINDOW':	curses.color_pair(7),
-					'LOG_HEADER':	curses.color_pair(2),
-					1:		curses.color_pair(5),
-					2:		curses.color_pair(5),
-					3:		curses.color_pair(6),
-					4:		curses.color_pair(3),
-					5:		curses.color_pair(4),
-					6:		curses.color_pair(4),
-					7:		curses.color_pair(4),
-					8:		curses.color_pair(4),
-					9:		curses.color_pair(4)
+				'INFO_WINDOW': curses.color_pair(7),
+				'LOG_HEADER': curses.color_pair(2),
+				1: curses.color_pair(5),
+				2: curses.color_pair(5),
+				3: curses.color_pair(6),
+				4: curses.color_pair(3),
+				5: curses.color_pair(4),
+				6: curses.color_pair(4),
+				7: curses.color_pair(4),
+				8: curses.color_pair(4),
+				9: curses.color_pair(4)
 			}
 			self.infoWindow.setColor(self._colors['INFO_WINDOW'])
 			if self.loggerHeaderWindow:
@@ -1725,22 +1726,38 @@ class OpsiPackageManagerControl(object):
 		if (self.opts.properties == 'ask') and self.opts.quiet:
 			raise Exception(u"You cannot use properties=ask in quiet mode")
 
-		if self.opts.quiet:                 self.config['quiet'] = True
-		if self.opts.verbose:               self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
-		if self.opts.logFile:               self.config['logFile'] = self.opts.logFile
-		if self.opts.tempDir:               self.config['tempDir'] = self.opts.tempDir
-		if self.opts.depots:                self.config['depotIds'] = self.opts.depots.split(',')
-		if self.opts.newProductId:          self.config['newProductId'] = self.opts.newProductId
-		if self.opts.maxBandwidth:          self.config['maxBandwidth'] = self.opts.maxBandwidth
-		if self.opts.maxTransfers:          self.config['maxTransfers'] = self.opts.maxTransfers
-		if self.opts.overwriteAlways:       self.config['overwriteAlways'] = True
-		if self.opts.noDelta:               self.config['deltaUpload'] = False
-		if self.opts.keepFiles:             self.config['deleteFilesOnUninstall'] = False
-		if self.opts.properties:            self.config['properties'] = self.opts.properties
-		if self.opts.force:                 self.config['forceInstall'] = self.config['forceUninstall'] = True
-		if self.opts.setupWhereInstalled:   self.config['setupWhereInstalled'] = True
-		if self.opts.updateWhereInstalled:  self.config['updateWhereInstalled'] = True
-		if self.opts.purgeClientProperties: self.config['purgeClientProperties'] = True
+		if self.opts.quiet:
+			self.config['quiet'] = True
+		if self.opts.verbose:
+			self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
+		if self.opts.logFile:
+			self.config['logFile'] = self.opts.logFile
+		if self.opts.tempDir:
+			self.config['tempDir'] = self.opts.tempDir
+		if self.opts.depots:
+			self.config['depotIds'] = self.opts.depots.split(',')
+		if self.opts.newProductId:
+			self.config['newProductId'] = self.opts.newProductId
+		if self.opts.maxBandwidth:
+			self.config['maxBandwidth'] = self.opts.maxBandwidth
+		if self.opts.maxTransfers:
+			self.config['maxTransfers'] = self.opts.maxTransfers
+		if self.opts.overwriteAlways:
+			self.config['overwriteAlways'] = True
+		if self.opts.noDelta:
+			self.config['deltaUpload'] = False
+		if self.opts.keepFiles:
+			self.config['deleteFilesOnUninstall'] = False
+		if self.opts.properties:
+			self.config['properties'] = self.opts.properties
+		if self.opts.force:
+			self.config['forceInstall'] = self.config['forceUninstall'] = True
+		if self.opts.setupWhereInstalled:
+			self.config['setupWhereInstalled'] = True
+		if self.opts.updateWhereInstalled:
+			self.config['updateWhereInstalled'] = True
+		if self.opts.purgeClientProperties:
+			self.config['purgeClientProperties'] = True
 
 		# Get command
 		if self.opts.COMMAND_INSTALL:
