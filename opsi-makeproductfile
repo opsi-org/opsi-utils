@@ -50,17 +50,18 @@ from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ZsyncFile
 from OPSI.Util import md5sum
 
-# Get logger instance
+
 logger = Logger()
 
 try:
 	t = gettext.translation('opsi-utils', '/usr/share/locale')
 	_ = t.ugettext
-except Exception, e:
+except Exception as e:
 	logger.error(u"Locale not found: %s" % e)
 	def _(string):
 		return string
-	
+
+
 def usage():
 	print u"\nUsage: %s [-h] [-z] [-m] [-v|-q] [-F format] [-l log-level] [-i|-c custom name] [-I required version] [-t temp dir] [source directory]" % os.path.basename(sys.argv[0])
 	print u"Provides an opsi package from a package source directory."
@@ -94,7 +95,7 @@ class ProgressNotifier(ProgressObserver):
 			fd.close()
 		except:
 			pass
-		
+
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
 		if (subject.getEnd() <= 0):
 			return
@@ -104,10 +105,11 @@ class ProgressNotifier(ProgressObserver):
 		percent = '%0.2f%%' % percent
 		sys.stderr.write('\r %8s [%s]\r' % (percent, bar))
 		sys.stderr.flush()
-		
+
 	def messageChanged(self, subject, message):
 		sys.stderr.write('\n%s\n' % message)
 		sys.stderr.flush()
+
 
 def lockPackage(tempDir, packageControlFile):
 	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
@@ -116,7 +118,7 @@ def lockPackage(tempDir, packageControlFile):
 		lf = open(lockFile, 'r')
 		p = lf.read().strip()
 		lf.close()
-		
+
 		if p:
 			for line in execute(u"ps -A"):
 				line = line.strip()
@@ -127,23 +129,25 @@ def lockPackage(tempDir, packageControlFile):
 					# process is running
 					raise Exception(u"Product '%s' is currently locked by process %s (%s)." \
 								% (packageControlFile.getProduct().id, pName, p) )
-	
+
 	except IOError:
 		pass
-	
+
 	# Write lock-file
 	lf = open(lockFile, 'w')
 	lf.write(str(os.getpid()))
 	lf.close()
-	
+
+
 def unlockPackage(tempDir, packageControlFile):
 	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
 	if os.path.isfile(lockFile):
 		os.unlink(lockFile)
 
+
 def main(argv):
 	os.umask(022)
-	
+
 	logLevel          = LOG_WARNING
 	packageSourceDir  = os.getcwd()
 	tempDir           = u'/tmp'
@@ -159,18 +163,18 @@ def main(argv):
 	compatibilityMode = False
 	createMd5SumFile  = False
 	createZsyncFile   = False
-	
+
 	logger.setConsoleLevel(logLevel)
 	logger.setConsoleColor(True)
 	logger.setConsoleFormat(u'%L: %M')
-	
+
 	try:
 		(opts, args) = getopt.getopt(argv, "Chvzmnqi:c:t:l:F:I:")
-	
+
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)
-	
+
 	for (opt, arg) in opts:
 		if   (opt == "-h"):
 			dereference = True
@@ -203,39 +207,39 @@ def main(argv):
 			createMd5SumFile = True
 		elif (opt == "-z"):
 			createZsyncFile = True
-		
+
 	if (len(args) > 1):
 		logger.error(u"To many arguments")
 		usage()
 		sys.exit(1)
-	
+
 	elif (len(args) > 0):
 		packageSourceDir = os.path.abspath( args[0] )
-	
+
 	logger.setConsoleLevel(logLevel)
-	
+
 	logger.info(u"Source dir: %s" % packageSourceDir)
 	logger.info(u"Temp dir: %s" % tempDir)
 	logger.info(u"Custom name: %s" % customName)
 	logger.info(u"Archive format: %s" % format)
-	
+
 	if format not in ['tar', 'cpio']:
 		raise Exception(u"Unsupported archive format: %s" % format)
-	
+
 	if not os.path.isdir(packageSourceDir):
 		raise Exception(u"No such directory: %s" % packageSourceDir)
-	
+
 	if customName:
 		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI.%s' % customName, u'control')
 	if not customName or not os.path.exists(packageControlFilePath):
 		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI', u'control')
 		if not os.path.exists(packageControlFilePath):
 			raise Exception(u"Control file '%s' not found" % packageControlFilePath)
-	
+
 	if not quiet: print ""
 	if not quiet: print _(u"Locking package")
 	pcf = PackageControlFile(packageControlFilePath, opsi3compatible = compatibilityMode)
-	
+
 	lockPackage(tempDir, pcf)
 	pps = None
 	try:
@@ -248,7 +252,7 @@ def main(argv):
 				packageDependency = { 'package': product.id, 'condition': match.group(1), 'version': match.group(2) }
 				pcf.setPackageDependencies([ packageDependency ])
 				pcf.setIncrementalPackage(True)
-			
+
 			if not quiet: print u""
 			if not quiet: print _(u"Package info")
 			if not quiet: print u"----------------------------------------------------------------------------"
@@ -260,7 +264,7 @@ def main(argv):
 				for dep in pcf.getPackageDependencies():
 					dependencies.append(u'%s(%s%s)' % (dep['package'], dep['condition'], dep['version']))
 				print       u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
-			
+
 			if not quiet: print ""
 			if not quiet: print _(u"Product info")
 			if not quiet: print u"----------------------------------------------------------------------------"
@@ -279,7 +283,7 @@ def main(argv):
 			if not quiet: print u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds))
 			if not quiet and (product.getType() == 'NetbootProduct'):
 				print       u"   %-20s : %s" % (u'pxe config template',  product.pxeConfigTemplate)
-			
+
 			if not quiet: print ""
 			if not quiet: print _(u"Product scripts")
 			if not quiet: print u"----------------------------------------------------------------------------"
@@ -292,7 +296,7 @@ def main(argv):
 			if not quiet and (product.getType() == 'LocalbootProduct'):
 				print       u"   %-20s : %s" % (u'user login', product.userLoginScript)
 			if not quiet: print u""
-			
+
 			pps = ProductPackageSource(
 				packageSourceDir   = packageSourceDir,
 				tempDir            = tempDir,
@@ -302,7 +306,7 @@ def main(argv):
 				format             = format,
 				compression        = compression,
 				dereference        = dereference)
-			
+
 			if not quiet and os.path.exists(pps.getPackageFile()):
 				print _(u"Package file '%s' already exists.") % pps.getPackageFile()
 				print _(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"),
@@ -327,7 +331,7 @@ def main(argv):
 				finally:
 					termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
 					print '\r\033[0K'
-				
+
 				if newVersion:
 					while True:
 						print '\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion,
@@ -350,17 +354,17 @@ def main(argv):
 						except:
 							print _(u"Bad package version: %s") % newVersion
 					continue
-			
+
 			# Regenerating to fix encoding
 			pcf.generate()
-			
+
 			progressSubject = None
 			if not quiet:
 				progressSubject = ProgressSubject('packing')
 				progressSubject.attachObserver(ProgressNotifier())
 				print _(u"Creating package file '%s'") % pps.getPackageFile()
 			pps.pack(progressSubject = progressSubject)
-			
+
 			if not quiet: print "\n"
 			if createMd5SumFile:
 				md5sumFile = u'%s.md5' % pps.getPackageFile()
@@ -382,26 +386,24 @@ def main(argv):
 		if not quiet: print _(u"Unlocking package")
 		unlockPackage(tempDir, pcf)
 		if not quiet: print ""
-	
+
+
 if (__name__ == "__main__"):
 	exception = None
-	
+
 	try:
 		main(sys.argv[1:])
-	
+
 	except SystemExit, e:
 		pass
-		
+
 	except Exception, e:
 		exception = e
-	
+
 	if exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
 		print >> sys.stderr, u"ERROR: %s" % exception
 		sys.exit(1)
-	
+
 	sys.exit(0)
-
-
-
