@@ -113,7 +113,7 @@ LOGO = [
 try:
 	t = gettext.translation('opsi-utils', '/usr/share/locale')
 	_ = t.ugettext
-except Exception, e:
+except Exception as e:
 	logger.error(u"Locale not found: %s" % e)
 
 	def _(string):
@@ -264,7 +264,7 @@ def main(argv):
 						sessionId = forceUnicode(line)
 						break
 				session.close()
-			except Exception, e:
+			except Exception as e:
 				logger.error(u"Failed to read session file '%s': %s" % (os.path.join(opsiadminUserDir, 'session'), forceUnicode(e)))
 
 			from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -283,7 +283,7 @@ def main(argv):
 					session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'w', 'utf-8')
 					session.write(u"%s\n" % sessionId)
 					session.close()
-				except Exception, e:
+				except Exception as e:
 					logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), forceUnicode(e)))
 
 		cmdline = u''
@@ -317,7 +317,7 @@ def main(argv):
 				for line in LOGO:
 					shell.appendLine(line.get('text'), line.get('color'))
 				shell.run()
-			except Exception, e:
+			except Exception as e:
 				logger.logException(e)
 				raise
 		elif cmdline:
@@ -332,7 +332,7 @@ def main(argv):
 				for line in shell.lines:
 					print >> sys.stdout, forceUnicode(line['text']).rstrip().encode(outEncoding)
 
-			except Exception, e:
+			except Exception as e:
 				logger.logException(e)
 				raise
 		else:
@@ -387,7 +387,7 @@ class Shell:
 			if not os.path.isdir(self.userConfigDir):
 				try:
 					os.mkdir(self.userConfigDir)
-				except Exception, e:
+				except Exception as e:
 					logger.error(u"Failed to create user dir '%s': %s" % (self.userConfigDir, forceUnicode(e)))
 		else:
 			logger.error(u'Failed to get home directory from environment!')
@@ -401,7 +401,7 @@ class Shell:
 				self.cmdList.append(line.strip())
 				self.cmdListPos += 1
 			history.close()
-		except Exception, e:
+		except Exception as e:
 			logger.error(u"Failed to read history file '%s': %s" % (historyFile, forceUnicode(e)))
 
 	def setColor(self, color):
@@ -457,7 +457,7 @@ class Shell:
 				if self.cmdline:
 					try:
 						self.execute()
-					except Exception, e:
+					except Exception as e:
 						lines = forceUnicode(e).split(u'\n')
 						lines[0] = u"ERROR: %s" % lines[0]
 						for line in lines:
@@ -476,7 +476,7 @@ class Shell:
 			if self.question(_("Delete log-file '%s'?") % logFile):
 				try:
 					os.unlink(logFile)
-				except Exception, e:
+				except Exception as e:
 					logger.error(u"Failed to delete log-file '%s': %s" % (logFile, forceUnicode(e)))
 		try:
 			history = codecs.open(os.path.join(self.userConfigDir, 'history'), 'w', 'utf-8')
@@ -485,7 +485,7 @@ class Shell:
 					continue
 				history.write(u"%s\n" % line)
 			history.close()
-		except Exception, e:
+		except Exception as e:
 			logger.error(u"Failed to write history file '%s': %s" % (os.path.join(self.userConfigDir, 'history'), forceUnicode(e)))
 
 		self.exitScreen()
@@ -504,7 +504,7 @@ class Shell:
 		s = self.infoline + (self.xMax - len(self.infoline)) * u' '
 		try:
 			self.screen.addstr(s.encode(outEncoding), curses.A_REVERSE)
-		except Exception, e:
+		except Exception as e:
 			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(e)))
 
 		height = int(len(self.prompt + u' ' + self.cmdline) / self.xMax) + 1
@@ -516,7 +516,7 @@ class Shell:
 		s = self.prompt + u' ' + self.cmdline + u' ' * clear
 		try:
 			self.screen.addstr(s.encode(outEncoding), curses.A_BOLD)
-		except Exception, e:
+		except Exception as e:
 			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(e)))
 
 		for i in range(0, self.linesMax):
@@ -550,7 +550,7 @@ class Shell:
 					self.screen.addstr(s.encode(outEncoding), color)
 				else:
 					self.screen.addstr(s.encode(outEncoding))
-			except Exception, e:
+			except Exception as e:
 				logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(e)))
 
 		moveY = self.yMax - height + int((len(self.prompt + u' ') + self.pos) / self.xMax)
@@ -712,7 +712,7 @@ class Shell:
 				invalid = False
 				try:
 					c.execute(self, self.getParams()[1:])
-				except Exception, e:
+				except Exception as e:
 					logger.logException(e)
 					logger.error(u"Failed to execute '%s': %s" % (self.cmdline, forceUnicode(e)))
 					raise Exception(u"Failed to execute '%s': %s" % (self.cmdline, forceUnicode(e)))
@@ -976,7 +976,7 @@ class Shell:
 						else:
 							newPos = self.pos + 1
 							newCmdline = self.cmdline[0:self.pos] + char + self.cmdline[self.pos:]
-					except Exception, e:
+					except Exception as e:
 						logger.error("Failed to add char '%s': %s" % (char, forceUnicode(e)))
 				try:
 					if (self.reverseSearch is not None):
@@ -993,7 +993,7 @@ class Shell:
 
 					self.pos = newPos
 					self.setCmdline(newCmdline)
-				except Exception, e:
+				except Exception as e:
 					self.setInfoline(forceUnicode(e))
 					pass
 
@@ -1008,7 +1008,7 @@ class Shell:
 		if self.cmdline:
 			try:
 				self.execute()
-			except Exception, e:
+			except Exception as e:
 				lines = forceUnicode(e).split('\n')
 				lines[0] = "ERROR: %s" % lines[0]
 				for line in lines:
@@ -1117,7 +1117,7 @@ class CommandMethod(Command):
 		for i in range(len(params)):
 			try:
 				params[i] = fromJson(params[i])
-			except Exception, e:
+			except Exception as e:
 				logger.debug(u"Not a json string '%s': %s" % (params[i], forceUnicode(e)))
 				params[i] = forceUnicode(params[i])
 
@@ -1222,7 +1222,7 @@ class CommandMethod(Command):
 						string = proc.stdout.read()
 						if (len(string) > 0):
 							buf += string
-					except IOError, e:
+					except IOError as e:
 						if (e.errno != 11):
 							raise
 
@@ -1230,7 +1230,7 @@ class CommandMethod(Command):
 						string = proc.stderr.read()
 						if (len(string) > 0):
 							err += string
-					except IOError, e:
+					except IOError as e:
 						if (e.errno != 11):
 							raise
 
@@ -1626,7 +1626,7 @@ if (__name__ == "__main__"):
 	try:
 		try:
 			locale.setlocale(locale.LC_ALL, '')
-		except:
+		except Exception:
 			pass
 
 		if (os.name == 'posix'):
@@ -1635,11 +1635,9 @@ if (__name__ == "__main__"):
 			signal(SIGQUIT, signalHandler)
 
 		main(sys.argv[1:])
-
-	except SystemExit, e:
+	except SystemExit as e:
 		pass
-
-	except Exception, e:
+	except Exception as e:
 		exception = e
 
 	if exception:

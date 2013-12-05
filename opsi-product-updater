@@ -156,7 +156,7 @@ class EmailNotifier(object):
 			logger.debug(u"SMTP-Host: '%s' SMTP-Port: '%s'" % (self.smtphost, self.smtpport))
 			logger.debug(u"Sender: '%s' Reveivers: '%s' Message: '%s'" % (self.sender, self.receivers, mail))
 			logger.notice(u"Email successfully sent")
-		except Exception, e:
+		except Exception as e:
 			raise Exception(u"Failed to send email using smtp server '%s': %s" % (self.smtphost, e))
 
 
@@ -370,7 +370,7 @@ class OpsiPackageUpdater(object):
 					self.config['repositories'].append(repository)
 				else:
 					logger.error(u"Unhandled section '%s'" % section)
-		except Exception, e:
+		except Exception as e:
 			raise Exception(u"Failed to read config file '%s': %s" % (self.config["configFile"], e))
 
 	def getConfigBackend(self):
@@ -549,7 +549,7 @@ class OpsiPackageUpdater(object):
 							if (ppos < dpos):
 								sequence.remove(dependency['package'])
 								sequence.insert(ppos, dependency['package'])
-						except Exception, e:
+						except Exception as e:
 							logger.debug(u"While processing package '%s', dependency '%s': %s" % (packageFile, dependency['package'], e))
 
 				sortedPackages = []
@@ -578,7 +578,7 @@ class OpsiPackageUpdater(object):
 											objectId  = self.depotId):
 							propertyDefaultValues[productPropertyState.propertyId] = productPropertyState.values
 						logger.notice(u"Using product property defaults: %s" % propertyDefaultValues)
-					except Exception, e:
+					except Exception as e:
 						logger.warning(u"Failed to get product property defaults: %s" % e)
 
 					logger.notice(u"Installing package '%s'" % packageFile)
@@ -672,9 +672,9 @@ class OpsiPackageUpdater(object):
 								)
 							self.getConfigBackend().hostControl_start(hostIds = [ clientId ])
 							time.sleep(self.config["wolStartGap"])
-						except Exception, e:
+						except Exception as e:
 							logger.error(u"Failed to power on client '%s': %s" % (clientId, e))
-			except Exception, e:
+			except Exception as e:
 				if notifier:
 					notifier.appendLine(u"Error occurred: %s" % e)
 				raise
@@ -818,7 +818,7 @@ class OpsiPackageUpdater(object):
 			try:
 				os.chmod(path, 0660)
 				os.chown(path, uid, gid)
-			except Exception, e:
+			except Exception as e:
 				logger.warning(u"Failed to set rights on file '%s': %s" % (path, e))
 			(productId, version) = (None, None)
 			try:
@@ -846,7 +846,7 @@ class OpsiPackageUpdater(object):
 			logger.info(u"Creating zsync file '%s'" % zsyncFile)
 			zsyncFile = ZsyncFile(zsyncFile)
 			zsyncFile.generate(packageFile)
-		except Exception, e:
+		except Exception as e:
 			logger.error(u"Failed to create zsync file '%s': %s" % (zsyncFile, e))
 
 	def onlyNewestPackages(self, packages):
@@ -1010,7 +1010,7 @@ class OpsiPackageUpdater(object):
 									break
 						except Exception ,e:
 							logger.error(u"Failed to process link '%s': %s" % (link, e))
-			except Exception, e:
+			except Exception as e:
 				logger.logException(e, LOG_INFO)
 				raise Exception(u"Failed to process url '%s': %s" % (url, e))
 		return packages
@@ -1086,7 +1086,7 @@ def main(argv):
 		for p in System.execute("%s -x %s" % (System.which("pidof"), os.path.basename(sys.argv[0])))[0].strip().split():
 			if not (int(p) == pid):
 				running = p
-	except Exception, e:
+	except Exception as e:
 		logger.error(e)
 	if running:
 		raise Exception(u"Another %s process is running (pid: %s)." % (os.path.basename(sys.argv[0]), running))
@@ -1096,16 +1096,13 @@ def main(argv):
 
 
 if (__name__ == "__main__"):
-
 	try:
 		main(sys.argv[1:])
 	except SystemExit:
 		pass
-
 	except KeyboardInterrupt:
 		sys.exit(1)
-
-	except Exception, e:
+	except Exception as e:
 		logger.logException(e)
 		print >> sys.stderr, "ERROR: %s" % e
 		sys.exit(1)

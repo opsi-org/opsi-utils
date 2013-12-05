@@ -393,14 +393,9 @@ if (__name__ == "__main__"):
 
 	try:
 		main(sys.argv[1:])
-
-	except SystemExit, e:
+	except SystemExit:
 		pass
-
-	except Exception, e:
-		exception = e
-
-	if exception:
+	except Exception as exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
 		print >> sys.stderr, u"ERROR: %s" % exception

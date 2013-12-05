@@ -4,29 +4,29 @@
    = = = = = = = = = = =
    =   opsi-newprod    =
    = = = = = = = = = = =
-   
+
    opsi-newprod is part of the desktop management solution opsi
    (open pc server integration) http://www.opsi.org
-   
+
    Copyright (C) 2010 uib GmbH
-   
+
    http://www.uib.de/
-   
+
    All rights reserved.
-   
+
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License version 2 as
    published by the Free Software Foundation.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-   
+
    @copyright:	uib GmbH <info@uib.de>
    @author: Jan Schneider <j.schneider@uib.de>
    @license: GNU General Public License version 2
@@ -53,7 +53,7 @@ ui = None
 try:
 	t = gettext.translation('opsi-utils', '/usr/share/locale')
 	_ = t.ugettext
-except Exception, e:
+except Exception as e:
 	logger.error(u"Locale not found: %s" % e)
 	def _(string):
 		return string
@@ -68,32 +68,32 @@ def usage():
 
 def main(argv):
 	destDir = os.getcwd()
-	
+
 	try:
 		(opts, args) = getopt.getopt(argv, "h")
-	
+
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)
-	
+
 	for (opt, arg) in opts:
 		if   (opt == "-h"):
 			usage()
 			return
-	
+
 	if (len(args) > 1):
 		logger.error(u"Too many arguments")
 		usage()
 		sys.exit(1)
-	
+
 	elif (len(args) > 0):
 		destDir = os.path.abspath(forceFilename(args[0]))
-	
+
 	global ui
 	ui = UIFactory(type=u'snack')
-	
+
 	ui.drawRootText(1, 1, 'opsi')
-	
+
 	# Get product type
 	helpText  = ''
 	values = [
@@ -110,7 +110,7 @@ def main(argv):
 	if not productType:
 		raise Exception(_(u'Cancelled'))
 	productType = productType[0]
-	
+
 	product = None
 	if (productType == 'localboot'):
 		product = LocalbootProduct(id = u'newprod', productVersion = u'1.0', packageVersion = u'1')
@@ -142,60 +142,60 @@ Priority:         The installation priority class of this product (value between
 		]
 		if (productType == 'netboot'):
 			values.append({ "name": _(u"PXE config template"), "value": product.pxeConfigTemplate })
-		
+
 		values = ui.getValues(
 			title   = _(u'product information'),
 			text    = helpText,
 			entries = values )
-		
+
 		if not values:
 			raise Exception(_(u'Cancelled'))
-		
+
 		error = None
 		try:
 			product.setId( values[0].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'You have to specify a valid product id.')
 		try:
 			product.setName( values[1].get('value') )
 			if not product.name:
 				raise Exception(u'No product name specified')
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'You have to specify a valid product name.')
 		try:
 			product.setDescription( values[2].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Description is not valid.')
 		try:
 			product.setAdvice( values[3].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Advice is not valid.')
 		try:
 			product.setProductVersion( values[4].get('value') )
 			if not product.productVersion:
 				raise Exception(u'No product version specified')
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'You have to specify a valid product version.')
 		try:
 			product.setPackageVersion( values[5].get('value') )
 			if not product.packageVersion:
 				raise Exception(u'No package version specified')
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'You have to specify a valid package version.')
 		try:
 			product.setLicenseRequired( values[6].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'License required must be a boolean value.')
 		try:
 			product.setPriority( values[7].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Priority has to be an number between -100 and 100')
-		
+
 		if error:
 			ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
 			continue
 		break
-		
+
 	helpText  = _(\
 u'''
 Setup script:        Relative path to script for action "setup".
@@ -216,62 +216,62 @@ PXE config template: path to a custom pxelinux config template.
 			{ "name": _(u"Once script"),       "value": product.onceScript },
 			{ "name": _(u"Custom script"),     "value": product.customScript }
 		]
-		
+
 		if (productType == 'netboot'):
 			values.append({ "name": _(u"PXE config template"), "value": product.pxeConfigTemplate })
 		else:
 			values.append({ "name": _(u"User login script"),   "value": product.userLoginScript })
-		
+
 		values = ui.getValues(
 			title   = _(u'product scripts'),
 			text    = helpText,
 			entries = values )
-		
+
 		if not values:
 			raise Exception(_(u'Cancelled'))
-		
+
 		error = None
 		try:
 			product.setSetupScript( values[0].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Setup script is not valid.')
 		try:
 			product.setUninstallScript( values[1].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Uninstall script is not valid.')
 		try:
 			product.setUpdateScript( values[2].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Update script is not valid.')
 		try:
 			product.setAlwaysScript( values[3].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Always script is not valid.')
 		try:
 			product.setOnceScript( values[4].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Once script is not valid.')
 		try:
 			product.setCustomScript( values[5].get('value') )
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Custom script is not valid.')
 		if (productType == 'netboot'):
 			try:
 				product.setPxeConfigTemplate( values[6].get('value') )
-			except Exception, e:
+			except Exception as e:
 				if not error: error = _(u'PXE config template is not valid.')
 		else:
 			try:
 				product.setUserLoginScript( values[6].get('value') )
-			except Exception, e:
+			except Exception as e:
 				if not error: error = _(u'User login script is not valid.')
-		
+
 		if error:
 			ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
 			continue
-		
+
 		break
-	
+
 	productSourceDir = os.path.join(destDir, product.id)
 	if os.path.exists(productSourceDir):
 		if not ui.yesno(title       = _(u'Overwrite?'),
@@ -280,13 +280,13 @@ PXE config template: path to a custom pxelinux config template.
 				cancelLabel = _(u'No') ):
 			raise Exception(_(u'Cancelled'))
 		shutil.rmtree(productSourceDir)
-	
+
 	os.mkdir( productSourceDir,                              02770 )
 	os.mkdir( os.path.join(productSourceDir, 'OPSI'),        02770 )
 	os.mkdir( os.path.join(productSourceDir, 'CLIENT_DATA'), 02770 )
 	os.mkdir( os.path.join(productSourceDir, 'SERVER_DATA'), 02770 )
-	
-	
+
+
 	# Product dependencies
 	productDependencies = []
 	helpText  = _(\
@@ -303,14 +303,14 @@ Possible requirement types are:
 ''') % ( u', '.join([u'setup', u'uninstall', u'update', u'once', u'always', u'custom']),
 	 u', '.join([u'installed', 'not_installed']),
 	 u', '.join([u'before', u'after']) )
-	
+
 	while True:
 		if not ui.yesno(title       = _(u'Create product dependency?'),
 				text        = _(u'Do you want to create a product dependency?'),
 				okLabel     = _(u'Yes'),
 				cancelLabel = _(u'No') ):
 			break
-			
+
 		productDependency = ProductDependency(
 					productId         = product.id,
 					productVersion    = product.productVersion,
@@ -329,51 +329,51 @@ Possible requirement types are:
 				{ "name": _(u"Required installation status"), "value": productDependency.requiredInstallationStatus or u'' },
 				{ "name": _(u"Requirement type"),             "value": productDependency.requirementType or u'' }
 			]
-			
+
 			values = ui.getValues(
 				title   = _(u'Create dependency for product %s') % product.id,
 				text    = helpText,
 				entries = values )
-			
+
 			if not values:
 				break
-			
+
 			error = None
 			try:
 				productDependency.setProductAction( values[0].get('value') )
-			except Exception, e:
+			except Exception as e:
 				if not error: error = _(u'You have to specify a valid product action.')
-			
+
 			try:
 				productDependency.setRequiredProductId( values[1].get('value') )
-			except Exception, e:
+			except Exception as e:
 				if not error: error = _(u'You have to specify a valid required product id.')
-			
+
 			if values[2].get('value'):
 				try:
 					productDependency.setRequiredAction( values[2].get('value') )
-				except Exception, e:
+				except Exception as e:
 					if not error: error = _(u'Required action is not valid.')
 			elif values[3].get('value'):
 				try:
 					productDependency.setRequiredInstallationStatus( values[3].get('value') )
-				except Exception, e:
+				except Exception as e:
 					if not error: error = _(u'Required installation status is not valid.')
 			else:
 				if not error: error = _(u'Please specify either a required installation status or a required action.')
-			
+
 			try:
 				productDependency.setRequirementType( values[4].get('value') )
-			except Exception, e:
+			except Exception as e:
 				if not error: error = _(u'Requirement type is not valid.')
-			
+
 			if error:
 				ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
 				continue
-			
+
 			productDependencies.append(productDependency)
 			break
-	
+
 	# Product properties
 	productProperties = []
 	helpText  = _(\
@@ -390,7 +390,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 				okLabel     = _(u'Yes'),
 				cancelLabel = _(u'No')):
 			break
-		
+
 		# Get property type
 		values = [
 			{ "name": u"unicode",	"selected": True },
@@ -403,7 +403,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 		if not propertyType:
 			continue
 		propertyType = propertyType[0]
-		
+
 		productProperty = None
 		if (propertyType == 'unicode'):
 			productProperty = UnicodeProductProperty(productId = product.id, productVersion = product.productVersion, packageVersion = product.packageVersion, propertyId = u'property')
@@ -411,7 +411,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 			productProperty = BoolProductProperty(productId = product.id, productVersion = product.productVersion, packageVersion = product.packageVersion, propertyId = u'property')
 		productProperty.setDefaults()
 		productProperty.propertyId = u''
-		
+
 		while True:
 			values = [
 				{ "name": _(u"Property name (identifier)"), "value": productProperty.propertyId  },
@@ -420,26 +420,26 @@ Editable:             Is it allowed to specify a value which is not in the list 
 			if (propertyType == 'unicode'):
 				values.append( { "name": _(u"Possible values"), "value": u"" } )
 				values.append( { "name": _(u"Editable"),        "value": productProperty.editable } )
-			
+
 			values = ui.getValues(
 				title   = _(u'Create property for product %s') % productProperty.productId,
 				text    = helpText,
 				entries = values )
-			
+
 			if not values:
 				break
-				
+
 			error = None
 			try:
 				productProperty.setPropertyId( values[0].get('value') )
-			except Exception, e:
+			except Exception as e:
 				if not error: error = _(u'Please specify a valid identifier')
-			
+
 			try:
 				productProperty.setDescription( values[1].get('value') )
-			except Exception, e:
+			except Exception as e:
 				if not error: error = _(u'Please specify a valid description')
-			
+
 			if (propertyType == 'unicode'):
 				productProperty.setEditable(values[3].get('value'))
 				possibleValues = []
@@ -450,14 +450,14 @@ Editable:             Is it allowed to specify a value which is not in the list 
 				if possibleValues:
 					try:
 						productProperty.setPossibleValues(possibleValues)
-					except Exception, e:
+					except Exception as e:
 						if not error: error = _(u'Please specify valid possible values')
 				else:
 					productProperty.possibleValues = []
 			if error:
 				ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
 				continue
-			
+
 			try:
 				defaultValues = []
 				if productProperty.possibleValues:
@@ -481,15 +481,15 @@ Editable:             Is it allowed to specify a value which is not in the list 
 						text  = u"" )
 					if not result is None:
 						defaultValues = [ result ]
-					
+
 				productProperty.setDefaultValues(defaultValues)
-			except Exception, e:
+			except Exception as e:
 				if not error: error = _(u'Please specify valid default values: %s') % e
-			
+
 			if error:
 				ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
 				continue
-			
+
 			productProperties.append(productProperty)
 			break
 
@@ -505,43 +505,43 @@ Maintainer of this opsi package.
 			{ "name": _(u"Maintainer name"),   "value": maintainer },
 			{ "name": _(u"Maintainer e-mail"), "value": maintainerEmail }
 		]
-		
+
 		values = ui.getValues(
 			title   = _(u'Maintainer info'),
 			width   = 70,
 			height  = 10,
 			text    = helpText,
 			entries = values )
-		
+
 		if not values:
 			raise Exception(_('Cancelled'))
-		
+
 		error = None
 		try:
 			if not values[0].get('value'):
 				raise Exception(u'Empty maintainer')
 			maintainer = forceUnicode(values[0].get('value'))
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Please enter a valid maintainer name.')
-		
+
 		try:
 			if not values[1].get('value'):
 				raise Exception(u'Empty maintainer e-mail')
 			maintainerEmail = forceEmailAddress(values[1].get('value'))
-		except Exception, e:
+		except Exception as e:
 			if not error: error = _(u'Please enter a valid e-mail address.')
-		
+
 		if error:
 			ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
 			continue
-		
+
 		break
-	
+
 	pcf = PackageControlFile(os.path.join(productSourceDir, 'OPSI', 'control'))
 	pcf.setProduct(product)
 	pcf.setProductDependencies(productDependencies)
 	pcf.setProductProperties(productProperties)
-	
+
 	tmpChangelog = os.path.join(productSourceDir, 'OPSI', 'changelog.txt')
 	cf = ChangelogFile(tmpChangelog)
 	cf.setEntries([{
@@ -557,11 +557,11 @@ Maintainer of this opsi package.
 	cf.generate()
 	product.setChangelog(u''.join(cf.getLines()))
 	os.unlink(tmpChangelog)
-	
+
 	pcf.setProduct(product)
 	pcf.generate()
 	pcf.chmod(0600)
-	
+
 	# Create preinst template
 	preinst = codecs.open(os.path.join(productSourceDir, 'OPSI', 'preinst'), 'w', 'utf-8')
 	print >> preinst, u'#! /bin/bash'
@@ -575,7 +575,7 @@ Maintainer of this opsi package.
 	print >> preinst, u'#'
 	preinst.close()
 	os.chmod(os.path.join(productSourceDir, 'OPSI', 'preinst'), 0700)
-	
+
 	# Create postinst template
 	postinst = codecs.open(os.path.join(productSourceDir, 'OPSI', 'postinst'), 'w', 'utf-8')
 	print >> postinst, u'#! /bin/bash'
@@ -589,35 +589,29 @@ Maintainer of this opsi package.
 	print >> postinst, u'#'
 	postinst.close()
 	os.chmod(os.path.join(productSourceDir, 'OPSI', 'postinst'), 0700)
-	
+
 	ui.showMessage(title=_('Done'), text = _("Package source directory '%s' created") % productSourceDir, width = 70, height = 3)
-	
+
 if (__name__ == "__main__"):
 	exception = None
-	
+
 	try:
 		main(sys.argv[1:])
-	
-	except SystemExit, e:
+	except SystemExit:
 		pass
-		
-	except Exception, e:
+	except Exception as e:
 		exception = e
-	
+
 	if ui:
 		try:
 			ui.exit()
 		except:
 			pass
-	
+
 	if exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
 		print >> sys.stderr, "ERROR:", forceUnicode(exception).encode('utf-8')
 		sys.exit(1)
-	
+
 	sys.exit(0)
-	
-
-
-
