@@ -39,13 +39,12 @@ import sys
 import shutil
 import time
 
-# OPSI imports
 from OPSI.Logger import Logger, LOG_ERROR
 from OPSI.System import *
 from OPSI.Object import *
 from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ChangelogFile
-from OPSI.UI import *
+from OPSI.UI import UIFactory
 
 logger = Logger()
 ui = None
