@@ -606,31 +606,29 @@ Maintainer of this opsi package.
 	pcf.chmod(0600)
 
 	# Create preinst template
-	preinst = codecs.open(os.path.join(productSourceDir, 'OPSI', 'preinst'), 'w', 'utf-8')
-	print >> preinst, u'#! /bin/bash'
-	print >> preinst, u'#'
-	print >> preinst, u'# preinst script'
-	print >> preinst, u'# This script executes before that package will be unpacked from its archive file.'
-	print >> preinst, u'#'
-	print >> preinst, u'# The following environment variables can be used to obtain information about the current installation:'
-	print >> preinst, u'#   PRODUCT_ID: id of the current product'
-	print >> preinst, u'#   CLIENT_DATA_DIR: directory where client data will be installed'
-	print >> preinst, u'#'
-	preinst.close()
+	with codecs.open(os.path.join(productSourceDir, 'OPSI', 'preinst'), 'w', 'utf-8') as preinst:
+		preinst.write(u'#! /bin/bash')
+		preinst.write(u'#')
+		preinst.write(u'# preinst script')
+		preinst.write(u'# This script executes before that package will be unpacked from its archive file.')
+		preinst.write(u'#')
+		preinst.write(u'# The following environment variables can be used to obtain information about the current installation:')
+		preinst.write(u'#   PRODUCT_ID: id of the current product')
+		preinst.write(u'#   CLIENT_DATA_DIR: directory where client data will be installed')
+		preinst.write(u'#')
 	os.chmod(os.path.join(productSourceDir, 'OPSI', 'preinst'), 0700)
 
 	# Create postinst template
-	postinst = codecs.open(os.path.join(productSourceDir, 'OPSI', 'postinst'), 'w', 'utf-8')
-	print >> postinst, u'#! /bin/bash'
-	print >> postinst, u'#'
-	print >> postinst, u'# postinst script'
-	print >> postinst, u'# This script executes after unpacking files from that archive and registering the product at the depot.'
-	print >> postinst, u'#'
-	print >> postinst, u'# The following environment variables can be used to obtain information about the current installation:'
-	print >> postinst, u'#   PRODUCT_ID: id of the current product'
-	print >> postinst, u'#   CLIENT_DATA_DIR: directory which contains the installed client data'
-	print >> postinst, u'#'
-	postinst.close()
+	with codecs.open(os.path.join(productSourceDir, 'OPSI', 'postinst'), 'w', 'utf-8') as postinst:
+		postinst.write(u'#! /bin/bash')
+		postinst.write(u'#')
+		postinst.write(u'# postinst script')
+		postinst.write(u'# This script executes after unpacking files from that archive and registering the product at the depot.')
+		postinst.write(u'#')
+		postinst.write(u'# The following environment variables can be used to obtain information about the current installation:')
+		postinst.write(u'#   PRODUCT_ID: id of the current product')
+		postinst.write(u'#   CLIENT_DATA_DIR: directory which contains the installed client data')
+		postinst.write(u'#')
 	os.chmod(os.path.join(productSourceDir, 'OPSI', 'postinst'), 0700)
 
 	ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
