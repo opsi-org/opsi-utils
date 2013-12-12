@@ -64,7 +64,7 @@ def usage():
 	print _(u"Creates an opsi product source dir in the destination directory.")
 	print _(u"If no destination directory is supplied, the current directory is used.")
 	print _(u"Options:")
-	print "   -h          " + _ (u"show this help")
+	print "   -h          " + _(u"show this help")
 	print u""
 
 
@@ -96,7 +96,7 @@ def main(argv):
 	ui.drawRootText(1, 1, 'opsi')
 
 	# Get product type
-	helpText  = ''
+	helpText = ''
 	values = [
 		{"name": u"localboot", "selected": True},
 		{"name": u"netboot"}
@@ -120,7 +120,7 @@ def main(argv):
 		product = NetbootProduct(id=u'newprod', productVersion=u'1.0', packageVersion=u'1')
 	product.setDefaults()
 
-	helpText  = _(\
+	helpText = _(\
 u'''
 Product id:       A unique identifier for the product.
 Product name:     The full name of the product.
@@ -207,7 +207,7 @@ Priority:         The installation priority class of this product (value between
 			continue
 		break
 
-	helpText  = _(\
+	helpText = _(\
 u'''
 Setup script:        Relative path to script for action "setup".
 Uninstall script:    Relative path to script for action "uninstall".
@@ -287,7 +287,7 @@ PXE config template: path to a custom pxelinux config template.
 					error = _(u'User login script is not valid.')
 
 		if error:
-			ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
+			ui.showError(title=_(u'Bad value'), text=error, width=50, height=5)
 			continue
 
 		break
@@ -312,7 +312,7 @@ PXE config template: path to a custom pxelinux config template.
 
 	# Product dependencies
 	productDependencies = []
-	helpText  = _(\
+	helpText = _(\
 u'''
 You have to specify either a required product or a required product class.
 You have to specify either a required installation status or a required action.
@@ -323,9 +323,11 @@ Possible installation status are:
    %s
 Possible requirement types are:
    %s
-''') % ( u', '.join([u'setup', u'uninstall', u'update', u'once', u'always', u'custom']),
-	 u', '.join([u'installed', 'not_installed']),
-	 u', '.join([u'before', u'after']) )
+''') % (
+		u', '.join([u'setup', u'uninstall', u'update', u'once', u'always', u'custom']),
+		u', '.join([u'installed', 'not_installed']),
+		u', '.join([u'before', u'after'])
+	)
 
 	while True:
 		if not ui.yesno(
@@ -399,7 +401,7 @@ Possible requirement types are:
 					error = _(u'Requirement type is not valid.')
 
 			if error:
-				ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
+				ui.showError(title=_(u'Bad value'), text=error, width=50, height=5)
 				continue
 
 			productDependencies.append(productDependency)
@@ -407,7 +409,7 @@ Possible requirement types are:
 
 	# Product properties
 	productProperties = []
-	helpText  = _(\
+	helpText = _(\
 u'''
 Property name:        Name of the property.
 Property description: Usage description.
@@ -491,7 +493,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 				else:
 					productProperty.possibleValues = []
 			if error:
-				ui.showError(title = _(u'Bad value'), text = error, width = 50, height = 5)
+				ui.showError(title=_(u'Bad value'), text=error, width=50, height=5)
 				continue
 
 			try:
@@ -519,7 +521,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 						text=u""
 					)
 					if not result is None:
-						defaultValues = [ result ]
+						defaultValues = [result]
 
 				productProperty.setDefaultValues(defaultValues)
 			except Exception as e:
@@ -536,7 +538,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 	# Maintainer info
 	maintainer = u''
 	maintainerEmail = u''
-	helpText  = _(\
+	helpText = _(\
 u'''
 Maintainer of this opsi package.
 ''')
