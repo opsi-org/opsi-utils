@@ -607,8 +607,17 @@ Maintainer of this opsi package.
 	pcf.generate()
 	pcf.chmod(0600)
 
+	createTemplates(productSourceDir)
+
+	ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
+
+
+def createTemplates(productDirectory):
+	"""
+	Creates templates at the given ``productDirectory``.
+	"""
 	# Create preinst template
-	with codecs.open(os.path.join(productSourceDir, 'OPSI', 'preinst'), 'w', 'utf-8') as preinst:
+	with codecs.open(os.path.join(productDirectory, 'OPSI', 'preinst'), 'w', 'utf-8') as preinst:
 		preinst.write(u'#! /bin/bash')
 		preinst.write(u'#')
 		preinst.write(u'# preinst script')
@@ -618,10 +627,10 @@ Maintainer of this opsi package.
 		preinst.write(u'#   PRODUCT_ID: id of the current product')
 		preinst.write(u'#   CLIENT_DATA_DIR: directory where client data will be installed')
 		preinst.write(u'#')
-	os.chmod(os.path.join(productSourceDir, 'OPSI', 'preinst'), 0700)
+	os.chmod(os.path.join(productDirectory, 'OPSI', 'preinst'), 0700)
 
 	# Create postinst template
-	with codecs.open(os.path.join(productSourceDir, 'OPSI', 'postinst'), 'w', 'utf-8') as postinst:
+	with codecs.open(os.path.join(productDirectory, 'OPSI', 'postinst'), 'w', 'utf-8') as postinst:
 		postinst.write(u'#! /bin/bash')
 		postinst.write(u'#')
 		postinst.write(u'# postinst script')
@@ -631,9 +640,8 @@ Maintainer of this opsi package.
 		postinst.write(u'#   PRODUCT_ID: id of the current product')
 		postinst.write(u'#   CLIENT_DATA_DIR: directory which contains the installed client data')
 		postinst.write(u'#')
-	os.chmod(os.path.join(productSourceDir, 'OPSI', 'postinst'), 0700)
+	os.chmod(os.path.join(productDirectory, 'OPSI', 'postinst'), 0700)
 
-	ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
 
 if (__name__ == "__main__"):
 	exception = None
