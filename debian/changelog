@@ -1,3 +1,9 @@
+opsi-utils (4.0.4.1-2) testing; urgency=low
+
+  * version modified for buildservice
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Tue, 05 Nov 2013 15:22:52 +0100
+
 opsi-utils (4.0.4.1-1) testing; urgency=low
 
   * opsi-admin: Code cleanups resulting in an depending on python-opsi 4.0.3.4
