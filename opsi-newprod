@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __version__ = '4.0.2.1'
 
+import codecs
 import getopt
 import gettext
 import os
@@ -40,8 +41,11 @@ import shutil
 import time
 
 from OPSI.Logger import Logger, LOG_ERROR
-from OPSI.System import *
-from OPSI.Object import *
+
+from OPSI.Object import (ProductDependency, LocalbootProduct, NetbootProduct,
+	UnicodeProductProperty, BoolProductProperty)
+from OPSI.System import copy
+from OPSI.Types import forceEmailAddress, forceFilename, forceUnicode
 from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ChangelogFile
 from OPSI.UI import UIFactory
