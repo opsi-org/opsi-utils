@@ -27,6 +27,9 @@ OPTIONS
 *-h*::
 Show a help.
 
+*-t* 'DIRECTORY'::
+Copies the files from 'DIRECTORY' to the 'DESTINATION_DIRECTORY'.
+
 
 AUTHOR
 ------

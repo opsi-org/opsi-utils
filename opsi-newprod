@@ -6,7 +6,7 @@ opsi-newprod
 opsi-newprod is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010 uib GmbH
+Copyright (C) 2010-2013 uib GmbH
 
 http://www.uib.de/
 
@@ -25,12 +25,13 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-@copyright: uib GmbH <info@uib.de>
-@author: Jan Schneider <j.schneider@uib.de>
-@license: GNU General Public License version 2
+:copyright: uib GmbH <info@uib.de>
+:author: Jan Schneider <j.schneider@uib.de>
+:author: Niko Wenselowski <n.wenselowski@uib.de>
+:license: GNU General Public License version 2
 """
 
-__version__ = '4.0.2.1'
+__version__ = '4.0.4.3'
 
 import codecs
 import getopt
@@ -68,15 +69,17 @@ def usage():
 	print _(u"Creates an opsi product source dir in the destination directory.")
 	print _(u"If no destination directory is supplied, the current directory is used.")
 	print _(u"Options:")
-	print "   -h          " + _(u"show this help")
+	print "   -h              " + _(u"show this help")
+	print "   -t <DIRECTORY>  " + _(u"Copies the contents of DIRECTORY to the destination directory.")
 	print u""
 
 
 def main(argv):
 	destDir = os.getcwd()
+	templateDirectory = None
 
 	try:
-		(opts, args) = getopt.getopt(argv, "h")
+		(opts, args) = getopt.getopt(argv, "ht:")
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)
@@ -85,6 +88,8 @@ def main(argv):
 		if (opt == "-h"):
 			usage()
 			return
+		elif opt == '-t':
+			templateDirectory = arg
 
 	if (len(args) > 1):
 		logger.error(u"Too many arguments")
@@ -611,14 +616,17 @@ Maintainer of this opsi package.
 	pcf.generate()
 	pcf.chmod(0600)
 
-	createTemplates(productSourceDir)
+	createTemplates(productSourceDir, templateDirectory)
 
 	ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
 
 
-def createTemplates(productDirectory):
+def createTemplates(productDirectory, templateDirectory=None):
 	"""
 	Creates templates at the given ``productDirectory``.
+
+	:param templateDirectory: The content of the directory will be \
+copied to ``productDirectory``
 	"""
 	# Create preinst template
 	with codecs.open(os.path.join(productDirectory, 'OPSI', 'preinst'), 'w', 'utf-8') as preinst:
@@ -646,6 +654,9 @@ def createTemplates(productDirectory):
 		postinst.write(u'#')
 	os.chmod(os.path.join(productDirectory, 'OPSI', 'postinst'), 0700)
 
+	if templateDirectory:
+		copy(templateDirectory, productDirectory)
+
 
 if (__name__ == "__main__"):
 	exception = None
@@ -654,8 +665,8 @@ if (__name__ == "__main__"):
 		main(sys.argv[1:])
 	except SystemExit:
 		pass
-	except Exception as e:
-		exception = e
+	except Exception as error:
+		exception = error
 
 	if ui:
 		try:
