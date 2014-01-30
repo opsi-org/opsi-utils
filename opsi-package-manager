@@ -1517,7 +1517,7 @@ class OpsiPackageManagerControl(object):
 				sys.exit(1)
 
 	def processExtractCommand(self):
-		progressSubject = ProgressSubject(id = 'extract', title = u'extracting')
+		progressSubject = ProgressSubject(id='extract', title=u'extracting')
 
 		class ProgressNotifier(ProgressObserver):
 			def __init__(self):
@@ -1526,7 +1526,7 @@ class OpsiPackageManagerControl(object):
 					tty = os.popen('tty').readline().strip()
 					fd = open(tty)
 					terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
-					if (self.usedWidth > terminalWidth):
+					if self.usedWidth > terminalWidth:
 						self.usedWidth = terminalWidth
 					fd.close()
 				except:
@@ -1534,8 +1534,8 @@ class OpsiPackageManagerControl(object):
 
 			def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
 				barlen = self.usedWidth - 10
-				filledlen = int("%0.0f" % (barlen*percent/100))
-				bar = u'='*filledlen + u' '*(barlen-filledlen)
+				filledlen = int("%0.0f" % (barlen * percent / 100))
+				bar = u'=' * filledlen + u' ' * (barlen - filledlen)
 				percent = '%0.2f%%' % percent
 				sys.stderr.write('\r %8s [%s]\r' % (percent, bar))
 				sys.stderr.flush()
@@ -1567,7 +1567,7 @@ class OpsiPackageManagerControl(object):
 			if os.path.exists(packageDestinationDir):
 				raise Exception(u"Destination directory '%s' already exists" % packageDestinationDir)
 			os.mkdir(packageDestinationDir)
-			ppf.unpackSource(destinationDir = packageDestinationDir, newProductId = newProductId, progressSubject = progressSubject)
+			ppf.unpackSource(destinationDir=packageDestinationDir, newProductId=newProductId, progressSubject=progressSubject)
 			if not self.config['quiet']:
 				sys.stderr.write('\n\n')
 			ppf.cleanup()
