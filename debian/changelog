@@ -1,4 +1,4 @@
-opsi-utils (4.0.4.1-2.1) UNRELEASED; urgency=low
+opsi-utils (4.0.4.3-1) UNRELEASED; urgency=low
 
   * opsi-newprod: New feature -t: Copy files from a template directory
   * opsi-package-manager: Now able to use -t when extracting
