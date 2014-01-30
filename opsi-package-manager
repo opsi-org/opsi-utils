@@ -1011,7 +1011,7 @@ class OpsiPackageManager(object):
 						logger.notice(u"Starting delta upload of '%s' to depot '%s'" \
 							% (deltaFilename, depotId))
 						subject.setMessage( _(u"Starting delta upload of %s") \
-									    % os.path.basename(packageFile) )
+										% os.path.basename(packageFile) )
 
 						progressSubject = ProgressSubject(id = depotId, type = 'upload')
 						progressSubject.setMessage(u"Uploading %s (delta upload, speedup %.1f%%)" \
@@ -1547,7 +1547,13 @@ class OpsiPackageManagerControl(object):
 		if not self.config['quiet']:
 			progressSubject.attachObserver(ProgressNotifier())
 
-		destinationDir = os.path.abspath(os.getcwd())
+		if self.opts.tempDir:
+			destinationDir = os.path.abspath(self.config['tempDir'])
+			logger.debug('Extracting to temp directory.')
+		else:
+			destinationDir = os.path.abspath(os.getcwd())
+		logger.debug('Extraction destination: {0}'.format(destinationDir))
+
 		for packageFile in self.config['packageFiles']:
 			ppf = ProductPackageFile(packageFile)
 			productId = ppf.getMetaData().getProduct().getId()
