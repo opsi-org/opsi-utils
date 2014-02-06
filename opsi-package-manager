@@ -1547,15 +1547,18 @@ class OpsiPackageManagerControl(object):
 		if not self.config['quiet']:
 			progressSubject.attachObserver(ProgressNotifier())
 
+		extractTempDir = None
 		if self.opts.tempDir:
-			destinationDir = os.path.abspath(self.config['tempDir'])
-			logger.debug('Extracting to temp directory.')
-		else:
-			destinationDir = os.path.abspath(os.getcwd())
-		logger.debug('Extraction destination: {0}'.format(destinationDir))
+			extractTempDir = os.path.abspath(self.config['tempDir'])
 
+		destinationDir = os.path.abspath(os.getcwd())
 		for packageFile in self.config['packageFiles']:
-			ppf = ProductPackageFile(packageFile)
+			if extractTempDir is None:
+				ppf = ProductPackageFile(packageFile)
+			else:
+				ppf = ProductPackageFile(packageFile, tempDir=extractTempDir)
+
+
 			productId = ppf.getMetaData().getProduct().getId()
 			if not productId:
 				raise Exception(u"Failed to extract source from package '%s': product id not found in meta data" % (packageFile))
