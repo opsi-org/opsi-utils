@@ -148,21 +148,21 @@ def unlockPackage(tempDir, packageControlFile):
 def main(argv):
 	os.umask(022)
 
-	logLevel          = LOG_WARNING
-	packageSourceDir  = os.getcwd()
-	tempDir           = u'/tmp'
-	lockFile          = None
-	customName        = u''
-	customOnly        = False
-	quiet             = False
-	format            = 'cpio'
-	compression       = 'gzip'
-	dereference       = False
-	requiredVersion   = None
-	incremental       = False
+	logLevel = LOG_WARNING
+	packageSourceDir = os.getcwd()
+	tempDir = u'/tmp'
+	lockFile = None
+	customName = u''
+	customOnly = False
+	quiet = False
+	format = 'cpio'
+	compression = 'gzip'
+	dereference = False
+	requiredVersion = None
+	incremental = False
 	compatibilityMode = False
-	createMd5SumFile  = False
-	createZsyncFile   = False
+	createMd5SumFile = False
+	createZsyncFile = False
 
 	logger.setConsoleLevel(logLevel)
 	logger.setConsoleColor(True)
@@ -176,7 +176,7 @@ def main(argv):
 		sys.exit(1)
 
 	for (opt, arg) in opts:
-		if   (opt == "-h"):
+		if (opt == "-h"):
 			dereference = True
 		elif (opt == "-v"):
 			logLevel = LOG_DEBUG
@@ -236,8 +236,9 @@ def main(argv):
 		if not os.path.exists(packageControlFilePath):
 			raise Exception(u"Control file '%s' not found" % packageControlFilePath)
 
-	if not quiet: print ""
-	if not quiet: print _(u"Locking package")
+	if not quiet:
+		print ""
+		print _(u"Locking package")
 	pcf = PackageControlFile(packageControlFilePath, opsi3compatible = compatibilityMode)
 
 	lockPackage(tempDir, pcf)
@@ -253,59 +254,64 @@ def main(argv):
 				pcf.setPackageDependencies([ packageDependency ])
 				pcf.setIncrementalPackage(True)
 
-			if not quiet: print u""
-			if not quiet: print _(u"Package info")
-			if not quiet: print u"----------------------------------------------------------------------------"
-			if not quiet: print u"   %-20s : %s" % (u'version',             product.packageVersion)
-			if not quiet: print u"   %-20s : %s" % (u'custom package name', customName)
-			if not quiet: print u"   %-20s : %s" % (u'incremental package', incremental)
 			if not quiet:
+				print u""
+				print _(u"Package info")
+				print u"----------------------------------------------------------------------------"
+				print u"   %-20s : %s" % (u'version', product.packageVersion)
+				print u"   %-20s : %s" % (u'custom package name', customName)
+				print u"   %-20s : %s" % (u'incremental package', incremental)
+
 				dependencies = []
 				for dep in pcf.getPackageDependencies():
 					dependencies.append(u'%s(%s%s)' % (dep['package'], dep['condition'], dep['version']))
-				print       u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
+				print u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
 
-			if not quiet: print ""
-			if not quiet: print _(u"Product info")
-			if not quiet: print u"----------------------------------------------------------------------------"
-			if not quiet: print u"   %-20s : %s" % (u'product id',           product.id)
-			if not quiet and (product.getType() == 'LocalbootProduct'):
-				print       u"   %-20s : %s" % (u'product type',         u'localboot')
-			if not quiet and (product.getType() == 'NetbootProduct'):
-				print       u"   %-20s : %s" % (u'product type',         u'netboot')
-			if not quiet: print u"   %-20s : %s" % (u'version',              product.productVersion)
-			if not quiet: print u"   %-20s : %s" % (u'name',                 product.name)
-			if not quiet: print u"   %-20s : %s" % (u'description',          product.description)
-			if not quiet: print u"   %-20s : %s" % (u'advice',               product.advice)
-			if not quiet: print u"   %-20s : %s" % (u'priority',             product.priority)
-			if not quiet: print u"   %-20s : %s" % (u'licenseRequired',      product.licenseRequired)
-			if not quiet: print u"   %-20s : %s" % (u'product classes',      u', '.join(product.productClassIds))
-			if not quiet: print u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds))
-			if not quiet and (product.getType() == 'NetbootProduct'):
-				print       u"   %-20s : %s" % (u'pxe config template',  product.pxeConfigTemplate)
+				print ""
+				print _(u"Product info")
+				print u"----------------------------------------------------------------------------"
+				print u"   %-20s : %s" % (u'product id',           product.id)
 
-			if not quiet: print ""
-			if not quiet: print _(u"Product scripts")
-			if not quiet: print u"----------------------------------------------------------------------------"
-			if not quiet: print u"   %-20s : %s" % (u'setup',      product.setupScript)
-			if not quiet: print u"   %-20s : %s" % (u'uninstall',  product.uninstallScript)
-			if not quiet: print u"   %-20s : %s" % (u'update',     product.updateScript)
-			if not quiet: print u"   %-20s : %s" % (u'always',     product.alwaysScript)
-			if not quiet: print u"   %-20s : %s" % (u'once',       product.onceScript)
-			if not quiet: print u"   %-20s : %s" % (u'custom',     product.customScript)
-			if not quiet and (product.getType() == 'LocalbootProduct'):
-				print       u"   %-20s : %s" % (u'user login', product.userLoginScript)
-			if not quiet: print u""
+				if product.getType() == 'LocalbootProduct':
+					print u"   %-20s : %s" % (u'product type', u'localboot')
+				elif product.getType() == 'NetbootProduct':
+					print u"   %-20s : %s" % (u'product type', u'netboot')
+
+				print u"   %-20s : %s" % (u'version', product.productVersion)
+				print u"   %-20s : %s" % (u'name', product.name)
+				print u"   %-20s : %s" % (u'description', product.description)
+				print u"   %-20s : %s" % (u'advice', product.advice)
+				print u"   %-20s : %s" % (u'priority', product.priority)
+				print u"   %-20s : %s" % (u'licenseRequired', product.licenseRequired)
+				print u"   %-20s : %s" % (u'product classes', u', '.join(product.productClassIds))
+				print u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds))
+
+				if product.getType() == 'NetbootProduct':
+					print u"   %-20s : %s" % (u'pxe config template', product.pxeConfigTemplate)
+
+				print ""
+				print _(u"Product scripts")
+				print u"----------------------------------------------------------------------------"
+				print u"   %-20s : %s" % (u'setup', product.setupScript)
+				print u"   %-20s : %s" % (u'uninstall', product.uninstallScript)
+				print u"   %-20s : %s" % (u'update', product.updateScript)
+				print u"   %-20s : %s" % (u'always', product.alwaysScript)
+				print u"   %-20s : %s" % (u'once', product.onceScript)
+				print u"   %-20s : %s" % (u'custom', product.customScript)
+				if product.getType() == 'LocalbootProduct':
+					print u"   %-20s : %s" % (u'user login', product.userLoginScript)
+				print u""
 
 			pps = ProductPackageSource(
-				packageSourceDir   = packageSourceDir,
-				tempDir            = tempDir,
-				customName         = customName,
-				customOnly         = customOnly,
-				packageFileDestDir = os.getcwd(),
-				format             = format,
-				compression        = compression,
-				dereference        = dereference)
+				packageSourceDir=packageSourceDir,
+				tempDir=tempDir,
+				customName=customName,
+				customOnly=customOnly,
+				packageFileDestDir=os.getcwd(),
+				format=format,
+				compression=compression,
+				dereference=dereference
+			)
 
 			if not quiet and os.path.exists(pps.getPackageFile()):
 				print _(u"Package file '%s' already exists.") % pps.getPackageFile()
@@ -317,7 +323,7 @@ def main(argv):
 				try:
 					while True:
 						ch = sys.stdin.read(1)
-						if   ch in ('o', 'O'):
+						if ch in ('o', 'O'):
 							if os.path.exists(pps.packageFile + u'.md5'):
 								os.remove(pps.packageFile + u'.md5')
 							if os.path.exists(pps.packageFile + u'.zsync'):
@@ -365,27 +371,33 @@ def main(argv):
 				print _(u"Creating package file '%s'") % pps.getPackageFile()
 			pps.pack(progressSubject = progressSubject)
 
-			if not quiet: print "\n"
+			if not quiet:
+				print "\n"
 			if createMd5SumFile:
 				md5sumFile = u'%s.md5' % pps.getPackageFile()
-				if not quiet: print _(u"Creating md5sum file '%s'") % md5sumFile
+				if not quiet:
+					print _(u"Creating md5sum file '%s'") % md5sumFile
 				md5 = md5sum(pps.getPackageFile())
 				f = open(md5sumFile, 'w')
 				f.write(md5)
 				f.close()
 			if createZsyncFile:
 				zsyncFile = u'%s.zsync' % pps.getPackageFile()
-				if not quiet: print _(u"Creating zsync file '%s'") % zsyncFile
+				if not quiet:
+					print _(u"Creating zsync file '%s'") % zsyncFile
 				zsyncFile = ZsyncFile(zsyncFile)
 				zsyncFile.generate(pps.getPackageFile())
 			break
 	finally:
 		if pps:
-			if not quiet: print _(u"Cleaning up")
+			if not quiet:
+				print _(u"Cleaning up")
 			pps.cleanup()
-		if not quiet: print _(u"Unlocking package")
+		if not quiet:
+			print _(u"Unlocking package")
 		unlockPackage(tempDir, pcf)
-		if not quiet: print ""
+		if not quiet:
+			print ""
 
 
 if (__name__ == "__main__"):
