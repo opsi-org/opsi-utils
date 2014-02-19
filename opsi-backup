@@ -85,7 +85,7 @@ Commands:
 
 
 def usage():
-	print USAGE
+	print(USAGE)
 
 
 class HelpFormatter(argparse.HelpFormatter):
@@ -147,9 +147,9 @@ def main():
 	elif (args.command == 'verify'):
 		result = backup._verify(file=args.file)
 		if (result == 0):
-			print "Verified"
+			print("Verified")
 		else:
-			print "Verification failed"
+			print("Verification failed")
 	elif (args.command == 'create'):
 		result = backup._create(
 			destination=args.destination, mode=args.mode,
