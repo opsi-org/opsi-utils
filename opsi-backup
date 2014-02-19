@@ -159,9 +159,11 @@ def main():
 
 	try:
 		result = int(result)
-	except:
+	except (TypeError, ValueError):
 		pass
+
 	return result
+
 
 if (__name__ == "__main__"):
 	ret = 0
