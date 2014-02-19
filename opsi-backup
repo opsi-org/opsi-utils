@@ -6,7 +6,7 @@ opsi-backup
 opsi-backup is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010 uib GmbH
+Copyright (C) 2010-2013 uib GmbH
 
 http://www.uib.de/
 
@@ -139,18 +139,18 @@ def main():
 
 	backup = OpsiBackup(stdout=sys.stdout)
 	result = 0
-	if (args.command == 'restore'):
+	if args.command == 'restore':
 		result = backup._restore(
 			file=args.file, mode=args.mode, backends=args.backends,
 			configuration=args.configuration, force=args.force
 		)
-	elif (args.command == 'verify'):
+	elif args.command == 'verify':
 		result = backup._verify(file=args.file)
-		if (result == 0):
+		if result == 0:
 			print("Verified")
 		else:
 			print("Verification failed")
-	elif (args.command == 'create'):
+	elif args.command == 'create':
 		result = backup._create(
 			destination=args.destination, mode=args.mode,
 			backends=args.backends, no_configuration=args.no_configuration,
