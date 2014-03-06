@@ -84,10 +84,6 @@ Commands:
 ''' % (os.path.basename(sys.argv[0]), __version__)
 
 
-def usage():
-	print(USAGE)
-
-
 class HelpFormatter(argparse.HelpFormatter):
 	def format_help(self):
 		return USAGE
@@ -126,7 +122,7 @@ def main():
 	try:
 		args = parser.parse_args(sys.argv[1:])
 	except Exception:
-		usage()
+		print(USAGE)
 		return 1
 
 	if args.verbose:
