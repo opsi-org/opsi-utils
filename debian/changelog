@@ -2,6 +2,9 @@ opsi-utils (4.0.4.3-1) UNRELEASED; urgency=low
 
   * opsi-newprod: New feature -t: Copy files from a template directory
   * opsi-package-manager: Now able to use -t when extracting
+  * opsi-product-updater: Support for smtpuser and smtppassword to be
+    able to use it with systems that require authentication.
+  * opsi-product-updater: Support for SMTP connections that use STARTTLS
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 17 Dec 2013 09:40:59 +0100
 

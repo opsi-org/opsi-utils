@@ -6,7 +6,7 @@ opsi-product-updater
 opsi-product-updater is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2013 uib GmbH
+Copyright (C) 2013-2014 uib GmbH
 
 http://www.uib.de/
 
@@ -135,6 +135,9 @@ class EmailNotifier(object):
 		self.sender = forceUnicode(sender)
 		self.subject = forceUnicode(subject)
 		self.message = u''
+		self.username = None
+		self.password = None
+		self.useStarttls = False
 
 	def appendLine(self, line):
 		now = unicode(time.strftime(u"%b %d %H:%M:%S", time.localtime()), 'utf-8', 'replace')
@@ -151,13 +154,44 @@ class EmailNotifier(object):
 		mail += u'\n'
 		#mail += _(u"opsi product updater carried out the following actions:") + u"\n"
 		mail += self.message
+		smtpObj = None
 		try:
 			smtpObj = smtplib.SMTP(self.smtphost, self.smtpport)
+			smtpObj.ehlo_or_helo_if_needed()
+
+			if self.useStarttls:
+				if smtpObj.has_extn('STARTTLS'):
+					logger.debug('Enabling STARTTLS')
+					smtpObj.starttls()
+				else:
+					logger.debug('Server does not support STARTTLS.')
+
+			if self.username and self.password is not None:
+				logger.debug(
+					'Trying to authenticate against SMTP server '
+					'{host}:{port} as user "{username}"'.format(
+						host=self.smtphost,
+						port=self.smtpport,
+						username=self.username
+					)
+				)
+				smtpObj.login(self.username, self.password)
+				smtpObj.ehlo_or_helo_if_needed()
+
 			smtpObj.sendmail(self.sender, self.receivers, mail)
 			logger.debug(u"SMTP-Host: '%s' SMTP-Port: '%s'" % (self.smtphost, self.smtpport))
 			logger.debug(u"Sender: '%s' Reveivers: '%s' Message: '%s'" % (self.sender, self.receivers, mail))
 			logger.notice(u"Email successfully sent")
+			smtpObj.quit()
 		except Exception as error:
+			if smtpObj is not None:
+				logger.debug('SMTP Server does esmtp: {0}'.format(smtpObj.does_esmtp))
+				if hasattr(smtpObj, 'ehlo_resp'):
+					logger.debug('SMTP EHLO response: {0}'.format(smtpObj.ehlo_resp))
+
+				if hasattr(smtpObj, 'esmtp_features'):
+					logger.debug('ESMTP Features: {0}'.format(smtpObj.esmtp_features))
+
 			raise Exception(u"Failed to send email using smtp server '%s': %s" % (self.smtphost, error))
 
 
@@ -225,6 +259,12 @@ class OpsiPackageUpdater(object):
 							self.config["smtphost"] = forceHostAddress(value.strip())
 						elif option.lower() == 'smtpport':
 							self.config["smtpport"] = forceInt(value.strip())
+						elif option.lower() == 'smtpuser':
+							self.config["smtpuser"] = forceUnicode(value.strip())
+						elif option.lower() == 'smtppassword':
+							self.config["smtppassword"] = forceUnicode(value.strip())
+						elif option.lower() == 'use_starttls':
+							self.config["use_starttls"] = forceBool(value.strip())
 						elif option.lower() == 'sender':
 							self.config["sender"] = forceEmailAddress(value.strip())
 						elif option.lower() == 'receivers':
@@ -407,6 +447,14 @@ class OpsiPackageUpdater(object):
 				sender=self.config["sender"],
 				receivers=self.config["receivers"],
 			)
+
+			if self.config["use_starttls"]:
+				notifier.useStarttls = self.config["use_starttls"]
+
+			if self.config["smtpuser"] and self.config["smtppassword"] is not None:
+				notifier.username = self.config["smtpuser"]
+				notifier.password = self.config["smtppassword"]
+
 		try:
 			try:
 				if not self.config["repositories"]:
@@ -1050,6 +1098,9 @@ def main(argv):
 		"notification": False,
 		"smtphost": u'localhost',
 		"smtpport": 25,
+		"smtpuser": None,
+		"smtppassword": None,
+		"use_starttls": False,
 		"sender": u'opsi@localhost',
 		"receivers": [],
 		"wolAction": False,
