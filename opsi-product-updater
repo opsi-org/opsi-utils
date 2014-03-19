@@ -803,7 +803,7 @@ class OpsiPackageUpdater(object):
 		handler = urllib2.HTTPBasicAuthHandler(passwordManager)
 		if availablePackage['repository'].proxy:
 			logger.notice(u"Using Proxy: %s" % availablePackage['repository'].proxy)
-			proxy_handler = urllib2.ProxyHandler({'http': availablePackage['repository'].proxy, 'https': availablePackage['repository'].proxy} )
+			proxy_handler = urllib2.ProxyHandler({'http': availablePackage['repository'].proxy, 'https': availablePackage['repository'].proxy})
 			opener = urllib2.build_opener(proxy_handler, handler)
 		else:
 			opener = urllib2.build_opener(handler)
@@ -813,7 +813,7 @@ class OpsiPackageUpdater(object):
 		con = opener.open(req)
 		size = int(con.info().get('Content-length', 0))
 		if size:
-			logger.notice(u"Downloading %s (%s MB) to %s" % (url, round(size/(1024.0*1024.0), 2), outFile))
+			logger.notice(u"Downloading %s (%s MB) to %s" % (url, round(size / (1024.0 * 1024.0), 2), outFile))
 		else:
 			logger.notice(u"Downloading %s to %s" % (url, outFile))
 		out = open(outFile, 'wb')
@@ -846,7 +846,7 @@ class OpsiPackageUpdater(object):
 		out.close()
 		if notifier:
 			if size:
-				notifier.appendLine(u"Download of '%s' completed (~ %s MB)" % (url, round(size/(1024.0*1024.0), 2)))
+				notifier.appendLine(u"Download of '%s' completed (~ %s MB)" % (url, round(size / (1024.0 * 1024.0), 2)))
 			else:
 				notifier.appendLine(u"Download of '%s' completed" % url)
 		logger.notice(u"Download of '%s' completed" % url)
@@ -947,7 +947,7 @@ class OpsiPackageUpdater(object):
 		logger.notice(u"Getting installed products")
 		products = []
 		configBackend = self.getConfigBackend()
-		for productOnDepot in configBackend.productOnDepot_getObjects(depotId = self.depotId):
+		for productOnDepot in configBackend.productOnDepot_getObjects(depotId=self.depotId):
 			product = productOnDepot.toHash()
 			logger.info(u"Found installed product '%s_%s-%s'" % (product['productId'], product['productVersion'], product['packageVersion']))
 			products.append(product)
@@ -987,7 +987,7 @@ class OpsiPackageUpdater(object):
 		for url in repository.getDownloadUrls():
 			try:
 				url = urllib.quote(url.encode('utf-8'), safe="/#%[]=:;$&()+,!?*@'~")
-				req = urllib2.Request(url , None, self.httpHeaders)
+				req = urllib2.Request(url, None, self.httpHeaders)
 				response = opener.open(req)
 				content = response.read()
 				logger.debug("content: '%s'" % content)
