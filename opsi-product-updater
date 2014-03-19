@@ -939,7 +939,7 @@ class OpsiPackageUpdater(object):
 					}
 				)
 				logger.debug(u"Local package info: %s" % packages[-1])
-			except Exception ,e:
+			except Exception as e:
 				logger.error("Failed to process file '%s': %s" % (f, e))
 		return packages
 
@@ -1038,7 +1038,7 @@ class OpsiPackageUpdater(object):
 						if depotConnection:
 							packages[-1]["md5sum"] = depotConnection.getMD5Sum(u'%s/%s' % (depotRepositoryPath, link))
 						logger.debug(u"Repository package info: %s" % packages[-1])
-					except Exception ,error:
+					except Exception as error:
 						logger.error(u"Failed to process link '%s': %s" % (link, error))
 
 				if not depotConnection:
