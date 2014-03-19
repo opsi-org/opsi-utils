@@ -198,7 +198,7 @@ class EmailNotifier(object):
 class OpsiPackageUpdater(object):
 	def __init__(self, config):
 		self.config = config
-		self.httpHeaders = {'User-Agent' : self.config.get("userAgent", "")}
+		self.httpHeaders = {'User-Agent': self.config.get("userAgent", "")}
 		self.configBackend = None
 		self.depotConnections = {}
 		self.depotId = forceHostId(getfqdn(conf='/etc/opsi/global.conf').lower())
@@ -232,7 +232,7 @@ class OpsiPackageUpdater(object):
 
 			self.config['repositories'] = []
 
-			iniFile = IniFile(filename = self.config['configFile'], raw = True)
+			iniFile = IniFile(filename=self.config['configFile'], raw=True)
 			config = iniFile.parse()
 			for section in config.sections():
 				if section.lower() == 'general':
@@ -346,7 +346,7 @@ class OpsiPackageUpdater(object):
 
 					repository = None
 					if opsiDepotId:
-						depots = self.getConfigBackend().host_getObjects(type = 'OpsiDepotserver', id = opsiDepotId)
+						depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=opsiDepotId)
 						if not depots:
 							raise Exception(u"Depot '%s' not found in backend" % opsiDepotId)
 						if not depots[0].repositoryRemoteUrl:
@@ -429,7 +429,7 @@ class OpsiPackageUpdater(object):
 		return self.configBackend
 
 	def getDepotConnection(self, depotId, username, password):
-		if not self.depotConnections.has_key(depotId):
+		if depotId not in self.depotConnections:
 			self.depotConnections[depotId] = JSONRPCBackend(
 				address=depotId,
 				username=username,
@@ -636,7 +636,7 @@ class OpsiPackageUpdater(object):
 						logger.warning(u"Failed to get product property defaults: %s" % error)
 
 					logger.notice(u"Installing package '%s'" % packageFile)
-					self.getConfigBackend().depot_installPackage(filename=packageFile, force=True, propertyDefaultValues=propertyDefaultValues, tempDir=self.config.get('tempDir','/tmp'))
+					self.getConfigBackend().depot_installPackage(filename=packageFile, force=True, propertyDefaultValues=propertyDefaultValues, tempDir=self.config.get('tempDir', '/tmp'))
 					productOnDepots = self.getConfigBackend().productOnDepot_getObjects(depotId=self.depotId, productId=package['productId'])
 					if not productOnDepots:
 						raise Exception(u"Product '%s' not found on depot '%s' after installation" % (package['productId'], self.depotId))
@@ -660,7 +660,7 @@ class OpsiPackageUpdater(object):
 				wakeOnLanClients = []
 				shutdownProduct = None
 				if self.config['wolAction'] and self.config["wolShutdownWanted"]:
-					for product in self.getConfigBackend().productOnDepot_getObjects(depotId = self.depotId, productId = 'shutdownwanted'):
+					for product in self.getConfigBackend().productOnDepot_getObjects(depotId=self.depotId, productId='shutdownwanted'):
 						shutdownProduct = product
 						logger.info(u"Found 'shutdownwanted' product on depot '%s': %s" % (self.depotId, shutdownProduct))
 						break
@@ -683,7 +683,7 @@ class OpsiPackageUpdater(object):
 							% (package['productId'], package['repository'].baseUrl))
 						continue
 
-					clientToDepotserver = self.getConfigBackend().configState_getClientToDepotserver(depotIds = [ self.depotId ])
+					clientToDepotserver = self.getConfigBackend().configState_getClientToDepotserver(depotIds=[self.depotId])
 					if clientToDepotserver:
 						clientIds = []
 						for ctd in clientToDepotserver:
@@ -786,7 +786,7 @@ class OpsiPackageUpdater(object):
 				if (percent == 0) and (float(match.group(1)) == 100):
 					continue
 				percent = float(match.group(1))
-				speed = float(match.group(2))*8
+				speed = float(match.group(2)) * 8
 				logger.debug(u'Zsyncing %s: %d%% (%d kbit/s)' % (availablePackage["packageFile"], percent, speed))
 			if notifier:
 				notifier.appendLine(u"Zsync of '%s' completed" % availablePackage["packageFile"])
@@ -830,14 +830,14 @@ class OpsiPackageUpdater(object):
 				break
 			completed += len(chunk)
 			out.write(chunk)
-			if (size > 0):
+			if size > 0:
 				try:
-					percent = round(100*completed/size, 1)
-					if (lastPercent != percent):
+					percent = round(100 * completed / size, 1)
+					if lastPercent != percent:
 						lastPercent = percent
 						now = time.time()
 						if (not speed or (now - lastTime) > 2):
-							speed = 8 * int( ((completed - lastCompleted)/(now - lastTime))/1024 )
+							speed = 8 * int(((completed - lastCompleted) / (now - lastTime)) / 1024)
 							lastTime = now
 							lastCompleted = completed
 						logger.debug(u'Downloading %s: %d%% (%d kbit/s)' % (url, percent, speed))
