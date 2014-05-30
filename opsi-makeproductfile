@@ -117,16 +117,15 @@ def lockPackage(tempDir, packageControlFile):
 	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
 	# Test if other processes are accessing same product
 	try:
-		lf = open(lockFile, 'r')
-		p = lf.read().strip()
-		lf.close()
+		with open(lockFile, 'r') as lf:
+			p = lf.read().strip()
 
 		if p:
 			for line in execute(u"ps -A"):
 				line = line.strip()
 				if not line:
 					continue
-				if (p == line.split()[0].strip()):
+				if p == line.split()[0].strip():
 					pName = line.split()[-1].strip()
 					# process is running
 					raise Exception(u"Product '%s' is currently locked by process %s (%s)." \
@@ -136,9 +135,8 @@ def lockPackage(tempDir, packageControlFile):
 		pass
 
 	# Write lock-file
-	lf = open(lockFile, 'w')
-	lf.write(str(os.getpid()))
-	lf.close()
+	with open(lockFile, 'w') as lf:
+		lf.write(str(os.getpid()))
 
 
 def unlockPackage(tempDir, packageControlFile):
@@ -387,9 +385,9 @@ def main(argv):
 				if not quiet:
 					print _(u"Creating md5sum file '%s'") % md5sumFile
 				md5 = md5sum(pps.getPackageFile())
-				f = open(md5sumFile, 'w')
-				f.write(md5)
-				f.close()
+				open(md5sumFile, 'w') as f:
+					f.write(md5)
+
 			if createZsyncFile:
 				zsyncFile = u'%s.zsync' % pps.getPackageFile()
 				if not quiet:
