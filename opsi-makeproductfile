@@ -385,7 +385,7 @@ def main(argv):
 				if not quiet:
 					print _(u"Creating md5sum file '%s'") % md5sumFile
 				md5 = md5sum(pps.getPackageFile())
-				open(md5sumFile, 'w') as f:
+				with open(md5sumFile, 'w') as f:
 					f.write(md5)
 
 			if createZsyncFile:
