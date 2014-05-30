@@ -1,4 +1,4 @@
-opsi-utils (4.0.4.3-1) UNRELEASED; urgency=low
+opsi-utils (4.0.5.1-1) UNRELEASED; urgency=low
 
   * opsi-newprod: New feature -t: Copy files from a template directory
   * opsi-package-manager: Now able to use -t when extracting
@@ -8,7 +8,7 @@ opsi-utils (4.0.4.3-1) UNRELEASED; urgency=low
   * Debian: Recommend mysql-client as it is useful when creating backups
   * opsi-makeproductfile: new option --no-pigz to disable pigz usage
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 19 May 2014 11:10:12 +0200
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 30 May 2014 17:21:13 +0200
 
 opsi-utils (4.0.4.1-2) testing; urgency=low
 
