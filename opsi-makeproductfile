@@ -41,6 +41,7 @@ import sys
 import termios
 import tty
 
+import OPSI.Util.File.Archive
 from OPSI.Logger import LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, Logger
 from OPSI.System import *
 from OPSI.Types import *
@@ -80,6 +81,7 @@ def usage():
 	print u"   -t          temp dir"
 	print u"   -m          create md5sum file"
 	print u"   -z          create zsync file"
+	print u"   --no-pigz   Disable the usage of pigz"
 	print u""
 
 
@@ -157,6 +159,7 @@ def main(argv):
 	quiet = False
 	format = 'cpio'
 	compression = 'gzip'
+	disablePigz = False
 	dereference = False
 	requiredVersion = None
 	incremental = False
@@ -169,8 +172,7 @@ def main(argv):
 	logger.setConsoleFormat(u'%L: %M')
 
 	try:
-		(opts, args) = getopt.getopt(argv, "Chvzmnqi:c:t:l:F:I:")
-
+		(opts, args) = getopt.getopt(argv, "Chvzmnqi:c:t:l:F:I:", ['no-pigz'])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)
@@ -207,6 +209,8 @@ def main(argv):
 			createMd5SumFile = True
 		elif (opt == "-z"):
 			createZsyncFile = True
+		elif opt == "--no-pigz":
+			disablePigz = True
 
 	if (len(args) > 1):
 		logger.error(u"To many arguments")
@@ -301,6 +305,11 @@ def main(argv):
 				if product.getType() == 'LocalbootProduct':
 					print u"   %-20s : %s" % (u'user login', product.userLoginScript)
 				print u""
+
+
+			if disablePigz:
+				logger.debug("Disabling pigz")
+				OPSI.Util.File.Archive.PIGZ_ENABLED = False
 
 			pps = ProductPackageSource(
 				packageSourceDir=packageSourceDir,

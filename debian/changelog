@@ -6,6 +6,7 @@ opsi-utils (4.0.4.3-1) UNRELEASED; urgency=low
     able to use it with systems that require authentication.
   * opsi-product-updater: Support for SMTP connections that use STARTTLS
   * Debian: Recommend mysql-client as it is useful when creating backups
+  * opsi-makeproductfile: new option --no-pigz to disable pigz usage
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 19 May 2014 11:10:12 +0200
 
