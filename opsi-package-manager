@@ -1157,6 +1157,9 @@ class OpsiPackageManager(object):
 				self.userInterface.exit()
 				ui = SnackUI()
 				i = 0
+
+				productProperties = sorted(productProperties, key=lambda pp: pp.propertyId)
+
 				while (i < len(productProperties)):
 					productProperty = productProperties[i]
 					product = products[productProperty.getIdent(returnType = 'unicode')]
