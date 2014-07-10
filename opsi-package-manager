@@ -1115,7 +1115,7 @@ class OpsiPackageManager(object):
 				try:
 					ppos = sequence.index(productId)
 					dpos = sequence.index(dependency['package'])
-					if (ppos < dpos):
+					if ppos < dpos:
 						sequence.remove(dependency['package'])
 						sequence.insert(ppos, dependency['package'])
 				except Exception as e:
@@ -1135,10 +1135,11 @@ class OpsiPackageManager(object):
 			for packageFile in self.config['packageFiles']:
 				productIds.append(self.getPackageControlFile(packageFile).getProduct().getId())
 			productsOnDepot = self.backend.productOnDepot_getObjects(
-				productId = productIds,
-				depotId   = self.config['depotIds'],
-				locked    = True
+				productId=productIds,
+				depotId=self.config['depotIds'],
+				locked=True
 			)
+
 			if productsOnDepot:
 				errors = []
 				for productOnDepot in productsOnDepot:
@@ -1152,7 +1153,8 @@ class OpsiPackageManager(object):
 				product = self.getPackageControlFile(packageFile).getProduct()
 				for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
 					productProperties.append(productProperty)
-					products[productProperty.getIdent(returnType = 'unicode')] = product
+					products[productProperty.getIdent(returnType='unicode')] = product
+
 			if productProperties:
 				self.userInterface.exit()
 				ui = SnackUI()
@@ -1162,7 +1164,7 @@ class OpsiPackageManager(object):
 
 				while (i < len(productProperties)):
 					productProperty = productProperties[i]
-					product = products[productProperty.getIdent(returnType = 'unicode')]
+					product = products[productProperty.getIdent(returnType='unicode')]
 
 					logger.notice(u"Getting product property defaults from user")
 					title = _(u'Please select product property defaults')
@@ -1172,18 +1174,34 @@ class OpsiPackageManager(object):
 					if productProperty.possibleValues:
 						entries = []
 						for possibleValue in productProperty.possibleValues:
-							entries.append({'name': possibleValue, 'value': possibleValue, 'selected': possibleValue in productProperty.defaultValues})
+							entries.append(
+								{
+									'name': possibleValue,
+									'value': possibleValue,
+									'selected': possibleValue in productProperty.defaultValues
+								}
+							)
 						radio = not productProperty.multiValue
 						if productProperty.editable:
-							entries.append({'name': _(u'<other value>'), 'value': '<other value>', 'selected': False})
-						selection = ui.getSelection(entries, radio = radio, width = 65, height = 10, title = title, text = text, cancelLabel = cancelLabel)
+							entries.append(
+								{
+									'name': _(u'<other value>'),
+									'value': '<other value>',
+									'selected': False
+								}
+							)
+
+						selection = ui.getSelection(entries, radio=radio, width=65, height=10, title=title, text=text, cancelLabel=cancelLabel)
 						if selection is None:
 							# back
 							i -= 1
-							if (i < 0): i = 0
+							if i < 0:
+								i = 0
 							continue
+
 						if _(u'<other value>') in selection:
 							addNewValue = True
+
 						productProperties[i].setDefaultValues(selection)
 					else:
 						addNewValue = True
@@ -1192,11 +1210,12 @@ class OpsiPackageManager(object):
 						default = u''
 						if productProperty.defaultValues:
 							default = productProperty.defaultValues[0]
-						value = ui.getValue(width = 65, height = 13, title = title, default = default, password = False, text = text, cancelLabel = cancelLabel)
+						value = ui.getValue(width=65, height=13, title=title, default=default, password=False, text=text, cancelLabel=cancelLabel)
 						if value is None:
 							# back
 							i -= 1
-							if (i < 0): i = 0
+							if i < 0:
+								i = 0
 							continue
 
 						possibleValues = productProperties[i].getPossibleValues()
@@ -1210,23 +1229,23 @@ class OpsiPackageManager(object):
 				self.userInterface.initScreen()
 
 		for depotId in self.config['depotIds']:
-			tq = TaskQueue(name = u"Install of package(s) %s on depot '%s'" % (', '.join(self.config['packageFiles']), depotId))
+			tq = TaskQueue(name=u"Install of package(s) %s on depot '%s'" % (', '.join(self.config['packageFiles']), depotId))
 			for packageFile in self.config['packageFiles']:
 				if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
 					tq.addTask(
 						UploadTask(
-							name = u"Upload of package '%s' to repository '%s'" % (packageFile, depotId),
-							opsiPackageManager = self,
-							method = self.uploadToRepository,
-							params = [packageFile, depotId]
+							name=u"Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+							opsiPackageManager=self,
+							method=self.uploadToRepository,
+							params=[packageFile, depotId]
 						)
 					)
 				tq.addTask(
 					InstallTask(
-						name = u"Install of package '%s' on depot '%s'" % (os.path.basename(packageFile), depotId),
-						opsiPackageManager = self,
-						method = self.installPackage,
-						params = [packageFile, depotId]
+						name=u"Install of package '%s' on depot '%s'" % (os.path.basename(packageFile), depotId),
+						opsiPackageManager=self,
+						method=self.installPackage,
+						params=[packageFile, depotId]
 					)
 				)
 			if not self.aborted:
