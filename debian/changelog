@@ -9,6 +9,8 @@ opsi-utils (4.0.5.1-1) UNRELEASED; urgency=low
   * opsi-makeproductfile: new option --no-pigz to disable pigz usage
   * opsi-package-manager: Product properties are sorted by name when
     installing a product with "-p ask".
+  * opsi-product-updater: Fix handing over the temp directory when
+    installing a package.
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 30 May 2014 17:21:13 +0200
 
