@@ -105,7 +105,8 @@ class ProductRepositoryInfo(object):
 				url = self.baseUrl
 			else:
 				url = u'%s/%s' % (self.baseUrl, directory)
-			if not url in urls:
+
+			if url not in urls:
 				urls.append(url)
 		return urls
 
@@ -149,11 +150,11 @@ class EmailNotifier(object):
 
 	def notify(self):
 		logger.notice(u"Sending mail notification")
-		mail =  u'From: %s\n' % self.sender
+		mail = u'From: %s\n' % self.sender
 		mail += u'To: %s\n' % u','.join(self.receivers)
 		mail += u'Subject: %s\n' % self.subject
 		mail += u'\n'
-		#mail += _(u"opsi product updater carried out the following actions:") + u"\n"
+		# mail += _(u"opsi product updater carried out the following actions:") + u"\n"
 		mail += self.message
 		smtpObj = None
 		try:
@@ -979,7 +980,12 @@ class OpsiPackageUpdater(object):
 		handler = urllib2.HTTPBasicAuthHandler(passwordManager)
 		if repository.proxy:
 			logger.notice(u"Using Proxy: %s" % repository.proxy)
-			proxy_handler = urllib2.ProxyHandler({'http': repository.proxy, 'https':repository.proxy})
+			proxy_handler = urllib2.ProxyHandler(
+				{
+					'http': repository.proxy,
+					'https': repository.proxy
+				}
+			)
 			opener = urllib2.build_opener(proxy_handler, handler)
 		else:
 			opener = urllib2.build_opener(handler)
