@@ -595,7 +595,7 @@ class OpsiPackageUpdater(object):
 						continue
 					packageFile = os.path.join(self.config["packageDir"], package["filename"])
 					productId = package['productId']
-					ppf = ProductPackageFile(packageFile)
+					ppf = ProductPackageFile(packageFile, tempDir=self.config.get('tempdir', '/tmp'))
 					ppf.getMetaData()
 					dependencies = ppf.packageControlFile.getPackageDependencies()
 					ppf.cleanup()

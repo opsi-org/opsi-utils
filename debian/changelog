@@ -11,6 +11,7 @@ opsi-utils (4.0.5.1-1) UNRELEASED; urgency=low
     installing a product with "-p ask".
   * opsi-product-updater: Fix handing over the temp directory when
     installing a package.
+  * opsi-product-updater: ProductPackageFile now uses setting "tempDir"
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 30 May 2014 17:21:13 +0200
 
