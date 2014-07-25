@@ -330,6 +330,7 @@ class OpsiPackageUpdater(object):
 					baseUrl = None
 					opsiDepotId = None
 					proxy = None
+					inheritProductPropteries = False
 					for (option, value) in config.items(section):
 						if option.lower() == 'active':
 							active = forceBool(value)
@@ -384,6 +385,12 @@ class OpsiPackageUpdater(object):
 							repository.autoSetup = forceBool(value.strip())
 						elif option.lower() == 'onlydownload':
 							repository.onlyDownload = forceBool(value.strip())
+						elif option.lower() == 'inheritproductproperties':
+							if not opsiDepotId:
+								logger.warning(u"InheritProductProperties not possible with normal http ressource.")
+								repository.inheritProductProperties = False
+							else:
+								repository.inheritProductProperties = forceBool(value.strip())
 						elif option.lower() == 'dirs':
 							repository.dirs = []
 							dirs = value.split(',')
@@ -466,6 +473,20 @@ class OpsiPackageUpdater(object):
 				installedProducts = self.getInstalledProducts()
 				localPackages = self.getLocalPackages()
 				downloadablePackages = self.onlyNewestPackages(self.getDownloadablePackages())
+				if self.config["processProductIds"]:
+					### Checking if given productIds are available and process only these products
+					newProductList = []
+					for product in self.config["processProductIds"]:
+						found = False
+						for i in range(len(downloadablePackages)):
+							if product == downloadablePackages[i]["productId"]:
+								newProductList.append(downloadablePackages[i])
+								found = True
+								break
+						if not found:
+							raise Exception(u"You have searched for a product, which was not found in configured repsoitory: '%s'" % product)
+					if newProductList:
+						downloadablePackages = newProductList
 				newPackages = []
 
 				for availablePackage in downloadablePackages:
@@ -627,12 +648,16 @@ class OpsiPackageUpdater(object):
 
 					propertyDefaultValues = {}
 					try:
-						#logger.info(u"Trying to get product property defaults from repository")
-						#for productPropertyState in self.getConfigBackend().productPropertyState_getObjects(
-						#					productId = package['productId'],
-						#					objectId  = availablePackage['repository'].opsiDepotId):
-						for productPropertyState in self.getConfigBackend().productPropertyState_getObjects(productId=package['productId'], objectId=self.depotId):
-							propertyDefaultValues[productPropertyState.propertyId] = productPropertyState.values
+						if package['repository'].inheritProductProperties and availablePackage['repository'].opsiDepotId:
+							logger.info(u"Trying to get product property defaults from repository")
+							productPropertyStates = self.getConfigBackend().productPropertyState_getObjects(
+											productId = package['productId'],
+											objectId  = availablePackage['repository'].opsiDepotId)
+						else:
+							productPropertyStates = self.getConfigBackend().productPropertyState_getObjects(productId=package['productId'], objectId=self.depotId):
+						if productPropteryStates:
+							for pps in productPropteryStates:
+									propertyDefaultValues[pps.propertyId] = pps.values
 						logger.notice(u"Using product property defaults: %s" % propertyDefaultValues)
 					except Exception as error:
 						logger.warning(u"Failed to get product property defaults: %s" % error)
@@ -1091,6 +1116,7 @@ def usage():
 	print u"    -V    Show version information and exit"
 	print u"    -c    Location of config file"
 	print u"    -i    Install all downloadable packages from configured repositories (ignores excludes)"
+	print u"    -p    List of productIds that will be processed: opsi-winst,opsi-client-agent"
 	print u""
 
 
@@ -1123,7 +1149,7 @@ def main(argv):
 	}
 	# Get options
 	try:
-		(opts, args) = getopt.getopt(argv, "hivVc:")
+		(opts, args) = getopt.getopt(argv, "hivVc:p:")
 	except getopt.GetoptError:
 		usage()
 		sys.exit(1)
@@ -1142,6 +1168,10 @@ def main(argv):
 			logger.setConsoleLevel(consoleLevel)
 		elif opt == "-i":
 			config["installAllAvailable"] = True
+		elif opt == "-p":
+			config["processProductIds"] = arg.split(",")
+		else:
+			raise Execption(u"Unknown parameter given: '%s'" % opt)
 
 	try:
 		config["zsyncCommand"] = System.which("zsync")

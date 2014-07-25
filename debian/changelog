@@ -12,8 +12,10 @@ opsi-utils (4.0.5.1-1) UNRELEASED; urgency=low
   * opsi-product-updater: Fix handing over the temp directory when
     installing a package.
   * opsi-product-updater: ProductPackageFile now uses setting "tempDir"
+  * opsi-product-updater: Added inherit ProductProperties from Master-Repository
+  * opsi-product-updater: Stops if unknown parameter is given on start
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 30 May 2014 17:21:13 +0200
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Fri, 26 Jul 2014 00:03:13 +0200
 
 opsi-utils (4.0.4.1-2) testing; urgency=low
 
