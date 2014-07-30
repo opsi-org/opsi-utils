@@ -1,4 +1,4 @@
-opsi-utils (4.0.5.1-1) UNRELEASED; urgency=low
+opsi-utils (4.0.5.1-1) experimental; urgency=low
 
   * opsi-newprod: New feature -t: Copy files from a template directory
   * opsi-package-manager: Now able to use -t when extracting
@@ -14,6 +14,7 @@ opsi-utils (4.0.5.1-1) UNRELEASED; urgency=low
   * opsi-product-updater: ProductPackageFile now uses setting "tempDir"
   * opsi-product-updater: Added inherit ProductProperties from Master-Repository
   * opsi-product-updater: Stops if unknown parameter is given on start
+  * opsi-product-updater: Limit updates to specific package with "-p"
 
  -- Erol Ueluekmen <e.ueluekmen@uib.de>  Fri, 26 Jul 2014 00:03:13 +0200
 
