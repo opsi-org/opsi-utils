@@ -1,3 +1,9 @@
+opsi-utils (4.0.5.2-1) experimental; urgency=low
+
+  * opsi-product-updater: small bugfix
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Sun, 03 Aug 2014 03:35:50 +0200
+
 opsi-utils (4.0.5.1-1) experimental; urgency=low
 
   * opsi-newprod: New feature -t: Copy files from a template directory
