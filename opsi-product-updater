@@ -91,6 +91,7 @@ class ProductRepositoryInfo(object):
 		self.autoSetup = autoSetup
 		self.opsiDepotId = opsiDepotId
 		self.onlyDownload = None
+		self.inheritProductProperties = None
 
 		self.proxy = None
 		if proxy:
@@ -330,7 +331,7 @@ class OpsiPackageUpdater(object):
 					baseUrl = None
 					opsiDepotId = None
 					proxy = None
-					inheritProductPropteries = False
+					inheritProductProperties = False
 					for (option, value) in config.items(section):
 						if option.lower() == 'active':
 							active = forceBool(value)
@@ -654,9 +655,11 @@ class OpsiPackageUpdater(object):
 											productId = package['productId'],
 											objectId  = availablePackage['repository'].opsiDepotId)
 						else:
-							productPropertyStates = self.getConfigBackend().productPropertyState_getObjects(productId=package['productId'], objectId=self.depotId):
-						if productPropteryStates:
-							for pps in productPropteryStates:
+							productPropertyStates = self.getConfigBackend().productPropertyState_getObjects(
+											productId=package['productId'],
+											objectId=self.depotId)
+						if productPropertyStates:
+							for pps in productPropertyStates:
 									propertyDefaultValues[pps.propertyId] = pps.values
 						logger.notice(u"Using product property defaults: %s" % propertyDefaultValues)
 					except Exception as error:
