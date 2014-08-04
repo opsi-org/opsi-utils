@@ -38,6 +38,10 @@ Defaults to "/etc/opsi/opsi-product-updater.conf".
 *-i*::
 Install all downloadable packages from configured repositories (ignores excludes).
 
+*-p*::
+Process only the given product identifiers. To give multiple product IDs seperate
+them with a comma, like this: opsi-winst,opsi-client-agent
+
 
 AUTHOR
 ------
