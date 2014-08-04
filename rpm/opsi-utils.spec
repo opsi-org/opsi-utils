@@ -23,7 +23,7 @@ BuildArch:      noarch
 Requires:       python-curses
 %{py_requires}
 %endif
-%if 0%{?centos_version} || 0%{?rhel_version}
+%if 0%{?centos_version} || 0%{?rhel_version} || 0%{?fedora_version}
 BuildRequires:  gettext
 %else
 BuildRequires:  gettext-runtime
