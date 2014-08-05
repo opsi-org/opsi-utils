@@ -8,7 +8,7 @@
 opsi-admin is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010 uib GmbH
+Copyright (C) 2010-2014 uib GmbH
 
 http://www.uib.de/
 
@@ -30,10 +30,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 @copyright:	uib GmbH <info@uib.de>
 @author: Jan Schneider <j.schneider@uib.de>
 @author: Erol Ueluekmen <e.ueluekmen@uib.de>
+@author: Niko Wenselowski <n.wenselowski@uib.de>
 @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.3.2'
+__version__ = '4.0.5.1'
 
 import codecs
 import fcntl
@@ -41,13 +42,13 @@ import gettext
 import getopt
 import locale
 import os
+import os.path
 import select
 import subprocess
 import sys
 import time
 import types
 
-# OPSI imports
 from OPSI.Types import (forceBool, forceFilename, forceInt, forceUnicode,
 	forceUnicodeLower)
 from OPSI.Logger import (Logger, LOG_NONE, LOG_ERROR, COLOR_CYAN, COLOR_RED,
@@ -61,7 +62,6 @@ from OPSI.Backend.Backend import *
 
 import curses
 
-# Globals
 backend = None
 shell = None
 logFile = None
@@ -122,10 +122,10 @@ except Exception as e:
 
 def signalHandler(signo, stackFrame):
 	logger.info(u"Received signal %s" % signo)
-	if (signo == SIGINT):
+	if signo == SIGINT:
 		if shell:
 			shell.sigint()
-	if (signo == SIGQUIT):
+	elif signo == SIGQUIT:
 		sys.exit(0)
 
 
@@ -406,7 +406,7 @@ class Shell:
 
 	def setColor(self, color):
 		color = forceBool(color)
-		if (color != self.color):
+		if color != self.color:
 			self.color = color
 			self.initScreen()
 
@@ -463,7 +463,7 @@ class Shell:
 						for line in lines:
 							self.appendLine(line, COLOR_RED)
 
-				if (len(self.lines) > self.yMax - 2):
+				if len(self.lines) > self.yMax - 2:
 					self.linesBack = 0
 		else:
 			self.display()
@@ -530,23 +530,23 @@ class Shell:
 					color = self.lines[len(self.lines) - self.linesBack - 1 - i]['color']
 
 			if color:
-				if (color == COLOR_NORMAL):
+				if color == COLOR_NORMAL:
 					color = curses.A_BOLD
-				elif (color == COLOR_GREEN):
+				elif color == COLOR_GREEN:
 					color = curses.color_pair(1)
-				elif (color == COLOR_CYAN):
+				elif color == COLOR_CYAN:
 					color = curses.color_pair(2)
-				elif (color == COLOR_LIGHT_WHITE):
+				elif color == COLOR_LIGHT_WHITE:
 					color = curses.A_BOLD
-				elif (color == COLOR_YELLOW):
+				elif color == COLOR_YELLOW:
 					color = curses.color_pair(3)
-				elif (color == COLOR_LIGHT_RED):
+				elif color == COLOR_LIGHT_RED:
 					color = curses.color_pair(4)
-				elif (color == COLOR_RED):
+				elif color == COLOR_RED:
 					color = curses.color_pair(5)
 
 			try:
-				if (color is not None):
+				if color is not None:
 					self.screen.addstr(s.encode(outEncoding), color)
 				else:
 					self.screen.addstr(s.encode(outEncoding))
@@ -630,7 +630,7 @@ class Shell:
 				if (qCount % 2 == 0) and (dqCount % 2 == 0):
 					split = i
 					break
-			if (split >= 0):
+			if split >= 0:
 				cmdline = u'|'.join(parts[:split + 1])
 				self.shellCommand = u'|'.join(parts[split + 1:]).lstrip()
 
@@ -703,12 +703,12 @@ class Shell:
 	def execute(self):
 		logger.info(u"Execute: %s" % self.cmdline)
 		self.cmdList.append(self.cmdline)
-		if (len(self.cmdList) > self.cmdBufferSize):
+		if len(self.cmdList) > self.cmdBufferSize:
 			del self.cmdList[0]
 		self.cmdListPos = len(self.cmdList)
 		invalid = True
 		for c in self.commands:
-			if (c.getName() == self.getParam(0)):
+			if c.getName() == self.getParam(0):
 				invalid = False
 				try:
 					c.execute(self, self.getParams()[1:])
@@ -731,10 +731,10 @@ class Shell:
 			char = None
 			while True:
 				char = self.screen.getch()
-				if (char and char >= 0 and char < 256 and char != 10):
-					if (chr(char) == 'y'):
+				if char and char >= 0 and char < 256 and char != 10:
+					if chr(char) == 'y':
 						return True
-					if (chr(char) == 'n'):
+					elif chr(char) == 'n':
 						return False
 		return False
 
@@ -1138,7 +1138,7 @@ class CommandMethod(Command):
 		else:
 			result = eval("backend.%s(*params)" % method)
 
-		duration = (time.time() - start)
+		duration = time.time() - start
 		logger.debug(u'Took %0.3f seconds to process: %s(%s)' % (duration, method, pString))
 		shell.setInfoline(_(u'Took %0.3f seconds to process: %s(%s)') % (duration, method, pString))
 		result = serialize(result)
@@ -1146,23 +1146,23 @@ class CommandMethod(Command):
 
 		if result:
 			lines = []
-			if (shell.output == u'RAW'):
+			if shell.output == u'RAW':
 				lines.append(toJson(result))
 
-			elif (shell.output == u'JSON'):
+			elif shell.output == u'JSON':
 				lines = objectToBeautifiedText(result, 0).split(u'\n')
 
-			elif (shell.output == u'SHELL'):
+			elif shell.output == u'SHELL':
 				bashVars = objectToBash(result, {})
 				for i in range(len(bashVars) - 1, -2, -1):
-					if (i == -1):
+					if i == -1:
 						i = ''
 
 					v = bashVars.get('RESULT%s' % i)
 					if v:
 						lines.append(u'RESULT%s=%s' % (i, v))
 
-			elif (shell.output == u'SIMPLE'):
+			elif shell.output == u'SIMPLE':
 				if type(result) is types.DictType:
 					for (key, value) in result.items():
 						if type(value) is bool:
@@ -1220,15 +1220,15 @@ class CommandMethod(Command):
 
 					try:
 						string = proc.stdout.read()
-						if (len(string) > 0):
+						if len(string) > 0:
 							buf += string
 					except IOError as e:
-						if (e.errno != 11):
+						if e.errno != 11:
 							raise
 
 					try:
 						string = proc.stderr.read()
-						if (len(string) > 0):
+						if len(string) > 0:
 							err += string
 					except IOError as e:
 						if (e.errno != 11):
@@ -1264,12 +1264,12 @@ class CommandSet(Command):
 			if u'log-level'.startswith(params[0]):
 				completions.append(u'log-level')
 
-		elif (paramPos == 2):
-			if (params[0] == u'color'):
+		elif paramPos == 2:
+			if params[0] == u'color':
 				completions = [u'on', u'off']
-			elif (params[0] == u'log-file'):
+			elif params[0] == u'log-file':
 				completions = [u'<filename>', u'off']
-			elif (params[0] == u'log-level'):
+			elif params[0] == u'log-level':
 				completions = [u'0', u'1', u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9']
 
 		return completions
@@ -1278,23 +1278,23 @@ class CommandSet(Command):
 		global logFile
 		global logLevel
 
-		if (len(params) <= 0):
+		if len(params) <= 0:
 			raise Exception(_(u'Missing option'))
-		if(params[0] not in [u'color', u'log-file', u'log-level']):
+		if params[0] not in (u'color', u'log-file', u'log-level'):
 			raise Exception(_(u'Unknown option: %s') % params[0])
-		if (len(params) <= 1):
+		if len(params) <= 1:
 			raise Exception(_(u'Missing value'))
 
-		if (params[0] == u'color'):
-			if (params[1] == u'on'):
+		if params[0] == u'color':
+			if params[1] == u'on':
 				shell.setColor(True)
-			elif (params[1] == u'off'):
+			elif params[1] == u'off':
 				shell.setColor(False)
 			else:
 				raise Exception(_(u'Bad value: %s') % params[1])
 
-		elif (params[0] == u'log-file'):
-			if (params[1] == u'off'):
+		elif params[0] == u'log-file':
+			if params[1] == u'off':
 				logger.setFileLevel(LOG_NONE)
 				logger.setLogFile(None)
 			else:
@@ -1305,7 +1305,7 @@ class CommandSet(Command):
 				logger.setLogFile(logFile)
 				logger.setFileLevel(logLevel)
 
-		elif (params[0] == u'log-level'):
+		elif params[0] == u'log-level':
 			if not logFile:
 				raise Exception(_(u'No log-file set!'))
 			logger.setFileLevel(int(params[1]))
@@ -1363,17 +1363,17 @@ class CommandHistory(Command):
 		return completions
 
 	def execute(self, shell, params):
-		if (len(params) <= 0):
+		if len(params) <= 0:
 			# By default: show history
 			params = [u'show']
-		elif (params[0] not in (u'clear', u'show')):
+		elif params[0] not in (u'clear', u'show'):
 			raise Exception(_(u'Unknown command: %s') % params[0])
 
-		if (params[0] == u'show'):
+		if params[0] == u'show':
 			for line in shell.cmdList:
 				shell.appendLine(line, refresh=False)
 			shell.display()
-		elif (params[0] == u'clear'):
+		elif params[0] == u'clear':
 			shell.cmdList = []
 			shell.cmdListPos = -1
 
@@ -1398,13 +1398,13 @@ class CommandLog(Command):
 		return completions
 
 	def execute(self, shell, params):
-		if (len(params) <= 0):
+		if len(params) <= 0:
 			# By default: show log
 			params = [u'show']
-		elif(params[0] not in (u'show',)):
+		elif params[0] not in (u'show',):
 			raise Exception(_(u'Unknown command: %s') % params[0])
 
-		if (params[0] == u'show'):
+		if params[0] == u'show':
 			if not logFile:
 				raise Exception(_(u'File logging is not activated'))
 
@@ -1442,12 +1442,12 @@ class CommandTask(Command):
 			for task in self._tasks:
 				completions.append(task[0])
 
-		elif (paramPos == 1):
+		elif paramPos == 1:
 			for task in self._tasks:
 				if task[0].startswith(params[0]):
 					completions.append(task[0])
 
-		elif (paramPos >= 2):
+		elif paramPos >= 2:
 			for task in self._tasks:
 				if (params[0] == task[0]) and (paramPos <= len(task)):
 					completions.append(task[paramPos - 1])
@@ -1459,14 +1459,14 @@ class CommandTask(Command):
 		for t in self._tasks:
 			tns.append(t[0])
 
-		if (len(params) <= 0):
+		if len(params) <= 0:
 			return
 
 		elif params[0] not in tns:
 			raise Exception(_(u'Unknown task: %s') % params[0])
 
-		if (params[0] == u'setupWhereInstalled'):
-			if (len(params) < 2):
+		if params[0] == u'setupWhereInstalled':
+			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
 			products = backend.product_getObjects(id=productId)
@@ -1480,8 +1480,8 @@ class CommandTask(Command):
 							shell.appendLine(clientId)
 							backend.setProductActionRequest(productId, clientId, 'setup')
 
-		if (params[0] == u'setupWhereNotInstalled'):
-			if (len(params) < 2):
+		if params[0] == u'setupWhereNotInstalled':
+			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
 			products = backend.product_getObjects(id=productId)
@@ -1495,8 +1495,8 @@ class CommandTask(Command):
 							shell.appendLine(clientId)
 							backend.setProductActionRequest(productId, clientId, u'setup')
 
-		if (params[0] == u'updateWhereInstalled'):
-			if (len(params) < 2):
+		if params[0] == u'updateWhereInstalled':
+			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
 			products = backend.product_getObjects(id=productId)
@@ -1510,8 +1510,8 @@ class CommandTask(Command):
 							shell.appendLine(clientId)
 							backend.setProductActionRequest(productId, clientId, u'update')
 
-		if (params[0] == u'uninstallWhereInstalled'):
-			if (len(params) < 2):
+		if params[0] == u'uninstallWhereInstalled':
+			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
 			products = backend.product_getObjects(id=productId)
@@ -1525,10 +1525,10 @@ class CommandTask(Command):
 							shell.appendLine(clientId)
 							backend.setProductActionRequest(productId, clientId, u'uninstall')
 
-		if (params[0] == u'setActionRequestWhereOutdated'):
-			if (len(params) < 2):
+		if params[0] == u'setActionRequestWhereOutdated':
+			if len(params) < 2:
 				raise Exception(_(u'Missing action request'))
-			if (len(params) < 3):
+			if len(params) < 3:
 				raise Exception(_(u'Missing product-id'))
 			actionRequest = params[1]
 			productId = params[2]
@@ -1552,12 +1552,12 @@ class CommandTask(Command):
 							shell.appendLine(productOnClient.clientId)
 			backend.productOnClient_updateObjects(updateProductOnClients)
 
-		if (params[0] == u'setActionRequestWithDependencies'):
-			if (len(params) < 2):
+		if params[0] == u'setActionRequestWithDependencies':
+			if len(params) < 2:
 				raise Exception(_(u'Missing action request'))
-			if (len(params) < 3):
+			if len(params) < 3:
 				raise Exception(_(u'Missing product-id'))
-			if (len(params) < 4):
+			if len(params) < 4:
 				raise Exception(_(u'Missing client-id'))
 			actionRequest = params[1]
 			productId = params[2]
@@ -1567,24 +1567,24 @@ class CommandTask(Command):
 			if productId and clientId and actionRequest:
 				backend.setProductActionRequestWithDependencies(productId, clientId, actionRequest)
 
-		if (params[0] == u'decodePcpatchPassword'):
-			if (len(params) < 3):
+		if params[0] == u'decodePcpatchPassword':
+			if len(params) < 3:
 				raise Exception(_(u'Missing argument'))
 			crypt = params[1]
 			key = params[2]
 			cleartext = blowfishDecrypt(key, crypt)
 			shell.appendLine(cleartext)
 
-		if (params[0] == u'setPcpatchPassword'):
-			if (os.getuid() != 0):
+		if params[0] == u'setPcpatchPassword':
+			if os.getuid() != 0:
 				raise Exception(_(u"You have to be root to change pcpatch password!"))
 
 			fqdn = getfqdn(conf='/etc/opsi/global.conf')
-			if (fqdn.count('.') < 2):
+			if fqdn.count('.') < 2:
 				raise Exception(_(u"Failed to get my own fully qualified domainname"))
 
 			password = u''
-			if (len(params) < 2):
+			if len(params) < 2:
 				password = shell.getPassword()
 			else:
 				password = params[1]
@@ -1629,7 +1629,7 @@ if (__name__ == "__main__"):
 		except Exception:
 			pass
 
-		if (os.name == 'posix'):
+		if os.name == 'posix':
 			from signal import signal, SIGINT, SIGQUIT
 			signal(SIGINT, signalHandler)
 			signal(SIGQUIT, signalHandler)
