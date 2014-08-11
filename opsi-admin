@@ -384,7 +384,7 @@ class Shell:
 		home = os.environ.get('HOME')
 		if not home:
 			logger.debug('Environment has no $HOME set.')
-			home = os.path.expanduser()
+			home = os.path.expanduser('~')
 
 		if home:
 			self.userConfigDir = forceFilename(os.path.join(home, '.opsi-admin'))
