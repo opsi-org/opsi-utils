@@ -1,3 +1,9 @@
+opsi-utils (4.0.5.3-2) experimental; urgency=low
+
+  * Fix for reading the home dir.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 11 Aug 2014 15:53:58 +0200
+
 opsi-utils (4.0.5.3-1) experimental; urgency=low
 
   * opsi-admin: Added another try on reading the users home directory.
