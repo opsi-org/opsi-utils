@@ -6,7 +6,7 @@ opsi-newprod
 opsi-newprod is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010-2013 uib GmbH
+Copyright (C) 2010-2014 uib GmbH
 
 http://www.uib.de/
 
@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 :license: GNU General Public License version 2
 """
 
-__version__ = '4.0.4.3'
+__version__ = '4.0.5.4'
 
 import codecs
 import getopt
@@ -655,7 +655,7 @@ copied to ``productDirectory``
 	os.chmod(os.path.join(productDirectory, 'OPSI', 'postinst'), 0700)
 
 	if templateDirectory:
-		copy(templateDirectory, productDirectory)
+		copy(os.path.join(templateDirectory, '*'), productDirectory)
 
 
 if (__name__ == "__main__"):
