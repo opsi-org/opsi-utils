@@ -1,4 +1,4 @@
-opsi-utils (4.0.5.4-1) UNRELEASED; urgency=low
+opsi-utils (4.0.5.4-1) experimental; urgency=low
 
   * opsi-newprod correctly copies the contents of the template-directory
 
