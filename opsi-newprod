@@ -85,18 +85,18 @@ def main(argv):
 		sys.exit(1)
 
 	for (opt, arg) in opts:
-		if (opt == "-h"):
+		if opt == "-h":
 			usage()
 			return
 		elif opt == '-t':
 			templateDirectory = arg
 
-	if (len(args) > 1):
+	if len(args) > 1:
 		logger.error(u"Too many arguments")
 		usage()
 		sys.exit(1)
 
-	elif (len(args) > 0):
+	elif len(args) > 0:
 		destDir = os.path.abspath(forceFilename(args[0]))
 
 	global ui
@@ -123,9 +123,9 @@ def main(argv):
 	productType = productType[0]
 
 	product = None
-	if (productType == 'localboot'):
+	if productType == 'localboot':
 		product = LocalbootProduct(id=u'newprod', productVersion=u'1.0', packageVersion=u'1')
-	elif (productType == 'netboot'):
+	elif productType == 'netboot':
 		product = NetbootProduct(id=u'newprod', productVersion=u'1.0', packageVersion=u'1')
 	product.setDefaults()
 
@@ -151,7 +151,7 @@ Priority:         The installation priority class of this product (value between
 			{"name": _(u"License required"), "value": product.licenseRequired},
 			{"name": _(u"Priority"), "value": product.priority}
 		]
-		if (productType == 'netboot'):
+		if productType == 'netboot':
 			values.append({"name": _(u"PXE config template"), "value": product.pxeConfigTemplate})
 
 		values = ui.getValues(
@@ -237,7 +237,7 @@ PXE config template: path to a custom pxelinux config template.
 			{"name": _(u"Custom script"), "value": product.customScript}
 		]
 
-		if (productType == 'netboot'):
+		if productType == 'netboot':
 			values.append({"name": _(u"PXE config template"), "value": product.pxeConfigTemplate})
 		else:
 			values.append({"name": _(u"User login script"), "value": product.userLoginScript})
@@ -282,7 +282,7 @@ PXE config template: path to a custom pxelinux config template.
 		except Exception as e:
 			if not error:
 				error = _(u'Custom script is not valid.')
-		if (productType == 'netboot'):
+		if productType == 'netboot':
 			try:
 				product.setPxeConfigTemplate(values[6].get('value'))
 			except Exception as e:
@@ -448,9 +448,9 @@ Editable:             Is it allowed to specify a value which is not in the list 
 		propertyType = propertyType[0]
 
 		productProperty = None
-		if (propertyType == 'unicode'):
+		if propertyType == 'unicode':
 			productProperty = UnicodeProductProperty(productId=product.id, productVersion=product.productVersion, packageVersion=product.packageVersion, propertyId=u'property')
-		if (propertyType == 'boolean'):
+		elif propertyType == 'boolean':
 			productProperty = BoolProductProperty(productId=product.id, productVersion=product.productVersion, packageVersion=product.packageVersion, propertyId=u'property')
 		productProperty.setDefaults()
 		productProperty.propertyId = u''
@@ -460,7 +460,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 				{"name": _(u"Property name (identifier)"), "value": productProperty.propertyId},
 				{"name": _(u"Property description"), "value": productProperty.description}
 			]
-			if (propertyType == 'unicode'):
+			if propertyType == 'unicode':
 				values.append({"name": _(u"Possible values"), "value": u""})
 				values.append({"name": _(u"Editable"), "value": productProperty.editable})
 
@@ -486,12 +486,12 @@ Editable:             Is it allowed to specify a value which is not in the list 
 				if not error:
 					error = _(u'Please specify a valid description')
 
-			if (propertyType == 'unicode'):
+			if propertyType == 'unicode':
 				productProperty.setEditable(values[3].get('value'))
 				possibleValues = []
 				for v in values[2].get('value').split(u','):
 					v = v.strip()
-					if (v != u''):
+					if v != u'':
 						possibleValues.append(v)
 				if possibleValues:
 					try:
