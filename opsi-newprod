@@ -630,28 +630,28 @@ copied to ``productDirectory``
 	"""
 	# Create preinst template
 	with codecs.open(os.path.join(productDirectory, 'OPSI', 'preinst'), 'w', 'utf-8') as preinst:
-		preinst.write(u'#! /bin/bash')
-		preinst.write(u'#')
-		preinst.write(u'# preinst script')
-		preinst.write(u'# This script executes before that package will be unpacked from its archive file.')
-		preinst.write(u'#')
-		preinst.write(u'# The following environment variables can be used to obtain information about the current installation:')
-		preinst.write(u'#   PRODUCT_ID: id of the current product')
-		preinst.write(u'#   CLIENT_DATA_DIR: directory where client data will be installed')
-		preinst.write(u'#')
+		preinst.write(u'#! /bin/bash\n')
+		preinst.write(u'#\n')
+		preinst.write(u'# preinst script\n')
+		preinst.write(u'# This script executes before that package will be unpacked from its archive file.\n')
+		preinst.write(u'#\n')
+		preinst.write(u'# The following environment variables can be used to obtain information about the current installation:\n')
+		preinst.write(u'#   PRODUCT_ID: id of the current product\n')
+		preinst.write(u'#   CLIENT_DATA_DIR: directory where client data will be installed\n')
+		preinst.write(u'#\n')
 	os.chmod(os.path.join(productDirectory, 'OPSI', 'preinst'), 0700)
 
 	# Create postinst template
 	with codecs.open(os.path.join(productDirectory, 'OPSI', 'postinst'), 'w', 'utf-8') as postinst:
-		postinst.write(u'#! /bin/bash')
-		postinst.write(u'#')
-		postinst.write(u'# postinst script')
-		postinst.write(u'# This script executes after unpacking files from that archive and registering the product at the depot.')
-		postinst.write(u'#')
-		postinst.write(u'# The following environment variables can be used to obtain information about the current installation:')
-		postinst.write(u'#   PRODUCT_ID: id of the current product')
-		postinst.write(u'#   CLIENT_DATA_DIR: directory which contains the installed client data')
-		postinst.write(u'#')
+		postinst.write(u'#! /bin/bash\n')
+		postinst.write(u'#\n')
+		postinst.write(u'# postinst script\n')
+		postinst.write(u'# This script executes after unpacking files from that archive and registering the product at the depot.\n')
+		postinst.write(u'#\n')
+		postinst.write(u'# The following environment variables can be used to obtain information about the current installation:\n')
+		postinst.write(u'#   PRODUCT_ID: id of the current product\n')
+		postinst.write(u'#   CLIENT_DATA_DIR: directory which contains the installed client data\n')
+		postinst.write(u'#\n')
 	os.chmod(os.path.join(productDirectory, 'OPSI', 'postinst'), 0700)
 
 	if templateDirectory:
