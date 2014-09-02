@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.5.1'
+__version__ = '4.0.5.2'
 
 
 import base64
@@ -1413,6 +1413,7 @@ class OpsiPackageManagerControl(object):
 		parser.add_option("-S", "--setup",                   action="store_true", dest="setupWhereInstalled")
 		parser.add_option("-U", "--update",                  action="store_true", dest="updateWhereInstalled")
 		parser.add_option(      "--log-file",                action="store",      dest="logFile")
+		parser.add_option(      "--log-file-level",                action="store",      dest="fileLogLevel")
 		parser.add_option(      "--purge-client-properties", action="store_true", dest="purgeClientProperties")
 
 		# Get commandline options and arguments
@@ -1433,7 +1434,6 @@ class OpsiPackageManagerControl(object):
 			sys.exit(0)
 
 		self.setCommandlineConfig()
-
 
 		logger.setLogFormat(u'[%l] [%D] %M (%F|%N)')
 		if self.config['logFile']:
@@ -1756,13 +1756,14 @@ class OpsiPackageManagerControl(object):
 	def setCommandlineConfig(self):
 		if (self.opts.properties == 'ask') and self.opts.quiet:
 			raise Exception(u"You cannot use properties=ask in quiet mode")
-
 		if self.opts.quiet:
 			self.config['quiet'] = True
 		if self.opts.verbose:
 			self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
 		if self.opts.logFile:
 			self.config['logFile'] = self.opts.logFile
+		if self.opts.fileLogLevel:
+			self.config['fileLogLevel'] = forceInt(self.opts.fileLogLevel)
 		if self.opts.tempDir:
 			self.config['tempDir'] = self.opts.tempDir
 		if self.opts.depots:
@@ -1855,28 +1856,29 @@ class OpsiPackageManagerControl(object):
 		print u"  -h, --help                                 show this help message and exit"
 		print u""
 		print u"Options:"
-		print u"  -v, --verbose                    increase verbosity (can be used multiple times)"
-		print u"  -q, --quiet                      do not display any messages"
-		print u"  --log-file         <log-file>    path to debug log file"
-		print u"  -d, --depots       <depots>      comma separated list of depot ids to process"
-		print u"			 	      all = all known depots"
-		print u"  -p, --properties   <mode>        mode for default product property values"
-		print u"		                      ask     = display dialog"
-		print u"		                      package = use defaults from package"
-		print u"		                      keep    = keep depot defaults (default)"
-		print u"  --purge-client-properties        remove product property states of the installed product(s)"
-		print u"  -f, --force                      force install/uninstall (use with extreme caution)"
-		print u"  -U, --update                     set action \"update\" on hosts where installation status is \"installed\""
-		print u"  -S, --setup                      set action \"setup\" on hosts where installation status is \"installed\""
-		print u"  -o, --overwrite                  overwrite existing package on upload even if size matches"
-		print u"  -n, --no-delta                   full package transfers on uploads (do not use librsync)"
-		print u"  -k, --keep-files                 do not delete client data dir on uninstall"
-		print u"  -t, --temp-dir     <path>        tempory directory for package install"
-		print u"  --max-transfers    <num>         maximum number of simultaneous uploads"
-		print u"                                      0 = unlimited (default)"
-		print u"  --max-bandwidth    <kbps>        maximum transfer rate for each transfer (in kilobytes per second)"
-		print u"                                      0 = unlimited (default)"
-		print u"  --new-product-id   <product-id>  set a new product id when extracting opsi package"
+		print u"  -v, --verbose                           increase verbosity (can be used multiple times)"
+		print u"  -q, --quiet                             do not display any messages"
+		print u"  --log-file         <log-file>           path to debug log file"
+		print u"  --log-file-level   <log-file-level>     log file level (default 8)"
+		print u"  -d, --depots       <depots>             comma separated list of depot ids to process"
+		print u"			 	             all = all known depots"
+		print u"  -p, --properties   <mode>               mode for default product property values"
+		print u"		                             ask     = display dialog"
+		print u"		                             package = use defaults from package"
+		print u"		                             keep    = keep depot defaults (default)"
+		print u"  --purge-client-properties               remove product property states of the installed product(s)"
+		print u"  -f, --force                             force install/uninstall (use with extreme caution)"
+		print u"  -U, --update                            set action \"update\" on hosts where installation status is \"installed\""
+		print u"  -S, --setup                             set action \"setup\" on hosts where installation status is \"installed\""
+		print u"  -o, --overwrite                         overwrite existing package on upload even if size matches"
+		print u"  -n, --no-delta                          full package transfers on uploads (do not use librsync)"
+		print u"  -k, --keep-files                        do not delete client data dir on uninstall"
+		print u"  -t, --temp-dir     <path>               tempory directory for package install"
+		print u"  --max-transfers    <num>                maximum number of simultaneous uploads"
+		print u"                                             0 = unlimited (default)"
+		print u"  --max-bandwidth    <kbps>               maximum transfer rate for each transfer (in kilobytes per second)"
+		print u"                                             0 = unlimited (default)"
+		print u"  --new-product-id   <product-id>         set a new product id when extracting opsi package"
 		print u""
 
 
