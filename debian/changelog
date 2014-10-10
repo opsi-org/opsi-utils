@@ -1,10 +1,16 @@
+opsi-utils (4.0.5.6-2) experimental; urgency=low
+
+  * Suse: listing /etc/opsi as directory
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 10 Oct 2014 16:49:48 +0200
+
 opsi-utils (4.0.5.6-1) experimental; urgency=low
 
   [ Erol Ueluekmen ]
   * opsi-package-manager: new option --set-file-level added.
 
   [ Niko Wenselowski ]
-  * RPM: changing the specfile to avoid conflicts 
+  * RPM: changing the specfile to avoid conflicts
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 10 Oct 2014 16:38:07 +0200
 

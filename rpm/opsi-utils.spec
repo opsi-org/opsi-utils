@@ -119,7 +119,9 @@ rm -rf $RPM_BUILD_ROOT
 
 # directories
 #%dir /usr/share/locale/de/LC_MESSAGES
-#%dir /etc/opsi
+%if 0%{?suse_version}
+%dir /etc/opsi
+%endif
 
 # ===[ changelog ]==================================
 %changelog
