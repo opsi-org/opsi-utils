@@ -119,7 +119,7 @@ rm -rf $RPM_BUILD_ROOT
 
 # directories
 #%dir /usr/share/locale/de/LC_MESSAGES
-%dir /etc/opsi
+#%dir /etc/opsi
 
 # ===[ changelog ]==================================
 %changelog
