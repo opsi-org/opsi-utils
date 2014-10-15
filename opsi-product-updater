@@ -485,7 +485,7 @@ class OpsiPackageUpdater(object):
 								found = True
 								break
 						if not found:
-							raise Exception(u"You have searched for a product, which was not found in configured repsoitory: '%s'" % product)
+							raise Exception(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
 					if newProductList:
 						downloadablePackages = newProductList
 				newPackages = []
