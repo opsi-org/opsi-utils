@@ -266,6 +266,8 @@ class OpsiPackageUpdater(object):
 							self.config["smtpuser"] = forceUnicode(value.strip())
 						elif option.lower() == 'smtppassword':
 							self.config["smtppassword"] = forceUnicode(value.strip())
+						elif option.lower() == 'subject':
+							self.config["subject"] = forceUnicode(value.strip())
 						elif option.lower() == 'use_starttls':
 							self.config["use_starttls"] = forceBool(value.strip())
 						elif option.lower() == 'sender':
@@ -456,6 +458,7 @@ class OpsiPackageUpdater(object):
 				smtpport=self.config["smtpport"],
 				sender=self.config["sender"],
 				receivers=self.config["receivers"],
+				subject=self.config["subject"],
 			)
 
 			if self.config["use_starttls"]:
@@ -1136,6 +1139,7 @@ def main(argv):
 		"smtpport": 25,
 		"smtpuser": None,
 		"smtppassword": None,
+		"subject": u'opsi-product-updater',
 		"use_starttls": False,
 		"sender": u'opsi@localhost',
 		"receivers": [],
