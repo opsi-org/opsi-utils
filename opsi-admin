@@ -217,9 +217,9 @@ def main(argv):
 			output = u'RAW'
 
 	if logFile:
-		f = codecs.open(logFile, 'w', 'utf-8')
-		print >> f, u"Starting log at: %s" % time.strftime(u"%a, %d %b %Y %H:%M:%S")
-		f.close()
+		with codecs.open(logFile, 'w', 'utf-8') as f:
+			f.write(u"Starting log at: %s" % time.strftime(u"%a, %d %b %Y %H:%M:%S"))
+
 		logger.setLogFile(logFile)
 		logger.setFileLevel(logLevel)
 
@@ -398,13 +398,12 @@ class Shell:
 
 		historyFile = forceFilename(os.path.join(self.userConfigDir, u'history'))
 		try:
-			history = codecs.open(historyFile, 'r', 'utf-8', 'replace')
-			for line in history.readlines():
-				if not line:
-					continue
-				self.cmdList.append(line.strip())
-				self.cmdListPos += 1
-			history.close()
+			with codecs.open(historyFile, 'r', 'utf-8', 'replace') as history:
+				for line in history:
+					if not line:
+						continue
+					self.cmdList.append(line.strip())
+					self.cmdListPos += 1
 		except Exception as e:
 			logger.error(u"Failed to read history file '%s': %s" % (historyFile, forceUnicode(e)))
 
@@ -1303,9 +1302,9 @@ class CommandSet(Command):
 				logger.setLogFile(None)
 			else:
 				logFile = params[1]
-				f = codecs.open(logFile, 'w', 'utf-8')
-				f.write(u"Starting log at: %s\n" % time.strftime(u"%a, %d %b %Y %H:%M:%S"))
-				f.close()
+				with codecs.open(logFile, 'w', 'utf-8') as f:
+					f.write(u"Starting log at: %s\n" % time.strftime(u"%a, %d %b %Y %H:%M:%S"))
+
 				logger.setLogFile(logFile)
 				logger.setFileLevel(logLevel)
 
@@ -1412,11 +1411,10 @@ class CommandLog(Command):
 			if not logFile:
 				raise Exception(_(u'File logging is not activated'))
 
-			f = open(logFile)
-			for line in f.readlines():
-				shell.appendLine(line, refresh=False)
+			with open(logFile) as f:
+				for line in f:
+					shell.appendLine(line, refresh=False)
 			shell.display()
-			f.close()
 
 
 class CommandTask(Command):
