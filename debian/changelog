@@ -2,8 +2,10 @@ opsi-utils (4.0.6.1-1) UNRELEASED; urgency=low
 
   * opsi-product-updater: Patch by Antione Guevara to make it possible to
     give a custom subject on notification emails.
+  * opsi-product-updater, opsi-newprod and opsi-package-manager now use
+    OPSI.Util.Task.Rights.setRights for setting consistent rights.
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 06 Jan 2015 17:08:41 +0100
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 08 Jan 2015 16:19:39 +0100
 
 opsi-utils (4.0.5.6-2) stable; urgency=low
 

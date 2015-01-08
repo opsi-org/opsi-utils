@@ -6,7 +6,7 @@ opsi-product-updater
 opsi-product-updater is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2013-2014 uib GmbH
+Copyright (C) 2013-2015 uib GmbH
 
 http://www.uib.de/
 
@@ -50,11 +50,12 @@ from OPSI.Object import *
 from OPSI.Util import compareVersions, md5sum, getfqdn
 from OPSI.Util.File import IniFile, ZsyncFile
 from OPSI.Util.Product import ProductPackageFile
+from OPSI.Util.Task.Rights import setRights
 from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.0.5.1'
+__version__ = '4.0.6.1'
 
 logger = Logger()
 logger.setConsoleColor(True)
@@ -886,15 +887,7 @@ class OpsiPackageUpdater(object):
 
 	def cleanupPackages(self, newPackage):
 		logger.info(u"Cleaning up in %s" % self.config["packageDir"])
-		uid = -1
-		if (os.geteuid() == 0):
-			uid = pwd.getpwnam('opsiconfd')[2]
-		try:
-			from OPSI.Util.File.Opsi import OpsiConfFile
-			FILE_ADMIN_GROUP = OpsiConfFile().getOpsiFileAdminGroup()
-		except:
-			FILE_ADMIN_GROUP = u'pcpatch'
-		gid = grp.getgrnam(FILE_ADMIN_GROUP)[2]
+
 		for f in os.listdir(self.config["packageDir"]):
 			path = os.path.join(self.config["packageDir"], f)
 			if not os.path.isfile(path):
@@ -902,17 +895,19 @@ class OpsiPackageUpdater(object):
 			if path.endswith('.zs-old'):
 				os.unlink(path)
 				continue
+
 			try:
-				os.chmod(path, 0660)
-				os.chown(path, uid, gid)
+				setRights(path)
 			except Exception as error:
 				logger.warning(u"Failed to set rights on file '%s': %s" % (path, error))
+
 			(productId, version) = (None, None)
 			try:
 				productId = '_'.join(f.split('_')[:-1])
 				version = f[:-5].split('_')[-1]
-			except:
+			except Exception:
 				continue
+
 			if (productId == newPackage["productId"]) and (version != newPackage["version"]):
 				logger.info(u"Deleting obsolete package file '%s'" % path)
 				os.unlink(path)
@@ -921,12 +916,11 @@ class OpsiPackageUpdater(object):
 
 		md5sumFile = packageFile + u'.md5'
 		logger.info(u"Creating md5sum file '%s'" % md5sumFile)
-		md5 = md5sum(packageFile)
-		f = open(md5sumFile, 'w')
-		os.chmod(md5sumFile, 0660)
-		os.chown(md5sumFile, uid, gid)
-		f.write(md5)
-		f.close()
+
+		with open(md5sumFile, 'w') as f:
+			f.write(md5sum(packageFile))
+
+		setRights(md5sumFile)
 
 		try:
 			zsyncFile = u'%s.zsync' % packageFile

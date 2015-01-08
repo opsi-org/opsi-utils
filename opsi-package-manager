@@ -6,7 +6,7 @@ opsi-package-manager
 opsi-package-manager is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010-2014 uib GmbH
+Copyright (C) 2010-2015 uib GmbH
 
 http://www.uib.de/
 
@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 @license: GNU General Public License version 2
 """
 
-__version__ = '4.0.5.2'
+__version__ = '4.0.6.1'
 
 
 import base64

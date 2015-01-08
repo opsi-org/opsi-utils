@@ -6,7 +6,7 @@ opsi-newprod
 opsi-newprod is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010-2014 uib GmbH
+Copyright (C) 2010-2015 uib GmbH
 
 http://www.uib.de/
 
@@ -49,6 +49,7 @@ from OPSI.System import copy
 from OPSI.Types import forceEmailAddress, forceFilename, forceUnicode
 from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ChangelogFile
+from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
 logger = Logger()
@@ -640,7 +641,7 @@ copied to ``productDirectory``
 		preinst.write(u'#   PRODUCT_ID: id of the current product\n')
 		preinst.write(u'#   CLIENT_DATA_DIR: directory where client data will be installed\n')
 		preinst.write(u'#\n')
-	os.chmod(preinstFilePath, 0700)
+	setRights(preinstFilePath)
 
 	# Create postinst template
 	postinstFilePath = os.path.join(productDirectory, 'OPSI', 'preinst')
@@ -654,7 +655,7 @@ copied to ``productDirectory``
 		postinst.write(u'#   PRODUCT_ID: id of the current product\n')
 		postinst.write(u'#   CLIENT_DATA_DIR: directory which contains the installed client data\n')
 		postinst.write(u'#\n')
-	os.chmod(postinstFilePath, 0700)
+	setRights(postinstFilePath)
 
 	if templateDirectory:
 		copy(os.path.join(templateDirectory, '*'), productDirectory)
