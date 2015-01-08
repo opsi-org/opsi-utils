@@ -629,7 +629,8 @@ def createTemplates(productDirectory, templateDirectory=None):
 copied to ``productDirectory``
 	"""
 	# Create preinst template
-	with codecs.open(os.path.join(productDirectory, 'OPSI', 'preinst'), 'w', 'utf-8') as preinst:
+	preinstFilePath = os.path.join(productDirectory, 'OPSI', 'preinst')
+	with codecs.open(preinstFilePath, 'w', 'utf-8') as preinst:
 		preinst.write(u'#! /bin/bash\n')
 		preinst.write(u'#\n')
 		preinst.write(u'# preinst script\n')
@@ -639,10 +640,11 @@ copied to ``productDirectory``
 		preinst.write(u'#   PRODUCT_ID: id of the current product\n')
 		preinst.write(u'#   CLIENT_DATA_DIR: directory where client data will be installed\n')
 		preinst.write(u'#\n')
-	os.chmod(os.path.join(productDirectory, 'OPSI', 'preinst'), 0700)
+	os.chmod(preinstFilePath, 0700)
 
 	# Create postinst template
-	with codecs.open(os.path.join(productDirectory, 'OPSI', 'postinst'), 'w', 'utf-8') as postinst:
+	postinstFilePath = os.path.join(productDirectory, 'OPSI', 'preinst')
+	with codecs.open(postinstFilePath, 'w', 'utf-8') as postinst:
 		postinst.write(u'#! /bin/bash\n')
 		postinst.write(u'#\n')
 		postinst.write(u'# postinst script\n')
@@ -652,7 +654,7 @@ copied to ``productDirectory``
 		postinst.write(u'#   PRODUCT_ID: id of the current product\n')
 		postinst.write(u'#   CLIENT_DATA_DIR: directory which contains the installed client data\n')
 		postinst.write(u'#\n')
-	os.chmod(os.path.join(productDirectory, 'OPSI', 'postinst'), 0700)
+	os.chmod(postinstFilePath, 0700)
 
 	if templateDirectory:
 		copy(os.path.join(templateDirectory, '*'), productDirectory)
