@@ -113,6 +113,7 @@ fi
 	%endif
 %endif
 install -m 0644 data/etc/logrotate.d/opsi-package-log $RPM_BUILD_ROOT/etc/logrotate.d/
+install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
 
 # ===[ clean ]======================================
 %clean
@@ -142,6 +143,7 @@ rm -rf $RPM_BUILD_ROOT
 # configfiles
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-product-updater.conf
 %config /etc/logrotate.d/opsi-package-log
+%config /etc/logrotate.d/opsi-backup
 
 # other files
 /usr/bin/opsi-admin

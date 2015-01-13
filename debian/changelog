@@ -5,6 +5,7 @@ opsi-utils (4.0.6.1-1) UNRELEASED; urgency=low
   * opsi-product-updater, opsi-newprod and opsi-package-manager now use
     OPSI.Util.Task.Rights.setRights for setting consistent rights.
   * Added logrotate configuration for /var/log/opsi/package.log
+  * Added logrotate configuration vor /var/log/opsi/opsi-backup.log
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 13 Jan 2015 12:16:38 +0100
 
