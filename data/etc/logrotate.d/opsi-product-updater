@@ -1,0 +1,10 @@
+/var/log/opsi/opsi-product-updater.log {
+    weekly
+    missingok
+    rotate 5
+    compress
+    notifempty
+    size 5M
+    create 640 opsiconfd opsiadmin
+    su opsiconfd opsiadmin
+}

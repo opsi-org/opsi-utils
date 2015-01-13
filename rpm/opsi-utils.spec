@@ -102,6 +102,11 @@ if [ "$(zypper --terse versioncmp $LOGROTATE_VERSION 3.8)" == "-1" ]; then
 	LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-backup
 	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+
+	LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-backup.temp
+	LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-backup
+	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
+	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 else
 	echo "Logrotate version $LOGROTATE_VERSION is 3.8 or newer. Nothing to do."
 fi
@@ -117,6 +122,11 @@ fi
 
 			LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-backup.temp
 			LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-backup
+			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
+			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+
+			LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-product-updater.temp
+			LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-product-updater
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 		%endif
@@ -154,6 +164,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-product-updater.conf
 %config /etc/logrotate.d/opsi-package-log
 %config /etc/logrotate.d/opsi-backup
+%config /etc/logrotate.d/opsi-product-updater
 
 # other files
 /usr/bin/opsi-admin
