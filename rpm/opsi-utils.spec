@@ -97,6 +97,11 @@ if [ "$(zypper --terse versioncmp $LOGROTATE_VERSION 3.8)" == "-1" ]; then
 	LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-package-log
 	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+
+	LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-backup.temp
+	LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-backup
+	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
+	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 else
 	echo "Logrotate version $LOGROTATE_VERSION is 3.8 or newer. Nothing to do."
 fi
@@ -107,6 +112,11 @@ fi
 			echo "Fixing logrotate configuration"
 			LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-package-log.temp
 			LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-package-log
+			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
+			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+
+			LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-backup.temp
+			LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-backup
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 		%endif
