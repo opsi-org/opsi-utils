@@ -4,12 +4,21 @@ case "$1" in
 	configure)
 		chown root:opsiadmin /etc/opsi/opsi-product-updater.conf
 		chmod 660 /etc/opsi/opsi-product-updater.conf
+
+		# Making logrotate config backwards-compatible
+		LOGROTATE_VERSION="$(dpkg --list | grep logrotate | grep "^ii" | awk '{ print $3 }' | cut -d '-' -f 1)"
+		if dpkg --compare-versions "$LOGROTATE_VERSION" lt "3.8"; then
+			LOGROTATE_TEMP=$(tempfile)
+			LOGROTATE_CONFIG=/etc/logrotate.d/opsi-package-log
+			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
+			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+		fi
 	;;
-	
+
 	abort-upgrade|abort-remove|abort-deconfigure)
-	
+
 	;;
-	
+
 	*)
 		echo "postinst called with unknown argument \`$1'" >&2
 		exit 1

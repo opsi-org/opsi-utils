@@ -29,6 +29,16 @@ BuildRequires:  gettext
 BuildRequires:  gettext-runtime
 %endif
 
+%if 0%{?suse_version} == 1110 || 0%{?suse_version} == 1315
+# SLES
+BuildRequires:  logrotate
+%else
+%if 0%{?suse_version}
+Suggests: logrotate
+BuildRequires:  logrotate
+%endif
+%endif
+
 %define toplevel_dir %{name}-%{version}
 
 # ===[ description ]================================
@@ -77,6 +87,33 @@ install -m 0755 opsi-backup $RPM_BUILD_ROOT/usr/bin/
 mkdir -p $RPM_BUILD_ROOT/etc/opsi
 install -m 0644 data/opsi-product-updater.conf $RPM_BUILD_ROOT/etc/opsi/
 
+mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d/
+%if 0%{?suse_version} > 1110
+echo "Detected openSuse / SLES"
+LOGROTATE_VERSION="$(zypper info logrotate | grep -i "version" | awk '{print $2}' | cut -d '-' -f 1)"
+if [ "$(zypper --terse versioncmp $LOGROTATE_VERSION 3.8)" == "-1" ]; then
+	echo "Fixing logrotate configuration for logrotate version older than 3.8"
+	LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-package-log.temp
+	LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-package-log
+	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
+	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+else
+	echo "Logrotate version $LOGROTATE_VERSION is 3.8 or newer. Nothing to do."
+fi
+%else
+	%if 0%{?rhel_version} || 0%{?centos_version} || 0%{?fedora_version}
+		echo "Detected RHEL / CentOS / Fedora"
+		%if 0%{?rhel_version} == 600 || 0%{?centos_version} == 600
+			echo "Fixing logrotate configuration"
+			LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-package-log.temp
+			LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-package-log
+			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
+			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+		%endif
+	%endif
+%endif
+install -m 0644 data/etc/logrotate.d/opsi-package-log $RPM_BUILD_ROOT/etc/logrotate.d/
+
 # ===[ clean ]======================================
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -104,6 +141,7 @@ rm -rf $RPM_BUILD_ROOT
 
 # configfiles
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-product-updater.conf
+%config /etc/logrotate.d/opsi-package-log
 
 # other files
 /usr/bin/opsi-admin
