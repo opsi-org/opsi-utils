@@ -93,11 +93,6 @@ echo "Detected openSuse / SLES"
 LOGROTATE_VERSION="$(zypper info logrotate | grep -i "version" | awk '{print $2}' | cut -d '-' -f 1)"
 if [ "$(zypper --terse versioncmp $LOGROTATE_VERSION 3.8)" == "-1" ]; then
 	echo "Fixing logrotate configuration for logrotate version older than 3.8"
-	LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-package-log.temp
-	LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-package-log
-	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
-	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
-
 	LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-backup.temp
 	LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-backup
 	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
@@ -115,11 +110,6 @@ fi
 		echo "Detected RHEL / CentOS / Fedora"
 		%if 0%{?rhel_version} == 600 || 0%{?centos_version} == 600
 			echo "Fixing logrotate configuration"
-			LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-package-log.temp
-			LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-package-log
-			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
-			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
-
 			LOGROTATE_TEMP=$RPM_BUILD_ROOT/opsi-backup.temp
 			LOGROTATE_CONFIG=$RPM_BUILD_ROOT/etc/logrotate.d/opsi-backup
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
@@ -132,7 +122,6 @@ fi
 		%endif
 	%endif
 %endif
-install -m 0644 data/etc/logrotate.d/opsi-package-log $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
 
 # ===[ clean ]======================================
@@ -162,7 +151,6 @@ rm -rf $RPM_BUILD_ROOT
 
 # configfiles
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-product-updater.conf
-%config /etc/logrotate.d/opsi-package-log
 %config /etc/logrotate.d/opsi-backup
 %config /etc/logrotate.d/opsi-product-updater
 

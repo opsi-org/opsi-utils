@@ -4,7 +4,6 @@ opsi-utils (4.0.6.1-1) UNRELEASED; urgency=low
     give a custom subject on notification emails.
   * opsi-product-updater, opsi-newprod and opsi-package-manager now use
     OPSI.Util.Task.Rights.setRights for setting consistent rights.
-  * Added logrotate configuration for /var/log/opsi/package.log
   * Added logrotate configuration vor /var/log/opsi/opsi-backup.log
   * Added logrotate configuration vor /var/log/opsi/opsi-product-updater.log
 
