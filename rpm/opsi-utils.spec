@@ -123,6 +123,7 @@ fi
 	%endif
 %endif
 install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
+install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
 
 # ===[ clean ]======================================
 %clean
