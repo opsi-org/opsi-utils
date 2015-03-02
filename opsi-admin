@@ -48,8 +48,8 @@ from OPSI.System import which
 from OPSI.Types import OpsiRpcError
 from OPSI.Types import (forceBool, forceFilename, forceInt, forceUnicode,
 	forceUnicodeLower)
-from OPSI.Util import (deserialize, fromJson, getfqdn, objectToBeautifiedText,
-	objectToBash, serialize, toJson)
+from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
+	objectToBeautifiedText, objectToBash, serialize, toJson)
 
 import curses
 
