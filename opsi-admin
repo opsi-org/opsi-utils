@@ -521,7 +521,7 @@ class Shell:
 			self.screen.clrtoeol()
 			s = u''
 			color = None
-			if (len(self.lines) - self.linesBack > i):
+			if len(self.lines) - self.linesBack > i:
 				s = self.lines[len(self.lines) - self.linesBack - 1 - i]['text']
 				if self.color:
 					color = self.lines[len(self.lines) - self.linesBack - 1 - i]['color']
@@ -601,7 +601,7 @@ class Shell:
 
 	def getParam(self, i):
 		self.parseCmdline()
-		if (len(self.params) > i):
+		if len(self.params) > i:
 			return self.params[i]
 		return u''
 
@@ -635,27 +635,27 @@ class Shell:
 
 		for i in range(len(cmdline)):
 			logger.debug2(u"parseCmdline(): char '%s', quote: %s, cur: %d, params: %s" % (cmdline[i], quote, cur, self.params))
-			if (len(self.params) < cur + 1):
+			if len(self.params) < cur + 1:
 				self.params.append(u'')
 
-			if (i == self.pos - 1):
+			if i == self.pos - 1:
 				self.paramPos = cur
 
-			if (cmdline[i] == u"'"):
-				if (quote is None):
+			if cmdline[i] == u"'":
+				if quote is None:
 					quote = u"'"
-				elif (quote == u"'"):
+				elif quote == u"'":
 					if not self.params[cur]:
 						cur += 1
 					quote = None
 				else:
 					self.params[cur] += u'\''
 
-			elif (cmdline[i] == u'"'):
-				if (quote is None):
+			elif cmdline[i] == u'"':
+				if quote is None:
 					self.params[cur] += u'"'
 					quote = u'"'
-				elif (quote == u'"'):
+				elif quote == u'"':
 					self.params[cur] += u'"'
 					if not self.params[cur]:
 						cur += 1
@@ -663,10 +663,10 @@ class Shell:
 				else:
 					self.params[cur] += u'"'
 
-			elif (cmdline[i] == u" "):
-				if (quote is not None):
+			elif cmdline[i] == u" ":
+				if quote is not None:
 					self.params[cur] += cmdline[i]
-				elif (len(self.params[cur]) > 0):
+				elif len(self.params[cur]) > 0:
 					cur += 1
 
 			else:
@@ -749,7 +749,7 @@ class Shell:
 				self.screen.refresh()
 				password2 = unicode(self.screen.getstr(), inEncoding)
 
-				if (password1 != password2):
+				if password1 != password2:
 					self.screen.move(self.yMax - 1, 0)
 					self.screen.clrtoeol()
 					self.screen.addstr(_(u"Supplied passwords do not match").encode(outEncoding))
@@ -775,74 +775,74 @@ class Shell:
 			if not char or char < 0:
 				continue
 
-			if (char == curses.KEY_RESIZE):
+			if char == curses.KEY_RESIZE:
 				# window resized
 				self.yMax, self.xMax = self.screen.getmaxyx()
 				self.display()
 				continue
 
-			elif (char == curses.KEY_UP):
+			elif char == curses.KEY_UP:
 				if len(self.cmdList) > 0 and self.cmdListPos > 0:
 					self.cmdListPos -= 1
 					self.pos = len(self.cmdList[self.cmdListPos])
 					self.setCmdline(self.cmdList[self.cmdListPos])
 
-			elif (char == curses.KEY_DOWN):
+			elif char == curses.KEY_DOWN:
 				if len(self.cmdList) > 0 and self.cmdListPos < len(self.cmdList):
 					self.cmdListPos += 1
-					if (self.cmdListPos == len(self.cmdList)):
+					if self.cmdListPos == len(self.cmdList):
 						self.pos = 0
 						self.setCmdline('')
 					else:
 						self.pos = len(self.cmdList[self.cmdListPos])
 						self.setCmdline(self.cmdList[self.cmdListPos])
 
-			elif (char == curses.KEY_LEFT):
-				if (self.pos > 0):
+			elif char == curses.KEY_LEFT:
+				if self.pos > 0:
 					self.pos -= 1
 					self.setCmdline(self.cmdline)
 
-			elif (char == curses.KEY_RIGHT):
+			elif char == curses.KEY_RIGHT:
 				if self.pos < len(self.cmdline):
 					self.pos += 1
 					self.setCmdline(self.cmdline)
 
-			elif (char == curses.KEY_HOME):
+			elif char == curses.KEY_HOME:
 				self.pos = 0
 				self.setCmdline(self.cmdline)
 
-			elif (char == curses.KEY_END):
+			elif char == curses.KEY_END:
 				self.pos = len(self.cmdline)
 				self.setCmdline(self.cmdline)
 
-			elif (char == curses.KEY_NPAGE):
-				if (len(self.lines) > self.yMax - 2):
+			elif char == curses.KEY_NPAGE:
+				if len(self.lines) > self.yMax - 2:
 					self.linesBack -= 5
-					if (self.linesBack < 0):
+					if self.linesBack < 0:
 						self.linesBack = 0
 
 					self.display()
 
-			elif (char == curses.KEY_PPAGE):
-				if (len(self.lines) > self.yMax - 2):
+			elif char == curses.KEY_PPAGE:
+				if len(self.lines) > self.yMax - 2:
 					self.linesBack += 5
-					if (self.linesBack > len(self.lines) - self.yMax + 2):
+					if self.linesBack > len(self.lines) - self.yMax + 2:
 						self.linesBack = len(self.lines) - self.yMax + 2
 
 					self.display()
 
-			elif (char == 4):
+			elif char == 4:
 				# ^D
 				self.exit()
 
-			elif (char == 10):
+			elif char == 10:
 				# Enter
 				self.pos = len(self.cmdline)
 				self.setCmdline(self.cmdline)
 
-			elif (char == 18):
+			elif char == 18:
 				# ^R
-				if (self.reverseSearch is None):
+				if self.reverseSearch is None:
 					self.setInfoline("reverse-i-search")
 					self.reverseSearch = ''
 				else:
@@ -850,21 +850,21 @@ class Shell:
 					self.reverseSearch = None
 				continue
 
-			elif (char == 9):
+			elif char == 9:
 				# tab 		|<- ->|
 				# Auto-completion
 				completions = []
 
 				params = self.getParams()
-				if (self.paramPos >= 0):
+				if self.paramPos >= 0:
 					params[self.paramPos] = self.currentParam
 
 				for c in self.commands:
-					if (self.paramPos < 0):
+					if self.paramPos < 0:
 						completions.append(c.getName())
 
-					elif (params[0] == c.getName()):
-						if (self.paramPos >= 1):
+					elif params[0] == c.getName():
+						if self.paramPos >= 1:
 							completions = c.completion(params[1:], self.paramPos)
 						else:
 							completions = [c.getName()]
@@ -873,19 +873,19 @@ class Shell:
 					elif c.getName().startswith(params[0]):
 						completions.append(c.getName())
 
-				if (len(completions) == 1):
+				if len(completions) == 1:
 					self.setCmdline(self.cmdline[:self.pos] + \
 							completions[0][len(params[self.paramPos]):] + \
 							self.cmdline[self.pos:])
 					self.pos += len(completions[0][len(params[self.paramPos]):])
 
-					if (self.pos == len(self.cmdline)):
+					if self.pos == len(self.cmdline):
 						self.cmdline += ' '
 						self.pos += 1
 
 					self.setCmdline(self.cmdline)
 
-				elif (len(completions) > 1):
+				elif len(completions) > 1:
 					match = completions[0]
 					lines = []
 					longest = 0
@@ -896,12 +896,12 @@ class Shell:
 							elif comp[c] != match[c]:
 								match = match[:c]
 								break
-						if (len(comp) > longest):
+						if len(comp) > longest:
 							longest = len(comp)
 
 					curLine = ''
 					i = 0
-					while(i < len(completions)):
+					while i < len(completions):
 						while (i < len(completions)) and (not curLine or (len(curLine) + longest < self.xMax - 5)):
 							pf = '%s %-' + str(longest) + 's'
 							curLine = pf % (curLine, completions[i])
@@ -909,7 +909,7 @@ class Shell:
 						lines.append({"text": curLine, "color": None})
 						curLine = ''
 
-					if (self.paramPos < 0):
+					if self.paramPos < 0:
 						self.currentParam = ""
 
 					self.lines.append(
@@ -939,19 +939,19 @@ class Shell:
 				newPos = self.pos
 				newCmdline = self.cmdline
 
-				if (char == 263):
+				if char == 263:
 					# backspace	<--
-					if (self.reverseSearch is not None):
+					if self.reverseSearch is not None:
 						self.reverseSearch = self.reverseSearch[:-1]
 						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
-					elif (self.pos > 0):
+					elif self.pos > 0:
 						newPos = self.pos - 1
 						newCmdline = self.cmdline[:newPos] + self.cmdline[self.pos:]
-				elif (char == 330):
+				elif char == 330:
 					# del
-					if (self.reverseSearch is not None):
+					if self.reverseSearch is not None:
 						pass
-					elif (len(self.cmdline) > 0):
+					elif len(self.cmdline) > 0:
 						newCmdline = self.cmdline[:self.pos] + self.cmdline[self.pos + 1:]
 
 				else:
@@ -965,7 +965,7 @@ class Shell:
 							char += self.screen.getkey()
 							char = unicode(char, inEncoding)
 
-						if (self.reverseSearch is not None):
+						if self.reverseSearch is not None:
 							self.reverseSearch += char
 						else:
 							newPos = self.pos + 1
@@ -973,7 +973,7 @@ class Shell:
 					except Exception as e:
 						logger.error("Failed to add char '%s': %s" % (char, forceUnicode(e)))
 				try:
-					if (self.reverseSearch is not None):
+					if self.reverseSearch is not None:
 						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
 						found = False
 						for i in range(len(self.cmdList) - 1, -1, -1):
@@ -981,7 +981,8 @@ class Shell:
 								found = True
 								newCmdline = self.cmdList[i]
 								break
-						if not found and char not in [263, 330]:
+
+						if not found and char not in (263, 330):
 							self.bell()
 						newPos = len(newCmdline)
 
@@ -992,7 +993,7 @@ class Shell:
 					pass
 
 			if not textInput:
-				if (self.reverseSearch is not None):
+				if self.reverseSearch is not None:
 					self.reverseSearch = None
 					self.setInfoline("")
 
@@ -1007,7 +1008,8 @@ class Shell:
 				lines[0] = "ERROR: %s" % lines[0]
 				for line in lines:
 					self.appendLine(line, COLOR_RED)
-		if (len(self.lines) > self.yMax - 2):
+
+		if len(self.lines) > self.yMax - 2:
 			self.linesBack = 0
 
 
@@ -1062,21 +1064,21 @@ class CommandMethod(Command):
 
 		elif paramPos >= 2:
 			for m in self.interface:
-				if (m.get('name') == params[0]):
-					if (len(m.get('params')) >= len(params) - 1):
+				if m.get('name') == params[0]:
+					if len(m.get('params')) >= len(params) - 1:
 						completions = [m.get('params')[paramPos - 2]]
 					break
 
 		return completions
 
 	def execute(self, shell, params):
-		if (len(params) <= 0):
+		if len(params) <= 0:
 			shell.appendLine(_(u'No method defined'))
 			return
 
 		method = params[0]
 
-		if (method == u'list'):
+		if method == u'list':
 			for m in self.interface:
 				shell.appendLine(u"%s%s" % (m.get('name'), tuple(m.get('params'))), refresh=False)
 			shell.display()
@@ -1084,7 +1086,7 @@ class CommandMethod(Command):
 
 		methodInterface = None
 		for m in self.interface:
-			if (method == m['name']):
+			if method == m['name']:
 				methodInterface = m
 				break
 
@@ -1099,7 +1101,7 @@ class CommandMethod(Command):
 				l += len(methodInterface['args'])
 			if methodInterface['varargs']:
 				l += len(methodInterface['varargs'])
-			if (len(params) >= l):
+			if len(params) >= l:
 				# Do not create Object instances!
 				params[-1] = fromJson(params[-1], preventObjectCreation=True)
 				if not type(params[-1]) is types.DictType:
@@ -1117,7 +1119,7 @@ class CommandMethod(Command):
 		pString = unicode(params)[1:-1]
 		if keywords:
 			pString += u', ' + unicode(keywords)
-		if (len(pString) > 200):
+		if len(pString) > 200:
 			pString = pString[:200] + u'...'
 
 		result = None
@@ -1227,7 +1229,7 @@ class CommandMethod(Command):
 						if (e.errno != 11):
 							raise
 
-				if (exitCode != 0):
+				if exitCode != 0:
 					raise Exception(u'Exitcode: %s\n%s' % ((exitCode * -1), unicode(err, encoding, 'replace')))
 
 				lines = unicode(buf, encoding, 'replace').split(u'\n')
