@@ -160,7 +160,7 @@ def main(argv):
 	try:
 		import pwd
 		username = forceUnicode(pwd.getpwuid(os.getuid())[0])
-	except:
+	except Exception:
 		pass
 
 	password = u''
@@ -248,7 +248,7 @@ def main(argv):
 				try:
 					import getpass
 					password = unicode(getpass.getpass(), inEncoding)
-				except:
+				except Exception:
 					pass
 
 			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), u'.opsi-admin'))
@@ -342,7 +342,7 @@ def main(argv):
 		if backend:
 			try:
 				backend.backend_exit()
-			except:
+			except Exception:
 				pass
 
 
@@ -970,7 +970,7 @@ class Shell:
 
 						try:
 							char = unicode(char, inEncoding)
-						except:
+						except Exception:
 							char += self.screen.getkey()
 							char = unicode(char, inEncoding)
 
@@ -1607,13 +1607,13 @@ class CommandTask(Command):
 				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null" \
 						% (which('univention-admin'), dn, password)
 				os.system(cmd.encode(outEncoding))
-			except:
+			except Exception:
 				try:
 					# smbldap
 					f = os.popen(u'%s pcpatch 1>/dev/null 2>/dev/null' % which('smbldap-passwd'), 'w')
 					f.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
 					f.close()
-				except:
+				except Exception:
 					# unix
 					f = os.popen(u'%s 1>/dev/null 2>/dev/null' % which(u'chpasswd'), 'w')
 					f.write((u"pcpatch:%s\n" % password).encode(outEncoding))
@@ -1649,7 +1649,7 @@ if (__name__ == "__main__"):
 	if shell:
 		try:
 			shell.exit()
-		except:
+		except Exception:
 			pass
 
 	if exception:
