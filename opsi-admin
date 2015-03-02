@@ -552,7 +552,6 @@ class Shell:
 
 		moveY = self.yMax - height + int((len(self.prompt + u' ') + self.pos) / self.xMax)
 		moveX = ((len(self.prompt + u' ') + self.pos) % self.xMax)
-		#logger.debug(u"cmdline move => pos:%s, x:%s, y:%s" % (self.pos, moveX, moveY))
 		self.screen.move(moveY, moveX)
 		self.screen.refresh()
 
@@ -644,10 +643,8 @@ class Shell:
 
 			if (cmdline[i] == u"'"):
 				if (quote is None):
-					#self.params[cur] += u'\''
 					quote = u"'"
 				elif (quote == u"'"):
-					#self.params[cur] += u'\''
 					if not self.params[cur]:
 						cur += 1
 					quote = None
