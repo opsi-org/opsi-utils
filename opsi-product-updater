@@ -1172,7 +1172,7 @@ def main(argv):
 		elif opt == "-p":
 			config["processProductIds"] = arg.split(",")
 		else:
-			raise Execption(u"Unknown parameter given: '%s'" % opt)
+			raise Exception(u"Unknown parameter given: '%s'" % opt)
 
 	try:
 		config["zsyncCommand"] = System.which("zsync")
