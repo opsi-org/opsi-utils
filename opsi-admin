@@ -1416,6 +1416,7 @@ class CommandTask(Command):
 			(u'updateWhereInstalled', 'productId'),
 			(u'uninstallWhereInstalled', 'productId'),
 			(u'setActionRequestWhereOutdated', 'actionRequest', 'productId'),
+			(u'setActionRequestWhereOutdatedWithDependencies', 'actionRequest', 'productId'),
 			(u'setActionRequestWithDependencies', 'actionRequest', 'productId', 'clientId'),
 			(u'decodePcpatchPassword', u'encodedPassword', u'opsiHostKey'),
 			(u'setPcpatchPassword', u'*password')
@@ -1557,6 +1558,38 @@ class CommandTask(Command):
 
 			if productId and clientId and actionRequest:
 				backend.setProductActionRequestWithDependencies(productId, clientId, actionRequest)
+
+		elif params[0] == u'setActionRequestWhereOutdatedWithDependencies':
+			if len(params) < 2:
+				raise Exception(_(u'Missing action request'))
+			if len(params) < 3:
+				raise Exception(_(u'Missing product-id'))
+
+			actionRequest = params[1]
+			productId = params[2]
+
+			# Get depot to client assignment
+			depotToClients = {}
+			for clientToDepot in backend.configState_getClientToDepotserver():
+				try:
+					depotToClients[clientToDepot['depotId']].append(clientToDepot['clientId'])
+				except KeyError:
+					depotToClients[clientToDepot['depotId']] = [clientToDepot['clientId']]
+
+			updateProductOnClients = []
+			for (depotId, clientIds) in depotToClients.items():
+				if not clientIds:
+					continue
+
+				for productOnDepot in backend.productOnDepot_getObjects(productId=productId):
+					for productOnClient in backend.productOnClient_getObjects(clientId=clientIds, productId=productOnDepot.productId, installationStatus=u'installed'):
+						if productOnClient.productVersion != productOnDepot.productVersion or productOnClient.packageVersion != productOnDepot.packageVersion:
+							productOnClient.setActionRequestWithDependencies(actionRequest)
+							updateProductOnClients.append(productOnClient)
+							shell.appendLine(productOnClient.clientId)
+
+			if updateProductOnClients:
+				backend.productOnClient_updateObjects(updateProductOnClients)
 
 		elif params[0] == u'decodePcpatchPassword':
 			if len(params) < 3:
