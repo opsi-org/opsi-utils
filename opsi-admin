@@ -924,9 +924,7 @@ class Shell:
 
 					self.lines.extend(lines)
 
-					self.setCmdline(self.cmdline[:self.pos - len(self.currentParam)] + \
-						match.strip() + \
-						self.cmdline[self.pos:])
+					self.setCmdline(self.cmdline[:self.pos - len(self.currentParam)] + match.strip() + self.cmdline[self.pos:])
 
 					self.pos += len(match) - len(self.currentParam)
 
