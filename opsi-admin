@@ -40,16 +40,16 @@ import sys
 import time
 import types
 
-from OPSI.Types import (forceBool, forceFilename, forceInt, forceUnicode,
-	forceUnicodeLower)
-from OPSI.Types import OpsiRpcError
+from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Logger import (Logger, LOG_NONE, LOG_ERROR, COLOR_CYAN, COLOR_RED,
 	COLOR_GREEN, COLOR_YELLOW, COLOR_NORMAL, COLORS_AVAILABLE,
 	COLOR_LIGHT_WHITE, COLOR_LIGHT_RED)
-from OPSI.Util import (objectToBeautifiedText, objectToBash, fromJson,
-	getfqdn, serialize, deserialize, toJson)
 from OPSI.System import which
-from OPSI.Backend.BackendManager import BackendManager
+from OPSI.Types import OpsiRpcError
+from OPSI.Types import (forceBool, forceFilename, forceInt, forceUnicode,
+	forceUnicodeLower)
+from OPSI.Util import (deserialize, fromJson, getfqdn, objectToBeautifiedText,
+	objectToBash, serialize, toJson)
 
 import curses
 
