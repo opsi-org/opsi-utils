@@ -1472,7 +1472,7 @@ class CommandTask(Command):
 							shell.appendLine(clientId)
 							backend.setProductActionRequest(productId, clientId, 'setup')
 
-		if params[0] == u'setupWhereNotInstalled':
+		elif params[0] == u'setupWhereNotInstalled':
 			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
@@ -1487,7 +1487,7 @@ class CommandTask(Command):
 							shell.appendLine(clientId)
 							backend.setProductActionRequest(productId, clientId, u'setup')
 
-		if params[0] == u'updateWhereInstalled':
+		elif params[0] == u'updateWhereInstalled':
 			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
@@ -1502,7 +1502,7 @@ class CommandTask(Command):
 					shell.appendLine(clientId)
 					backend.setProductActionRequest(productId, clientId, u'update')
 
-		if params[0] == u'uninstallWhereInstalled':
+		elif params[0] == u'uninstallWhereInstalled':
 			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
@@ -1517,7 +1517,7 @@ class CommandTask(Command):
 							shell.appendLine(clientId)
 							backend.setProductActionRequest(productId, clientId, u'uninstall')
 
-		if params[0] == u'setActionRequestWhereOutdated':
+		elif params[0] == u'setActionRequestWhereOutdated':
 			if len(params) < 2:
 				raise Exception(_(u'Missing action request'))
 			if len(params) < 3:
@@ -1547,7 +1547,7 @@ class CommandTask(Command):
 
 			backend.productOnClient_updateObjects(updateProductOnClients)
 
-		if params[0] == u'setActionRequestWithDependencies':
+		elif params[0] == u'setActionRequestWithDependencies':
 			if len(params) < 2:
 				raise Exception(_(u'Missing action request'))
 			if len(params) < 3:
@@ -1561,7 +1561,7 @@ class CommandTask(Command):
 			if productId and clientId and actionRequest:
 				backend.setProductActionRequestWithDependencies(productId, clientId, actionRequest)
 
-		if params[0] == u'decodePcpatchPassword':
+		elif params[0] == u'decodePcpatchPassword':
 			if len(params) < 3:
 				raise Exception(_(u'Missing argument'))
 			crypt = params[1]
@@ -1569,7 +1569,7 @@ class CommandTask(Command):
 			cleartext = blowfishDecrypt(key, crypt)
 			shell.appendLine(cleartext)
 
-		if params[0] == u'setPcpatchPassword':
+		elif params[0] == u'setPcpatchPassword':
 			if os.getuid() != 0:
 				raise Exception(_(u"You have to be root to change pcpatch password!"))
 
