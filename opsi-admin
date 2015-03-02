@@ -1054,7 +1054,6 @@ class CommandMethod(Command):
 				completions.append(m.get(u'name'))
 
 		elif paramPos == 1:
-			method = None
 			if u'list'.startswith(params[0]):
 				completions.append(u'list')
 			for m in self.interface:
@@ -1558,7 +1557,6 @@ class CommandTask(Command):
 			actionRequest = params[1]
 			productId = params[2]
 			clientId = params[3]
-			modified = False
 
 			if productId and clientId and actionRequest:
 				backend.setProductActionRequestWithDependencies(productId, clientId, actionRequest)
