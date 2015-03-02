@@ -615,7 +615,7 @@ class Shell:
 
 		self.shellCommand = u''
 		cmdline = self.cmdline
-		if (cmdline.find('|') != -1):
+		if '|' in cmdline:
 			split = -1
 			qCount = 0
 			dqCount = 0
@@ -977,7 +977,7 @@ class Shell:
 						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
 						found = False
 						for i in range(len(self.cmdList) - 1, -1, -1):
-							if (self.cmdList[i].find(self.reverseSearch) != -1):
+							if self.reverseSearch in self.cmdList[i]:
 								found = True
 								newCmdline = self.cmdList[i]
 								break
