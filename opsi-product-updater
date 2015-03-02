@@ -58,7 +58,6 @@ from OPSI.Backend.JSONRPC import JSONRPCBackend
 __version__ = '4.0.6.1'
 
 logger = Logger()
-logger.setConsoleColor(True)
 
 
 def _(string):
@@ -1197,6 +1196,8 @@ def main(argv):
 
 
 if (__name__ == "__main__"):
+	logger.setConsoleColor(True)
+
 	try:
 		main(sys.argv[1:])
 	except SystemExit:
