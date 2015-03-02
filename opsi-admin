@@ -280,11 +280,11 @@ def main(argv):
 					logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), forceUnicode(e)))
 
 		cmdline = u''
-		if (len(args) > 0):
+		if len(args) > 0:
 			for i in range(len(args)):
 				args[i] = unicode(args[i], inEncoding)
 				logger.info(u"arg[%d]: %s" % (i, args[i]))
-				if (i == 0):
+				if i == 0:
 					cmdline = args[i]
 				elif (args[i].find(u' ') != -1) or (len(args[i]) == 0):
 					cmdline += u" '%s'" % args[i]
