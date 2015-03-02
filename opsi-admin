@@ -826,8 +826,8 @@ class Shell:
 			elif (char == curses.KEY_PPAGE):
 				if (len(self.lines) > self.yMax - 2):
 					self.linesBack += 5
-					if (self.linesBack > len(self.lines)-self.yMax + 2):
-						self.linesBack = len(self.lines)-self.yMax + 2
+					if (self.linesBack > len(self.lines) - self.yMax + 2):
+						self.linesBack = len(self.lines) - self.yMax + 2
 
 					self.display()
 
