@@ -1447,13 +1447,10 @@ class CommandTask(Command):
 		return completions
 
 	def execute(self, shell, params):
-		tns = []
-		for t in self._tasks:
-			tns.append(t[0])
+		tns = [t[0] for t in self._tasks]
 
 		if len(params) <= 0:
 			return
-
 		elif params[0] not in tns:
 			raise Exception(_(u'Unknown task: %s') % params[0])
 
