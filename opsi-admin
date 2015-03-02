@@ -1430,7 +1430,7 @@ class CommandTask(Command):
 	def completion(self, params, paramPos):
 		completions = []
 
-		if (paramPos == 0) or not params[0]:
+		if paramPos == 0 or not params[0]:
 			for task in self._tasks:
 				completions.append(task[0])
 
@@ -1441,7 +1441,7 @@ class CommandTask(Command):
 
 		elif paramPos >= 2:
 			for task in self._tasks:
-				if (params[0] == task[0]) and (paramPos <= len(task)):
+				if params[0] == task[0] and paramPos <= len(task):
 					completions.append(task[paramPos - 1])
 
 		return completions
