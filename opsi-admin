@@ -686,7 +686,7 @@ class Shell:
 				% (self.paramPos, self.currentParam, self.params))
 		if self.paramPos >= len(self.params):
 			logger.error(
-				u"Assertion 'self.paramPos < len(self.params)' failed: " +
+				u"Assertion 'self.paramPos < len(self.params)' failed: "
 				u"self.paramPos: %s, len(self.params): %s" % (
 					self.paramPos,
 					len(self.params)
