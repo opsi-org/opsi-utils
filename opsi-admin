@@ -48,7 +48,7 @@ from OPSI.Logger import (Logger, LOG_NONE, LOG_ERROR, COLOR_CYAN, COLOR_RED,
 from OPSI.Util import (objectToBeautifiedText, objectToBash, fromJson,
 	getfqdn, serialize, deserialize)
 from OPSI.System import which
-from OPSI.Backend.BackendManager import *
+from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.Backend import *
 
 import curses
