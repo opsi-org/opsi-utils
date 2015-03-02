@@ -73,35 +73,36 @@ if not outEncoding or (outEncoding == 'ascii'):
 if not inEncoding or (inEncoding == 'ascii'):
 	inEncoding = outEncoding
 
-LOGO = [
-	{"color": COLOR_CYAN, "text": u'                               .:.:::::.                          '},
-	{"color": COLOR_CYAN, "text": u'                               ;      ::                          '},
-	{"color": COLOR_CYAN, "text": u'                               ;      ;.                          '},
-	{"color": COLOR_CYAN, "text": u'                               -:....::                           '},
-	{"color": COLOR_CYAN, "text": u'                                 . --                             '},
-	{"color": COLOR_CYAN, "text": u'                              ;:........                          '},
-	{"color": COLOR_CYAN, "text": u'                                 -----  -                         '},
-	{"color": COLOR_CYAN, "text": u'                                  ..                              '},
-	{"color": COLOR_CYAN, "text": u'                                 .||.                             '},
-	{"color": COLOR_CYAN, "text": u'                              .._|||=_..                          '},
-	{"color": COLOR_CYAN, "text": u'                           _=||++~~-~++||=,                       '},
-	{"color": COLOR_CYAN, "text": u'                        _=|>~-           ~+|;.                    '},
-	{"color": COLOR_CYAN, "text": u'                      .=|+-  _; ____=___.   +|;                   '},
-	{"color": COLOR_CYAN, "text": u'                     .||-. .=i`++++++++||=   -|=.                 '},
-	{"color": COLOR_CYAN, "text": u'       . ....        ||`. ..|>         =|+    -|=        . ....   '},
-	{"color": COLOR_CYAN, "text": u'      = -----:.     =|; ...:|= . .   . ||;     =|;      ; -- --:: '},
-	{"color": COLOR_CYAN, "text": u'     .:      ;.   ._||`.. . || . . .  .|+`     .||_,    =      :. '},
-	{"color": COLOR_CYAN, "text": u'      ;.    ::  -<||+|.. ...:|;__...._=|=  . . .||+|+-  ;.    .;  '},
-	{"color": COLOR_CYAN, "text": u'      --::::-      -+|;.. . .-+||||||||+ .  .  :|;-      --:;::   '},
-	{"color": COLOR_CYAN, "text": u'    ..              -|+ ... ...  --- .  . .. ..||     .. .        '},
-	{"color": COLOR_CYAN, "text": u'     -:::::;:: .     =|=.._=;___:...:.:.____. =|`      --:;:;;::..'},
-	{"color": COLOR_CYAN, "text": u'                      ~||,-~+||||||||||||>~ _||`                  '},
-	{"color": COLOR_CYAN, "text": u'                       -=|=_...---~~-~--  _=i:                    '},
-	{"color": COLOR_CYAN, "text": u'                         -~||=__:.-..:__|||~ .                    '},
-	{"color": COLOR_CYAN, "text": u'                            -~+++||||++~--                        '},
-	{"color": COLOR_CYAN, "text": u'      opsi-admin %-10s                              ' % __version__},
-	{"color": COLOR_CYAN, "text": u'                                                                  '}
-]
+UNCOLORED_LOGO = """\
+                                   .:.:::::.
+                                   ;      ::
+                                   ;      ;.
+                                   -:....::
+                                     . --
+                                  ;:........
+                                     -----  -
+                                      ..
+                                     .||.
+                                  .._|||=_..
+                               _=||++~~-~++||=,
+                            _=|>~-           ~+|;.
+                          .=|+-  _; ____=___.   +|;
+                         .||-. .=i`++++++++||=   -|=.
+           . ....        ||`. ..|>         =|+    -|=        . ....
+          = -----:.     =|; ...:|= . .   . ||;     =|;      ; -- --::
+         .:      ;.   ._||`.. . || . . .  .|+`     .||_,    =      :.
+          ;.    ::  -<||+|.. ...:|;__...._=|=  . . .||+|+-  ;.    .;
+          --::::-      -+|;.. . .-+||||||||+ .  .  :|;-      --:;::
+        ..              -|+ ... ...  --- .  . .. ..||     .. .
+         -:::::;:: .     =|=.._=;___:...:.:.____. =|`      --:;:;;::..
+                          ~||,-~+||||||||||||>~ _||`
+                           -=|=_...---~~-~--  _=i:
+                             -~||=__:.-..:__|||~ .
+                                -~+++||||++~--
+          opsi-admin {version}
+""".format(version=__version__).split('\n')
+
+LOGO = [{"color": COLOR_CYAN, "text": line} for line in UNCOLORED_LOGO]
 
 try:
 	t = gettext.translation('opsi-utils', '/usr/share/locale')
