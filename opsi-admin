@@ -1531,20 +1531,23 @@ class CommandTask(Command):
 			# Get depot to client assignment
 			depotToClients = {}
 			for clientToDepot in backend.configState_getClientToDepotserver():
-				if clientToDepot['depotId'] not in depotToClients:
-					depotToClients[clientToDepot['depotId']] = []
-				depotToClients[clientToDepot['depotId']].append(clientToDepot['clientId'])
+				try:
+					depotToClients[clientToDepot['depotId']].append(clientToDepot['clientId'])
+				except KeyError:
+					depotToClients[clientToDepot['depotId']] = [clientToDepot['clientId']]
 
 			updateProductOnClients = []
 			for (depotId, clientIds) in depotToClients.items():
 				if not clientIds:
 					continue
+
 				for productOnDepot in backend.productOnDepot_getObjects(productId=productId):
 					for productOnClient in backend.productOnClient_getObjects(clientId=clientIds, productId=productOnDepot.productId, installationStatus=u'installed'):
 						if (productOnClient.productVersion != productOnDepot.productVersion) or (productOnClient.packageVersion != productOnDepot.packageVersion):
 							productOnClient.setActionRequest(actionRequest)
 							updateProductOnClients.append(productOnClient)
 							shell.appendLine(productOnClient.clientId)
+
 			backend.productOnClient_updateObjects(updateProductOnClients)
 
 		if params[0] == u'setActionRequestWithDependencies':
