@@ -35,6 +35,8 @@ install:
 	install -m 0755  opsi-backup          debian/opsi-utils/usr/bin/
 
 	install -m 0660 -o root data/opsi-product-updater.conf  debian/opsi-utils/etc/opsi/
+
+	mkdir -p debian/opsi-utils/etc/logrotate.d/
 	install -m 0644 -o root data/etc/logrotate.d/opsi-backup  debian/opsi-utils/etc/logrotate.d/
 	install -m 0644 -o root data/etc/logrotate.d/opsi-product-updater  debian/opsi-utils/etc/logrotate.d/
 
