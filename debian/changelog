@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.1-2) experimental; urgency=low
+
+  * Fix path to logrotate config on RPM-based machines.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 09 Mar 2015 11:29:55 +0100
+
 opsi-utils (4.0.6.1-1) experimental; urgency=low
 
   * opsi-product-updater: Patch by Antione Guevara to make it possible to
