@@ -88,6 +88,9 @@ mkdir -p $RPM_BUILD_ROOT/etc/opsi
 install -m 0644 data/opsi-product-updater.conf $RPM_BUILD_ROOT/etc/opsi/
 
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d/
+install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
+install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
+
 %if 0%{?suse_version} > 1110
 echo "Detected openSuse / SLES"
 LOGROTATE_VERSION="$(zypper info logrotate | grep -i "version" | awk '{print $2}' | cut -d '-' -f 1)"
