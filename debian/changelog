@@ -1,4 +1,4 @@
-opsi-utils (4.0.6.1-1) UNRELEASED; urgency=low
+opsi-utils (4.0.6.1-1) experimental; urgency=low
 
   * opsi-product-updater: Patch by Antione Guevara to make it possible to
     give a custom subject on notification emails.
@@ -9,7 +9,7 @@ opsi-utils (4.0.6.1-1) UNRELEASED; urgency=low
   * opsi-admin: Added new task "setActionRequestWhereOutdatedWithDependencies".
     Thanks to Daniel Koch for the patch!
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 02 Mar 2015 15:26:12 +0100
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 09 Mar 2015 11:12:03 +0100
 
 opsi-utils (4.0.5.6-2) stable; urgency=low
 
