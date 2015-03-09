@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.2-1) experimental; urgency=low
+
+  * Fixing call to unreferenced variable.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 09 Mar 2015 16:02:25 +0100
+
 opsi-utils (4.0.6.1-5) experimental; urgency=low
 
   * Use correct path for logrotate configs during removal "su".

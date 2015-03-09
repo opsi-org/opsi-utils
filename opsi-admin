@@ -1110,10 +1110,10 @@ class CommandMethod(Command):
 		def createObjectOrString(obj):
 			"Tries to return object from JSON. If this fails returns unicode."
 			try:
-				return fromJson(params[i])
+				return fromJson(obj)
 			except Exception as error:
-				logger.debug(u"Not a json string '%s': %s" % (params[i], forceUnicode(error)))
-				return forceUnicode(params[i])
+				logger.debug(u"Not a json string '%s': %s" % (obj, forceUnicode(error)))
+				return forceUnicode(obj)
 
 		params = [createObjectOrString(item) for item in params]
 
