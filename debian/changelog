@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.1-5) experimental; urgency=low
+
+  * Use correct path for logrotate configs during removal "su".
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 09 Mar 2015 14:05:11 +0100
+
 opsi-utils (4.0.6.1-4) experimental; urgency=low
 
   * For .deb-packages we create the logrotate-folder.
