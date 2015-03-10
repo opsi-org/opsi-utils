@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.3-1) UNRELEASED; urgency=low
+
+  * opsi-product-updater: Only set the rights once on the package directory.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 10 Mar 2015 17:23:11 +0100
+
 opsi-utils (4.0.6.2-1) experimental; urgency=low
 
   * Fixing call to unreferenced variable.

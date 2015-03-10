@@ -888,6 +888,11 @@ class OpsiPackageUpdater(object):
 	def cleanupPackages(self, newPackage):
 		logger.info(u"Cleaning up in %s" % self.config["packageDir"])
 
+		try:
+			setRights(self.config["packageDir"])
+		except Exception as error:
+			logger.warning(u"Failed to set rights on directory '{0}': {1}".format(path, error))
+
 		for f in os.listdir(self.config["packageDir"]):
 			path = os.path.join(self.config["packageDir"], f)
 			if not os.path.isfile(path):
@@ -896,12 +901,6 @@ class OpsiPackageUpdater(object):
 				os.unlink(path)
 				continue
 
-			try:
-				setRights(path)
-			except Exception as error:
-				logger.warning(u"Failed to set rights on file '%s': %s" % (path, error))
-
-			(productId, version) = (None, None)
 			try:
 				productId = '_'.join(f.split('_')[:-1])
 				version = f[:-5].split('_')[-1]
