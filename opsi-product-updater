@@ -907,13 +907,13 @@ class OpsiPackageUpdater(object):
 			except Exception:
 				continue
 
-			if (productId == newPackage["productId"]) and (version != newPackage["version"]):
+			if productId == newPackage["productId"] and version != newPackage["version"]:
 				logger.info(u"Deleting obsolete package file '%s'" % path)
 				os.unlink(path)
 
 		packageFile = os.path.join(self.config["packageDir"], newPackage["filename"])
 
-		md5sumFile = packageFile + u'.md5'
+		md5sumFile = u'{package}.md5'.format(package=packageFile)
 		logger.info(u"Creating md5sum file '%s'" % md5sumFile)
 
 		with open(md5sumFile, 'w') as f:
@@ -922,7 +922,7 @@ class OpsiPackageUpdater(object):
 		setRights(md5sumFile)
 
 		try:
-			zsyncFile = u'%s.zsync' % packageFile
+			zsyncFile = u'{package}.zsync'.format(package=packageFile)
 			logger.info(u"Creating zsync file '%s'" % zsyncFile)
 			zsyncFile = ZsyncFile(zsyncFile)
 			zsyncFile.generate(packageFile)
