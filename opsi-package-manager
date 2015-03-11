@@ -1845,7 +1845,7 @@ class OpsiPackageManagerControl(object):
 		for thread in threading.enumerate():
 			logger.debug(u"Running thread before signal: %s" % thread)
 
-		if (signo == SIGTERM or signo == SIGINT):
+		if signo in (SIGTERM, SIGINT):
 			if self._opm:
 				self._opm.abort()
 
