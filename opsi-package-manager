@@ -261,8 +261,6 @@ class CursesMainWindow(CursesWindow):
 
 	def resize(self):
 		return
-		self.exitScreen()
-		self.initScreen()
 
 
 class CursesTextWindow(CursesWindow):
