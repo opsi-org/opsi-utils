@@ -664,7 +664,7 @@ class OpsiPackageUpdater(object):
 											objectId=self.depotId)
 						if productPropertyStates:
 							for pps in productPropertyStates:
-									propertyDefaultValues[pps.propertyId] = pps.values
+								propertyDefaultValues[pps.propertyId] = pps.values
 						logger.notice(u"Using product property defaults: %s" % propertyDefaultValues)
 					except Exception as error:
 						logger.warning(u"Failed to get product property defaults: %s" % error)
