@@ -325,7 +325,7 @@ class CursesTextWindow(CursesWindow):
 		for i in range(len(self.lines)):
 			(line, params) = self.lines[i]
 			if len(line) > self.width:
-				line = line[:self.width-1]
+				line = line[:self.width - 1]
 			newLines.append((line, params))
 		self.lines = newLines
 
@@ -378,7 +378,7 @@ class UserInterface(SubjectsObserver):
 				height=self.loggerWindowHeight,
 				width=self.mainWindow.width,
 				x=0,
-				y=self.mainWindow.height-self.loggerWindowHeight
+				y=self.mainWindow.height - self.loggerWindowHeight
 			)
 
 		if curses.has_colors():
@@ -498,7 +498,7 @@ class UserInterface(SubjectsObserver):
 				if free < 0:
 					free = 0
 
-				self.infoWindow.setLines([info + u' '*free + transfers])
+				self.infoWindow.setLines([info + u' ' * free + transfers])
 				self.infoWindow.refresh()
 		else:
 			self.showProgress()
@@ -576,7 +576,7 @@ class UserInterface(SubjectsObserver):
 						free = maxSize - len(message) - len(progress)
 						if free < 0:
 							free = 0
-						message = message + u' '*free + progress
+						message = message + u' ' * free + progress
 
 					if len(message) > maxSize:
 						message = message[:maxSize]
@@ -961,9 +961,10 @@ class OpsiPackageManager(object):
 			info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
 			if info['available'] < packageSize:
 				subject.setMessage(_(u"Not enough disk space: %dMB needed, %dMB available")
-							% ((packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024))))
-				raise Exception(u"Not enough disk space on depot '%s': %dMB needed, %dMB available" \
-							% (depotId, (packageSize/(1024*1024)), (info['available']/(1024*1024))))
+					% ((packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024))))
+				raise Exception(u"Not enough disk space on depot '%s': %dMB needed, %dMB available"
+					% (depotId, (packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024)))
+				)
 
 			oldPackages = []
 			for dest in repository.content():
@@ -1085,8 +1086,8 @@ class OpsiPackageManager(object):
 					raise Exception(u"MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (lMD5, rMD5, depotId))
 
 				if info['usage'] >= 0.9:
-					logger.warning(u"Warning: %d%% filesystem usage at repository on depot '%s'" % (int(100*info['usage']), depotId))
-					subject.setMessage(_(u"Warning: %d%% filesystem usage") % int(100*info['usage']), severity=3)
+					logger.warning(u"Warning: %d%% filesystem usage at repository on depot '%s'" % (int(100 * info['usage']), depotId))
+					subject.setMessage(_(u"Warning: %d%% filesystem usage") % int(100 * info['usage']), severity=3)
 
 				logger.notice(u"Upload of '%s' to depot '%s' successful" % (os.path.basename(packageFile), depotId))
 				subject.setMessage(_(u"Upload of %s successful") % os.path.basename(packageFile), severity=4)
@@ -1109,7 +1110,7 @@ class OpsiPackageManager(object):
 		except Exception as e:
 			logger.logException(e, LOG_INFO)
 			logger.error(e)
-			subject.setMessage( _("Error: %s") % e, severity = 2 )
+			subject.setMessage(_("Error: %s") % e, severity=2)
 			raise
 
 	def installOnDepots(self):
