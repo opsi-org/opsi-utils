@@ -161,8 +161,8 @@ class CursesWindow:
 		self.title = forceUnicode(title)
 		if not self.title:
 			return
-		if (len(self.title) > self.width-4):
-			self.title = self.title[:self.width-4]
+		if len(self.title) > self.width - 4:
+			self.title = self.title[:self.width - 4]
 		self.title = u'| %s |' % self.title
 		attr = curses.A_NORMAL
 		if self.color:
@@ -273,9 +273,9 @@ class CursesTextWindow(CursesWindow):
 	def addLine(self, line, *params):
 		line = forceUnicode(line)
 		self._lock.acquire()
-		if (len(line) > self.width):
-			line = line[:self.width-1]
-			self.lines.append( (line, params) )
+		if len(line) > self.width:
+			line = line[:self.width - 1]
+			self.lines.append((line, params))
 		self.build()
 		self._lock.release()
 
@@ -283,9 +283,9 @@ class CursesTextWindow(CursesWindow):
 		lines = forceUnicodeList(lines)
 		self._lock.acquire()
 		for line in lines:
-			if (len(line) > self.width):
-				line = line[:self.width-1]
-			self.lines.append( (line, params) )
+			if len(line) > self.width:
+				line = line[:self.width - 1]
+			self.lines.append((line, params))
 		self.build()
 		self._lock.release()
 
@@ -294,9 +294,9 @@ class CursesTextWindow(CursesWindow):
 		self._lock.acquire()
 		self.lines = []
 		for line in lines:
-			if (len(line) > self.width):
-				line = line[:self.width-1]
-			self.lines.append( (line, params) )
+			if len(line) > self.width:
+				line = line[:self.width - 1]
+			self.lines.append((line, params))
 		self.build()
 		self._lock.release()
 
@@ -304,13 +304,15 @@ class CursesTextWindow(CursesWindow):
 		return self.lines
 
 	def build(self):
-		if (len(self.lines) > self.height):
-			self.lines = self.lines[-1*self.height:]
+		if len(self.lines) > self.height:
+			self.lines = self.lines[-1 * self.height:]
+
 		for i in range(len(self.lines)):
-			if (i >= len(self.lines)) or (i >= self.height):
+			if i >= len(self.lines) or i >= self.height:
 				return
 			self.move(i, 0)
 			self.clrtoeol()
+
 			(line, params) = self.lines[i]
 			if params:
 				self.addstr(line, *params)
@@ -365,7 +367,7 @@ class UserInterface(SubjectsObserver):
 
 		self.loggerHeaderWindow = None
 		self.loggerWindow = None
-		if (self.loggerWindowHeight > 0):
+		if self.loggerWindowHeight > 0:
 			self.loggerHeaderWindow = CursesTextWindow(
 				height=1,
 				width=self.mainWindow.width,
@@ -468,11 +470,12 @@ class UserInterface(SubjectsObserver):
 	def messageChanged(self, subject, message):
 		if not message:
 			logger.warning("Message deleted: %s %s" % (subject.getType(), subject.getId()))
+
 		if self.__lock.locked():
 			return
-		if (subject.getType() == 'Logger'):
-			self.__lock.acquire()
-			try:
+
+		if subject.getType() == 'Logger':
+			with self.__lock:
 				# Do not log anything to avoid log loops !!!
 				params = []
 				ll = subject.getSeverity()
@@ -480,8 +483,6 @@ class UserInterface(SubjectsObserver):
 					params = [self._colors[ll]]
 				self.loggerWindow.addLines(message.split(u'\n'), *params)
 				self.loggerWindow.refresh()
-			finally:
-				self.__lock.release()
 
 		elif subject.getId() in ('info', 'transfers'):
 			self.__lock.acquire()
@@ -489,18 +490,17 @@ class UserInterface(SubjectsObserver):
 				info = u''
 				transfers = u''
 				for subject in self.getSubjects():
-					if (subject.getId() == u'info'):
+					if subject.getId() == u'info':
 						info = subject.getMessage()
-					elif (subject.getId() == u'transfers'):
+					elif subject.getId() == u'transfers':
 						transfers = subject.getMessage()
 
-				free = self.infoWindow.width - len(info) - len(transfers) -1
-				if (free < 0): free = 0
+				free = self.infoWindow.width - len(info) - len(transfers) - 1
+				if free < 0:
+					free = 0
 
 				self.infoWindow.setLines([info + u' '*free + transfers])
 				self.infoWindow.refresh()
-			finally:
-				self.__lock.release()
 		else:
 			self.showProgress()
 
@@ -523,10 +523,10 @@ class UserInterface(SubjectsObserver):
 		try:
 			subjects = {}
 			for s in self.getSubjects():
-				if (s.getType() == u'depot'):
+				if s.getType() == u'depot':
 					subjects[s.getId()] = s
 			for s in self.getSubjects():
-				if (s.getType() == u'upload'):
+				if s.getType() == u'upload':
 					subjects[s.getId()] = s
 			ids = subjects.keys()
 			ids.sort()
@@ -538,7 +538,7 @@ class UserInterface(SubjectsObserver):
 			y = 0
 			for id in ids:
 				subject = subjects[id]
-				if (y >= self.progressWindow.height):
+				if y >= self.progressWindow.height:
 					# Screen full
 					logger.info(u"Screen to small to display all progresses")
 					break
@@ -547,11 +547,11 @@ class UserInterface(SubjectsObserver):
 				self.progressWindow.move(y, x)
 
 				idString = u'%-*s | ' % (maxIdLength, subject.getId())
-				if (len(idString) > self.progressWindow.width):
+				if len(idString) > self.progressWindow.width:
 					idString = idString[:self.progressWindow.width]
 				self.progressWindow.addstr(idString, curses.A_BOLD)
 
-				if (len(idString) < self.progressWindow.width):
+				if len(idString) < self.progressWindow.width:
 					color = None
 					x += len(idString)
 					self.progressWindow.move(y, x)
@@ -562,22 +562,25 @@ class UserInterface(SubjectsObserver):
 						color = self._colors[severity]
 
 					if subject.getClass() is 'ProgressSubject':
-						minutesLeft = str(int(subject.getTimeLeft()/60))
-						secondsLeft = str(int(subject.getTimeLeft()%60))
-						if (len(minutesLeft) < 2): minutesLeft = '0' + minutesLeft
-						if (len(secondsLeft) < 2): secondsLeft = '0' + secondsLeft
+						minutesLeft = str(int(subject.getTimeLeft() / 60))
+						secondsLeft = str(int(subject.getTimeLeft() % 60))
+						if len(minutesLeft) < 2:
+							minutesLeft = '0' + minutesLeft
+						if len(secondsLeft) < 2:
+							secondsLeft = '0' + secondsLeft
 
-
+						# TODO: rework this ugly piece of string building!
 						progress = u' %8s' % ("%.2f" % subject.getPercent() + u'% ') \
 							+ u'%8s KB' % (subject.getState()/1000) \
 							+ u'%6s KB/s' % (int(subject.getSpeed()/1000)) \
 							+ u'%6s:%s ETA' % (minutesLeft, secondsLeft)
 
 						free = maxSize - len(message) - len(progress)
-						if (free < 0): free = 0
+						if free < 0:
+							free = 0
 						message = message + u' '*free + progress
 
-					if (len(message) > maxSize):
+					if len(message) > maxSize:
 						message = message[:maxSize]
 
 					if color:
@@ -590,9 +593,6 @@ class UserInterface(SubjectsObserver):
 				y += 1
 
 			self.progressWindow.refresh()
-
-		finally:
-			self.__lock.release()
 
 
 class TaskQueue(threading.Thread):
@@ -612,7 +612,7 @@ class TaskQueue(threading.Thread):
 			task.abort()
 
 	def getCurrentTask(self):
-		if (self.currentTaskNumber < 0):
+		if self.currentTaskNumber < 0:
 			return None
 		return self.tasks[self.currentTaskNumber]
 
@@ -623,8 +623,10 @@ class TaskQueue(threading.Thread):
 		self.started = True
 		logger.debug(u"TaskQueue '%s' started" % self.name)
 		i = 0
-		while (i < len(self.tasks)):
-			if self.ended:	return
+		while i < len(self.tasks):
+			if self.ended:
+				return
+
 			task = self.tasks[i]
 			try:
 				logger.debug(u"Starting task '%s'" % task.name)
@@ -634,13 +636,13 @@ class TaskQueue(threading.Thread):
 			except Exception as e:
 				logger.error(u"Task '%s' failed: %s" % (task.name, e))
 				self.errors.append(e)
-				if (i < len(self.tasks)-1) and isinstance(task, UploadTask) and isinstance(self.tasks[i+1], InstallTask):
+				if i < (len(self.tasks) - 1) and isinstance(task, UploadTask) and isinstance(self.tasks[i + 1], InstallTask):
 					# Upload task failed => do not execute install task
 					logger.notice(u"Upload task failed, skipping install task")
 					i += 1
-			if (i < len(self.tasks)-1):
+			if i < len(self.tasks) - 1:
 				time.sleep(2)
-				if isinstance(task, UploadTask) and isinstance(self.tasks[i+1], UploadTask):
+				if isinstance(task, UploadTask) and isinstance(self.tasks[i + 1], UploadTask):
 					# Waiting a little more to provide the opportunity to start other upload tasks
 					time.sleep(2)
 			i += 1
@@ -912,7 +914,8 @@ class OpsiPackageManager(object):
 			logger.info(u"Using '%s' as repository url" % depot.repositoryRemoteUrl)
 
 			maxBandwidth = depot.maxBandwidth
-			if (maxBandwidth < 0): maxBandwidth = 0
+			if maxBandwidth < 0:
+				maxBandwidth = 0
 			if not maxBandwidth and self.config['maxBandwidth']:
 				maxBandwidth = self.config['maxBandwidth']
 			if maxBandwidth:
@@ -927,7 +930,7 @@ class OpsiPackageManager(object):
 			)
 
 			for dest in repository.content():
-				if (dest['name'] == destination):
+				if dest['name'] == destination:
 					logger.info(u"Destination '%s' already exists on depot '%s'" % (destination, depotId))
 					if not self.config['overwriteAlways']:
 						# Not overwriting always => checking file sizes first
@@ -939,7 +942,7 @@ class OpsiPackageManager(object):
 							logger.info(u"Size of source and destination matches on depot '%s'" % depotId)
 							depotConnection = self.getDepotConnection(depotId)
 							rMD5 = depotConnection.depot_getMD5Sum(depotRepositoryPath + u'/' + destination)
-							if (lMD5 == rMD5):
+							if lMD5 == rMD5:
 								# md5sum match => do not overwrite
 								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
 								logger.notice(u"No need to upload, '%s' is up to date on '%s'" % (os.path.basename(packageFile), depotId))
@@ -963,7 +966,7 @@ class OpsiPackageManager(object):
 
 			oldPackages = []
 			for dest in repository.content():
-				if dest['name'].startswith(productId + '_') and not (dest['name'] == destination):
+				if dest['name'].startswith(productId + '_') and not dest['name'] == destination:
 					# same product, other version
 					oldPackages.append(dest['name'])
 			newOldPackages = []
@@ -1003,7 +1006,7 @@ class OpsiPackageManager(object):
 						ldf = librsync.DeltaFile(sig, bf)
 
 						data = True
-						while(data):
+						while data:
 							data = ldf.read(bufsize)
 							df.write(data)
 						df.close()
@@ -1056,13 +1059,13 @@ class OpsiPackageManager(object):
 						if self.userInterface:
 							self.userInterface.removeSubject(progressSubject)
 
-
 				logger.notice(u"Upload of '%s' to depot '%s' finished" % (os.path.basename(packageFile), depotId))
 				subject.setMessage(_(u"Upload of %s finished") % os.path.basename(packageFile))
 
 				for oldPackage in oldPackages:
-					if (oldPackage == destination):
+					if oldPackage == destination:
 						continue
+
 					try:
 						logger.notice(u"Deleting '%s' from depot '%s'" % (oldPackage, depotId))
 						repository.delete(oldPackage)
@@ -1076,11 +1079,11 @@ class OpsiPackageManager(object):
 				depotConnection = self.getDepotConnection(depotId)
 				rMD5 = depotConnection.depot_getMD5Sum(remotePackageFile)
 				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
-				if (lMD5 != rMD5):
+				if lMD5 != rMD5:
 					# md5sum differ
 					raise Exception(u"MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (lMD5, rMD5, depotId))
 
-				if (info['usage'] >= 0.9):
+				if info['usage'] >= 0.9:
 					logger.warning(u"Warning: %d%% filesystem usage at repository on depot '%s'" % (int(100*info['usage']), depotId))
 					subject.setMessage(_(u"Warning: %d%% filesystem usage") % int(100*info['usage']), severity=3)
 
@@ -1513,17 +1516,18 @@ class OpsiPackageManagerControl(object):
 
 	def processCommand(self):
 		try:
-			if   (self.config['command'] == u'list'):
+			command = self.config['command']
+			if command == u'list':
 				self.processListCommand()
-			elif (self.config['command'] == u'differences'):
+			elif command == u'differences':
 				self.processDifferencesCommand()
-			elif (self.config['command'] == u'upload'):
+			elif command == u'upload':
 				self.processUploadCommand()
-			elif (self.config['command'] == u'install'):
+			elif command == u'install':
 				self.processInstallCommand()
-			elif (self.config['command'] == u'remove'):
+			elif command == u'remove':
 				self.processRemoveCommand()
-			elif (self.config['command'] == u'extract'):
+			elif command == u'extract':
 				self.processExtractCommand()
 		finally:
 			if self.backend:
