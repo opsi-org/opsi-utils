@@ -1232,7 +1232,7 @@ class OpsiPackageManager(object):
 							continue
 
 						possibleValues = productProperties[i].getPossibleValues()
-						if not value in possibleValues:
+						if value not in possibleValues:
 							possibleValues.append(value)
 							productProperties[i].setPossibleValues(possibleValues)
 						productProperties[i].setDefaultValues(value)
@@ -1304,11 +1304,9 @@ class OpsiPackageManager(object):
 				if propertyDefaultValues[productProperty.propertyId] is None:
 					propertyDefaultValues[productProperty.propertyId] = []
 
-			if (self.config['properties'] == 'keep'):
-				for productPropertyState in self.backend.productPropertyState_getObjects(
-										productId = productId,
-										objectId  = depotId ):
-					if propertyDefaultValues.has_key(productPropertyState.propertyId):
+			if self.config['properties'] == 'keep':
+				for productPropertyState in self.backend.productPropertyState_getObjects(productId=productId, objectId=depotId):
+					if productPropertyState.propertyId in propertyDefaultValues:
 						propertyDefaultValues[productPropertyState.propertyId] = productPropertyState.values
 						if propertyDefaultValues[productProperty.propertyId] is None:
 							propertyDefaultValues[productProperty.propertyId] = []
@@ -1480,7 +1478,7 @@ class OpsiPackageManagerControl(object):
 					break
 				else:
 					depotId = forceHostId(self.config['depotIds'][i])
-					if not depotId in knownDepotIds:
+					if depotId not in knownDepotIds:
 						raise Exception(u"Depot '%s' not in list of known depots: %s" % (depotId, u', '.join(knownDepotIds)))
 					self.config['depotIds'][i] = depotId
 			self.config['depotIds'].sort()
@@ -1634,9 +1632,9 @@ class OpsiPackageManagerControl(object):
 
 		productInfo = {}
 		for product in products:
-			if not productInfo.has_key(product.id):
+			if product.id not in productInfo:
 				productInfo[product.id] = {}
-			if not productInfo[product.id].has_key(product.productVersion):
+			if product.productVersion not in productInfo[product.id]:
 				productInfo[product.id][product.productVersion] = {}
 			productInfo[product.id][product.productVersion][product.packageVersion] = product
 			if (len(product.id) > idWidth):
@@ -1682,7 +1680,7 @@ class OpsiPackageManagerControl(object):
 			productOnDepotInfo[depotId] = {}
 
 		for productOnDepot in productOnDepots:
-			if not productOnDepot.productId in productIds:
+			if productOnDepot.productId not in productIds:
 				productIds.append(productOnDepot.productId)
 			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
 		productIds.sort()
