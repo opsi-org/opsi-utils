@@ -95,7 +95,7 @@ class Task:
 		try:
 			logger.debug2(u"Method: %s" % self.method)
 			logger.debug2(u"Params: %s" % self.params)
-			self.method( *self.params )
+			self.method(*self.params)
 		except Exception as e:
 			logger.logException(e)
 			self.exception = e
@@ -130,15 +130,15 @@ class UninstallTask(Task):
 
 class CursesWindow:
 	def __init__(self, height, width, y, x, title = u'', border = False):
-		self.height   = forceInt(height)
-		self.width    = forceInt(width)
-		self.y        = forceInt(y)
-		self.x        = forceInt(x)
-		self.title    = forceUnicode(title)
-		self.border   = forceBool(border)
-		self.color    = None
+		self.height = forceInt(height)
+		self.width = forceInt(width)
+		self.y = forceInt(y)
+		self.x = forceInt(x)
+		self.title = forceUnicode(title)
+		self.border = forceBool(border)
+		self.color = None
 		self.encoding = locale.getpreferredencoding()
-		self.win      = curses.newwin(self.height, self.width, self.y, self.x)
+		self.win = curses.newwin(self.height, self.width, self.y, self.x)
 		if self.border:
 			self.win.border()
 		self.setTitle(self.title)
@@ -146,9 +146,9 @@ class CursesWindow:
 
 	def resize(self, height, width, y, x):
 		self.height = forceInt(height)
-		self.width  = forceInt(width)
-		self.y      = forceInt(y)
-		self.x      = forceInt(x)
+		self.width = forceInt(width)
+		self.y = forceInt(y)
+		self.x = forceInt(x)
 		try:
 			self.win.resize(height, width)
 			self.win.mvwin(y, x)
@@ -265,7 +265,7 @@ class CursesMainWindow(CursesWindow):
 
 
 class CursesTextWindow(CursesWindow):
-	def __init__(self, height, width, y, x, title = u'', border = False):
+	def __init__(self, height, width, y, x, title=u'', border=False):
 		CursesWindow.__init__(self, height, width, y, x, title, border)
 		self.lines = []
 		self._lock = threading.Lock()
@@ -322,14 +322,14 @@ class CursesTextWindow(CursesWindow):
 		newLines = []
 		for i in range(len(self.lines)):
 			(line, params) = self.lines[i]
-			if (len(line) > self.width):
+			if len(line) > self.width:
 				line = line[:self.width-1]
-			newLines.append( (line, params) )
+			newLines.append((line, params))
 		self.lines = newLines
 
 
 class UserInterface(SubjectsObserver):
-	def __init__(self, config = {}, subjects = []):
+	def __init__(self, config={}, subjects=[]):
 		SubjectsObserver.__init__(self)
 		self.config = config
 		self.opmSubjects = subjects
@@ -351,29 +351,33 @@ class UserInterface(SubjectsObserver):
 
 		self.mainWindow = CursesMainWindow()
 		self.infoWindow = CursesTextWindow(
-					height	= 1,
-					width 	= self.mainWindow.width,
-					x	= 0,
-					y	= 0)
+			height=1,
+			width=self.mainWindow.width,
+			x=0,
+			y=0
+		)
 		self.progressWindow = CursesWindow(
-					height	= self.mainWindow.height-self.loggerWindowHeight-2,
-					width 	= self.mainWindow.width,
-					x	= 0,
-					y	= 1)
+			height=self.mainWindow.height - self.loggerWindowHeight - 2,
+			width=self.mainWindow.width,
+			x=0,
+			y=1
+		)
 
 		self.loggerHeaderWindow = None
 		self.loggerWindow = None
 		if (self.loggerWindowHeight > 0):
 			self.loggerHeaderWindow = CursesTextWindow(
-						height	= 1,
-						width 	= self.mainWindow.width,
-						x	= 0,
-						y	= self.mainWindow.height-self.loggerWindowHeight-1)
+				height=1,
+				width=self.mainWindow.width,
+				x=0,
+				y=self.mainWindow.height - self.loggerWindowHeight - 1
+			)
 			self.loggerWindow = CursesTextWindow(
-						height	= self.loggerWindowHeight,
-						width 	= self.mainWindow.width,
-						x	= 0,
-						y	= self.mainWindow.height-self.loggerWindowHeight)
+				height=self.loggerWindowHeight,
+				width=self.mainWindow.width,
+				x=0,
+				y=self.mainWindow.height-self.loggerWindowHeight
+			)
 
 		if curses.has_colors():
 			logger.debug('init colors')
@@ -403,7 +407,7 @@ class UserInterface(SubjectsObserver):
 				self.loggerHeaderWindow.setColor(self._colors['LOG_HEADER'])
 
 		if self.loggerHeaderWindow:
-			self.loggerHeaderWindow.setLines( [ _(u'Log messages') ] )
+			self.loggerHeaderWindow.setLines([_(u'Log messages')])
 			self.loggerHeaderWindow.refresh()
 
 		self.mainWindow.refresh()
@@ -420,28 +424,34 @@ class UserInterface(SubjectsObserver):
 		try:
 			self.mainWindow.resize()
 			self.infoWindow.resize(
-					height	= 1,
-					width 	= self.mainWindow.width,
-					x	= 0,
-					y	= 0)
+				height=1,
+				width=self.mainWindow.width,
+				x=0,
+				y=0
+			)
 			self.progressWindow.resize(
-					height	= self.mainWindow.height-self.loggerWindowHeight-2,
-					width 	= self.mainWindow.width,
-					x	= 0,
-					y	= 1)
-			if (self.loggerWindowHeight > 0):
+				height=self.mainWindow.height - self.loggerWindowHeight - 2,
+				width=self.mainWindow.width,
+				x=0,
+				y=1
+			)
+
+			if self.loggerWindowHeight > 0:
 				self.loggerHeaderWindow.resize(
-						height	= 1,
-						width 	= self.mainWindow.width,
-						x	= 0,
-						y	= self.mainWindow.height-self.loggerWindowHeight-1)
+					height=1,
+					width=self.mainWindow.width,
+					x=0,
+					y=self.mainWindow.height - self.loggerWindowHeight - 1
+				)
 				self.loggerWindow.resize(
-						height	= self.loggerWindowHeight,
-						width 	= self.mainWindow.width,
-						x	= 0,
-						y	= self.mainWindow.height-self.loggerWindowHeight)
-		except:
-			pass
+					height=self.loggerWindowHeight,
+					width=self.mainWindow.width,
+					x=0,
+					y=self.mainWindow.height - self.loggerWindowHeight
+				)
+		except Exception as error:
+			logger.debug2(error)
+
 		try:
 			self.subjectsChanged(self.getSubjects())
 		except:
@@ -466,8 +476,8 @@ class UserInterface(SubjectsObserver):
 				# Do not log anything to avoid log loops !!!
 				params = []
 				ll = subject.getSeverity()
-				if self._colors.has_key(ll):
-					params = [ self._colors[ll] ]
+				if ll in self._colors:
+					params = [self._colors[ll]]
 				self.loggerWindow.addLines(message.split(u'\n'), *params)
 				self.loggerWindow.refresh()
 			finally:
@@ -487,7 +497,7 @@ class UserInterface(SubjectsObserver):
 				free = self.infoWindow.width - len(info) - len(transfers) -1
 				if (free < 0): free = 0
 
-				self.infoWindow.setLines( [ info + u' '*free + transfers ] )
+				self.infoWindow.setLines([info + u' '*free + transfers])
 				self.infoWindow.refresh()
 			finally:
 				self.__lock.release()
@@ -669,7 +679,7 @@ class OpsiPackageManager(object):
 
 		if not self.config['quiet']:
 			logger.setConsoleLevel(LOG_NONE)
-			self.userInterface = UserInterface( config = self.config, subjects = [ self.infoSubject, self.transferSubject ] )
+			self.userInterface = UserInterface(config=self.config, subjects=[self.infoSubject, self.transferSubject])
 		logger.info(u"OpsiPackageManager initiated")
 
 	def abort(self):
@@ -686,48 +696,47 @@ class OpsiPackageManager(object):
 		logger.info(u"Cleaning up")
 		if self.userInterface:
 			self.userInterface.exit()
+
 		for productPackageFile in self.productPackageFiles.values():
 			productPackageFile.cleanup()
-		#for depotConnection in self.depotConnections.values():
-		#	depotConnection.backend_exit()
 
 	def getDepotConnection(self, depotId):
-		depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
+		depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 		if not self.depotConnections.get(depotId):
-			self.depotConnections[depotId] = JSONRPCBackend( username = depotId, password = depot.getOpsiHostKey(), address = depotId, application = 'opsi-package-manager version %s' % __version__)
+			self.depotConnections[depotId] = JSONRPCBackend(
+				username=depotId,
+				password=depot.getOpsiHostKey(),
+				address=depotId,
+				application='opsi-package-manager version %s' % __version__
+			)
 		return self.depotConnections[depotId]
 
 	def getRunningTransfers(self):
-		self.runningTransfersLock.acquire()
-		num = self.runningTransfers
-		self.runningTransfersLock.release()
-		return num
+		with self.runningTransfersLock:
+			return self.runningTransfers
 
 	def setRunningTransfers(self, num):
-		self.runningTransfersLock.acquire()
-		self.runningTransfers = num
-		self.runningTransfersLock.release()
+		with self.runningTransfersLock:
+			self.runningTransfers = num
 		self.updateRunningTransfersSubject()
 
 	def addRunningTransfer(self):
-		self.runningTransfersLock.acquire()
-		self.runningTransfers += 1
-		self.runningTransfersLock.release()
+		with self.runningTransfersLock:
+			self.runningTransfers += 1
 		self.updateRunningTransfersSubject()
 
 	def removeRunningTransfer(self):
-		self.runningTransfersLock.acquire()
-		self.runningTransfers -= 1
-		self.runningTransfersLock.release()
+		with self.runningTransfersLock:
+			self.runningTransfers -= 1
 		self.updateRunningTransfersSubject()
 
 	def updateRunningTransfersSubject(self):
 		if self.config['maxTransfers']:
-			self.transferSubject.setMessage( _("%d/%d transfers running") \
-				% (self.runningTransfers, self.config['maxTransfers']) )
+			self.transferSubject.setMessage(_("%d/%d transfers running")
+				% (self.runningTransfers, self.config['maxTransfers']))
 		else:
-			self.transferSubject.setMessage( _("%d transfers running") \
-				% self.runningTransfers )
+			self.transferSubject.setMessage(_("%d transfers running")
+				% self.runningTransfers)
 
 	def maxTransfersReached(self):
 		if self.config['maxTransfers'] and (self.getRunningTransfers() >= self.config['maxTransfers']):
@@ -739,7 +748,7 @@ class OpsiPackageManager(object):
 			for subject in self.depotSubjects.values():
 				self.userInterface.removeSubject(subject)
 		for depotId in self.config['depotIds']:
-			self.depotSubjects[depotId] = MessageSubject(id = depotId, type = u'depot')
+			self.depotSubjects[depotId] = MessageSubject(id=depotId, type=u'depot')
 			if self.userInterface:
 				self.userInterface.addSubject(self.depotSubjects[depotId])
 
@@ -773,16 +782,15 @@ class OpsiPackageManager(object):
 			self.productPackageFilesMd5sumLock.release()
 
 	def waitForTaskQueues(self):
-		self.infoSubject.setMessage( _(u'Waiting for task queues to finish up') )
+		self.infoSubject.setMessage(_(u'Waiting for task queues to finish up'))
 		running = 1
 		while running:
 			running = 0
 			for tq in self.taskQueues:
 				if not tq.ended:
-					#logger.debug2(u"Task queue %s running, waiting" % tq.name)
-					running +=1
-			self.infoSubject.setMessage( _(u'%d/%d task queues running') \
-								% (running, len(self.taskQueues)) )
+					running += 1
+			self.infoSubject.setMessage(_(u'%d/%d task queues running')
+										% (running, len(self.taskQueues)))
 			time.sleep(1)
 
 	def getTaskQueueErrors(self):
@@ -793,17 +801,18 @@ class OpsiPackageManager(object):
 			errors[tq.name] = tq.errors
 		return errors
 
-	def setActionRequestWhereInstalled(self, productId, depotId, actionRequest = u'setup'):
+	def setActionRequestWhereInstalled(self, productId, depotId, actionRequest=u'setup'):
 		try:
 			subject = self.getDepotSubject(depotId)
-			subject.setMessage( _(u"Setting action setup for product %s where installed") % productId )
+			subject.setMessage(_(u"Setting action setup for product %s where installed") % productId)
 			actionRequest = forceActionRequest(actionRequest)
 			clientIds = []
-			for clientToDepot in self.backend.configState_getClientToDepotserver(depotIds = [ depotId ]):
+			for clientToDepot in self.backend.configState_getClientToDepotserver(depotIds=[depotId]):
 				clientIds.append(clientToDepot['clientId'])
 			if not clientIds:
 				return
-			productOnClients = self.backend.productOnClient_getObjects(clientId = clientIds, productId = productId, installationStatus = u'installed')
+
+			productOnClients = self.backend.productOnClient_getObjects(clientId=clientIds, productId=productId, installationStatus=u'installed')
 			if not productOnClients:
 				return
 			clientIds = []
@@ -812,11 +821,11 @@ class OpsiPackageManager(object):
 				clientIds.append(productOnClients[i].clientId)
 			clientIds.sort()
 			logger.notice(u"Setting action '%s' for product '%s' on client(s): %s" % (actionRequest, productId, ', '.join(clientIds)))
-			subject.setMessage( _(u"Setting action %s for product %s on client(s): %s") % (actionRequest, productId, ', '.join(clientIds)) )
+			subject.setMessage(_(u"Setting action %s for product %s on client(s): %s") % (actionRequest, productId, ', '.join(clientIds)))
 			self.backend.productOnClient_updateObjects(productOnClients)
 		except Exception as e:
 			logger.error(e)
-			subject.setMessage( _("Error: %s") % e, severity = 2 )
+			subject.setMessage(_("Error: %s") % e, severity=2)
 			raise
 
 	def purgeProductPropertyStates(self, productId, depotId):
@@ -831,21 +840,18 @@ class OpsiPackageManager(object):
 
 			productPropertyStates = []
 			clientIds = []
-			for productPropertyState in self.backend.productPropertyState_getObjects(
-											productId = productId,
-											objectId  = depotClientIds):
+			for productPropertyState in self.backend.productPropertyState_getObjects(productId=productId, objectId=depotClientIds):
 				productPropertyStates.append(productPropertyState)
 				if not productPropertyState.objectId in clientIds:
 					clientIds.append(productPropertyState.objectId)
 
 			logger.notice(u"Purging product property states for product '%s' on client(s): %s" % (productId, ', '.join(clientIds)))
-			subject.setMessage( _(u"Purging product property states for product '%s' on client(s): %s") % (productId, ', '.join(clientIds)) )
+			subject.setMessage(_(u"Purging product property states for product '%s' on client(s): %s") % (productId, ', '.join(clientIds)))
 
 			self.backend.productPropertyState_deleteObjects(productPropertyStates)
-
 		except Exception as e:
 			logger.error(e)
-			subject.setMessage( _("Error: %s") % e, severity = 2 )
+			subject.setMessage(_("Error: %s") % e, severity=2)
 			raise
 
 	def uploadToRepositories(self):
@@ -853,14 +859,14 @@ class OpsiPackageManager(object):
 			self.openProductPackageFile(packageFile)
 
 		for depotId in self.config['depotIds']:
-			tq = TaskQueue(name = u"Upload of package(s) %s to repository '%s'" % (', '.join(self.config['packageFiles']), depotId))
+			tq = TaskQueue(name=u"Upload of package(s) %s to repository '%s'" % (', '.join(self.config['packageFiles']), depotId))
 			for packageFile in self.config['packageFiles']:
 				tq.addTask(
 					UploadTask(
-						name = u"Upload of package '%s' to repository '%s'" % (packageFile, depotId),
-						opsiPackageManager = self,
-						method = self.uploadToRepository,
-						params = [packageFile, depotId]
+						name=u"Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+						opsiPackageManager=self,
+						method=self.uploadToRepository,
+						params=[packageFile, depotId]
 					)
 				)
 			if not self.aborted:
@@ -877,14 +883,14 @@ class OpsiPackageManager(object):
 			# Process upload
 			if self.maxTransfersReached():
 				logger.notice(u"Waiting for free upload slot for upload of '%s' to depot '%s'" % (os.path.basename(packageFile), depotId))
-				subject.setMessage( _(u"Waiting for free upload slot for %s") % os.path.basename(packageFile) )
+				subject.setMessage(_(u"Waiting for free upload slot for %s") % os.path.basename(packageFile))
 				while self.maxTransfersReached():
 					time.sleep(0.1 * random.randint(1, 20))
 			self.addRunningTransfer()
 
 			logger.notice(u"Processing upload of '%s' to depot '%s'" \
 					% (os.path.basename(packageFile), depotId))
-			subject.setMessage( _(u"Processing upload of %s") % os.path.basename(packageFile) )
+			subject.setMessage(_(u"Processing upload of %s") % os.path.basename(packageFile))
 
 			packageSize = os.stat(packageFile)[stat.ST_SIZE]
 			lMD5 = self.getPackageMd5Sum(packageFile)
@@ -896,7 +902,7 @@ class OpsiPackageManager(object):
 
 			productId = self.getPackageControlFile(packageFile).getProduct().getId()
 
-			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
+			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			if not depot.repositoryLocalUrl.startswith('file://'):
 				raise Exception(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
 			depotRepositoryPath = depot.repositoryLocalUrl[7:]
@@ -913,11 +919,12 @@ class OpsiPackageManager(object):
 				logger.info(u"Setting max bandwith for depot '%s' to %d kBytes/s" % (depotId, maxBandwidth))
 
 			repository = getRepository(
-					url          = depot.repositoryRemoteUrl,
-					username     = depotId,
-					password     = depot.opsiHostKey,
-					maxBandwidth = maxBandwidth * 1000,
-					application  = 'opsi-package-manager version %s' % __version__ )
+				url=depot.repositoryRemoteUrl,
+				username=depotId,
+				password=depot.opsiHostKey,
+				maxBandwidth=maxBandwidth * 1000,
+				application='opsi-package-manager version %s' % __version__
+			)
 
 			for dest in repository.content():
 				if (dest['name'] == destination):
@@ -936,21 +943,21 @@ class OpsiPackageManager(object):
 								# md5sum match => do not overwrite
 								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
 								logger.notice(u"No need to upload, '%s' is up to date on '%s'" % (os.path.basename(packageFile), depotId))
-								subject.setMessage( _(u"No need to upload, %s is up to date") % os.path.basename(packageFile), severity = 4 )
+								subject.setMessage( _(u"No need to upload, %s is up to date") % os.path.basename(packageFile), severity=4)
 								self.removeRunningTransfer()
 								return
 							# md5sums differ => overwrite
 							logger.info(u"MD5sum of source and destination differs on depot '%s'" % depotId)
 
 					logger.info(u"Overwriting destination '%s' on depot '%s'" % (destination, depotId))
-					subject.setMessage( _(u"Overwriting destination %s") % destination )
+					subject.setMessage(_(u"Overwriting destination %s") % destination)
 					break
 
 			depotConnection = self.getDepotConnection(depotId)
 			info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
-			if (info['available'] < packageSize):
-				subject.setMessage( _(u"Not enough disk space: %dMB needed, %dMB available") \
-							% ( (packageSize/(1024*1024)), (info['available']/(1024*1024)) ) )
+			if info['available'] < packageSize:
+				subject.setMessage(_(u"Not enough disk space: %dMB needed, %dMB available")
+							% ((packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024))))
 				raise Exception(u"Not enough disk space on depot '%s': %dMB needed, %dMB available" \
 							% (depotId, (packageSize/(1024*1024)), (info['available']/(1024*1024))))
 
@@ -970,12 +977,12 @@ class OpsiPackageManager(object):
 						depotConnection = self.getDepotConnection(depotId)
 
 						logger.notice(u"Getting librsync signature of '%s' on depot '%s'" % (oldPackage, depotId))
-						subject.setMessage( _(u"Getting librsync signature of %s") % oldPackage )
+						subject.setMessage(_(u"Getting librsync signature of %s") % oldPackage)
 
-						sig = base64.decodestring( depotConnection.depot_librsyncSignature(depotRepositoryPath + '/' + oldPackage) )
+						sig = base64.decodestring(depotConnection.depot_librsyncSignature(depotRepositoryPath + '/' + oldPackage))
 
 						logger.notice(u"Calculating delta for depot '%s'" % depotId)
-						subject.setMessage( _(u"Calculating delta") )
+						subject.setMessage(_(u"Calculating delta"))
 
 						deltaFilename = '%s_%s.delta' % (productId, depotId)
 
@@ -989,7 +996,8 @@ class OpsiPackageManager(object):
 
 						deltaFile = os.path.join('/tmp', deltaFilename)
 
-						bufsize = 1024*1024
+						bufsize = 1024 * 1024
+						# TODO: with-statement
 						bf = open(packageFile, "rb")
 						df = open(deltaFile, "wb")
 						ldf = librsync.DeltaFile(sig, bf)
@@ -1013,11 +1021,12 @@ class OpsiPackageManager(object):
 						subject.setMessage( _(u"Starting delta upload of %s") \
 										% os.path.basename(packageFile) )
 
-						progressSubject = ProgressSubject(id = depotId, type = 'upload')
+						progressSubject = ProgressSubject(id=depotId, type='upload')
 						progressSubject.setMessage(u"Uploading %s (delta upload, speedup %.1f%%)" \
 									% (os.path.basename(packageFile), speedup*100) )
 						if self.userInterface:
 							self.userInterface.addSubject(progressSubject)
+
 						try:
 							repository.upload(deltaFile, deltaFilename, progressSubject)
 						finally:
@@ -1025,7 +1034,7 @@ class OpsiPackageManager(object):
 								self.userInterface.removeSubject(progressSubject)
 
 						logger.notice(u"Patching '%s'" % oldPackage)
-						subject.setMessage( _(u"Patching %s") % oldPackage )
+						subject.setMessage(_(u"Patching %s") % oldPackage)
 
 						depotConnection.depot_librsyncPatchFile(depotRepositoryPath + u'/' + oldPackage, depotRepositoryPath + u'/' + deltaFilename, depotRepositoryPath + u'/' + destination)
 
@@ -1034,11 +1043,10 @@ class OpsiPackageManager(object):
 						if deltaFile and os.path.exists(deltaFile):
 							os.unlink(deltaFile)
 				else:
+					logger.notice(u"Starting upload of '%s' to depot '%s'" % (os.path.basename(packageFile), depotId))
+					subject.setMessage(_(u"Starting upload of %s") % os.path.basename(packageFile))
 
-					logger.notice(u"Starting upload of '%s' to depot '%s'" 	% (os.path.basename(packageFile), depotId))
-					subject.setMessage( _(u"Starting upload of %s") % os.path.basename(packageFile) )
-
-					progressSubject = ProgressSubject(id = depotId, type = u'upload')
+					progressSubject = ProgressSubject(id=depotId, type=u'upload')
 					progressSubject.setMessage(u"Uploading %s" % os.path.basename(packageFile))
 					if self.userInterface:
 						self.userInterface.addSubject(progressSubject)
@@ -1050,7 +1058,7 @@ class OpsiPackageManager(object):
 
 
 				logger.notice(u"Upload of '%s' to depot '%s' finished" % (os.path.basename(packageFile), depotId))
-				subject.setMessage( _(u"Upload of %s finished") % os.path.basename(packageFile) )
+				subject.setMessage(_(u"Upload of %s finished") % os.path.basename(packageFile))
 
 				for oldPackage in oldPackages:
 					if (oldPackage == destination):
@@ -1062,7 +1070,7 @@ class OpsiPackageManager(object):
 						logger.error(u"Failed to delete '%s' from depot '%s': %s" % (oldPackage, depotId, e))
 
 				logger.notice(u"Verifying upload")
-				subject.setMessage( _(u"Verifying upload") )
+				subject.setMessage(_(u"Verifying upload"))
 
 				remotePackageFile = depotRepositoryPath + u'/' + destination
 				depotConnection = self.getDepotConnection(depotId)
@@ -1074,7 +1082,7 @@ class OpsiPackageManager(object):
 
 				if (info['usage'] >= 0.9):
 					logger.warning(u"Warning: %d%% filesystem usage at repository on depot '%s'" % (int(100*info['usage']), depotId))
-					subject.setMessage( _(u"Warning: %d%% filesystem usage") % int(100*info['usage']), severity = 3 )
+					subject.setMessage(_(u"Warning: %d%% filesystem usage") % int(100*info['usage']), severity=3)
 
 				logger.notice(u"Upload of '%s' to depot '%s' successful" % (os.path.basename(packageFile), depotId))
 				subject.setMessage( _(u"Upload of %s successful") % os.path.basename(packageFile), severity = 4)
