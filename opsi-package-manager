@@ -1536,7 +1536,6 @@ class OpsiPackageManagerControl(object):
 
 			for thread in threading.enumerate():
 				try:
-					#logger.essential(u"THREAD: %s" % thread)
 					thread.join(5)
 				except Exception:
 					pass
