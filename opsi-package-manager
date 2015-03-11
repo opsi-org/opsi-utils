@@ -1004,8 +1004,8 @@ class OpsiPackageManager(object):
 
 						packageSize = os.stat(packageFile)[stat.ST_SIZE]
 						deltaSize = os.stat(deltaFile)[stat.ST_SIZE]
-						speedup = (float(packageSize)/float(deltaSize))-1
-						if (speedup < 0):
+						speedup = (float(packageSize) / float(deltaSize)) - 1
+						if speedup < 0:
 							speedup = 0
 						logger.notice(u"Delta calculated, upload speedup is %.3f" % speedup)
 						logger.notice(u"Starting delta upload of '%s' to depot '%s'" \
