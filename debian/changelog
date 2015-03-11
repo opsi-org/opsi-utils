@@ -1,6 +1,7 @@
 opsi-utils (4.0.6.3-1) UNRELEASED; urgency=low
 
   * opsi-product-updater: Only set the rights once on the package directory.
+  * opsi-package-manager: Better error message if setting a locale fails.
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 10 Mar 2015 17:23:11 +0100
 

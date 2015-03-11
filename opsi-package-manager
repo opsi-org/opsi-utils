@@ -338,7 +338,13 @@ class UserInterface(SubjectsObserver):
 
 	def initScreen(self):
 		# Important for ncurses to use the right encoding!?
-		locale.setlocale(locale.LC_ALL, '')
+		try:
+			locale.setlocale(locale.LC_ALL, '')
+		except Exception as error:
+			raise Exception(
+				u"Setting locale failed - do you have $LC_ALL set? "
+				u"Error: {0}".format(error)
+			)
 
 		if (self.config['consoleLogLevel'] <= LOG_NONE):
 			self.loggerWindowHeight = 0
