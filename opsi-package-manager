@@ -946,7 +946,7 @@ class OpsiPackageManager(object):
 								# md5sum match => do not overwrite
 								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
 								logger.notice(u"No need to upload, '%s' is up to date on '%s'" % (os.path.basename(packageFile), depotId))
-								subject.setMessage( _(u"No need to upload, %s is up to date") % os.path.basename(packageFile), severity=4)
+								subject.setMessage(_(u"No need to upload, %s is up to date") % os.path.basename(packageFile), severity=4)
 								self.removeRunningTransfer()
 								return
 
@@ -1273,7 +1273,7 @@ class OpsiPackageManager(object):
 		try:
 			depotPackageFile = packageFile
 
-			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
+			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
 				if not depot.repositoryLocalUrl.startswith('file://'):
 					raise Exception(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
@@ -1293,7 +1293,7 @@ class OpsiPackageManager(object):
 			#	packageFile = packageFile.split(u"~")[0] + u".opsi"
 
 			logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
-			subject.setMessage( _(u"Installing package %s") % packageFile )
+			subject.setMessage(_(u"Installing package %s") % packageFile)
 
 			product = self.getPackageControlFile(packageFile).getProduct()
 			productId = product.getId()
@@ -1314,46 +1314,46 @@ class OpsiPackageManager(object):
 							propertyDefaultValues[productProperty.propertyId] = []
 
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_installPackage(depotPackageFile, force = self.config['forceInstall'], propertyDefaultValues = propertyDefaultValues, tempDir = self.config['tempDir'])
+			depotConnection.depot_installPackage(depotPackageFile, force=self.config['forceInstall'], propertyDefaultValues=propertyDefaultValues, tempDir=self.config['tempDir'])
 
 			logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
-			subject.setMessage( _(u"Installation of package %s successful") % packageFile, severity = 4 )
+			subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
 
 			if self.config['setupWhereInstalled']:
 				if product.getSetupScript():
-					self.setActionRequestWhereInstalled(productId = productId, depotId = depotId, actionRequest = u'setup')
+					self.setActionRequestWhereInstalled(productId=productId, depotId=depotId, actionRequest=u'setup')
 				else:
 					logger.warning(u"Cannot set action 'setup' for product '%s': setupScript not defined" % productId)
 
 			if self.config['purgeClientProperties']:
-				self.purgeProductPropertyStates(productId = productId, depotId = depotId)
+				self.purgeProductPropertyStates(productId=productId, depotId=depotId)
 
 			if self.config['updateWhereInstalled']:
 				if product.getUpdateScript():
-					self.setActionRequestWhereInstalled(productId = productId, depotId = depotId, actionRequest = u'update')
+					self.setActionRequestWhereInstalled(productId=productId, depotId=depotId, actionRequest=u'update')
 				else:
 					logger.warning(u"Cannot set action 'update' for product '%s': updateScript not defined" % productId)
 
 		except Exception as e:
 			logger.error(e)
-			subject.setMessage( _("Error: %s") % e, severity = 2 )
+			subject.setMessage(_("Error: %s") % e, severity=2)
 			raise
 
 	def uninstallPackages(self):
 		for depotId in self.config['depotIds']:
 			productIds = []
-			for productOnDepot in self.backend.productOnDepot_getObjects(depotId = depotId, productId = self.config['productIds']):
+			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
 				productIds.append(productOnDepot.productId)
 			if not productIds:
 				continue
-			tq = TaskQueue(name = u"Uninstall of package(s) %s on depot '%s'" % (', '.join(productIds), depotId))
+			tq = TaskQueue(name=u"Uninstall of package(s) %s on depot '%s'" % (', '.join(productIds), depotId))
 			for productId in productIds:
 				tq.addTask(
 					UninstallTask(
-						name = u"Uninstall of package '%s' on depot '%s'" % (productId, depotId),
-						opsiPackageManager = self,
-						method = self.uninstallPackage,
-						params = [productId, depotId]
+						name=u"Uninstall of package '%s' on depot '%s'" % (productId, depotId),
+						opsiPackageManager=self,
+						method=self.uninstallPackage,
+						params=[productId, depotId]
 					)
 				)
 			self.taskQueues.append(tq)
@@ -1366,11 +1366,11 @@ class OpsiPackageManager(object):
 
 		try:
 			logger.notice(u"Uninstalling package '%s' on depot '%s'" % (productId, depotId))
-			subject.setMessage( _(u"Uninstalling package %s") % productId )
+			subject.setMessage(_(u"Uninstalling package %s") % productId)
 
-			depot = self.backend.host_getObjects(type = 'OpsiDepotserver', id = depotId)[0]
+			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			logger.info(u"Using '%s' as repository url" % depot.getRepositoryRemoteUrl())
-			repository = getRepository(url = depot.getRepositoryRemoteUrl(), username = depotId, password = depot.getOpsiHostKey())
+			repository = getRepository(url=depot.getRepositoryRemoteUrl(), username=depotId, password=depot.getOpsiHostKey())
 			for destination in repository.listdir():
 				if not destination.startswith(u'%s_' % productId):
 					continue
@@ -1378,13 +1378,13 @@ class OpsiPackageManager(object):
 				repository.delete(destination)
 
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_uninstallPackage(productId, force = self.config['forceUninstall'], deleteFiles = self.config['deleteFilesOnUninstall'])
+			depotConnection.depot_uninstallPackage(productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall'])
 			logger.notice(u"Uninstall of package '%s' on depot '%s' finished" % (productId, depotId))
-			subject.setMessage( _(u"Uninstallation of package %s successful") % productId, severity = 4 )
+			subject.setMessage(_(u"Uninstallation of package %s successful") % productId, severity=4)
 
 		except Exception as e:
 			logger.error(e)
-			subject.setMessage( _("Error: %s") % e, severity = 2 )
+			subject.setMessage(_("Error: %s") % e, severity=2)
 			raise
 
 
@@ -1401,7 +1401,7 @@ class OpsiPackageManagerControl(object):
 		signal(SIGTERM, self.signalHandler)
 		signal(SIGINT,  self.signalHandler)
 
-		parser = OptionParser( add_help_option = False )
+		parser = OptionParser(add_help_option=False)
 
 		parser.add_option("-h", "--help",                    action="store_true", dest="help")
 		parser.add_option("-V", "--version",                 action="store_true", dest="version")
@@ -1458,14 +1458,13 @@ class OpsiPackageManagerControl(object):
 		logger.setConsoleLevel(self.config['consoleLogLevel'])
 		logger.setConsoleColor(True)
 
-		self.backend = None
 		self.backend = BackendManager(
-			backendConfigDir   = self.config['backendConfigDir'],
-			dispatchConfigFile = self.config['dispatchConfigFile'],
-			extend             = True
+			backendConfigDir=self.config['backendConfigDir'],
+			dispatchConfigFile=self.config['dispatchConfigFile'],
+			extend=True
 		)
 		try:
-			knownDepotIds = self.backend.host_getIdents(type = 'OpsiDepotserver', returnType = 'unicode')
+			knownDepotIds = self.backend.host_getIdents(type='OpsiDepotserver', returnType='unicode')
 			knownDepotIds.sort()
 			if not self.config['depotIds']:
 				try:
@@ -1510,6 +1509,7 @@ class OpsiPackageManagerControl(object):
 			if self.backend:
 				self.backend.backend_exit()
 			raise
+
 		try:
 			self.processCommand()
 		except Exception as e:
@@ -1623,12 +1623,14 @@ class OpsiPackageManagerControl(object):
 			pass
 
 		indent = u"   "
-		idWidth = versionWidth = int((terminalWidth-len(indent))/3)
-		if (idWidth > 25): idWidth = 25
-		if (versionWidth > 25): versionWidth = 25
+		idWidth = versionWidth = int((terminalWidth - len(indent)) / 3)
+		if idWidth > 25:
+			idWidth = 25
+		if versionWidth > 25:
+			versionWidth = 25
 
-		productOnDepots = self.backend.productOnDepot_getObjects(depotId = self.config['depotIds'], productId = self.config['productIds'])
-		products = self.backend.product_getObjects(id = self.config['productIds'])
+		productOnDepots = self.backend.productOnDepot_getObjects(depotId=self.config['depotIds'], productId=self.config['productIds'])
+		products = self.backend.product_getObjects(id=self.config['productIds'])
 
 		productInfo = {}
 		for product in products:
@@ -1640,7 +1642,7 @@ class OpsiPackageManagerControl(object):
 			if (len(product.id) > idWidth):
 				idWidth = len(product.id)
 
-		nameWidth = terminalWidth-len(indent)-idWidth-versionWidth-4
+		nameWidth = terminalWidth - len(indent) - idWidth - versionWidth - 4
 
 		productOnDepotInfo = {}
 		for depotId in self.config['depotIds']:
@@ -1652,25 +1654,25 @@ class OpsiPackageManagerControl(object):
 			return
 
 		for (depotId, values) in productOnDepotInfo.items():
-			print (u"-"*(len(depotId)+4)).encode(self.encoding, 'replace')
+			print (u"-" * (len(depotId) + 4)).encode(self.encoding, 'replace')
 			print (u"- %s -" % depotId).encode(self.encoding, 'replace')
-			print (u"-"*(len(depotId)+4)).encode(self.encoding, 'replace')
-			print (u"%s%*s %*s %*s" % (indent, -1*idWidth, u'Product ID',
-						-1*versionWidth, u'Version',
-						-1*nameWidth, u'Name')).encode(self.encoding, 'replace')
-			print (u"%s%s" % (indent, "="*(terminalWidth-len(indent)-2))).encode(self.encoding, 'replace')
+			print (u"-" * (len(depotId) + 4)).encode(self.encoding, 'replace')
+			print (u"%s%*s %*s %*s" % (indent, -1 * idWidth, u'Product ID',
+						-1 * versionWidth, u'Version',
+						-1 * nameWidth, u'Name')).encode(self.encoding, 'replace')
+			print (u"%s%s" % (indent, "=" * (terminalWidth - len(indent) - 2))).encode(self.encoding, 'replace')
 			productIds = values.keys()
 			productIds.sort()
 			for productId in productIds:
 				productOnDepot = productOnDepotInfo[depotId][productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
-				print (u"%s%*s %*s %*s" % (indent, -1*idWidth, productId,
-						-1*versionWidth,     product.productVersion + u'-' + product.packageVersion,
-						-1*nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding, 'replace')
+				print (u"%s%*s %*s %*s" % (indent, -1 * idWidth, productId,
+						-1 * versionWidth,     product.productVersion + u'-' + product.packageVersion,
+						-1 * nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding, 'replace')
 			print ""
 
 	def processDifferencesCommand(self):
-		productOnDepots = self.backend.productOnDepot_getObjects(depotId = self.config['depotIds'], productId = self.config['productIds'])
+		productOnDepots = self.backend.productOnDepot_getObjects(depotId=self.config['depotIds'], productId=self.config['productIds'])
 		productOnDepotInfo = {}
 		productIds = []
 		maxWidth = 0
@@ -1678,6 +1680,7 @@ class OpsiPackageManagerControl(object):
 			if (len(depotId) > maxWidth):
 				maxWidth = len(depotId)
 			productOnDepotInfo[depotId] = {}
+
 		for productOnDepot in productOnDepots:
 			if not productOnDepot.productId in productIds:
 				productIds.append(productOnDepot.productId)
@@ -1694,7 +1697,7 @@ class OpsiPackageManagerControl(object):
 			productVersion = u''
 			packageVersion = u''
 			for depotId in self.config['depotIds']:
-				lines.append(u"    %*s: " % (-1*maxWidth, depotId))
+				lines.append(u"    %*s: " % (-1 * maxWidth, depotId))
 				productOnDepot = productOnDepotInfo[depotId].get(productId)
 				if not productOnDepot:
 					lines[-1] += u" not installed"
@@ -1741,36 +1744,37 @@ class OpsiPackageManagerControl(object):
 
 	def setDefaultConfig(self):
 		self.config = {
-			'fileLogLevel'           : LOG_DEBUG2,
-			'consoleLogLevel'        : LOG_NONE,
-			'logFile'                : None,
-			'quiet'                  : False,
-			'tempDir'                : u'/tmp',
-			'backendConfigDir'       : u'/etc/opsi/backends',
-			'dispatchConfigFile'     : u'/etc/opsi/backendManager/dispatch.conf',
-			'command'                : None,
-			'packageFiles'           : [],
-			'productIds'             : [],
-			'properties'             : u'keep',
-			'maxTransfers'           : 0,
-			'maxBandwidth'           : 0, # Kbyte/s
-			'deltaUpload'            : True,
-			'newProductId'           : None,
-			'depotIds'               : None,
-			'uploadToLocalDepot'     : False,
-			'localDepotId'           : forceHostId(getfqdn(conf='/etc/opsi/global.conf')),
-			'forceInstall'           : False,
-			'forceUninstall'         : False,
-			'deleteFilesOnUninstall' : True,
-			'overwriteAlways'        : False,
-			'setupWhereInstalled'    : False,
-			'updateWhereInstalled'   : False,
-			'purgeClientProperties'  : False
+			'fileLogLevel': LOG_DEBUG2,
+			'consoleLogLevel': LOG_NONE,
+			'logFile': None,
+			'quiet': False,
+			'tempDir': u'/tmp',
+			'backendConfigDir': u'/etc/opsi/backends',
+			'dispatchConfigFile': u'/etc/opsi/backendManager/dispatch.conf',
+			'command': None,
+			'packageFiles': [],
+			'productIds': [],
+			'properties': u'keep',
+			'maxTransfers': 0,
+			'maxBandwidth': 0, # Kbyte/s
+			'deltaUpload': True,
+			'newProductId': None,
+			'depotIds': None,
+			'uploadToLocalDepot': False,
+			'localDepotId': forceHostId(getfqdn(conf='/etc/opsi/global.conf')),
+			'forceInstall': False,
+			'forceUninstall': False,
+			'deleteFilesOnUninstall': True,
+			'overwriteAlways': False,
+			'setupWhereInstalled': False,
+			'updateWhereInstalled': False,
+			'purgeClientProperties': False
 		}
 
 	def setCommandlineConfig(self):
 		if (self.opts.properties == 'ask') and self.opts.quiet:
 			raise Exception(u"You cannot use properties=ask in quiet mode")
+
 		if self.opts.quiet:
 			self.config['quiet'] = True
 		if self.opts.verbose:
