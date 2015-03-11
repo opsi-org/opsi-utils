@@ -491,8 +491,7 @@ class UserInterface(SubjectsObserver):
 				self.loggerWindow.refresh()
 
 		elif subject.getId() in ('info', 'transfers'):
-			self.__lock.acquire()
-			try:
+			with self.__lock:
 				info = u''
 				transfers = u''
 				for subject in self.getSubjects():
@@ -525,15 +524,17 @@ class UserInterface(SubjectsObserver):
 	def showProgress(self):
 		if self.__lock.locked():
 			return
-		self.__lock.acquire()
-		try:
+
+		with self.__lock:
 			subjects = {}
 			for s in self.getSubjects():
 				if s.getType() == u'depot':
 					subjects[s.getId()] = s
+
 			for s in self.getSubjects():
 				if s.getType() == u'upload':
 					subjects[s.getId()] = s
+
 			ids = subjects.keys()
 			ids.sort()
 			maxIdLength = 0
