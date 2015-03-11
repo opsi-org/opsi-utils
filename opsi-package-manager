@@ -808,16 +808,19 @@ class OpsiPackageManager(object):
 			clientIds = []
 			for clientToDepot in self.backend.configState_getClientToDepotserver(depotIds=[depotId]):
 				clientIds.append(clientToDepot['clientId'])
+
 			if not clientIds:
 				return
 
 			productOnClients = self.backend.productOnClient_getObjects(clientId=clientIds, productId=productId, installationStatus=u'installed')
 			if not productOnClients:
 				return
+
 			clientIds = []
 			for i in range(len(productOnClients)):
 				productOnClients[i].setActionRequest(actionRequest)
 				clientIds.append(productOnClients[i].clientId)
+
 			clientIds.sort()
 			logger.notice(u"Setting action '%s' for product '%s' on client(s): %s" % (actionRequest, productId, ', '.join(clientIds)))
 			subject.setMessage(_(u"Setting action %s for product %s on client(s): %s") % (actionRequest, productId, ', '.join(clientIds)))
@@ -868,6 +871,7 @@ class OpsiPackageManager(object):
 						params=[packageFile, depotId]
 					)
 				)
+
 			if not self.aborted:
 				self.taskQueues.append(tq)
 				logger.info(u"Starting task queue '%s'" % tq.name)
@@ -946,6 +950,7 @@ class OpsiPackageManager(object):
 								subject.setMessage( _(u"No need to upload, %s is up to date") % os.path.basename(packageFile), severity=4)
 								self.removeRunningTransfer()
 								return
+
 							# md5sums differ => overwrite
 							logger.info(u"MD5sum of source and destination differs on depot '%s'" % depotId)
 
@@ -966,8 +971,8 @@ class OpsiPackageManager(object):
 				if dest['name'].startswith(productId + '_') and not dest['name'] == destination:
 					# same product, other version
 					oldPackages.append(dest['name'])
-			newOldPackages = []
 
+			newOldPackages = []
 			subject.setMessage( _(u"Starting upload") )
 			try:
 				if self.config['deltaUpload'] and oldPackages:
@@ -1529,12 +1534,14 @@ class OpsiPackageManagerControl(object):
 		finally:
 			if self.backend:
 				self.backend.backend_exit()
+
 			for thread in threading.enumerate():
 				try:
 					#logger.essential(u"THREAD: %s" % thread)
 					thread.join(5)
 				except Exception:
 					pass
+
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
 			if errors:
