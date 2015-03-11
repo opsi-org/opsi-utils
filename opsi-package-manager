@@ -173,7 +173,8 @@ class CursesWindow:
 				int((self.width-len(self.title))/2),
 				self.title,
 				attr)
-		except:	pass
+		except Exception:
+			pass
 
 	def setColor(self, colorPair):
 		if not curses.has_colors():
@@ -211,28 +212,33 @@ class CursesWindow:
 	def clrtoeol(self):
 		try:
 			self.win.clrtoeol()
-		except: pass
+		except Exception as error:
+			logger.debug2(error)
 
 	def move(self, y, x):
 		try:
 			self.win.move(y, x)
-		except: pass
+		except Exception as error:
+			logger.debug2(error)
 
 	def clear(self):
 		try:
 			self.win.clear()
-		except: pass
+		except Exception as error:
+			logger.debug2(error)
 
 	def refresh(self):
 		try:
 			self.win.refresh()
-		except: pass
+		except Exception as error:
+			logger.debug2(error)
 
 	def redraw(self):
 		try:
 			self.win.redrawwin()
 			self.win.refresh()
-		except: pass
+		except Exception as error:
+			logger.debug2(error)
 
 
 class CursesMainWindow(CursesWindow):
@@ -456,7 +462,7 @@ class UserInterface(SubjectsObserver):
 
 		try:
 			self.subjectsChanged(self.getSubjects())
-		except:
+		except Exception:
 			pass
 
 	def subjectsChanged(self, subjects):
@@ -1536,7 +1542,7 @@ class OpsiPackageManagerControl(object):
 				try:
 					#logger.essential(u"THREAD: %s" % thread)
 					thread.join(5)
-				except:
+				except Exception:
 					pass
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
