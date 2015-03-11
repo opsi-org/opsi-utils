@@ -163,7 +163,7 @@ class CursesWindow:
 		try:
 			self.win.addstr(
 				0,
-				int((self.width-len(self.title))/2),
+				int((self.width - len(self.title)) / 2),
 				self.title,
 				attr)
 		except Exception:
@@ -571,8 +571,8 @@ class UserInterface(SubjectsObserver):
 
 						# TODO: rework this ugly piece of string building!
 						progress = u' %8s' % ("%.2f" % subject.getPercent() + u'% ') \
-							+ u'%8s KB' % (subject.getState()/1000) \
-							+ u'%6s KB/s' % (int(subject.getSpeed()/1000)) \
+							+ u'%8s KB' % (subject.getState() / 1000) \
+							+ u'%6s KB/s' % (int(subject.getSpeed() / 1000)) \
 							+ u'%6s:%s ETA' % (minutesLeft, secondsLeft)
 
 						free = maxSize - len(message) - len(progress)
@@ -1088,7 +1088,7 @@ class OpsiPackageManager(object):
 					subject.setMessage(_(u"Warning: %d%% filesystem usage") % int(100*info['usage']), severity=3)
 
 				logger.notice(u"Upload of '%s' to depot '%s' successful" % (os.path.basename(packageFile), depotId))
-				subject.setMessage( _(u"Upload of %s successful") % os.path.basename(packageFile), severity = 4)
+				subject.setMessage(_(u"Upload of %s successful") % os.path.basename(packageFile), severity=4)
 
 				remotePackageMd5sumFile = remotePackageFile + u'.md5'
 				try:
