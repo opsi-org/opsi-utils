@@ -891,7 +891,7 @@ class OpsiPackageUpdater(object):
 		try:
 			setRights(self.config["packageDir"])
 		except Exception as error:
-			logger.warning(u"Failed to set rights on directory '{0}': {1}".format(path, error))
+			logger.warning(u"Failed to set rights on directory '{0}': {1}".format(self.config["packageDir"], error))
 
 		for f in os.listdir(self.config["packageDir"]):
 			path = os.path.join(self.config["packageDir"], f)
