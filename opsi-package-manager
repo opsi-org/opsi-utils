@@ -32,6 +32,7 @@ import gettext
 import locale
 import os
 import random
+import stat
 import struct
 import sys
 import termios
