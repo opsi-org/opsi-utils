@@ -555,7 +555,7 @@ class UserInterface(SubjectsObserver):
 					maxSize = self.progressWindow.width - len(idString)
 					message = subject.getMessage()
 					severity = subject.getSeverity()
-					if severity and self._colors.has_key(severity):
+					if severity and severity in self._colors:
 						color = self._colors[severity]
 
 					if subject.getClass() is 'ProgressSubject':
@@ -841,7 +841,7 @@ class OpsiPackageManager(object):
 			clientIds = []
 			for productPropertyState in self.backend.productPropertyState_getObjects(productId=productId, objectId=depotClientIds):
 				productPropertyStates.append(productPropertyState)
-				if not productPropertyState.objectId in clientIds:
+				if productPropertyState.objectId not in clientIds:
 					clientIds.append(productPropertyState.objectId)
 
 			logger.notice(u"Purging product property states for product '%s' on client(s): %s" % (productId, ', '.join(clientIds)))
