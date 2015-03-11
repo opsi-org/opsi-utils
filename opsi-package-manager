@@ -973,7 +973,6 @@ class OpsiPackageManager(object):
 					# same product, other version
 					oldPackages.append(dest['name'])
 
-			newOldPackages = []
 			subject.setMessage(_(u"Starting upload"))
 			try:
 				if self.config['deltaUpload'] and oldPackages:
