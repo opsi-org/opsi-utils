@@ -832,10 +832,10 @@ class OpsiPackageManager(object):
 	def purgeProductPropertyStates(self, productId, depotId):
 		try:
 			subject = self.getDepotSubject(depotId)
-			subject.setMessage( _(u"Purging product property states for product %s") % productId )
-			depotClientIds = []
-			for clientToDepot in self.backend.configState_getClientToDepotserver(depotIds = [ depotId ]):
-				depotClientIds.append(clientToDepot['clientId'])
+			subject.setMessage(_(u"Purging product property states for product %s") % productId)
+			depotClientIds = [clientToDepot['clientId'] for clientToDepot
+				in self.backend.configState_getClientToDepotserver(depotIds=[depotId])]
+
 			if not depotClientIds:
 				return
 
