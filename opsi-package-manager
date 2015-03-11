@@ -45,7 +45,7 @@ from duplicity import librsync
 from OPSI.Logger import LOG_DEBUG2, LOG_INFO, LOG_NONE, LOG_WARNING, Logger
 from OPSI.Types import (forceActionRequest, forceBool, forceHostId, forceInt,
 	forceList, forceProductId, forceUnicode, forceUnicodeList)
-from OPSI.UI import *
+from OPSI.UI import SnackUI
 from OPSI.Util import md5sum, getfqdn
 from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 	ProgressSubject, SubjectsObserver)
