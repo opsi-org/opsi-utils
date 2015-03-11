@@ -1499,7 +1499,7 @@ class OpsiPackageManagerControl(object):
 			elif self.config['command'] == u'remove':
 				if not self.config['productIds']:
 					raise Exception(u"No opsi product id given")
-		except:
+		except Exception:
 			if self.backend:
 				self.backend.backend_exit()
 			raise
@@ -1560,7 +1560,7 @@ class OpsiPackageManagerControl(object):
 					if self.usedWidth > terminalWidth:
 						self.usedWidth = terminalWidth
 					fd.close()
-				except:
+				except Exception:
 					pass
 
 			def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
@@ -1613,7 +1613,7 @@ class OpsiPackageManagerControl(object):
 			fd = open(tty)
 			terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
 			fd.close()
-		except:
+		except Exception:
 			pass
 
 		indent = u"   "
