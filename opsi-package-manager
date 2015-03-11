@@ -890,8 +890,8 @@ class OpsiPackageManager(object):
 					time.sleep(0.1 * random.randint(1, 20))
 			self.addRunningTransfer()
 
-			logger.notice(u"Processing upload of '%s' to depot '%s'" \
-					% (os.path.basename(packageFile), depotId))
+			logger.notice(u"Processing upload of '%s' to depot '%s'"
+				% (os.path.basename(packageFile), depotId))
 			subject.setMessage(_(u"Processing upload of %s") % os.path.basename(packageFile))
 
 			packageSize = os.stat(packageFile)[stat.ST_SIZE]
@@ -1021,14 +1021,14 @@ class OpsiPackageManager(object):
 						if speedup < 0:
 							speedup = 0
 						logger.notice(u"Delta calculated, upload speedup is %.3f" % speedup)
-						logger.notice(u"Starting delta upload of '%s' to depot '%s'" \
+						logger.notice(u"Starting delta upload of '%s' to depot '%s'"
 							% (deltaFilename, depotId))
-						subject.setMessage( _(u"Starting delta upload of %s") \
-										% os.path.basename(packageFile) )
+						subject.setMessage(_(u"Starting delta upload of %s")
+										% os.path.basename(packageFile))
 
 						progressSubject = ProgressSubject(id=depotId, type='upload')
-						progressSubject.setMessage(u"Uploading %s (delta upload, speedup %.1f%%)" \
-									% (os.path.basename(packageFile), speedup*100) )
+						progressSubject.setMessage(u"Uploading %s (delta upload, speedup %.1f%%)"
+							% (os.path.basename(packageFile), speedup * 100))
 						if self.userInterface:
 							self.userInterface.addSubject(progressSubject)
 
