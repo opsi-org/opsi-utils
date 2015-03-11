@@ -42,6 +42,8 @@ from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 from duplicity import librsync
 
+from OPSI.Backend.BackendManager import BackendManager
+from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Logger import LOG_DEBUG2, LOG_INFO, LOG_NONE, LOG_WARNING, Logger
 from OPSI.Types import (forceActionRequest, forceBool, forceHostId, forceInt,
 	forceList, forceProductId, forceUnicode, forceUnicodeList)
@@ -51,8 +53,6 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 	ProgressSubject, SubjectsObserver)
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
-from OPSI.Backend.BackendManager import BackendManager
-from OPSI.Backend.JSONRPC import JSONRPCBackend
 
 __version__ = '4.0.6.3'
 
