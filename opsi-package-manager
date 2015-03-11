@@ -1469,7 +1469,7 @@ class OpsiPackageManagerControl(object):
 				self.config['uploadToLocalDepot'] = True
 
 			for i in range(len(self.config['depotIds'])):
-				if (self.config['depotIds'][i].lower() == 'all'):
+				if self.config['depotIds'][i].lower() == 'all':
 					self.config['depotIds'] = knownDepotIds
 					break
 				else:
@@ -1480,23 +1480,23 @@ class OpsiPackageManagerControl(object):
 			self.config['depotIds'].sort()
 
 			if self.config['command'] in (u'install', u'upload', u'extract'):
-				if (len(self.config['packageFiles']) < 1):
+				if len(self.config['packageFiles']) < 1:
 					raise Exception(u"No opsi package given")
 				if self.config['command'] in (u'install', u'upload', u'extract'):
 					for i in range(len(self.config['packageFiles'])):
 						self.config['packageFiles'][i] = os.path.abspath(self.config['packageFiles'][i])
 						if not os.path.exists(self.config['packageFiles'][i]):
 							raise Exception(u"Package file '%s' does not exist or access denied" % self.config['packageFiles'][i])
-				if (self.config['command'] == u'extract') and self.config['newProductId'] and (len(self.config['packageFiles']) > 1):
+				if self.config['command'] == u'extract' and self.config['newProductId'] and len(self.config['packageFiles']) > 1:
 					raise Exception(u"Cannot use new product id with multiple package files")
 
 			elif self.config['command'] in (u'list', u'differences'):
 				if not self.config['productIds']:
 					self.config['productIds'] = ['*']
-				if (self.config['command'] == u'differences') and (len(self.config['depotIds']) <= 1):
+				if self.config['command'] == u'differences' and len(self.config['depotIds']) <= 1:
 					raise Exception(u"More than one depot id needed to display differences")
 
-			elif self.config['command'] in (u'remove',):
+			elif self.config['command'] == u'remove':
 				if not self.config['productIds']:
 					raise Exception(u"No opsi product id given")
 		except:
@@ -1632,8 +1632,10 @@ class OpsiPackageManagerControl(object):
 				productInfo[product.id] = {}
 			if product.productVersion not in productInfo[product.id]:
 				productInfo[product.id][product.productVersion] = {}
+
 			productInfo[product.id][product.productVersion][product.packageVersion] = product
-			if (len(product.id) > idWidth):
+
+			if len(product.id) > idWidth:
 				idWidth = len(product.id)
 
 		nameWidth = terminalWidth - len(indent) - idWidth - versionWidth - 4
@@ -1671,7 +1673,7 @@ class OpsiPackageManagerControl(object):
 		productIds = []
 		maxWidth = 0
 		for depotId in self.config['depotIds']:
-			if (len(depotId) > maxWidth):
+			if len(depotId) > maxWidth:
 				maxWidth = len(depotId)
 			productOnDepotInfo[depotId] = {}
 
@@ -1700,12 +1702,12 @@ class OpsiPackageManagerControl(object):
 
 				if not productVersion:
 					productVersion = productOnDepot.productVersion
-				elif (productVersion != productOnDepot.productVersion):
+				elif productVersion != productOnDepot.productVersion:
 					differs = True
 
 				if not packageVersion:
 					packageVersion = productOnDepot.packageVersion
-				elif (packageVersion != productOnDepot.packageVersion):
+				elif packageVersion != productOnDepot.packageVersion:
 					differs = True
 
 				lines[-1] += u" %s-%s" % ( productOnDepot.productVersion, productOnDepot.packageVersion)
@@ -1766,7 +1768,7 @@ class OpsiPackageManagerControl(object):
 		}
 
 	def setCommandlineConfig(self):
-		if (self.opts.properties == 'ask') and self.opts.quiet:
+		if self.opts.properties == 'ask' and self.opts.quiet:
 			raise Exception(u"You cannot use properties=ask in quiet mode")
 
 		if self.opts.quiet:
