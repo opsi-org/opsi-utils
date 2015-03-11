@@ -746,39 +746,37 @@ class OpsiPackageManager(object):
 		if self.depotSubjects and self.userInterface:
 			for subject in self.depotSubjects.values():
 				self.userInterface.removeSubject(subject)
+
 		for depotId in self.config['depotIds']:
 			self.depotSubjects[depotId] = MessageSubject(id=depotId, type=u'depot')
 			if self.userInterface:
 				self.userInterface.addSubject(self.depotSubjects[depotId])
 
 	def getDepotSubject(self, depotId):
-		if not self.depotSubjects.has_key(depotId):
+		if depotId not in self.depotSubjects:
 			self.createDepotSubjects()
 		return self.depotSubjects.get(depotId)
 
 	def openProductPackageFile(self, packageFile):
-		self.infoSubject.setMessage( _(u'Opening package file %s') % os.path.basename(packageFile) )
-		self.productPackageFilesLock.acquire()
-		try:
-			if not self.productPackageFiles.has_key(os.path.basename(packageFile)):
-				self.productPackageFiles[os.path.basename(packageFile)] = ProductPackageFile(packageFile)
-				self.productPackageFiles[os.path.basename(packageFile)].getMetaData()
-		finally:
-			self.productPackageFilesLock.release()
+		filename = os.path.basename(packageFile)
+		self.infoSubject.setMessage(_(u'Opening package file %s') % filename)
+		with self.productPackageFilesLock:
+			if filename not in self.productPackageFiles:
+				self.productPackageFiles[filename] = ProductPackageFile(packageFile)
+				self.productPackageFiles[filename].getMetaData()
 
 	def getPackageControlFile(self, packageFile):
-		if not self.productPackageFiles.has_key(os.path.basename(packageFile)):
+		filename = os.path.basename(packageFile)
+		if filename not in self.productPackageFiles:
 			self.openProductPackageFile(packageFile)
-		return self.productPackageFiles[os.path.basename(packageFile)].packageControlFile
+		return self.productPackageFiles[filename].packageControlFile
 
 	def getPackageMd5Sum(self, packageFile):
-		self.productPackageFilesMd5sumLock.acquire()
-		try:
-			if not self.productPackageFileMd5sums.has_key(os.path.basename(packageFile)):
-				self.productPackageFileMd5sums[os.path.basename(packageFile)] = md5sum(packageFile)
-			return self.productPackageFileMd5sums[os.path.basename(packageFile)]
-		finally:
-			self.productPackageFilesMd5sumLock.release()
+		filename = os.path.basename(packageFile)
+		with self.productPackageFilesMd5sumLock:
+			if filename not in self.productPackageFileMd5sums:
+				self.productPackageFileMd5sums[filename] = md5sum(packageFile)
+			return self.productPackageFileMd5sums[filename]
 
 	def waitForTaskQueues(self):
 		self.infoSubject.setMessage(_(u'Waiting for task queues to finish up'))
