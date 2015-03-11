@@ -194,7 +194,7 @@ class CursesWindow:
 		try:
 			newAttr = []
 			for i in range(len(attr)):
-				if (i == 0):
+				if i == 0:
 					newAttr.append(forceUnicode(attr[i]).encode(self.encoding, 'replace'))
 				else:
 					newAttr.append(attr[i])
@@ -934,7 +934,7 @@ class OpsiPackageManager(object):
 					logger.info(u"Destination '%s' already exists on depot '%s'" % (destination, depotId))
 					if not self.config['overwriteAlways']:
 						# Not overwriting always => checking file sizes first
-						if ( repository.fileInfo(destination)['size'] != packageSize ):
+						if repository.fileInfo(destination)['size'] != packageSize:
 							# Size differs => overwrite
 							logger.info(u"Size of source and destination differs on depot '%s'" % depotId)
 						else:
