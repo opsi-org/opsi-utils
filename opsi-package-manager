@@ -530,10 +530,7 @@ class UserInterface(SubjectsObserver):
 
 			ids = subjects.keys()
 			ids.sort()
-			maxIdLength = 0
-			for id in ids:
-				if (len(id) > maxIdLength):
-					maxIdLength = len(id)
+			maxIdLength = max([len(id) for id in ids] or [0])
 
 			y = 0
 			for id in ids:
