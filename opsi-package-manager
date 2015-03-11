@@ -1288,10 +1288,6 @@ class OpsiPackageManager(object):
 			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
 
 			packageFile = os.path.basename(packageFile)
-
-			##if u"~" in packageFile:
-			#	packageFile = packageFile.split(u"~")[0] + u".opsi"
-
 			logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
 			subject.setMessage(_(u"Installing package %s") % packageFile)
 
