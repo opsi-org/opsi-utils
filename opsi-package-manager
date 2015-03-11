@@ -48,7 +48,7 @@ from OPSI.UI import *
 from OPSI.Util import md5sum, getfqdn
 from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 	ProgressSubject, SubjectsObserver)
-from OPSI.Util.Repository import *
+from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
