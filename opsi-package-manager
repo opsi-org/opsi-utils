@@ -123,7 +123,7 @@ class UninstallTask(Task):
 
 
 class CursesWindow:
-	def __init__(self, height, width, y, x, title = u'', border = False):
+	def __init__(self, height, width, y, x, title=u'', border=False):
 		self.height = forceInt(height)
 		self.width = forceInt(width)
 		self.y = forceInt(y)
@@ -972,7 +972,7 @@ class OpsiPackageManager(object):
 					oldPackages.append(dest['name'])
 
 			newOldPackages = []
-			subject.setMessage( _(u"Starting upload") )
+			subject.setMessage(_(u"Starting upload"))
 			try:
 				if self.config['deltaUpload'] and oldPackages:
 					deltaFile = None
