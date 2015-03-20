@@ -767,20 +767,6 @@ class OpsiPackageUpdater(object):
 			if notifier and notifier.hasMessage():
 				notifier.notify()
 
-	#def syncPackage(self, remotePackage, localPackage):
-	#	packageFilename = remotePackage['filename']
-	#	localPackageFile = localPackage['packageFile']
-	#	depotId = remotePackage['repository'].opsiDepotId
-	#
-	#	logger.notice(u"Syncing %s" % packageFilename)
-	#
-	#	depotConnection = self.getDepotConnection(depotId, remotePackage['repository'].username, remotePackage['repository'].password)
-	#	repositoryLocalUrl = depotConnection.getDepot_hash(depotId).get("repositoryLocalUrl")
-	#	logger.info(u"Got repository local url '%s' for depot '%s'" % (repositoryLocalUrl, depotId))
-	#	if not repositoryLocalUrl or not repositoryLocalUrl.startswith('file://'):
-	#		raise Exception(u"Invalid repository local url for depot '%s'" % depotId)
-	#	depotRepositoryPath = repositoryLocalUrl[7:]
-
 	def zsyncPackage(self, availablePackage, notifier=None):
 		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 		curdir = os.getcwd()
