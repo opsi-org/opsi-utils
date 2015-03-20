@@ -102,6 +102,7 @@ class ProgressNotifier(ProgressObserver):
 
 		if logLevel <= LOG_NONE:
 			sys.stdout.write("\033[2A")
+
 		if self.error:
 			sys.stdout.write("\033[K")
 			print u"Error occured: %s" % self.error
@@ -115,7 +116,7 @@ class ProgressNotifier(ProgressObserver):
 				text = subject.getTitle()
 			barlen = usedWidth - 62
 			filledlen = int("%0.0f" % (barlen * subject.getPercent() / 100))
-			bar = u'='*filledlen + u' '*(barlen - filledlen)
+			bar = u'='*filledlen + u' ' * (barlen - filledlen)
 			percent = '%0.2f%%' % subject.getPercent()
 			print '%35s : %8s [%s] %5s/%-5s' % (text, percent, bar, subject.getState(), subject.getEnd())
 
@@ -172,22 +173,24 @@ def main(argv):
 		usage()
 		sys.exit(1)
 
-	readBackend  = forceUnicode(args[0])
+	readBackend = forceUnicode(args[0])
 	writeBackend = forceUnicode(args[1])
 
 	# Define read/write backend
 	read = {
-		'username'	: u'',
-		'password'	: u'',
-		'address'	: u'',
-		'backend'	: u'' }
+		'username': u'',
+		'password': u'',
+		'address': u'',
+		'backend': u''
+	}
 	write = {
-		'username'	: u'',
-		'password'	: u'',
-		'address'	: u'',
-		'backend'	: u'' }
+		'username': u'',
+		'password': u'',
+		'address': u'',
+		'backend': u''
+	}
 
-	logger.comment(u"Converting from backend '%s' to backend '%s'." % (readBackend, writeBackend) )
+	logger.comment(u"Converting from backend '%s' to backend '%s'." % (readBackend, writeBackend))
 
 	# Parse read backend
 	match = re.search('^(\w+://)', readBackend)
@@ -195,8 +198,8 @@ def main(argv):
 		# Seems to be an URL
 		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', readBackend)
 		if match:
-			read['backend']  = 'JSONRPC'
-			read['address']  = match.group(1) + match.group(3)
+			read['backend'] = 'JSONRPC'
+			read['address'] = match.group(1) + match.group(3)
 			read['username'] = match.group(2)
 		else:
 			raise Exception(u"Bad source URL '%s'" % readBackend)
@@ -210,8 +213,8 @@ def main(argv):
 		# Seems to be an URL
 		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
 		if match:
-			write['backend']  = 'JSONRPC'
-			write['address']  = match.group(1) + match.group(3)
+			write['backend'] = 'JSONRPC'
+			write['address'] = match.group(1) + match.group(3)
 			write['username'] = match.group(2)
 			if newServerId:
 				newServerId = match.group(3).split(':')[0]
@@ -244,10 +247,10 @@ def main(argv):
 	# Creating BackendManager instance for reading
 	bmRead = None
 	if read['address']:
-		logger.comment( u"Connecting to %s" % read['address'] )
+		logger.comment(u"Connecting to %s" % read['address'])
 		read['password'] = getpass.getpass()
 
-	bmRead = BackendManager(backendConfigDir = u'/etc/opsi/backends', **read)
+	bmRead = BackendManager(backendConfigDir=u'/etc/opsi/backends', **read)
 
 	# Creating BackendManager instance for writing
 	bmWrite = None
@@ -255,19 +258,19 @@ def main(argv):
 		logger.comment( u"Connecting to %s" % bmWrite['address'] )
 		write['password'] = getpass.getpass()
 
-	bmWrite = BackendManager(backendConfigDir = u'/etc/opsi/backends', **write)
+	bmWrite = BackendManager(backendConfigDir=u'/etc/opsi/backends', **write)
 
 	backendReplicator = BackendReplicator(
-		readBackend  = bmRead,
-		writeBackend = bmWrite,
-		newServerId  = newServerId,
-		oldServerId  = oldServerId,
-		cleanupFirst = cleanupFirst
+		readBackend=bmRead,
+		writeBackend=bmWrite,
+		newServerId=newServerId,
+		oldServerId=oldServerId,
+		cleanupFirst=cleanupFirst
 	)
 	if progress:
 		progressNotifier = ProgressNotifier(backendReplicator)
 		print ""
-	backendReplicator.replicate(audit = convertAudit)
+	backendReplicator.replicate(audit=convertAudit)
 
 
 if __name__ == "__main__":
