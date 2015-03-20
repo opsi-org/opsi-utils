@@ -34,8 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import formatter
 import htmllib
 import getopt
-import grp
-import pwd
 import re
 import smtplib
 import socket
@@ -55,7 +53,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.0.6.1'
+__version__ = '4.0.6.3'
 
 logger = Logger()
 
