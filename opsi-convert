@@ -94,13 +94,13 @@ class ProgressNotifier(ProgressObserver):
 			tty = os.popen('tty').readline().strip()
 			fd = open(tty)
 			terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
-			if (usedWidth > terminalWidth):
+			if usedWidth > terminalWidth:
 				usedWidth = terminalWidth
 			fd.close()
 		except:
 			pass
 
-		if (logLevel <= LOG_NONE):
+		if logLevel <= LOG_NONE:
 			sys.stdout.write("\033[2A")
 		if self.error:
 			sys.stdout.write("\033[K")
@@ -123,7 +123,7 @@ class ProgressNotifier(ProgressObserver):
 		self.displayProgress()
 
 	def messageChanged(self, subject, message):
-		if (subject == self.logSubject):
+		if subject == self.logSubject:
 			self.error = message
 		self.displayProgress()
 
@@ -168,7 +168,7 @@ def main(argv):
 		elif (opt == "-a"):
 			convertAudit = True
 
-	if (len(args) < 2):
+	if len(args) < 2:
 		usage()
 		sys.exit(1)
 
@@ -228,9 +228,9 @@ def main(argv):
 
 	# Sanity checks
 	if read['backend'] and write['backend']:
-		if (read['backend'] == write['backend']):
-			if (read['backend'] == 'JSONRPC'):
-				if (read['address'] == write['address']):
+		if read['backend'] == write['backend']:
+			if read['backend'] == 'JSONRPC':
+				if read['address'] == write['address']:
 					raise Exception(u"Source and destination backend are the same.")
 			else:
 				raise Exception(u"Source and destination backend are the same.")
@@ -270,7 +270,7 @@ def main(argv):
 	backendReplicator.replicate(audit = convertAudit)
 
 
-if (__name__ == "__main__"):
+if __name__ == "__main__":
 	try:
 		main(sys.argv[1:])
 	except SystemExit:
