@@ -332,7 +332,6 @@ class OpsiPackageUpdater(object):
 					baseUrl = None
 					opsiDepotId = None
 					proxy = None
-					inheritProductProperties = False
 					for (option, value) in config.items(section):
 						if option.lower() == 'active':
 							active = forceBool(value)
@@ -686,8 +685,6 @@ class OpsiPackageUpdater(object):
 
 				if not installedPackages:
 					logger.info(u"No new packages installed")
-					#if notifier and notifier.hasMessage():
-					#	notifier.notify()
 					return
 
 				wakeOnLanClients = []
