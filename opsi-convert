@@ -97,7 +97,7 @@ class ProgressNotifier(ProgressObserver):
 			if usedWidth > terminalWidth:
 				usedWidth = terminalWidth
 			fd.close()
-		except:
+		except Exception:
 			pass
 
 		if logLevel <= LOG_NONE:
