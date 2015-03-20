@@ -346,9 +346,9 @@ class UserInterface(SubjectsObserver):
 				u"Error: {0}".format(error)
 			)
 
-		if (self.config['consoleLogLevel'] <= LOG_NONE):
+		if self.config['consoleLogLevel'] <= LOG_NONE:
 			self.loggerWindowHeight = 0
-		elif (self.config['consoleLogLevel'] <= LOG_WARNING):
+		elif self.config['consoleLogLevel'] <= LOG_WARNING:
 			self.loggerWindowHeight = 2
 		else:
 			self.loggerWindowHeight = 5
@@ -1901,7 +1901,7 @@ class OpsiPackageManagerControl(object):
 		print u""
 
 
-if (__name__ == "__main__"):
+if __name__ == "__main__":
 	exception = None
 	originalTerminalSettings = None
 	try:
