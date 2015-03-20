@@ -44,6 +44,7 @@ import urllib
 import urllib2
 
 from OPSI.Logger import LOG_INFO, LOG_ERROR, Logger
+from OPSI.Object import NetbootProduct, ProductOnClient
 from OPSI.Types import (forceBool, forceEmailAddress, forceFilename,
 	forceHostAddress, forceHostId, forceInt, forceProductId, forceUnicode,
 	forceUnicodeList, forceUrl)
