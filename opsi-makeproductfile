@@ -316,17 +316,18 @@ def main(argv):
 						print '\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion,
 						newVersion = sys.stdin.readline().strip()
 						try:
-							if (newVersion != ''):
+							if newVersion:
 								product.setProductVersion(newVersion)
 								pcf.generate()
 							break
 						except Exception:
 							print _(u"Bad product version: %s") % newVersion
+
 					while True:
 						print '\r%s' % _(u"Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion,
 						newVersion = sys.stdin.readline().strip()
 						try:
-							if (newVersion != ''):
+							if newVersion:
 								product.setPackageVersion(newVersion)
 								pcf.generate()
 							break
