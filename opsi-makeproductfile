@@ -113,38 +113,6 @@ class ProgressNotifier(ProgressObserver):
 		sys.stderr.flush()
 
 
-def lockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
-	# Test if other processes are accessing same product
-	try:
-		with open(lockFile, 'r') as lf:
-			p = lf.read().strip()
-
-		if p:
-			for line in execute(u"ps -A"):
-				line = line.strip()
-				if not line:
-					continue
-				if p == line.split()[0].strip():
-					pName = line.split()[-1].strip()
-					# process is running
-					raise Exception(u"Product '%s' is currently locked by process %s (%s)." \
-								% (packageControlFile.getProduct().id, pName, p) )
-
-	except IOError:
-		pass
-
-	# Write lock-file
-	with open(lockFile, 'w') as lf:
-		lf.write(str(os.getpid()))
-
-
-def unlockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
-	if os.path.isfile(lockFile):
-		os.unlink(lockFile)
-
-
 def main(argv):
 	os.umask(022)
 
@@ -405,6 +373,38 @@ def main(argv):
 		unlockPackage(tempDir, pcf)
 		if not quiet:
 			print ""
+
+
+def lockPackage(tempDir, packageControlFile):
+	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	# Test if other processes are accessing same product
+	try:
+		with open(lockFile, 'r') as lf:
+			p = lf.read().strip()
+
+		if p:
+			for line in execute(u"ps -A"):
+				line = line.strip()
+				if not line:
+					continue
+				if p == line.split()[0].strip():
+					pName = line.split()[-1].strip()
+					# process is running
+					raise Exception(u"Product '%s' is currently locked by process %s (%s)." \
+								% (packageControlFile.getProduct().id, pName, p) )
+
+	except IOError:
+		pass
+
+	# Write lock-file
+	with open(lockFile, 'w') as lf:
+		lf.write(str(os.getpid()))
+
+
+def unlockPackage(tempDir, packageControlFile):
+	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	if os.path.isfile(lockFile):
+		os.unlink(lockFile)
 
 
 if (__name__ == "__main__"):
