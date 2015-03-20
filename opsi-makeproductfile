@@ -95,7 +95,7 @@ class ProgressNotifier(ProgressObserver):
 			if (self.usedWidth > terminalWidth):
 				self.usedWidth = terminalWidth
 			fd.close()
-		except:
+		except Exception:
 			pass
 
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
