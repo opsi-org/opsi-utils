@@ -476,7 +476,7 @@ class OpsiPackageUpdater(object):
 				localPackages = self.getLocalPackages()
 				downloadablePackages = self.onlyNewestPackages(self.getDownloadablePackages())
 				if self.config["processProductIds"]:
-					### Checking if given productIds are available and process only these products
+					# Checking if given productIds are available and process only these products
 					newProductList = []
 					for product in self.config["processProductIds"]:
 						found = False
