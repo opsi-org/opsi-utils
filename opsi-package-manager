@@ -1397,7 +1397,7 @@ class OpsiPackageManagerControl(object):
 
 		# Call signalHandler on signal SIGTERM, SIGINT
 		signal(SIGTERM, self.signalHandler)
-		signal(SIGINT,  self.signalHandler)
+		signal(SIGINT, self.signalHandler)
 
 		parser = OptionParser(add_help_option=False)
 
@@ -1466,7 +1466,7 @@ class OpsiPackageManagerControl(object):
 			knownDepotIds.sort()
 			if not self.config['depotIds']:
 				try:
-					self.config['depotIds'] = [ self.config['localDepotId'] ]
+					self.config['depotIds'] = [self.config['localDepotId']]
 				except Exception as e:
 					raise Exception(u"Failed to get local depot id: %s" % e)
 			else:
@@ -1593,7 +1593,6 @@ class OpsiPackageManagerControl(object):
 			else:
 				ppf = ProductPackageFile(packageFile, tempDir=extractTempDir)
 
-
 			productId = ppf.getMetaData().getProduct().getId()
 			if not productId:
 				raise Exception(u"Failed to extract source from package '%s': product id not found in meta data" % (packageFile))
@@ -1667,7 +1666,7 @@ class OpsiPackageManagerControl(object):
 				productOnDepot = productOnDepotInfo[depotId][productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
 				print (u"%s%*s %*s %*s" % (indent, -1 * idWidth, productId,
-						-1 * versionWidth,     product.productVersion + u'-' + product.packageVersion,
+						-1 * versionWidth, product.productVersion + u'-' + product.packageVersion,
 						-1 * nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding, 'replace')
 			print ""
 
@@ -1714,7 +1713,7 @@ class OpsiPackageManagerControl(object):
 				elif packageVersion != productOnDepot.packageVersion:
 					differs = True
 
-				lines[-1] += u" %s-%s" % ( productOnDepot.productVersion, productOnDepot.packageVersion)
+				lines[-1] += u" %s-%s" % (productOnDepot.productVersion, productOnDepot.packageVersion)
 
 			if differs:
 				for line in lines:
@@ -1756,7 +1755,7 @@ class OpsiPackageManagerControl(object):
 			'productIds': [],
 			'properties': u'keep',
 			'maxTransfers': 0,
-			'maxBandwidth': 0, # Kbyte/s
+			'maxBandwidth': 0,  # Kbyte/s
 			'deltaUpload': True,
 			'newProductId': None,
 			'depotIds': None,
@@ -1839,7 +1838,7 @@ class OpsiPackageManagerControl(object):
 		if not self.config['command']:
 			raise Exception(u"No command specified")
 
-		if   self.config['command'] in (u'install', u'upload', u'extract'):
+		if self.config['command'] in (u'install', u'upload', u'extract'):
 			self.config['packageFiles'] = self.args
 
 		elif self.config['command'] in (u'remove', u'list', u'differences'):
