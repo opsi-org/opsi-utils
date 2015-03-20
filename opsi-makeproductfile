@@ -271,7 +271,6 @@ def main(argv):
 					print u"   %-20s : %s" % (u'user login', product.userLoginScript)
 				print u""
 
-
 			if disablePigz:
 				logger.debug("Disabling pigz")
 				OPSI.Util.File.Archive.PIGZ_ENABLED = False
@@ -343,7 +342,7 @@ def main(argv):
 				progressSubject = ProgressSubject('packing')
 				progressSubject.attachObserver(ProgressNotifier())
 				print _(u"Creating package file '%s'") % pps.getPackageFile()
-			pps.pack(progressSubject = progressSubject)
+			pps.pack(progressSubject=progressSubject)
 
 			if not quiet:
 				print "\n"
