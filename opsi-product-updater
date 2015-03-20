@@ -46,7 +46,6 @@ from OPSI.Logger import LOG_INFO, LOG_ERROR
 from OPSI.Types import (forceBool, forceEmailAddress, forceFilename,
 	forceHostAddress, forceHostId, forceInt, forceProductId, forceUnicode,
 	forceUnicodeList, forceUrl)
-from OPSI.Object import *
 from OPSI.Util import compareVersions, md5sum, getfqdn
 from OPSI.Util.File import IniFile, ZsyncFile
 from OPSI.Util.Product import ProductPackageFile
