@@ -119,7 +119,6 @@ def main(argv):
 	logLevel = LOG_WARNING
 	packageSourceDir = os.getcwd()
 	tempDir = u'/tmp'
-	lockFile = None
 	customName = u''
 	customOnly = False
 	quiet = False
