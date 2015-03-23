@@ -27,6 +27,8 @@ opsi-admin - a commandline tool for accessing opsi.
 :license: GNU Affero General Public License version 3
 """
 
+from __future__ import print_function
+
 import codecs
 import fcntl
 import gettext
@@ -53,7 +55,7 @@ from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 
 import curses
 
-__version__ = '4.0.6.1'
+__version__ = '4.0.6.3'
 
 backend = None
 shell = None
@@ -142,7 +144,7 @@ def usage():
 	print(u"  -S, --simple-output  " + _(u"Simple output (only for scalars, lists)")).encode(outEncoding)
 	print(u"  -s, --shell-output   " + _(u"Shell output")).encode(outEncoding)
 	print(u"  -r, --raw-output     " + _(u"Raw output")).encode(outEncoding)
-	print (u"").encode(outEncoding)
+	print(u"").encode(outEncoding)
 
 
 def main(argv):
@@ -181,7 +183,7 @@ def main(argv):
 			usage()
 			sys.exit(0)
 		elif opt in ("-V", "--version"):
-			print "%s %s" % (os.path.basename(sys.argv[0]), __version__)
+			print("%s %s" % (os.path.basename(sys.argv[0]), __version__))
 			sys.exit(0)
 		elif opt in ("-u", "--username"):
 			username = forceUnicode(arg)
@@ -323,7 +325,7 @@ def main(argv):
 
 				logger.debug(shell.getLines())
 				for line in shell.lines:
-					print >> sys.stdout, forceUnicode(line['text']).rstrip().encode(outEncoding)
+					print(forceUnicode(line['text']).rstrip().encode(outEncoding), file=sys.stdout)
 
 			except Exception as error:
 				logger.logException(error)
