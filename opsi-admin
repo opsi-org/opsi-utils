@@ -711,7 +711,7 @@ class Shell:
 				break
 
 		if invalid:
-			raise Exception(_(u"Invalid command: '%s'") % self.getParam(0))
+			raise ValueError(_(u"Invalid command: '%s'") % self.getParam(0))
 
 	def question(self, question):
 		question = forceUnicode(question)
