@@ -27,7 +27,7 @@ Creating opsi product source folders.
 :license: GNU Affero General Public License version 3
 """
 
-__version__ = '4.0.6.3'
+from __future__ import print_function
 
 import codecs
 import gettext
@@ -51,6 +51,8 @@ try:
 	import argparse
 except ImportError:
 	from OPSI.Util import argparse
+
+__version__ = '4.0.6.3'
 
 logger = Logger()
 ui = None
@@ -656,7 +658,7 @@ if (__name__ == "__main__"):
 	if exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
-		print >> sys.stderr, "ERROR:", forceUnicode(exception).encode('utf-8')
+		print("ERROR: {0}".format(forceUnicode(exception).encode('utf-8')), file=sys.stderr)
 		sys.exit(1)
 
 	sys.exit(0)
