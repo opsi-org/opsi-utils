@@ -672,7 +672,7 @@ if (__name__ == "__main__"):
 	if ui:
 		try:
 			ui.exit()
-		except:
+		except Exception:
 			pass
 
 	if exception:
