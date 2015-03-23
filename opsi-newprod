@@ -642,26 +642,22 @@ copied to ``productDirectory``
 		copy(os.path.join(templateDirectory, '*'), productDirectory)
 
 
-if (__name__ == "__main__"):
-	exception = None
-
-	try:
-		main()
-	except SystemExit:
-		pass
-	except Exception as error:
-		exception = error
-
-	if ui:
+if __name__ == "__main__":
+	def exitUI():
 		try:
 			ui.exit()
 		except Exception:
 			pass
 
-	if exception:
+	try:
+		main()
+		exitUI()
+		sys.exit(0)
+	except SystemExit:
+		pass
+	except Exception as exception:
+		exitUI()
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
 		print("ERROR: {0}".format(forceUnicode(exception).encode('utf-8')), file=sys.stderr)
 		sys.exit(1)
-
-	sys.exit(0)
