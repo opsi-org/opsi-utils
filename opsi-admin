@@ -486,9 +486,7 @@ class Shell:
 			logger.error(u"Failed to write history file '%s': %s" % (os.path.join(self.userConfigDir, 'history'), forceUnicode(e)))
 
 		self.exitScreen()
-
 		self.running = False
-		sys.exit(0)
 
 	def bell(self):
 		sys.stderr.write('\a')
