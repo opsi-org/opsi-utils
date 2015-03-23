@@ -18,7 +18,7 @@ If 'DESTINATION_DIRECTORY' is not supplied, the current directory is used.
 
 DESCRIPTION
 -----------
-opsi-makeproductfile creates an opsi product source directories.
+opsi-makeproductfile creates opsi product source directories.
 
 
 OPTIONS
@@ -26,6 +26,9 @@ OPTIONS
 
 *-h*::
 Show a help.
+
+*-V*::
+Show the version of opsi-newprod.
 
 *-t* 'DIRECTORY'::
 Copies the files from 'DIRECTORY' to the 'DESTINATION_DIRECTORY'.
