@@ -548,8 +548,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 	# Maintainer info
 	maintainer = u''
 	maintainerEmail = u''
-	helpText = _(\
-u'''
+	helpText = _(u'''
 Maintainer of this opsi package.
 ''')
 	while True:
