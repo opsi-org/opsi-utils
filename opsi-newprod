@@ -509,7 +509,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 			try:
 				defaultValues = []
 				if productProperty.possibleValues:
-					if (len(productProperty.possibleValues) == 1):
+					if len(productProperty.possibleValues) == 1:
 						defaultValues = productProperty.possibleValues
 					else:
 						choices = []
