@@ -325,9 +325,9 @@ def main(argv):
 				for line in shell.lines:
 					print >> sys.stdout, forceUnicode(line['text']).rstrip().encode(outEncoding)
 
-			except Exception as e:
-				logger.logException(e)
-				raise
+			except Exception as error:
+				logger.logException(error)
+				raise error
 		else:
 			usage()
 			sys.exit(1)
