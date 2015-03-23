@@ -472,8 +472,9 @@ class Shell:
 			if self.question(_("Delete log-file '%s'?") % logFile):
 				try:
 					os.unlink(logFile)
-				except Exception as e:
+				except OSError as e:
 					logger.error(u"Failed to delete log-file '%s': %s" % (logFile, forceUnicode(e)))
+
 		try:
 			history = codecs.open(os.path.join(self.userConfigDir, 'history'), 'w', 'utf-8')
 			for line in self.cmdList:
