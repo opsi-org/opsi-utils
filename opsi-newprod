@@ -81,6 +81,9 @@ def main():
 	templateDirectory = options.templateDir
 	destDir = os.path.abspath(forceFilename(options.destination))
 
+	if not os.path.exists(destDir):
+		raise OSError("Directory '{0}' does not exist!".format(destDir))
+
 	global ui
 	ui = UIFactory(type=u'snack')
 	ui.drawRootText(1, 1, 'opsi')
