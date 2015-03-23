@@ -653,8 +653,6 @@ if __name__ == "__main__":
 		main()
 		exitUI()
 		sys.exit(0)
-	except SystemExit:
-		pass
 	except Exception as exception:
 		exitUI()
 		logger.setConsoleLevel(LOG_ERROR)
