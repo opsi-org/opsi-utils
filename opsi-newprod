@@ -595,7 +595,7 @@ Maintainer of this opsi package.
 	pcf.chmod(0600)
 
 	createTemplates(productSourceDir, templateDirectory)
-	setRights(productDirectory)
+	setRights(productSourceDir)
 
 	ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
 
