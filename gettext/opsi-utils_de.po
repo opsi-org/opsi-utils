@@ -1,19 +1,21 @@
-# German translations for PACKAGE package.
-# Copyright (C) 2010 ORGANIZATION
-# Automatically generated, 2010.
+# opsi-utils German translations.
+# Copyright (C) 2010-2015
 #
+# Translators:
+# Automatically generated, 2010
+# Niko Wenselowski, 2015
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: opsi.org\n"
 "POT-Creation-Date: 2015-03-23 15:16+CET\n"
-"PO-Revision-Date: 2010-09-03 11:12+CEST\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
-"Language: \n"
+"PO-Revision-Date: 2015-03-23 14:25+0000\n"
+"Last-Translator: Niko Wenselowski\n"
+"Language-Team: German (http://www.transifex.com/projects/p/opsiorg/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
+"Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../opsi-admin:127
@@ -236,9 +238,7 @@ msgstr "Paket-Datei '%s' existiert bereits."
 
 #: ../opsi-makeproductfile:292
 msgid "Press <O> to overwrite, <C> to abort or <N> to specify a new version:"
-msgstr ""
-"Drücken Sie <O> zum Überschreiben, <C> zum Abbrechen oder <N> um einen neue "
-"Versionsnummer anzugeben:"
+msgstr "Drücken Sie <O> zum Überschreiben, <C> zum Abbrechen oder <N> um einen neue Versionsnummer anzugeben:"
 
 #: ../opsi-makeproductfile:307
 msgid "Aborted"
@@ -248,9 +248,7 @@ msgstr "Abgebrochen"
 msgid ""
 "Please specify new product version, press <ENTER> to keep current version "
 "(%s):"
-msgstr ""
-"Bitte eine neue Produkt-Version eingeben, <ENTER> drücken um die momentane "
-"Version (%s) beizubehalten:"
+msgstr "Bitte eine neue Produkt-Version eingeben, <ENTER> drücken um die momentane Version (%s) beizubehalten:"
 
 #: ../opsi-makeproductfile:325
 msgid "Bad product version: %s"
@@ -260,9 +258,7 @@ msgstr "Ungültige Produkt-Version: %s"
 msgid ""
 "Please specify new package version, press <ENTER> to keep current version "
 "(%s):"
-msgstr ""
-"Bitte eine neue Paket-Version eingeben, <ENTER> drücken um die momentane "
-"Version (%s) beizubehalten:"
+msgstr "Bitte eine neue Paket-Version eingeben, <ENTER> drücken um die momentane Version (%s) beizubehalten:"
 
 #: ../opsi-makeproductfile:336
 msgid "Bad package version: %s"
@@ -289,18 +285,14 @@ msgid "Unlocking package"
 msgstr "Hebe Paket-Sperre auf"
 
 #: ../opsi-newprod:75
-#, fuzzy
 msgid "Copies the contents of DIRECTORY to the destination directory."
 msgstr "Kopiert den Inhalt des Ordners DIRECTORY in das Zielverzeichnis."
 
 #: ../opsi-newprod:77
-#, fuzzy
 msgid ""
 "The destination of the new product source. If no destination directory is "
 "supplied, the current directory is used."
-msgstr ""
-"Wenn kein Zielverzeichnis angegeben wird, wird das aktuelle Verzeichnis "
-"verwendet."
+msgstr "Das Zielverzeichnis für die neuen Produkt-Quellen. Falls kein Zielverzeichnis angegeben wird, wird das aktuelle Verzeichnis verwendet."
 
 #: ../opsi-newprod:99
 msgid "Please select product type"
@@ -527,8 +519,7 @@ msgstr "Nein"
 msgid ""
 "\n"
 "You have to specify either a required product or a required product class.\n"
-"You have to specify either a required installation status or a required "
-"action.\n"
+"You have to specify either a required installation status or a required action.\n"
 "The requirement type is optional.\n"
 "Possible actions are:\n"
 "   %s\n"
@@ -601,9 +592,7 @@ msgstr "Der benötigte Installations-Zustand ist ungültig."
 #: ../opsi-newprod:388
 msgid ""
 "Please specify either a required installation status or a required action."
-msgstr ""
-"Bitte entweder einen benötigten Installations-Status oder eine benötigte "
-"Aktion angeben."
+msgstr "Bitte entweder einen benötigten Installations-Status oder eine benötigte Aktion angeben."
 
 #: ../opsi-newprod:394
 msgid "Requirement type is not valid."
@@ -690,9 +679,7 @@ msgstr "Bitte gültige Stadard-Werte angeben: %s"
 msgid ""
 "\n"
 "Maintainer of this opsi package.\n"
-msgstr ""
-"\n"
-"Betreuer dieses opsi-Pakets.\n"
+msgstr "\nBetreuer dieses opsi-Pakets.\n"
 
 #: ../opsi-newprod:539
 msgid "Maintainer name"
@@ -724,7 +711,7 @@ msgstr "Das Paket-Quellverzeichnis '%s' wurde erzeugt."
 
 #: ../opsi-package-manager:417
 msgid "Log messages"
-msgstr ""
+msgstr "Log-Meldungen"
 
 #: ../opsi-package-manager:740
 msgid "%d/%d transfers running"
@@ -748,9 +735,7 @@ msgstr "%d/%d laufende Task-Warteschlangen"
 
 #: ../opsi-package-manager:810
 msgid "Setting action setup for product %s where installed"
-msgstr ""
-"Setzte Aktion setup für alle Clients auf denen das Produkt %s installiert "
-"ist."
+msgstr "Setzte Aktion setup für alle Clients auf denen das Produkt %s installiert ist."
 
 #: ../opsi-package-manager:830
 msgid "Setting action %s for product %s on client(s): %s"
@@ -768,9 +753,7 @@ msgstr "Entferne Client-spezifische Einstellungen für das Produkt %s"
 
 #: ../opsi-package-manager:855
 msgid "Purging product property states for product '%s' on client(s): %s"
-msgstr ""
-"Entferne Client-spezifische Einstellungen für das Produkt '%s' und die "
-"folgend Clients: %s"
+msgstr "Entferne Client-spezifische Einstellungen für das Produkt '%s' und die folgend Clients: %s"
 
 #: ../opsi-package-manager:893
 msgid "Waiting for free upload slot for %s"
@@ -875,12 +858,3 @@ msgstr "Es sind Fehler aufgetreten: "
 #: ../opsi-package-manager:1549
 msgid "Failure while processing %s:"
 msgstr "Fehler beim Bearbeiten von %s:"
-
-#~ msgid "Usage: %s [options] [destination directory]"
-#~ msgstr "Verwendung: %s [options] [destination directory]"
-
-#~ msgid "Creates an opsi product source dir in the destination directory."
-#~ msgstr "Erstellt ein Produkt-Quellverzeichnis im Zielverzeichnis."
-
-#~ msgid "show this help"
-#~ msgstr "Diese Hilfe anzeigen"
