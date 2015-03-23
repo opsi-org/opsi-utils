@@ -30,7 +30,6 @@ Creating opsi product source folders.
 __version__ = '4.0.6.3'
 
 import codecs
-import getopt
 import gettext
 import os
 import sys
@@ -48,6 +47,11 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
+try:
+	import argparse
+except ImportError:
+	from OPSI.Util import argparse
+
 logger = Logger()
 ui = None
 
@@ -61,44 +65,22 @@ except Exception as e:
 		return string
 
 
-def usage():
-	print u"\n" + _(u"Usage: %s [options] [destination directory]") % os.path.basename(sys.argv[0])
-	print _(u"Creates an opsi product source dir in the destination directory.")
-	print _(u"If no destination directory is supplied, the current directory is used.")
-	print _(u"Options:")
-	print "   -h              " + _(u"show this help")
-	print "   -t <DIRECTORY>  " + _(u"Copies the contents of DIRECTORY to the destination directory.")
-	print u""
-
-
 def main(argv):
-	destDir = os.getcwd()
-	templateDirectory = None
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--version', '-V', action='version', version=__version__)
+	parser.add_argument("-t", "--template-dir", default=None,
+						dest="templateDir", metavar="DIRECTORY",
+						help=_(u"Copies the contents of DIRECTORY to the destination directory."))
+	parser.add_argument('destination', default=os.getcwd(), nargs='?',
+						help=_(u"The destination of the new product source. If no destination directory is supplied, the current directory is used."))
 
-	try:
-		(opts, args) = getopt.getopt(argv, "ht:")
-	except getopt.GetoptError:
-		usage()
-		sys.exit(1)
+	options = parser.parse_args()
 
-	for (opt, arg) in opts:
-		if opt == "-h":
-			usage()
-			return
-		elif opt == '-t':
-			templateDirectory = arg
-
-	if len(args) > 1:
-		logger.error(u"Too many arguments")
-		usage()
-		sys.exit(1)
-
-	elif len(args) > 0:
-		destDir = os.path.abspath(forceFilename(args[0]))
+	templateDirectory = options.templateDir
+	destDir = os.path.abspath(forceFilename(options.destination))
 
 	global ui
 	ui = UIFactory(type=u'snack')
-
 	ui.drawRootText(1, 1, 'opsi')
 
 	# Get product type
