@@ -4,6 +4,8 @@ opsi-utils (4.0.6.3-1) UNRELEASED; urgency=low
   * opsi-package-manager: Better error message if setting a locale fails.
   * opsi-newprod: Changed option-parsing to argparse library.
   * opsi-newprod: small refactorings.
+  * opsi-newprod: new option --version
+  * opsi-newprod: create postinst template again
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 23 Mar 2015 12:10:11 +0100
 

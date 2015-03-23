@@ -621,7 +621,7 @@ copied to ``productDirectory``
 		preinst.write(u'#\n')
 
 	# Create postinst template
-	postinstFilePath = os.path.join(productDirectory, 'OPSI', 'preinst')
+	postinstFilePath = os.path.join(productDirectory, 'OPSI', 'postinst')
 	with codecs.open(postinstFilePath, 'w', 'utf-8') as postinst:
 		postinst.write(u'#! /bin/bash\n')
 		postinst.write(u'#\n')
