@@ -67,6 +67,11 @@ Shell output.
 *-r, --raw-output*::
 Raw output.
 
+*--exit-zero*::
+Always exit with exit code 0. Normal exceptions will result in an exit
+code of 1. If there is any error in the resulting JSON the exit code
+will be 2.
+
 
 AUTHOR
 ------

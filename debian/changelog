@@ -6,9 +6,14 @@ opsi-utils (4.0.6.3-1) UNRELEASED; urgency=low
   * opsi-newprod: small refactorings.
   * opsi-newprod: new option --version
   * opsi-newprod: create postinst template again
-  * opsi-admin: Invalid calls will result in an non-zero exitcode.
+  * opsi-admin: non-interactive mode: Errors during execution will
+    result in an exit code of 1.
+  * opsi-admin: non-interactive mode: new option --exit-zero that will
+    let the script always exit with 0.
+  * opsi-admin: non-interactive mode: If errors are detected as the
+    result of a call it will result in an exit code of 2.
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 23 Mar 2015 12:10:11 +0100
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 23 Mar 2015 22:02:11 +0100
 
 opsi-utils (4.0.6.2-1) experimental; urgency=low
 
