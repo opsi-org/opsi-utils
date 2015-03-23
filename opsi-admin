@@ -211,7 +211,7 @@ def main(argv):
 
 	if logFile:
 		with codecs.open(logFile, 'w', 'utf-8') as f:
-			f.write(u"Starting log at: %s" % time.strftime(u"%a, %d %b %Y %H:%M:%S"))
+			f.write(u"Starting log at: %s" % forceUnicode(time.strftime(u"%a, %d %b %Y %H:%M:%S")))
 
 		logger.setLogFile(logFile)
 		logger.setFileLevel(logLevel)
