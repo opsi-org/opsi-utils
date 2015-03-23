@@ -1648,35 +1648,28 @@ class CommandTask(Command):
 					f.close()
 
 if (__name__ == "__main__"):
-	exception = None
-	try:
-		try:
-			locale.setlocale(locale.LC_ALL, '')
-		except Exception:
-			pass
-
-		if os.name == 'posix':
-			from signal import signal, SIGINT, SIGQUIT
-			signal(SIGINT, signalHandler)
-			signal(SIGQUIT, signalHandler)
-
-		main(sys.argv[1:])
-	except SystemExit as e:
-		pass
-	except Exception as e:
-		exception = e
-
-	if exception:
-		logger.setConsoleLevel(LOG_ERROR)
-		logger.logException(exception)
-
-	if shell:
+	def shellExit():
 		try:
 			shell.exit()
 		except Exception:
 			pass
 
-	if exception:
-		sys.exit(1)
+	try:
+		locale.setlocale(locale.LC_ALL, '')
+	except Exception:
+		pass
 
-	sys.exit(0)
+	if os.name == 'posix':
+		from signal import signal, SIGINT, SIGQUIT
+		signal(SIGINT, signalHandler)
+		signal(SIGQUIT, signalHandler)
+
+	try:
+		main(sys.argv[1:])
+		shellExit()
+		sys.exit(0)
+	except Exception as exception:
+		shellExit()
+		logger.setConsoleLevel(LOG_ERROR)
+		logger.logException(exception)
+		sys.exit(1)
