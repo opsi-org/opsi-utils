@@ -67,7 +67,7 @@ except Exception as e:
 		return string
 
 
-def main(argv):
+def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version', version=__version__)
 	parser.add_argument("-t", "--template-dir", default=None,
@@ -643,7 +643,7 @@ if (__name__ == "__main__"):
 	exception = None
 
 	try:
-		main(sys.argv[1:])
+		main()
 	except SystemExit:
 		pass
 	except Exception as error:
