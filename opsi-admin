@@ -1177,13 +1177,13 @@ class CommandMethod(Command):
 
 			elif shell.output == u'SHELL':
 				bashVars = objectToBash(result, {})
-				for i in range(len(bashVars) - 1, -2, -1):
-					if i == -1:
-						i = ''
+				for index in range(len(bashVars) - 1, -2, -1):
+					if index == -1:
+						index = ''
 
-					v = bashVars.get('RESULT%s' % i)
-					if v:
-						lines.append(u'RESULT%s=%s' % (i, v))
+					value = bashVars.get('RESULT%s' % index)
+					if value:
+						lines.append(u'RESULT%s=%s' % (index, value))
 
 			elif shell.output == u'SIMPLE':
 				if type(result) is types.DictType:
@@ -1192,17 +1192,17 @@ class CommandMethod(Command):
 							value = forceUnicodeLower(value)
 						lines.append(u'%s=%s' % (key, value))
 				elif type(result) in (types.TupleType, types.ListType):
-					for r in result:
-						if type(r) is types.DictType:
-							for (key, value) in r.items():
+					for resultElement in result:
+						if type(resultElement) is types.DictType:
+							for (key, value) in resultElement.items():
 								if type(value) is bool:
 									value = forceUnicodeLower(value)
 								lines.append(u'%s=%s' % (key, value))
 							lines.append(u'')
-						elif type(r) in (types.TupleType, types.ListType):
+						elif type(resultElement) in (types.TupleType, types.ListType):
 							raise Exception(u"Simple output not possible for list of lists")
 						else:
-							lines.append(forceUnicode(r))
+							lines.append(forceUnicode(resultElement))
 				else:
 					lines.append(forceUnicode(result))
 			else:
@@ -1322,8 +1322,8 @@ class CommandSet(Command):
 				logger.setLogFile(None)
 			else:
 				logFile = params[1]
-				with codecs.open(logFile, 'w', 'utf-8') as f:
-					f.write(u"Starting log at: %s\n" % time.strftime(u"%a, %d %b %Y %H:%M:%S"))
+				with codecs.open(logFile, 'w', 'utf-8') as log:
+					log.write(u"Starting log at: %s\n" % time.strftime(u"%a, %d %b %Y %H:%M:%S"))
 
 				logger.setLogFile(logFile)
 				logger.setFileLevel(logLevel)
@@ -1431,8 +1431,8 @@ class CommandLog(Command):
 			if not logFile:
 				raise Exception(_(u'File logging is not activated'))
 
-			with open(logFile) as f:
-				for line in f:
+			with open(logFile) as log:
+				for line in log:
 					shell.appendLine(line, refresh=False)
 			shell.display()
 
