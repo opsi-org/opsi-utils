@@ -109,10 +109,10 @@ UNCOLORED_LOGO = """\
 LOGO = [{"color": COLOR_CYAN, "text": line} for line in UNCOLORED_LOGO]
 
 try:
-	t = gettext.translation('opsi-utils', '/usr/share/locale')
-	_ = t.ugettext
-except Exception as e:
-	logger.error(u"Locale not found: %s" % e)
+	translation = gettext.translation('opsi-utils', '/usr/share/locale')
+	_ = translation.ugettext
+except Exception as error:
+	logger.error(u"Locale not found: %s" % error)
 
 	def _(string):
 		return string
@@ -222,8 +222,8 @@ def main(argv):
 			exitZero = True
 
 	if logFile:
-		with codecs.open(logFile, 'w', 'utf-8') as f:
-			f.write(u"Starting log at: %s" % forceUnicode(time.strftime(u"%a, %d %b %Y %H:%M:%S")))
+		with codecs.open(logFile, 'w', 'utf-8') as log:
+			log.write(u"Starting log at: %s" % forceUnicode(time.strftime(u"%a, %d %b %Y %H:%M:%S")))
 
 		logger.setLogFile(logFile)
 		logger.setFileLevel(logLevel)
@@ -269,8 +269,8 @@ def main(argv):
 						sessionId = forceUnicode(line)
 						break
 				session.close()
-			except Exception as e:
-				logger.error(u"Failed to read session file '%s': %s" % (os.path.join(opsiadminUserDir, 'session'), forceUnicode(e)))
+			except Exception as error:
+				logger.error(u"Failed to read session file '%s': %s" % (os.path.join(opsiadminUserDir, 'session'), forceUnicode(error)))
 
 			from OPSI.Backend.JSONRPC import JSONRPCBackend
 			backend = JSONRPCBackend(
@@ -288,8 +288,8 @@ def main(argv):
 					session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'w', 'utf-8')
 					session.write(u"%s\n" % sessionId)
 					session.close()
-				except Exception as e:
-					logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), forceUnicode(e)))
+				except Exception as error:
+					logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), forceUnicode(error)))
 
 		cmdline = u''
 		if len(args) > 0:
@@ -322,8 +322,8 @@ def main(argv):
 				for line in LOGO:
 					shell.appendLine(line.get('text'), line.get('color'))
 				shell.run()
-			except Exception as e:
-				logger.logException(e)
+			except Exception as error:
+				logger.logException(error)
 				raise
 		elif cmdline:
 			try:
@@ -413,8 +413,8 @@ class Shell:
 			if not os.path.isdir(self.userConfigDir):
 				try:
 					os.mkdir(self.userConfigDir)
-				except Exception as e:
-					logger.error(u"Failed to create user dir '%s': %s" % (self.userConfigDir, forceUnicode(e)))
+				except Exception as error:
+					logger.error(u"Failed to create user dir '%s': %s" % (self.userConfigDir, forceUnicode(error)))
 		else:
 			logger.error(u'Failed to get home directory from environment!')
 
@@ -426,8 +426,8 @@ class Shell:
 						continue
 					self.cmdList.append(line.strip())
 					self.cmdListPos += 1
-		except Exception as e:
-			logger.error(u"Failed to read history file '%s': %s" % (historyFile, forceUnicode(e)))
+		except Exception as error:
+			logger.error(u"Failed to read history file '%s': %s" % (historyFile, forceUnicode(error)))
 
 	def setColor(self, color):
 		color = forceBool(color)
@@ -482,8 +482,8 @@ class Shell:
 				if self.cmdline:
 					try:
 						self.execute()
-					except Exception as e:
-						lines = forceUnicode(e).split(u'\n')
+					except Exception as error:
+						lines = forceUnicode(error).split(u'\n')
 						lines[0] = u"ERROR: %s" % lines[0]
 						for line in lines:
 							self.appendLine(line, COLOR_RED)
@@ -501,8 +501,8 @@ class Shell:
 			if self.question(_("Delete log-file '%s'?") % logFile):
 				try:
 					os.unlink(logFile)
-				except OSError as e:
-					logger.error(u"Failed to delete log-file '%s': %s" % (logFile, forceUnicode(e)))
+				except OSError as error:
+					logger.error(u"Failed to delete log-file '%s': %s" % (logFile, forceUnicode(error)))
 
 		try:
 			history = codecs.open(os.path.join(self.userConfigDir, 'history'), 'w', 'utf-8')
@@ -511,8 +511,8 @@ class Shell:
 					continue
 				history.write(u"%s\n" % line)
 			history.close()
-		except Exception as e:
-			logger.error(u"Failed to write history file '%s': %s" % (os.path.join(self.userConfigDir, 'history'), forceUnicode(e)))
+		except Exception as error:
+			logger.error(u"Failed to write history file '%s': %s" % (os.path.join(self.userConfigDir, 'history'), forceUnicode(error)))
 
 		self.exitScreen()
 		self.running = False
@@ -528,8 +528,8 @@ class Shell:
 		s = self.infoline + (self.xMax - len(self.infoline)) * u' '
 		try:
 			self.screen.addstr(s.encode(outEncoding), curses.A_REVERSE)
-		except Exception as e:
-			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(e)))
+		except Exception as error:
+			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(error)))
 
 		height = int(len(self.prompt + u' ' + self.cmdline) / self.xMax) + 1
 		clear = self.xMax - (len(self.prompt + u' ' + self.cmdline) % self.xMax) - 1
@@ -540,8 +540,8 @@ class Shell:
 		s = self.prompt + u' ' + self.cmdline + u' ' * clear
 		try:
 			self.screen.addstr(s.encode(outEncoding), curses.A_BOLD)
-		except Exception as e:
-			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(e)))
+		except Exception as error:
+			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(error)))
 
 		for i in range(0, self.linesMax):
 			self.screen.move(self.linesMax - i, 0)
@@ -574,8 +574,8 @@ class Shell:
 					self.screen.addstr(s.encode(outEncoding), color)
 				else:
 					self.screen.addstr(s.encode(outEncoding))
-			except Exception as e:
-				logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(e)))
+			except Exception as error:
+				logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(error)))
 
 		moveY = self.yMax - height + int((len(self.prompt + u' ') + self.pos) / self.xMax)
 		moveX = ((len(self.prompt + u' ') + self.pos) % self.xMax)
@@ -995,8 +995,8 @@ class Shell:
 						else:
 							newPos = self.pos + 1
 							newCmdline = self.cmdline[0:self.pos] + char + self.cmdline[self.pos:]
-					except Exception as e:
-						logger.error("Failed to add char '%s': %s" % (char, forceUnicode(e)))
+					except Exception as error:
+						logger.error("Failed to add char '%s': %s" % (char, forceUnicode(error)))
 				try:
 					if self.reverseSearch is not None:
 						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
@@ -1013,8 +1013,8 @@ class Shell:
 
 					self.pos = newPos
 					self.setCmdline(newCmdline)
-				except Exception as e:
-					self.setInfoline(forceUnicode(e))
+				except Exception as error:
+					self.setInfoline(forceUnicode(error))
 					pass
 
 			if not textInput:
@@ -1028,8 +1028,8 @@ class Shell:
 		if self.cmdline:
 			try:
 				self.execute()
-			except Exception as e:
-				lines = forceUnicode(e).split('\n')
+			except Exception as error:
+				lines = forceUnicode(error).split('\n')
 				lines[0] = "ERROR: %s" % lines[0]
 				for line in lines:
 					self.appendLine(line, COLOR_RED)
@@ -1245,16 +1245,16 @@ class CommandMethod(Command):
 						string = proc.stdout.read()
 						if len(string) > 0:
 							buf += string
-					except IOError as e:
-						if e.errno != 11:
+					except IOError as error:
+						if error.errno != 11:
 							raise
 
 					try:
 						string = proc.stderr.read()
 						if len(string) > 0:
 							err += string
-					except IOError as e:
-						if e.errno != 11:
+					except IOError as error:
+						if error.errno != 11:
 							raise
 
 				if exitCode != 0:
