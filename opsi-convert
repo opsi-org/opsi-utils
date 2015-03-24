@@ -112,7 +112,7 @@ class ProgressNotifier(ProgressObserver):
 				text = subject.getTitle()
 			barlen = usedWidth - 62
 			filledlen = int("%0.0f" % (barlen * subject.getPercent() / 100))
-			bar = u'='*filledlen + u' ' * (barlen - filledlen)
+			bar = u'=' * filledlen + u' ' * (barlen - filledlen)
 			percent = '%0.2f%%' % subject.getPercent()
 			print '%35s : %8s [%s] %5s/%-5s' % (text, percent, bar, subject.getState(), subject.getEnd())
 
@@ -251,7 +251,7 @@ def main(argv):
 	# Creating BackendManager instance for writing
 	bmWrite = None
 	if read['address']:
-		logger.comment( u"Connecting to %s" % bmWrite['address'] )
+		logger.comment(u"Connecting to %s" % bmWrite['address'])
 		write['password'] = getpass.getpass()
 
 	bmWrite = BackendManager(backendConfigDir=u'/etc/opsi/backends', **write)
