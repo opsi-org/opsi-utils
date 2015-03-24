@@ -1648,12 +1648,12 @@ class CommandTask(Command):
 			try:
 				# Univention
 				dn = None
-				f = os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % which('univention-admin'), 'r')
-				for line in f.readlines():
+				process = os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % which('univention-admin'), 'r')
+				for line in process.readlines():
 					if line.startswith('DN'):
 						dn = line.strip().split(' ')[1]
 						break
-				f.close()
+				process.close()
 				if not dn:
 					raise Exception(u"Failed to get DN for user pcpatch")
 				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null" \
@@ -1662,18 +1662,18 @@ class CommandTask(Command):
 			except Exception:
 				try:
 					# smbldap
-					f = os.popen(u'%s pcpatch 1>/dev/null 2>/dev/null' % which('smbldap-passwd'), 'w')
-					f.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
-					f.close()
+					process = os.popen(u'%s pcpatch 1>/dev/null 2>/dev/null' % which('smbldap-passwd'), 'w')
+					process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
+					process.close()
 				except Exception:
 					# unix
-					f = os.popen(u'%s 1>/dev/null 2>/dev/null' % which(u'chpasswd'), 'w')
-					f.write((u"pcpatch:%s\n" % password).encode(outEncoding))
-					f.close()
+					process = os.popen(u'%s 1>/dev/null 2>/dev/null' % which(u'chpasswd'), 'w')
+					process.write((u"pcpatch:%s\n" % password).encode(outEncoding))
+					process.close()
 
-					f = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
-					f.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
-					f.close()
+					process = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
+					process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
+					process.close()
 
 if __name__ == "__main__":
 	def shellExit():
