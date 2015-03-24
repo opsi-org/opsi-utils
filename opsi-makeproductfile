@@ -46,6 +46,7 @@ from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ZsyncFile
 from OPSI.Util import md5sum
 
+__version__ = '4.0.6.3'
 
 logger = Logger()
 
