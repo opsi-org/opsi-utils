@@ -303,8 +303,8 @@ def main(argv):
 				else:
 					cmdline += u" %s" % args[i]
 
-		(r, w, x) = select.select([sys.stdin], [], [], 0.2)
-		if sys.stdin in r:
+		(readSelection, _, _) = select.select([sys.stdin], [], [], 0.2)
+		if sys.stdin in readSelection:
 			read = unicode(sys.stdin.read(), inEncoding, 'replace')
 			read = read.replace('\r', '').replace('\n', '')
 			if read:
@@ -525,11 +525,11 @@ class Shell:
 			return
 		self.screen.move(0, 0)
 		self.screen.clrtoeol()
-		s = self.infoline + (self.xMax - len(self.infoline)) * u' '
+		shellLine = self.infoline + (self.xMax - len(self.infoline)) * u' '
 		try:
-			self.screen.addstr(s.encode(outEncoding), curses.A_REVERSE)
+			self.screen.addstr(shellLine.encode(outEncoding), curses.A_REVERSE)
 		except Exception as error:
-			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(error)))
+			logger.error(u"Failed to add string '%s': %s" % (shellLine, forceUnicode(error)))
 
 		height = int(len(self.prompt + u' ' + self.cmdline) / self.xMax) + 1
 		clear = self.xMax - (len(self.prompt + u' ' + self.cmdline) % self.xMax) - 1
@@ -537,19 +537,19 @@ class Shell:
 		self.linesMax = self.yMax - height - 1
 		self.screen.move(self.yMax - height, 0)
 		self.screen.clrtoeol()
-		s = self.prompt + u' ' + self.cmdline + u' ' * clear
+		shellLine = self.prompt + u' ' + self.cmdline + u' ' * clear
 		try:
-			self.screen.addstr(s.encode(outEncoding), curses.A_BOLD)
+			self.screen.addstr(shellLine.encode(outEncoding), curses.A_BOLD)
 		except Exception as error:
-			logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(error)))
+			logger.error(u"Failed to add string '%s': %s" % (shellLine, forceUnicode(error)))
 
 		for i in range(0, self.linesMax):
 			self.screen.move(self.linesMax - i, 0)
 			self.screen.clrtoeol()
-			s = u''
+			shellLine = u''
 			color = None
 			if len(self.lines) - self.linesBack > i:
-				s = self.lines[len(self.lines) - self.linesBack - 1 - i]['text']
+				shellLine = self.lines[len(self.lines) - self.linesBack - 1 - i]['text']
 				if self.color:
 					color = self.lines[len(self.lines) - self.linesBack - 1 - i]['color']
 
@@ -571,11 +571,11 @@ class Shell:
 
 			try:
 				if color is not None:
-					self.screen.addstr(s.encode(outEncoding), color)
+					self.screen.addstr(shellLine.encode(outEncoding), color)
 				else:
-					self.screen.addstr(s.encode(outEncoding))
+					self.screen.addstr(shellLine.encode(outEncoding))
 			except Exception as error:
-				logger.error(u"Failed to add string '%s': %s" % (s, forceUnicode(error)))
+				logger.error(u"Failed to add string '%s': %s" % (shellLine, forceUnicode(error)))
 
 		moveY = self.yMax - height + int((len(self.prompt + u' ') + self.pos) / self.xMax)
 		moveX = ((len(self.prompt + u' ') + self.pos) % self.xMax)
@@ -601,8 +601,8 @@ class Shell:
 			elif line.startswith(COLOR_RED):
 				color = COLOR_RED
 
-		for c in COLORS_AVAILABLE:
-			line = line.replace(c, u'')
+		for availableColor in COLORS_AVAILABLE:
+			line = line.replace(availableColor, u'')
 
 		while self.xMax and (len(line) > self.xMax):
 			self.lines.append({"text": line[:self.xMax], "color": color})
@@ -728,15 +728,15 @@ class Shell:
 			del self.cmdList[0]
 		self.cmdListPos = len(self.cmdList)
 		invalid = True
-		for c in self.commands:
-			if c.getName() == self.getParam(0):
+		for command in self.commands:
+			if command.getName() == self.getParam(0):
 				invalid = False
 				try:
-					c.execute(self, self.getParams()[1:])
-				except Exception as e:
-					logger.logException(e)
-					logger.error(u"Failed to execute '%s': %s" % (self.cmdline, forceUnicode(e)))
-					raise Exception(u"Failed to execute '%s': %s" % (self.cmdline, forceUnicode(e)))
+					command.execute(self, self.getParams()[1:])
+				except Exception as error:
+					logger.logException(error)
+					logger.error(u"Failed to execute '%s': %s" % (self.cmdline, forceUnicode(error)))
+					raise Exception(u"Failed to execute '%s': %s" % (self.cmdline, forceUnicode(error)))
 				break
 
 		if invalid:
@@ -886,19 +886,19 @@ class Shell:
 				if self.paramPos >= 0:
 					params[self.paramPos] = self.currentParam
 
-				for c in self.commands:
+				for command in self.commands:
 					if self.paramPos < 0:
-						completions.append(c.getName())
+						completions.append(command.getName())
 
-					elif params[0] == c.getName():
+					elif params[0] == command.getName():
 						if self.paramPos >= 1:
-							completions = c.completion(params[1:], self.paramPos)
+							completions = command.completion(params[1:], self.paramPos)
 						else:
-							completions = [c.getName()]
+							completions = [command.getName()]
 						break
 
-					elif c.getName().startswith(params[0]):
-						completions.append(c.getName())
+					elif command.getName().startswith(params[0]):
+						completions.append(command.getName())
 
 				if len(completions) == 1:
 					self.setCmdline(self.cmdline[:self.pos] + \
@@ -1067,10 +1067,10 @@ class CommandMethod(Command):
 		return _(u"Execute a config-interface-method")
 
 	def help(self, shell):
-		shell.appendLine(u"\r" + _(u"Methods are:") + u'\n')
-		for m in backend.backend_getInterface():
-			logger.debug(m)
-			shell.appendLine(u"\r%s\n" % m.get('name'))
+		shell.appendLine(u"\r{0}\n".format(_(u"Methods are:")))
+		for method in backend.backend_getInterface():
+			logger.debug(method)
+			shell.appendLine(u"\r%s\n" % method.get('name'))
 
 	def completion(self, params, paramPos):
 		completions = []
