@@ -1562,7 +1562,7 @@ class CommandTask(Command):
 					depotToClients[clientToDepot['depotId']] = [clientToDepot['clientId']]
 
 			updateProductOnClients = []
-			for (depotId, clientIds) in depotToClients.items():
+			for (_, clientIds) in depotToClients.items():
 				if not clientIds:
 					continue
 
@@ -1607,7 +1607,7 @@ class CommandTask(Command):
 					depotToClients[clientToDepot['depotId']] = [clientToDepot['clientId']]
 
 			updateProductOnClients = []
-			for (depotId, clientIds) in depotToClients.items():
+			for (_, clientIds) in depotToClients.items():
 				if not clientIds:
 					continue
 
