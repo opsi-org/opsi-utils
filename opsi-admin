@@ -1174,7 +1174,7 @@ class CommandMethod(Command):
 				lines.append(toJson(result))
 
 			elif shell.output == u'JSON':
-				lines = objectToBeautifiedText(result, 0).split(u'\n')
+				lines = objectToBeautifiedText(result).split(u'\n')
 
 			elif shell.output == u'SHELL':
 				bashVars = objectToBash(result, {})
