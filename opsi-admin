@@ -346,10 +346,10 @@ def main(argv):
 					print(forceUnicode(line['text']).rstrip().encode(outEncoding), file=sys.stdout)
 
 				try:
-					resultAsJSON = json.loads('\n'.join([line['text'] for line in shell.lines]))
+					resultAsJSON = json.loads(u'\n'.join([line['text'] for line in shell.lines]))
 					searchForError(dict(resultAsJSON))
 				except ValueError as error:
-					logger.debug("Conversion to dict failed: {0}".format(error))
+					logger.debug(u"Conversion to dict failed: {0}".format(error))
 			except Exception as error:
 				logger.logException(error)
 				raise error
