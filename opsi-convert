@@ -27,7 +27,6 @@ opsi-convert converts opsi-backends.
 """
 
 import fcntl
-import getopt
 import getpass
 import os
 import re
