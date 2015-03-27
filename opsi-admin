@@ -222,11 +222,7 @@ def main(argv):
 			exitZero = True
 
 	if logFile:
-		with codecs.open(logFile, 'w', 'utf-8') as log:
-			log.write(u"Starting log at: %s" % forceUnicode(time.strftime(u"%a, %d %b %Y %H:%M:%S")))
-
-		logger.setLogFile(logFile)
-		logger.setFileLevel(logLevel)
+		startLogFile(logFile)
 
 	logger.setConsoleLevel(logLevel)
 	logger.setColor(color)
@@ -366,6 +362,14 @@ def main(argv):
 				backend.backend_exit()
 			except Exception:
 				pass
+
+
+def startLogFile(logFile):
+	with codecs.open(logFile, 'w', 'utf-8') as log:
+			log.write(u"Starting log at: %s" % forceUnicode(time.strftime(u"%a, %d %b %Y %H:%M:%S")))
+
+	logger.setLogFile(logFile)
+	logger.setFileLevel(logLevel)
 
 
 class Shell:
@@ -1323,11 +1327,7 @@ class CommandSet(Command):
 				logger.setLogFile(None)
 			else:
 				logFile = params[1]
-				with codecs.open(logFile, 'w', 'utf-8') as log:
-					log.write(u"Starting log at: %s\n" % time.strftime(u"%a, %d %b %Y %H:%M:%S"))
-
-				logger.setLogFile(logFile)
-				logger.setFileLevel(logLevel)
+				startLogFile(logFile)
 
 		elif params[0] == u'log-level':
 			if not logFile:
