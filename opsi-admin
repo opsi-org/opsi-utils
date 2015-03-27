@@ -322,6 +322,18 @@ def main(argv):
 				logger.logException(error)
 				raise
 		elif cmdline:
+			def searchForError(obj):
+				if isinstance(obj, dict):
+					try:
+						if obj['error']:
+							raise ErrorInResultException(obj['error'])
+					except KeyError:
+						for key in obj:
+							searchForError(obj[key])
+				elif isinstance(obj, list):
+					for element in obj:
+						searchForError(element)
+
 			try:
 				shell = Shell(prompt=u'%s@opsi-admin>' % username, output=output, color=color)
 				for cmd in cmdline.split(u'\n'):
@@ -332,18 +344,6 @@ def main(argv):
 				logger.debug(shell.getLines())
 				for line in shell.lines:
 					print(forceUnicode(line['text']).rstrip().encode(outEncoding), file=sys.stdout)
-
-				def searchForError(obj):
-					if isinstance(obj, dict):
-						try:
-							if obj['error']:
-								raise ErrorInResultException(obj['error'])
-						except KeyError:
-							for key in obj:
-								searchForError(obj[key])
-					elif isinstance(obj, list):
-						for element in obj:
-							searchForError(element)
 
 				try:
 					resultAsJSON = json.loads('\n'.join([line['text'] for line in shell.lines]))
