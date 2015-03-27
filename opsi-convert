@@ -42,6 +42,11 @@ from OPSI.Util.Message import ProgressObserver
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.Replicator import BackendReplicator
 
+try:
+	import argparse
+except ImportError:
+	from OPSI.Util import argparse
+
 __version__ = '4.0.6.3'
 
 logLevel = LOG_NONE
@@ -50,26 +55,6 @@ logger.setConsoleLevel(logLevel)
 logger.setConsoleFormat('%M')
 logger.setFileFormat('%D [%L] %M')
 logger.setConsoleColor(True)
-
-
-def usage():
-	print u"\nUsage: %s [options] <from> <to>" % os.path.basename(sys.argv[0])
-	print u"Convert an opsi database into an other."
-	print u"Options:"
-	print u"    -h                 show this help text"
-	print u"    -V                 show version information"
-	print u"    -q                 do not show progress"
-	print u"    -v                 increase verbosity (can be used multiple times)"
-	print u"    -c                 clean destination database before writing"
-	print u"    -a                 including software/hardware inventory"
-	print u"    -s <old server id> use destination host as new server"
-	print u"    -l <file>          log to this file"
-	print u""
-	print u"<from> and <to> can be:"
-	print u"     - the name of a backend as defined in /etc/opsi/backends (file, ldap, ...)"
-	print u"     - the url of a opsi configuration service"
-	print u"       http(s)://<user>@<host>:<port>/rpc"
-	print u""
 
 
 class ProgressNotifier(ProgressObserver):
@@ -127,47 +112,51 @@ class ProgressNotifier(ProgressObserver):
 
 def main(argv):
 	global logLevel
-	newServerId = None
-	oldServerId = None
-	cleanupFirst = False
-	convertAudit = False
-	progress = True
 
-	# Get options
-	try:
-		(opts, args) = getopt.getopt(argv, "aqhvVcs:l:")
+	parser = argparse.ArgumentParser(
+		description="Convert an opsi database into an other.",
+		epilog="""
+The backends (<from> and <to>) can either be the name of a backend as defined
+in /etc/opsi/backends (file, ldap, ...) or the the url of a opsi
+configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
+	parser.add_argument('--version', '-V', action='version', version=__version__)
+	parser.add_argument('--quiet', '-q', action='store_true', default=False,
+						help="do not show progress")
+	parser.add_argument('--verbose', '-v',
+						dest="logLevel", default=LOG_NONE, action="count",
+						help="increase verbosity (can be used multiple times)")
+	parser.add_argument('--clean-destination', '-c', dest="cleanupFirst",
+						default=False, action='store_true',
+						help="clean destination database before writing")
+	parser.add_argument('--with-audit-data', '-a', dest="audit",
+						action='store_true', default=False,
+						help="including software/hardware inventory")
+	parser.add_argument('-s', metavar="OLD SERVER ID", dest="oldServerId",
+						help="use destination host as new server")
+	parser.add_argument('--log-file', '-l', dest="logFile",
+						help="log to this file")
+	parser.add_argument('from', metavar="<from>", help="Source backend")
+	parser.add_argument('to', metavar="<to>", help="Target backend")
 
-	except getopt.GetoptError:
-		usage()
-		sys.exit(1)
+	args = parser.parse_args()
 
-	for (opt, arg) in opts:
-		if   (opt == "-h"):
-			usage()
-			return
-		elif (opt == "-V"):
-			print u"%s %s" % (os.path.basename(sys.argv[0]), __version__)
-			return
-		elif (opt == "-v"):
-			logLevel += 1
-			logger.setConsoleLevel(logLevel)
-			logger.setFileLevel(logLevel)
-		elif (opt == "-c"):
-			cleanupFirst = True
-		elif (opt == "-s"):
-			newServerId = getfqdn(conf='/etc/opsi/global.conf')
-			oldServerId = forceHostId(arg)
-		elif (opt == "-q"):
-			progress = False
-		elif (opt == "-l"):
-			logger.setLogFile(arg)
-			logger.setFileLevel(logLevel)
-		elif (opt == "-a"):
-			convertAudit = True
+	logLevel = args.logLevel
+	logger.setConsoleLevel(logLevel)
+	logger.setFileLevel(logLevel)
+	if args.logFile:
+		logger.setLogFile(args.logFile)
+		logger.setFileLevel(logLevel)
 
-	if len(args) < 2:
-		usage()
-		sys.exit(1)
+	cleanupFirst = args.cleanupFirst
+	progress = not args.quiet
+	convertAudit = args.audit
+
+	if args.oldServerId:
+		newServerId = getfqdn(conf='/etc/opsi/global.conf')
+		oldServerId = forceHostId(arg)
+	else:
+		newServerId = None
+		oldServerId = None
 
 	readBackend = forceUnicode(args[0])
 	writeBackend = forceUnicode(args[1])
