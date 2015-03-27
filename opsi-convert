@@ -152,7 +152,7 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 
 	if args.oldServerId:
 		newServerId = getfqdn(conf='/etc/opsi/global.conf')
-		oldServerId = forceHostId(arg)
+		oldServerId = forceHostId(args.oldServerId)
 	else:
 		newServerId = None
 		oldServerId = None
