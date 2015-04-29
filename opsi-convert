@@ -134,8 +134,10 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 						help="use destination host as new server")
 	parser.add_argument('--log-file', '-l', dest="logFile",
 						help="log to this file")
-	parser.add_argument('from', metavar="<from>", help="Source backend")
-	parser.add_argument('to', metavar="<to>", help="Target backend")
+	parser.add_argument('from', dest="readBackend",
+						metavar="<from>", help="Source backend")
+	parser.add_argument('to', dest="writeBackend",
+						metavar="<to>", help="Target backend")
 
 	args = parser.parse_args()
 
@@ -157,8 +159,8 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 		newServerId = None
 		oldServerId = None
 
-	readBackend = forceUnicode(args[0])
-	writeBackend = forceUnicode(args[1])
+	readBackend = forceUnicode(args.readBackend)
+	writeBackend = forceUnicode(args.writeBackend)
 
 	# Define read/write backend
 	read = {

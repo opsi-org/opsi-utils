@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.5-1) UNRELEASED; urgency=low
+
+  * Fix problem with conversion between backends.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 29 Apr 2015 12:37:00 +0200
+
 opsi-utils (4.0.6.4-1) experimental; urgency=low
 
   * opsi-admin: Better handling of non-iterable results in direct access.
