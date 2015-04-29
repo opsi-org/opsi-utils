@@ -174,7 +174,7 @@ def main(argv):
 			disablePigz = True
 
 	if (len(args) > 1):
-		logger.error(u"To many arguments")
+		logger.error(u"Too many arguments")
 		usage()
 		sys.exit(1)
 
