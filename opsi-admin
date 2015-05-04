@@ -306,7 +306,7 @@ def main(argv):
 			if read:
 				cmdline += u" '%s'" % read
 
-		logger.debug("cmdline: '%s'" % cmdline)
+		logger.debug(u"cmdline: '%s'" % cmdline)
 
 		global shell
 		if interactive:
