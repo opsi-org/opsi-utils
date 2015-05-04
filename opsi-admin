@@ -319,7 +319,7 @@ def main(argv):
 					shell.appendLine(line.get('text'), line.get('color'))
 				shell.run()
 			except Exception as error:
-				logger.logException(error)
+				logger.logException(forceUnicode(error))
 				raise
 		elif cmdline:
 			def searchForError(obj):
@@ -351,7 +351,7 @@ def main(argv):
 				except (TypeError, ValueError) as error:
 					logger.debug(u"Conversion to dict failed: {0}".format(error))
 			except Exception as error:
-				logger.logException(error)
+				logger.logException(forceUnicode(error))
 				raise error
 		else:
 			usage()
@@ -1699,7 +1699,7 @@ if __name__ == "__main__":
 		exitCode = 0
 	except ErrorInResultException as error:
 		shellExit()
-		logger.warning(u"Error in result: {0}".format(error))
+		logger.warning(u"Error in result: {0}".format(forceUnicode(error)))
 		exitCode = 2
 	except Exception as exception:
 		shellExit()
