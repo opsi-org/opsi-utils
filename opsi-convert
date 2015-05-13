@@ -116,7 +116,7 @@ def main(argv):
 		description="Convert an opsi database into an other.",
 		epilog="""
 The backends (<from> and <to>) can either be the name of a backend as defined
-in /etc/opsi/backends (file, ldap, ...) or the the url of an opsi
+in /etc/opsi/backends (file, mysql, ...) or the the url of an opsi
 configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	parser.add_argument('--version', '-V', action='version', version=__version__)
 	parser.add_argument('--quiet', '-q', action='store_true', default=False,
