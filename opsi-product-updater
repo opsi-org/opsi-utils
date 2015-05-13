@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @license: GNU Affero GPL version 3
 """
 
+from __future__ import print_function
+
 import formatter
 import htmllib
 import getopt
@@ -1090,16 +1092,16 @@ class OpsiPackageUpdater(object):
 
 
 def usage():
-	print u""
-	print u"Usage: %s [options]" % os.path.basename(sys.argv[0])
-	print u"Options:"
-	print u"    -h    Show this help text"
-	print u"    -v    Increase verbosity (can be used multiple times)"
-	print u"    -V    Show version information and exit"
-	print u"    -c    Location of config file"
-	print u"    -i    Install all downloadable packages from configured repositories (ignores excludes)"
-	print u"    -p    List of productIds that will be processed: opsi-winst,opsi-client-agent"
-	print u""
+	print(u"")
+	print(u"Usage: %s [options]" % os.path.basename(sys.argv[0]))
+	print(u"Options:")
+	print(u"    -h    Show this help text")
+	print(u"    -v    Increase verbosity (can be used multiple times)")
+	print(u"    -V    Show version information and exit")
+	print(u"    -c    Location of config file")
+	print(u"    -i    Install all downloadable packages from configured repositories (ignores excludes)")
+	print(u"    -p    List of productIds that will be processed: opsi-winst,opsi-client-agent")
+	print(u"")
 
 
 def main(argv):
@@ -1143,7 +1145,7 @@ def main(argv):
 			usage()
 			return
 		elif opt == "-V":
-			print __version__
+			print(__version__)
 			return
 		elif opt == "-c":
 			config["configFile"] = arg
@@ -1189,7 +1191,7 @@ if (__name__ == "__main__"):
 		sys.exit(1)
 	except Exception as e:
 		logger.logException(e)
-		print >> sys.stderr, "ERROR: %s" % e
+		print(u"ERROR: {0}".format(forceUnicode(e).encode('utf-8')), file=sys.stderr)
 		sys.exit(1)
 
 	sys.exit(0)
