@@ -179,7 +179,7 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	# Parse read backend
 	match = re.search('^(\w+://)', readBackend)
 	if match:
-		# Seems to be an URL
+		logger.debug(u"Read-backend seems to be an URL")
 		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', readBackend)
 		if match:
 			read['backend'] = 'JSONRPC'
@@ -190,11 +190,12 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	else:
 		# Assuming a backend name
 		read['backend'] = readBackend
+	logger.debug(u"Settings for read-backend: {0}".format(read))
 
 	# Parse write backend
 	match = re.search('^(\w+://)', writeBackend)
 	if match:
-		# Seems to be an URL
+		logger.debug(u"Write backend seems to be an URL")
 		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
 		if match:
 			write['backend'] = 'JSONRPC'
@@ -212,6 +213,7 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	else:
 		# Assuming a backend name
 		write['backend'] = writeBackend
+	logger.debug(u"Settings for write-backend: {0}".format(write))
 
 	# Sanity checks
 	if read['backend'] and write['backend']:
