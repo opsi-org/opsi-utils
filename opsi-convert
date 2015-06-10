@@ -35,10 +35,11 @@ import sys
 import termios
 
 from OPSI.Logger import LOG_NONE, LOG_ERROR, Logger
-from OPSI.Types import forceUnicode, forceHostId
+from OPSI.Types import forceUnicode, forceHostId, forceUnicodeLower
 from OPSI.Util import getfqdn
 from OPSI.Util.Message import ProgressObserver
 from OPSI.Backend.BackendManager import BackendManager
+from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Backend.Replicator import BackendReplicator
 
 try:
@@ -230,21 +231,11 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 		except:
 			raise Exception(u"Bad server-id '%s' for new server" % newServerId)
 
-	# Creating BackendManager instance for reading
-	bmRead = None
-	if read['address']:
-		logger.comment(u"Connecting to %s" % read['address'])
-		read['password'] = getpass.getpass()
+	logger.debug(u"Creating BackendManager instance for reading")
+	bmRead = createBackend(read)
 
-	bmRead = BackendManager(backendConfigDir=u'/etc/opsi/backends', **read)
-
-	# Creating BackendManager instance for writing
-	bmWrite = None
-	if read['address']:
-		logger.comment(u"Connecting to %s" % bmWrite['address'])
-		write['password'] = getpass.getpass()
-
-	bmWrite = BackendManager(backendConfigDir=u'/etc/opsi/backends', **write)
+	logger.debug(u"Creating BackendManager instance for writing")
+	bmWrite = createBackend(write)
 
 	backendReplicator = BackendReplicator(
 		readBackend=bmRead,
@@ -257,6 +248,41 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 		ProgressNotifier(backendReplicator)
 		print ""
 	backendReplicator.replicate(audit=convertAudit)
+
+
+def createBackend(config):
+	logger.debug(u"Creating backend instance")
+	if config['address'] and not config['password']:
+		logger.comment(u"Connecting to {address} as {username}".format(**config))
+		config['password'] = getpass.getpass()
+
+	config = cleanBackendConfig(config)
+
+	try:
+		backend = BackendManager(backendConfigDir=u'/etc/opsi/backends', **config)
+	except Exception as error:
+		logger.logException(error)
+		if forceUnicodeLower(config['backend']) == u'jsonrpc':
+			logger.debug(u"Creating a JSONRPC backend through BackendManager failed.")
+			logger.debug(u"Trying with a direct connection.")
+			backend = JSONRPCBackend(deflate=True, **config)
+		else:
+			raise
+
+	return backend
+
+
+def cleanBackendConfig(config):
+	cleanedConfig = dict(config)
+	keysToRemove = set()
+	for key, value in config.items():
+		if not value:
+			keysToRemove.add(key)
+
+	for key in keysToRemove:
+		del cleanedConfig[key]
+
+	return cleanedConfig
 
 
 if __name__ == "__main__":

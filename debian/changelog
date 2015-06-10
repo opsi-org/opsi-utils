@@ -3,6 +3,9 @@ opsi-utils (4.0.6.5-1) UNRELEASED; urgency=low
   * opsi-convert: Fix problem with conversion between backends.
   * opsi-admin: Convert errors to unicode before logging them.
   * Updated manpage.
+  * opsi-convert: fix the possibility to convert between backends where
+    one of the backends is given as the backend address.
+  * opsi-convert: refactorings and cleanups.
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 10 Jun 2015 11:22:40 +0200
 
