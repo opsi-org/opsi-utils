@@ -109,7 +109,7 @@ class ProgressNotifier(ProgressObserver):
 		self.displayProgress()
 
 
-def main(argv):
+def main():
 	global logLevel
 
 	parser = argparse.ArgumentParser(
@@ -259,7 +259,7 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 
 if __name__ == "__main__":
 	try:
-		main(sys.argv[1:])
+		main()
 	except SystemExit:
 		pass
 	except Exception as e:
