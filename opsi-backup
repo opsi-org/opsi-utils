@@ -120,7 +120,7 @@ def main():
 	parser_create.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz', 'bz2', 'none'])
 
 	try:
-		args = parser.parse_args(sys.argv[1:])
+		args = parser.parse_args()
 	except Exception:
 		print(USAGE)
 		return 1
