@@ -108,5 +108,5 @@ See <http://www.opsi.org/> for more information.
 
 COPYING
 -------
-Copyright \(C) 2013 uib GmbH.
+Copyright \(C) 2013-2015 uib GmbH.
 This software is released under the GNU General Public License version 2.

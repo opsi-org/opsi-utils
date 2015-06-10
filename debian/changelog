@@ -2,8 +2,9 @@ opsi-utils (4.0.6.5-1) UNRELEASED; urgency=low
 
   * opsi-convert: Fix problem with conversion between backends.
   * opsi-admin: Convert errors to unicode before logging them.
+  * Updated manpage.
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 04 May 2015 13:40:09 +0200
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 10 Jun 2015 11:22:40 +0200
 
 opsi-utils (4.0.6.4-1) experimental; urgency=low
 
