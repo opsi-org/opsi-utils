@@ -177,44 +177,21 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 
 	logger.comment(u"Converting from backend '%s' to backend '%s'." % (readBackend, writeBackend))
 
-	# Parse read backend
-	match = re.search('^(\w+://)', readBackend)
-	if match:
-		logger.debug(u"Read-backend seems to be an URL")
-		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', readBackend)
-		if match:
-			read['backend'] = 'JSONRPC'
-			read['address'] = match.group(1) + match.group(3)
-			read['username'] = match.group(2)
-		else:
-			raise Exception(u"Bad source URL '%s'" % readBackend)
-	else:
-		# Assuming a backend name
-		read['backend'] = readBackend
+	logger.debug(u"Parsing read backend")
+	parseBackend(read, readBackend)
 	logger.debug(u"Settings for read-backend: {0}".format(read))
 
-	# Parse write backend
-	match = re.search('^(\w+://)', writeBackend)
-	if match:
-		logger.debug(u"Write backend seems to be an URL")
-		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
-		if match:
-			write['backend'] = 'JSONRPC'
-			write['address'] = match.group(1) + match.group(3)
-			write['username'] = match.group(2)
-			if newServerId:
-				newServerId = match.group(3).split(':')[0]
-				if re.search('^[\d\.]+$', newServerId):
-					# Is an ip address
-					newServerId = getfqdn(name=newServerId)
-					if re.search('^[\d\.]+$', newServerId):
-						raise Exception(u"Cannot resolve '%s'" % newServerId)
-		else:
-			raise Exception(u"Bad destination URL '%s'" % writeBackend)
-	else:
-		# Assuming a backend name
-		write['backend'] = writeBackend
+	logger.debug(u"Parsing write backend")
+	parseBackend(write, writeBackend)
 	logger.debug(u"Settings for write-backend: {0}".format(write))
+	if write['address'] and write['username'] and newServerId:
+		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
+		newServerId = match.group(3).split(':')[0]
+		if re.search('^[\d\.]+$', newServerId):
+			# Is an ip address
+			newServerId = getfqdn(name=newServerId)
+			if re.search('^[\d\.]+$', newServerId):
+				raise Exception(u"Cannot resolve '%s'" % newServerId)
 
 	# Sanity checks
 	if read['backend'] and write['backend']:
@@ -248,6 +225,24 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 		ProgressNotifier(backendReplicator)
 		print ""
 	backendReplicator.replicate(audit=convertAudit)
+
+
+def parseBackend(config, backendString):
+	"Parse the string and write the results into config."
+
+	match = re.search('^(\w+://)', backendString)
+	if match:
+		logger.debug(u"Read-backend seems to be an URL")
+		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', backendString)
+		if match:
+			config['backend'] = 'JSONRPC'
+			config['address'] = match.group(1) + match.group(3)
+			config['username'] = match.group(2)
+		else:
+			raise Exception(u"Bad source URL '%s'" % backendString)
+	else:
+		logger.debug(u"Assuming {0!r} is a backend name.".format(backendString))
+		config['backend'] = backendString
 
 
 def createBackend(config):
