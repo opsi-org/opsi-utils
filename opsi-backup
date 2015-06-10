@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 @license: GNU General Public License version 2
 """
 
-__version__ = "4.0.4.1"
+__version__ = "4.0.6.5"
 
 import locale
 import os
@@ -161,7 +161,7 @@ def main():
 	return result
 
 
-if (__name__ == "__main__"):
+if __name__ == "__main__":
 	ret = 0
 	try:
 		ret = main()
