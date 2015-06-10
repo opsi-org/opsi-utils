@@ -196,7 +196,7 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	if newServerId:
 		try:
 			newServerId = forceHostId(newServerId)
-		except:
+		except Exception:
 			raise Exception(u"Bad server-id '%s' for new server" % newServerId)
 
 	sanityCheck(read, write)
