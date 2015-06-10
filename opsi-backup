@@ -165,8 +165,6 @@ if __name__ == "__main__":
 	ret = 0
 	try:
 		ret = main()
-	except SystemExit:
-		pass
 	except Exception as exception:
 		logger.logException(exception, LOG_INFO)
 		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace')
