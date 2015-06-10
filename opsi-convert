@@ -193,20 +193,13 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 			if re.search('^[\d\.]+$', newServerId):
 				raise Exception(u"Cannot resolve '%s'" % newServerId)
 
-	# Sanity checks
-	if read['backend'] and write['backend']:
-		if read['backend'] == write['backend']:
-			if read['backend'] == 'JSONRPC':
-				if read['address'] == write['address']:
-					raise Exception(u"Source and destination backend are the same.")
-			else:
-				raise Exception(u"Source and destination backend are the same.")
-
 	if newServerId:
 		try:
 			newServerId = forceHostId(newServerId)
 		except:
 			raise Exception(u"Bad server-id '%s' for new server" % newServerId)
+
+	sanityCheck(read, write)
 
 	logger.debug(u"Creating BackendManager instance for reading")
 	bmRead = createBackend(read)
@@ -243,6 +236,16 @@ def parseBackend(config, backendString):
 	else:
 		logger.debug(u"Assuming {0!r} is a backend name.".format(backendString))
 		config['backend'] = backendString
+
+
+def sanityCheck(read, write):
+	if read['backend'] and write['backend']:
+		if read['backend'] == write['backend']:
+			if read['backend'] == 'JSONRPC':
+				if read['address'] == write['address']:
+					raise Exception(u"Source and destination backend are the same.")
+			else:
+				raise Exception(u"Source and destination backend are the same.")
 
 
 def createBackend(config):
