@@ -1,0 +1,3 @@
+opsi-utils source: native-package-with-dash-version
+opsi-utils source: maintainer-script-lacks-debhelper-token
+opsi-utils source: source-nmu-has-incorrect-version-number
