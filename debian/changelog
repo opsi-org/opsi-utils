@@ -1,3 +1,9 @@
+opsi-utils (4.0.5.6-3) testing; urgency=medium
+
+  * Added packaging fixes for OBS.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 25 Jun 2015 14:29:58 +0200
+
 opsi-utils (4.0.5.6-2) stable; urgency=low
 
   * Suse: listing /etc/opsi as directory
