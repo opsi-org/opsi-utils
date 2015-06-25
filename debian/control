@@ -3,7 +3,7 @@ Section: opsi
 Priority: optional
 Maintainer: uib GmbH <info@uib.de>
 Build-Depends: gettext, debhelper (>= 4.0.0)
-Standards-Version: 3.6.1
+Standards-Version: 3.9.4
 
 Package: opsi-utils
 Section: opsi
