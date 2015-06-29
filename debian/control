@@ -8,7 +8,7 @@ Standards-Version: 3.9.4
 Package: opsi-utils
 Section: opsi
 Architecture: all
-Depends: python-opsi (>= 4.0.6.1), zsync, python (>=2.6)
+Depends: python-opsi (>= 4.0.6.1), zsync, python (>=2.6), ${misc:Depends}
 Replaces: opsi-product-updater
 Conflicts: opsi-product-updater
 Provides: opsi-product-updater
