@@ -56,3 +56,5 @@ binary-indep: install
 binary binary-arch: binary-indep
 build build-arch build-indep:
 .PHONY: clean binary-indep binary install build
+
+#DEBHELPER#
