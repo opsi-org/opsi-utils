@@ -1644,6 +1644,10 @@ class CommandTask(Command):
 			else:
 				password = params[1]
 
+			if not password:
+				raise ValueError("Can not use empty password!")
+			logger.addConfidentialString(password)
+
 			backend.user_setCredentials(username='pcpatch', password=password)
 
 			try:
