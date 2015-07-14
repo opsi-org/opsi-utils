@@ -1540,7 +1540,7 @@ class OpsiPackageManagerControl(object):
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
 			if errors:
-				print >> sys.stderr, _(u"Errors occured: ").encode(self.encoding, 'replace')
+				print >> sys.stderr, _(u"Errors occurred: ").encode(self.encoding, 'replace')
 				for (name, errs) in errors.items():
 					logger.error(u"Failure while processing %s:" % name)
 					print >> sys.stderr, "   " + (_(u"Failure while processing %s:") % name).encode(self.encoding, 'replace')
