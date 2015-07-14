@@ -1139,7 +1139,7 @@ class OpsiPackageManager(object):
 		sortedPackageFiles = []
 		for productId in sequence:
 			for packageFile in self.config['packageFiles']:
-				if (productId == self.getPackageControlFile(packageFile).getProduct().id):
+				if productId == self.getPackageControlFile(packageFile).getProduct().id:
 					sortedPackageFiles.append(packageFile)
 					break
 		self.config['packageFiles'] = sortedPackageFiles
@@ -1173,11 +1173,11 @@ class OpsiPackageManager(object):
 			if productProperties:
 				self.userInterface.exit()
 				ui = SnackUI()
-				i = 0
 
+				i = 0
 				productProperties = sorted(productProperties, key=lambda pp: pp.propertyId)
 
-				while (i < len(productProperties)):
+				while i < len(productProperties):
 					productProperty = productProperties[i]
 					product = products[productProperty.getIdent(returnType='unicode')]
 
