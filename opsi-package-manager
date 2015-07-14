@@ -54,7 +54,7 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.0.6.3'
+__version__ = '4.0.6.6'
 
 logger = Logger()
 
@@ -1006,18 +1006,16 @@ class OpsiPackageManager(object):
 						deltaFile = os.path.join('/tmp', deltaFilename)
 
 						bufsize = 1024 * 1024
-						# TODO: with-statement
-						bf = open(packageFile, "rb")
-						df = open(deltaFile, "wb")
-						ldf = librsync.DeltaFile(sig, bf)
+						with open(packageFile, "rb") as bf:
+							with open(deltaFile, "wb") as df:
+								ldf = librsync.DeltaFile(sig, bf)
 
-						data = True
-						while data:
-							data = ldf.read(bufsize)
-							df.write(data)
-						df.close()
-						bf.close()
-						ldf.close()
+								data = True
+								while data:
+									data = ldf.read(bufsize)
+									df.write(data)
+
+								ldf.close()
 
 						packageSize = os.stat(packageFile)[stat.ST_SIZE]
 						deltaSize = os.stat(deltaFile)[stat.ST_SIZE]
