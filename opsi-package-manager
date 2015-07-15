@@ -1149,15 +1149,15 @@ class OpsiPackageManager(object):
 			productIds = []
 			for packageFile in self.config['packageFiles']:
 				productIds.append(self.getPackageControlFile(packageFile).getProduct().getId())
-			productsOnDepot = self.backend.productOnDepot_getObjects(
+			lockedProductsOnDepot = self.backend.productOnDepot_getObjects(
 				productId=productIds,
 				depotId=self.config['depotIds'],
 				locked=True
 			)
 
-			if productsOnDepot:
+			if lockedProductsOnDepot:
 				errors = []
-				for productOnDepot in productsOnDepot:
+				for productOnDepot in lockedProductsOnDepot:
 					errors.append(u"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId))
 				raise Exception(u'\n' + u'\n'.join(errors) + u'\nUse --force to force installation')
 
