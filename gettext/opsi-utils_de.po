@@ -852,7 +852,7 @@ msgid "Uninstallation of package %s successful"
 msgstr "Deinstallation des Pakets %s erfolgreich"
 
 #: ../opsi-package-manager:1546
-msgid "Errors occured: "
+msgid "Errors occurred: "
 msgstr "Es sind Fehler aufgetreten: "
 
 #: ../opsi-package-manager:1549

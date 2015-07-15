@@ -789,7 +789,7 @@ msgid "Uninstallation of package %s successful"
 msgstr ""
 
 #: ../opsi-package-manager:1546
-msgid "Errors occured: "
+msgid "Errors occurred: "
 msgstr ""
 
 #: ../opsi-package-manager:1549

@@ -866,7 +866,7 @@ msgid "Uninstallation of package %s successful"
 msgstr "La désinstallation du paquet %s est réussie"
 
 #: ../opsi-package-manager:1546
-msgid "Errors occured: "
+msgid "Errors occurred: "
 msgstr "Des erreurs sont survenues:"
 
 #: ../opsi-package-manager:1549
