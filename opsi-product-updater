@@ -246,8 +246,6 @@ class OpsiPackageUpdater(object):
 							self.config["packageDir"] = forceFilename(value.strip())
 						elif option.lower() == 'logfile':
 							value = forceFilename(value.strip())
-							if os.path.exists(value):
-								os.unlink(value)
 							logger.setLogFile(value)
 						elif option.lower() == 'loglevel':
 							logger.setFileLevel(forceInt(value.strip()))

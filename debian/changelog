@@ -3,8 +3,9 @@ opsi-utils (4.0.6.6-1) UNRELEASED; urgency=medium
   * opsi-admin: setPcpatchPassword fails on empty password.
   * opsi-admin: setPcpatchPassword hides password in output.
   * Update translation to fix typo.
+  * opsi-product-updater: Do not delete logfile.
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 14 Jul 2015 15:55:50 +0200
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 22 Jul 2015 15:49:14 +0200
 
 opsi-utils (4.0.6.5-2) experimental; urgency=medium
 
