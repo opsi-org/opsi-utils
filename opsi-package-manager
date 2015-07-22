@@ -1446,8 +1446,6 @@ class OpsiPackageManagerControl(object):
 
 		logger.setLogFormat(u'[%l] [%D] %M (%F|%N)')
 		if self.config['logFile']:
-			if os.path.exists(self.config['logFile']):
-				os.unlink(self.config['logFile'])
 			logger.setLogFile(self.config['logFile'])
 			logger.setFileLevel(self.config['fileLogLevel'])
 
