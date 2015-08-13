@@ -1,60 +1,30 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+#
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+#
+# Modified to make a template file for a multi-binary package with separated
+# build-arch and build-indep targets  by Bill Allombert 2001
 
-clean:
-	dh_testdir
-	dh_testroot
-	dh_clean
-	rm -f debian/files || true
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
 
-install:
-	dh_testdir
-	dh_testroot
-	dh_prep
-	dh_installdirs
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
 
-	install -m 644 doc/compiled/opsi-admin.1.gz debian/opsi-utils/usr/share/man/man1/
-	install -m 644 doc/compiled/opsi-backup.1.gz debian/opsi-utils/usr/share/man/man1/
-	install -m 644 doc/compiled/opsi-convert.1.gz debian/opsi-utils/usr/share/man/man1/
-	install -m 644 doc/compiled/opsi-makeproductfile.1.gz debian/opsi-utils/usr/share/man/man1/
-	install -m 644 doc/compiled/opsi-newprod.1.gz debian/opsi-utils/usr/share/man/man1/
-	install -m 644 doc/compiled/opsi-package-manager.1.gz debian/opsi-utils/usr/share/man/man1/
-	install -m 644 doc/compiled/opsi-product-updater.1.gz debian/opsi-utils/usr/share/man/man1/
 
+%:
+	dh $@
+
+
+override_dh_install:
 	msgfmt -o debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_de.po
 	chmod 644 debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
 	msgfmt -o debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
 	chmod 644 debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
 
-	install -m 0755  opsi-admin           debian/opsi-utils/usr/bin/
-	install -m 0755  opsi-newprod         debian/opsi-utils/usr/bin/
-	install -m 0755  opsi-makeproductfile debian/opsi-utils/usr/bin/
-	install -m 0755  opsi-package-manager debian/opsi-utils/usr/bin/
-	install -m 0755  opsi-convert         debian/opsi-utils/usr/bin/
-	install -m 0755  opsi-product-updater debian/opsi-utils/usr/bin/
-	install -m 0755  opsi-backup          debian/opsi-utils/usr/bin/
-
-	install -m 0660 -o root data/opsi-product-updater.conf  debian/opsi-utils/etc/opsi/
-
-	mkdir -p debian/opsi-utils/etc/logrotate.d/
-	install -m 0644 -o root data/etc/logrotate.d/opsi-backup  debian/opsi-utils/etc/logrotate.d/
-	install -m 0644 -o root data/etc/logrotate.d/opsi-product-updater  debian/opsi-utils/etc/logrotate.d/
-
 	dh_install
-
-binary-indep: install
-	dh_testdir -i
-	dh_testroot -i
-	dh_installdebconf
-	dh_installchangelogs -i
-	dh_shlibdeps
-	dh_md5sums
-	dh_gencontrol
-	dh_installdeb
-	dh_builddeb
-
-binary binary-arch: binary-indep
-build build-arch build-indep:
-.PHONY: clean binary-indep binary install build
-
-#DEBHELPER#
