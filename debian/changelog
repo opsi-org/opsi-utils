@@ -1,4 +1,11 @@
-opsi-utils (4.0.6.6-1) UNRELEASED; urgency=medium
+opsi-utils (4.0.6.6-2) experimental; urgency=medium
+
+  * Debian: Updated description.
+  * Debian: add missing install file.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 13 Aug 2015 15:36:30 +0200
+
+opsi-utils (4.0.6.6-1) experimental; urgency=medium
 
   * opsi-admin: setPcpatchPassword fails on empty password.
   * opsi-admin: setPcpatchPassword hides password in output.
@@ -7,7 +14,7 @@ opsi-utils (4.0.6.6-1) UNRELEASED; urgency=medium
   * opsi-package-manager: Do not delete old logfile.
   * Debian: overhauled packaging.
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 13 Aug 2015 13:07:50 +0200
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 13 Aug 2015 15:36:16 +0200
 
 opsi-utils (4.0.6.5-2) experimental; urgency=medium
 
