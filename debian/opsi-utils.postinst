@@ -1,5 +1,7 @@
 #! /bin/bash -e
 
+#DEBHELPER#
+
 case "$1" in
 	configure)
 		chown root:opsiadmin /etc/opsi/opsi-product-updater.conf
