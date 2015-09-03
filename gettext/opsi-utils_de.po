@@ -1,6 +1,6 @@
-# opsi-utils German translations.
-# Copyright (C) 2010-2015
-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# 
 # Translators:
 # Automatically generated, 2010
 # Niko Wenselowski, 2015
@@ -8,12 +8,12 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opsi.org\n"
 "POT-Creation-Date: 2015-03-23 15:16+CET\n"
-"PO-Revision-Date: 2015-03-23 14:25+0000\n"
+"PO-Revision-Date: 2015-03-23 16:59+0000\n"
 "Last-Translator: Niko Wenselowski\n"
-"Language-Team: German (http://www.transifex.com/projects/p/opsiorg/language/de/)\n"
+"Language-Team: German (http://www.transifex.com/opsi-org/opsiorg/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Content-Transfer-Encoding: ENCODING\n"
 "Generated-By: pygettext.py 1.5\n"
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -200,7 +200,6 @@ msgid "Missing action request"
 msgstr "Fehlende angeforderte Aktion"
 
 #: ../opsi-admin:1557
-#, fuzzy
 msgid "Missing client-id"
 msgstr "Fehlende Client-ID"
 
@@ -286,7 +285,7 @@ msgstr "Hebe Paket-Sperre auf"
 
 #: ../opsi-newprod:75
 msgid "Copies the contents of DIRECTORY to the destination directory."
-msgstr "Kopiert den Inhalt des Ordners DIRECTORY in das Zielverzeichnis."
+msgstr "Kopiert den Inhalt von VERZEICHNIS in das Ziel-Verzeichnis."
 
 #: ../opsi-newprod:77
 msgid ""
@@ -313,20 +312,8 @@ msgid ""
 "Product version:  Version defined by software producer.\n"
 "Package version:  Opsi package version of the product.\n"
 "License required: Is a license required (0|1)?\n"
-"Priority:         The installation priority class of this product (value "
-"between -100 and 100, 0 = neutral).\n"
-msgstr ""
-"\n"
-"Produkt-ID:       Ein eindeutiger Bezeichner für das Produkt.\n"
-"Produkt-Name:     Der volle Name des Produkts.\n"
-"Beschreibung:     Eine Produkt-Beschreibung (\\n für Zeilenumbrüche "
-"verwenden).\n"
-"Hinweis:          Ein zusätzlicher wichtiger Hinweis.\n"
-"Produkt-Version:  Versionsnummer wie vom Software-Hersteller angegeben.\n"
-"Paket-Version:    Opsi-Paket-Versionsnummer des Produkts.\n"
-"Lizenzpflichtig:  Ist das Produkt lizenzpflichtig (0|1)?\n"
-"Priorität:        Die Prioritätsklasse des Produkts (von -100 bis 100, 0 = "
-"neutral).\n"
+"Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral).\n"
+msgstr "\nProdukt-ID:       Ein eindeutiger Bezeichner für das Produkt.\nProdukt-Name:     Der volle Name des Produkts.\nBeschreibung:     Eine Produkt-Beschreibung (\\n für Zeilenumbrüche verwenden).\nHinweis:          Ein zusätzlicher wichtiger Hinweis.\nProdukt-Version:  Versionsnummer wie vom Software-Hersteller angegeben.\nPaket-Version:    Opsi-Paket-Versionsnummer des Produkts.\nLizenzpflichtig:  Ist das Produkt lizenzpflichtig (0|1)?\nPriorität:        Die Prioritätsklasse des Produkts (von -100 bis 100, 0 = neutral).\n"
 
 #: ../opsi-newprod:129
 msgid "Product id"
@@ -416,24 +403,7 @@ msgid ""
 "Custom script:       Relative path to script for action \"custom\".\n"
 "User login script:   Relative path to script for user login.\n"
 "PXE config template: path to a custom pxelinux config template.\n"
-msgstr ""
-"\n"
-"Setup-Skript:               Relativer Pfad zum Skript für die Aktion \"setup"
-"\".\n"
-"Uninstall-Skript:           Relativer Pfad zum Skript für die Aktion "
-"\"uninstall\".\n"
-"Update-Skript:              Relativer Pfad zum Skript für die Aktion \"update"
-"\".\n"
-"Always-Skript:              Relativer Pfad zum Skript für die Aktion \"always"
-"\".\n"
-"Once-Skript:                Relativer Pfad zum Skript für die Aktion \"once"
-"\".\n"
-"Custom-Skript:              Relativer Pfad zum Skript für die Aktion \"custom"
-"\".\n"
-"Benutzer-Anmeldungs-Skript: Relativer Pfad zum Skript für die Benutzer-"
-"Anmeldung.\n"
-"PXE-Konfigurations-Vorlage: Pfad zu einer spezifischen PXE-Konfigurations-"
-"Vorlage.\n"
+msgstr "\nSetup-Skript:               Relativer Pfad zum Skript für die Aktion \"setup\".\nUninstall-Skript:           Relativer Pfad zum Skript für die Aktion \"uninstall\".\nUpdate-Skript:              Relativer Pfad zum Skript für die Aktion \"update\".\nAlways-Skript:              Relativer Pfad zum Skript für die Aktion \"always\".\nOnce-Skript:                Relativer Pfad zum Skript für die Aktion \"once\".\nCustom-Skript:              Relativer Pfad zum Skript für die Aktion \"custom\".\nBenutzer-Anmeldungs-Skript: Relativer Pfad zum Skript für die Benutzer-Anmeldung.\nPXE-Konfigurations-Vorlage: Pfad zu einer spezifischen PXE-Konfigurations-Vorlage.\n"
 
 #: ../opsi-newprod:216
 msgid "Setup script"
@@ -527,19 +497,7 @@ msgid ""
 "   %s\n"
 "Possible requirement types are:\n"
 "   %s\n"
-msgstr ""
-"\n"
-"Sie müssen entweder ein benötigtes Produkt oder eine benötigte Produkt-"
-"Klasse angeben.\n"
-"Sie müssen entweder einen benötigten Installations-Status oder eine "
-"benötigte Aktion angeben.\n"
-"The requirement type is optional.\n"
-"Mögliche Aktionen sind:\n"
-"   %s\n"
-"Mögliche Installations-Zustände sind:\n"
-"   %s\n"
-"Mögliche Typen von Abhängigkeiten sind:\n"
-"   %s\n"
+msgstr "\nSie müssen entweder ein benötigtes Produkt oder eine benötigte Produkt-Klasse angeben.\nSie müssen entweder einen benötigten Installations-Status oder eine benötigte Aktion angeben.\nThe requirement type is optional.\nMögliche Aktionen sind:\n   %s\nMögliche Installations-Zustände sind:\n   %s\nMögliche Typen von Abhängigkeiten sind:\n   %s\n"
 
 #: ../opsi-newprod:327
 msgid "Create product dependency?"
@@ -603,21 +561,10 @@ msgid ""
 "\n"
 "Property name:        Name of the property.\n"
 "Property description: Usage description.\n"
-"Possible values:      Comma separated list of possible values for the "
-"property.\n"
-"                      If no possible values are given any values are "
-"allowed.\n"
-"Editable:             Is it allowed to specify a value which is not in the "
-"list of possible values?\n"
-msgstr ""
-"\n"
-"Eigenschafts-Name:         Name der Eigenschaft.\n"
-"Eigenschafts-Beschreibung: Beschreibung der Eigenschaft.\n"
-"Mögliche Werte:            Komma-getrennte Liste der möglichen Werte.\n"
-"                           Werden keine Werte angegeben, sind alle Werte "
-"erlaubt.\n"
-"Editierbar:                Soll es möglich sein einen Wert außerhalb der "
-"Liste der möglichen Werte anzugeben?\n"
+"Possible values:      Comma separated list of possible values for the property.\n"
+"                      If no possible values are given any values are allowed.\n"
+"Editable:             Is it allowed to specify a value which is not in the list of possible values?\n"
+msgstr "\nEigenschafts-Name:         Name der Eigenschaft.\nEigenschafts-Beschreibung: Beschreibung der Eigenschaft.\nMögliche Werte:            Komma-getrennte Liste der möglichen Werte.\n                           Werden keine Werte angegeben, sind alle Werte erlaubt.\nEditierbar:                Soll es möglich sein einen Wert außerhalb der Liste der möglichen Werte anzugeben?\n"
 
 #: ../opsi-newprod:414
 msgid "Create product property?"
@@ -852,7 +799,7 @@ msgid "Uninstallation of package %s successful"
 msgstr "Deinstallation des Pakets %s erfolgreich"
 
 #: ../opsi-package-manager:1546
-msgid "Errors occurred: "
+msgid "Errors occured: "
 msgstr "Es sind Fehler aufgetreten: "
 
 #: ../opsi-package-manager:1549

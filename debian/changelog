@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.6-3) experimental; urgency=medium
+
+  * Translations updated and translation for da added.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 03 Sep 2015 11:20:04 +0200
+
 opsi-utils (4.0.6.6-2) experimental; urgency=medium
 
   * Debian: Updated description.
