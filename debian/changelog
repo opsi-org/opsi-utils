@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.6-4) experimental; urgency=medium
+
+  * Do not forget to add the directory for Danish translation.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 03 Sep 2015 16:36:04 +0200
+
 opsi-utils (4.0.6.6-3) experimental; urgency=medium
 
   * Translations updated and translation for da added.
