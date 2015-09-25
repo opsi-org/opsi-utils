@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.8-1) UNRELEASED; urgency=medium
+
+  * opsi-admin: do not override _ from gettext.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 25 Sep 2015 14:01:04 +0200
+
 opsi-utils (4.0.6.7-1) experimental; urgency=medium
 
   * opsi-admin: Fix bug with failed translations.

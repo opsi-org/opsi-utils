@@ -56,7 +56,7 @@ from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 
 import curses
 
-__version__ = '4.0.6.7'
+__version__ = '4.0.6.8'
 
 backend = None
 exitZero = False
@@ -1563,7 +1563,7 @@ class CommandTask(Command):
 					depotToClients[clientToDepot['depotId']] = [clientToDepot['clientId']]
 
 			updateProductOnClients = []
-			for (_, clientIds) in depotToClients.items():
+			for _depot, clientIds in depotToClients.items():
 				if not clientIds:
 					continue
 
@@ -1608,7 +1608,7 @@ class CommandTask(Command):
 					depotToClients[clientToDepot['depotId']] = [clientToDepot['clientId']]
 
 			updateProductOnClients = []
-			for (_, clientIds) in depotToClients.items():
+			for _depot, clientIds in depotToClients.items():
 				if not clientIds:
 					continue
 
