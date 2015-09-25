@@ -56,7 +56,7 @@ from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 
 import curses
 
-__version__ = '4.0.6.6'
+__version__ = '4.0.6.7'
 
 backend = None
 exitZero = False
