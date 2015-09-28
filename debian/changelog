@@ -1,4 +1,4 @@
-opsi-utils (4.0.6.8-1) experimental; urgency=medium
+opsi-utils (4.0.6.8-1) testing; urgency=medium
 
   * opsi-admin: do not override _ from gettext.
 
