@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.8-2) testing; urgency=medium
+
+  * opsi-product-updater.conf: Better explanation for includeProductIds
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 30 Sep 2015 14:34:01 +0200
+
 opsi-utils (4.0.6.8-1) testing; urgency=medium
 
   * opsi-admin: do not override _ from gettext.
