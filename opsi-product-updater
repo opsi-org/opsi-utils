@@ -58,7 +58,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.0.6.5'
+__version__ = '4.0.6.9'
 
 logger = Logger()
 
@@ -833,7 +833,6 @@ class OpsiPackageUpdater(object):
 			logger.notice(u"Downloading %s (%s MB) to %s" % (url, round(size / (1024.0 * 1024.0), 2), outFile))
 		else:
 			logger.notice(u"Downloading %s to %s" % (url, outFile))
-		out = open(outFile, 'wb')
 
 		completed = 0.0
 		percent = 0.0
@@ -841,26 +840,29 @@ class OpsiPackageUpdater(object):
 		lastCompleted = 0
 		lastPercent = 0
 		speed = 0
-		while True:
-			chunk = con.read(32768)
-			if not chunk:
-				break
-			completed += len(chunk)
-			out.write(chunk)
-			if size > 0:
-				try:
-					percent = round(100 * completed / size, 1)
-					if lastPercent != percent:
-						lastPercent = percent
-						now = time.time()
-						if (not speed or (now - lastTime) > 2):
-							speed = 8 * int(((completed - lastCompleted) / (now - lastTime)) / 1024)
-							lastTime = now
-							lastCompleted = completed
-						logger.debug(u'Downloading %s: %d%% (%d kbit/s)' % (url, percent, speed))
-				except Exception:
-					pass
-		out.close()
+
+		with open(outFile, 'wb') as out:
+			while True:
+				chunk = con.read(32768)
+				if not chunk:
+					break
+				completed += len(chunk)
+				out.write(chunk)
+
+				if size > 0:
+					try:
+						percent = round(100 * completed / size, 1)
+						if lastPercent != percent:
+							lastPercent = percent
+							now = time.time()
+							if (not speed or (now - lastTime) > 2):
+								speed = 8 * int(((completed - lastCompleted) / (now - lastTime)) / 1024)
+								lastTime = now
+								lastCompleted = completed
+							logger.debug(u'Downloading %s: %d%% (%d kbit/s)' % (url, percent, speed))
+					except Exception:
+						pass
+
 		if notifier:
 			if size:
 				notifier.appendLine(u"Download of '%s' completed (~ %s MB)" % (url, round(size / (1024.0 * 1024.0), 2)))
