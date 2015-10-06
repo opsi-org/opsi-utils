@@ -297,7 +297,7 @@ class OpsiPackageUpdater(object):
 							self.config["wolShutdownWanted"] = forceBool(value.strip())
 						elif option.lower() == 'startgap':
 							self.config["wolStartGap"] = forceInt(value.strip())
-							if (self.config["wolStartGap"] < 0):
+							if self.config["wolStartGap"] < 0:
 								self.config["wolStartGap"] = 0
 
 				elif section.lower() == 'installation':
@@ -498,7 +498,7 @@ class OpsiPackageUpdater(object):
 					updateAvailable = False
 					installationRequired = False
 					for product in installedProducts:
-						if (product['productId'] == availablePackage['productId']):
+						if product['productId'] == availablePackage['productId']:
 							logger.debug(u"Product '%s' is installed" % availablePackage['productId'])
 							productInstalled = True
 							logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" \
@@ -556,7 +556,7 @@ class OpsiPackageUpdater(object):
 								logger.warning(u"Cannot use zsync, because zsync does not support https")
 								self.downloadPackage(availablePackage, notifier=notifier)
 							else:
-								if (localPackageFound['filename'] != availablePackage['filename']):
+								if localPackageFound['filename'] != availablePackage['filename']:
 									os.rename(os.path.join(self.config["packageDir"], localPackageFound["filename"]), packageFile)
 									localPackageFound["filename"] = availablePackage['filename']
 								self.zsyncPackage(availablePackage, notifier=notifier)
@@ -855,7 +855,7 @@ class OpsiPackageUpdater(object):
 						if lastPercent != percent:
 							lastPercent = percent
 							now = time.time()
-							if (not speed or (now - lastTime) > 2):
+							if not speed or (now - lastTime) > 2:
 								speed = 8 * int(((completed - lastCompleted) / (now - lastTime)) / 1024)
 								lastTime = now
 								lastCompleted = completed
@@ -1169,7 +1169,7 @@ def main(argv):
 	running = None
 	try:
 		for anotherPid in System.execute("%s -x %s" % (System.which("pidof"), os.path.basename(sys.argv[0])))[0].strip().split():
-			if not (int(anotherPid) == pid):
+			if int(anotherPid) != pid:
 				running = anotherPid
 	except Exception as error:
 		logger.error(error)
@@ -1180,7 +1180,7 @@ def main(argv):
 	opu.processUpdates()
 
 
-if (__name__ == "__main__"):
+if __name__ == "__main__":
 	logger.setConsoleColor(True)
 
 	try:
