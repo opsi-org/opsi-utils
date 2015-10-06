@@ -283,9 +283,8 @@ def main(argv):
 			sessionId = backend.jsonrpc_getSessionId()
 			if sessionId:
 				try:
-					session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'w', 'utf-8')
-					session.write(u"%s\n" % sessionId)
-					session.close()
+					with codecs.open(os.path.join(opsiadminUserDir, u'session'), 'w', 'utf-8') as session:
+						session.write(u"%s\n" % sessionId)
 				except Exception as error:
 					logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), forceUnicode(error)))
 
@@ -511,12 +510,11 @@ class Shell:
 					logger.error(u"Failed to delete log-file '%s': %s" % (logFile, forceUnicode(error)))
 
 		try:
-			history = codecs.open(os.path.join(self.userConfigDir, 'history'), 'w', 'utf-8')
-			for line in self.cmdList:
-				if not line or line in ('quit', 'exit'):
-					continue
-				history.write(u"%s\n" % line)
-			history.close()
+			with codecs.open(os.path.join(self.userConfigDir, 'history'), 'w', 'utf-8') as history:
+				for line in self.cmdList:
+					if not line or line in ('quit', 'exit'):
+						continue
+					history.write(u"%s\n" % line)
 		except Exception as error:
 			logger.error(u"Failed to write history file '%s': %s" % (os.path.join(self.userConfigDir, 'history'), forceUnicode(error)))
 
