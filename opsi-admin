@@ -261,13 +261,12 @@ def main(argv):
 
 			sessionId = None
 			try:
-				session = codecs.open(os.path.join(opsiadminUserDir, u'session'), 'r', 'utf-8')
-				for line in session.readlines():
-					line = line.strip()
-					if line:
-						sessionId = forceUnicode(line)
-						break
-				session.close()
+				with codecs.open(os.path.join(opsiadminUserDir, u'session'), 'r', 'utf-8') as session:
+					for line in session:
+						line = line.strip()
+						if line:
+							sessionId = forceUnicode(line)
+							break
 			except Exception as error:
 				logger.error(u"Failed to read session file '%s': %s" % (os.path.join(opsiadminUserDir, 'session'), forceUnicode(error)))
 
