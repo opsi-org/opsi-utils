@@ -858,7 +858,7 @@ class OpsiPackageUpdater(object):
 							lastTime = now
 							lastCompleted = completed
 						logger.debug(u'Downloading %s: %d%% (%d kbit/s)' % (url, percent, speed))
-				except:
+				except Exception:
 					pass
 		out.close()
 		if notifier:
