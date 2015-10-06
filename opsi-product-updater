@@ -859,7 +859,7 @@ class OpsiPackageUpdater(object):
 								speed = 8 * int(((completed - lastCompleted) / (now - lastTime)) / 1024)
 								lastTime = now
 								lastCompleted = completed
-							logger.debug(u'Downloading %s: %d%% (%d kbit/s)' % (url, percent, speed))
+							logger.debug(u'Downloading {0}: {1:d}% ({2:d} kbit/s)'.format(url, percent, speed))
 					except Exception:
 						pass
 
