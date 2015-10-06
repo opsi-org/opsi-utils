@@ -220,13 +220,13 @@ class OpsiPackageUpdater(object):
 		for con in self.depotConnections.values():
 			try:
 				con.backend_exit()
-			except:
+			except Exception:
 				pass
 
 		if self.configBackend:
 			try:
 				self.configBackend.backend_exit()
-			except:
+			except Exception:
 				pass
 
 	def readConfigFile(self):
@@ -327,7 +327,7 @@ class OpsiPackageUpdater(object):
 					try:
 						if not forceBool(config.get(section, 'active')):
 							continue
-					except:
+					except Exception:
 						pass
 					active = True
 					baseUrl = None
@@ -1162,7 +1162,7 @@ def main(argv):
 	try:
 		config["zsyncCommand"] = System.which("zsync")
 		logger.notice(u"Zsync command found: %s" % config["zsyncCommand"])
-	except:
+	except Exception:
 		logger.info(u"Zsync command not found")
 
 	pid = os.getpid()
