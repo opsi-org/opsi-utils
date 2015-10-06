@@ -655,8 +655,8 @@ class OpsiPackageUpdater(object):
 						if package['repository'].inheritProductProperties and availablePackage['repository'].opsiDepotId:
 							logger.info(u"Trying to get product property defaults from repository")
 							productPropertyStates = self.getConfigBackend().productPropertyState_getObjects(
-											productId = package['productId'],
-											objectId  = availablePackage['repository'].opsiDepotId)
+											productId=package['productId'],
+											objectId=availablePackage['repository'].opsiDepotId)
 						else:
 							productPropertyStates = self.getConfigBackend().productPropertyState_getObjects(
 											productId=package['productId'],
