@@ -433,7 +433,7 @@ class Shell:
 					self.cmdList.append(line.strip())
 					self.cmdListPos += 1
 		except Exception as error:
-			logger.error(u"Failed to read history file '%s': %s" % (historyFile, forceUnicode(error)))
+			logger.error(u"Failed to read history file {0!r}: {1}".format(historyFile, forceUnicode(error)))
 
 	def setColor(self, color):
 		color = forceBool(color)
