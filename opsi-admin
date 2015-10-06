@@ -419,8 +419,8 @@ class Shell:
 			if not os.path.isdir(self.userConfigDir):
 				try:
 					os.mkdir(self.userConfigDir)
-				except Exception as error:
-					logger.error(u"Failed to create user dir '%s': %s" % (self.userConfigDir, forceUnicode(error)))
+				except OSError as error:
+					logger.error(u"Failed to create user dir {0!r}: {1}".format(self.userConfigDir, forceUnicode(error)))
 		else:
 			logger.error(u'Failed to get home directory from environment!')
 
