@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.9-1) UNRELEASED; urgency=medium
+
+  * opsi-admin: Do not exit if creating folder for history fails
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 06 Oct 2015 10:33:25 +0200
+
 opsi-utils (4.0.6.8-2) testing; urgency=medium
 
   * opsi-product-updater.conf: Better explanation for includeProductIds

@@ -254,7 +254,10 @@ def main(argv):
 
 			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), u'.opsi-admin'))
 			if not os.path.exists(opsiadminUserDir):
-				os.mkdir(opsiadminUserDir)
+				try:
+					os.mkdir(opsiadminUserDir)
+				except OSError as error:
+					logger.info("Could not create {0}.".format(opsiadminUserDir))
 
 			sessionId = None
 			try:
