@@ -481,9 +481,9 @@ class OpsiPackageUpdater(object):
 					newProductList = []
 					for product in self.config["processProductIds"]:
 						found = False
-						for i in range(len(downloadablePackages)):
-							if product == downloadablePackages[i]["productId"]:
-								newProductList.append(downloadablePackages[i])
+						for pac in downloadablePackages:
+							if product == pac["productId"]:
+								newProductList.append(pac)
 								found = True
 								break
 						if not found:
