@@ -739,8 +739,9 @@ class Shell:
 					command.execute(self, self.getParams()[1:])
 				except Exception as error:
 					logger.logException(error)
-					logger.error(u"Failed to execute '%s': %s" % (self.cmdline, forceUnicode(error)))
-					raise Exception(u"Failed to execute '%s': %s" % (self.cmdline, forceUnicode(error)))
+					message = u"Failed to execute {0!r}: {1}".format(self.cmdline, forceUnicode(error))
+					logger.error(message)
+					raise Exception(message)
 				break
 
 		if invalid:
@@ -1144,7 +1145,7 @@ class CommandMethod(Command):
 			try:
 				return fromJson(obj)
 			except Exception as error:
-				logger.debug(u"Not a json string '%s': %s" % (obj, forceUnicode(error)))
+				logger.debug(u"Not a json string {0!r}: {1}".format(obj, forceUnicode(error)))
 				return forceUnicode(obj)
 
 		params = [createObjectOrString(item) for item in params]
