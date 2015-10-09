@@ -507,7 +507,7 @@ class Shell:
 				try:
 					os.unlink(logFile)
 				except OSError as error:
-					logger.error(u"Failed to delete log-file '%s': %s" % (logFile, forceUnicode(error)))
+					logger.error(u"Failed to delete log-file {0!r}: {1}".format(logFile, forceUnicode(error)))
 
 		try:
 			with codecs.open(os.path.join(self.userConfigDir, 'history'), 'w', 'utf-8') as history:
@@ -533,7 +533,7 @@ class Shell:
 		try:
 			self.screen.addstr(shellLine.encode(outEncoding), curses.A_REVERSE)
 		except Exception as error:
-			logger.error(u"Failed to add string '%s': %s" % (shellLine, forceUnicode(error)))
+			logger.error(u"Failed to add string {0!r}: {1}".format(shellLine, forceUnicode(error)))
 
 		height = int(len(self.prompt + u' ' + self.cmdline) / self.xMax) + 1
 		clear = self.xMax - (len(self.prompt + u' ' + self.cmdline) % self.xMax) - 1
@@ -545,7 +545,7 @@ class Shell:
 		try:
 			self.screen.addstr(shellLine.encode(outEncoding), curses.A_BOLD)
 		except Exception as error:
-			logger.error(u"Failed to add string '%s': %s" % (shellLine, forceUnicode(error)))
+			logger.error(u"Failed to add string {0!r}: {1}".format(shellLine, forceUnicode(error)))
 
 		for i in range(0, self.linesMax):
 			self.screen.move(self.linesMax - i, 0)
@@ -579,7 +579,7 @@ class Shell:
 				else:
 					self.screen.addstr(shellLine.encode(outEncoding))
 			except Exception as error:
-				logger.error(u"Failed to add string '%s': %s" % (shellLine, forceUnicode(error)))
+				logger.error(u"Failed to add string {0!r}: {1}".format(shellLine, forceUnicode(error)))
 
 		moveY = self.yMax - height + int((len(self.prompt + u' ') + self.pos) / self.xMax)
 		moveX = ((len(self.prompt + u' ') + self.pos) % self.xMax)
