@@ -1,4 +1,4 @@
-opsi-utils (4.0.6.9-1) UNRELEASED; urgency=medium
+opsi-utils (4.0.6.9-1) testing; urgency=medium
 
   * opsi-admin: Do not exit if creating folder for history fails
   * opsi-product-updater: small code cleanups.
