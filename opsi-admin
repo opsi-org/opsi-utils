@@ -509,14 +509,15 @@ class Shell:
 				except OSError as error:
 					logger.error(u"Failed to delete log-file {0!r}: {1}".format(logFile, forceUnicode(error)))
 
+		historyFilePath = os.path.join(self.userConfigDir, 'history')
 		try:
-			with codecs.open(os.path.join(self.userConfigDir, 'history'), 'w', 'utf-8') as history:
+			with codecs.open(historyFilePath, 'w', 'utf-8') as history:
 				for line in self.cmdList:
 					if not line or line in ('quit', 'exit'):
 						continue
 					history.write(u"%s\n" % line)
 		except Exception as error:
-			logger.error(u"Failed to write history file '%s': %s" % (os.path.join(self.userConfigDir, 'history'), forceUnicode(error)))
+			logger.error(u"Failed to write history file {0!r}: {1}".format(historyFilePath, forceUnicode(error)))
 
 		self.exitScreen()
 		self.running = False
