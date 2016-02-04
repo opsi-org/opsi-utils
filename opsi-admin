@@ -41,7 +41,6 @@ import select
 import subprocess
 import sys
 import time
-import types
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Logger import (COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
@@ -56,7 +55,7 @@ from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 
 import curses
 
-__version__ = '4.0.6.9'
+__version__ = '4.0.6.10'
 
 backend = None
 exitZero = False
@@ -1135,7 +1134,7 @@ class CommandMethod(Command):
 			if len(params) >= l:
 				# Do not create Object instances!
 				params[-1] = fromJson(params[-1], preventObjectCreation=True)
-				if not isinstance(params[-1], types.DictType):
+				if not isinstance(params[-1], dict):
 					raise Exception(u"kwargs param is not a dict: %s" % params[-1])
 
 				for (key, value) in params.pop(-1).items():
@@ -1193,20 +1192,20 @@ class CommandMethod(Command):
 						lines.append(u'RESULT%s=%s' % (index, value))
 
 			elif shell.output == u'SIMPLE':
-				if isinstance(result, types.DictType):
+				if isinstance(result, dict):
 					for (key, value) in result.items():
-						if type(value) is bool:
+						if isinstance(value, bool):
 							value = forceUnicodeLower(value)
 						lines.append(u'%s=%s' % (key, value))
-				elif isinstance(result, (types.TupleType, types.ListType)):
+				elif isinstance(result, (tuple, list, set)):
 					for resultElement in result:
-						if isinstance(resultElement, types.DictType):
+						if isinstance(resultElement, dict):
 							for (key, value) in resultElement.items():
 								if isinstance(value, bool):
 									value = forceUnicodeLower(value)
 								lines.append(u'%s=%s' % (key, value))
 							lines.append(u'')
-						elif isinstance(resultElement, (types.TupleType, types.ListType)):
+						elif isinstance(resultElement, (tuple, list)):
 							raise Exception(u"Simple output not possible for list of lists")
 						else:
 							lines.append(forceUnicode(resultElement))
