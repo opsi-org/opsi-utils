@@ -726,7 +726,7 @@ class Shell:
 			self.paramPos = len(self.params) - 1
 
 	def execute(self):
-		logger.info(u"Execute: %s" % self.cmdline)
+		logger.info(u"Execute: {0!r}".format(self.cmdline))
 		self.cmdList.append(self.cmdline)
 		if len(self.cmdList) > self.cmdBufferSize:
 			del self.cmdList[0]
