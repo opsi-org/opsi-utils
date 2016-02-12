@@ -1,8 +1,10 @@
 opsi-utils (4.0.6.10-1) UNRELEASED; urgency=medium
 
   * Implementing type check with isinstance instead of type.
+  * Deprecating task setActionRequestWhereOutdated.
+    In the future use 'method setActionRequestWhereOutdated'.
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 22 Oct 2015 11:11:57 +0200
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 12 Feb 2016 15:43:35 +0100
 
 opsi-utils (4.0.6.9-1) testing; urgency=medium
 

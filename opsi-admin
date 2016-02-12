@@ -1550,32 +1550,18 @@ class CommandTask(Command):
 		elif params[0] == u'setActionRequestWhereOutdated':
 			if len(params) < 2:
 				raise Exception(_(u'Missing action request'))
-			if len(params) < 3:
+			elif len(params) < 3:
 				raise Exception(_(u'Missing product-id'))
+
 			actionRequest = params[1]
 			productId = params[2]
 
-			# Get depot to client assignment
-			depotToClients = {}
-			for clientToDepot in backend.configState_getClientToDepotserver():
-				try:
-					depotToClients[clientToDepot['depotId']].append(clientToDepot['clientId'])
-				except KeyError:
-					depotToClients[clientToDepot['depotId']] = [clientToDepot['clientId']]
+			logger.warning(
+				u"The task 'setActionRequestWhereOutdated' is obsolete. "
+				u"Please use 'method setActionRequestWhereOutdated' instead.")
 
-			updateProductOnClients = []
-			for _depot, clientIds in depotToClients.items():
-				if not clientIds:
-					continue
-
-				for productOnDepot in backend.productOnDepot_getObjects(productId=productId):
-					for productOnClient in backend.productOnClient_getObjects(clientId=clientIds, productId=productOnDepot.productId, installationStatus=u'installed'):
-						if (productOnClient.productVersion != productOnDepot.productVersion) or (productOnClient.packageVersion != productOnDepot.packageVersion):
-							productOnClient.setActionRequest(actionRequest)
-							updateProductOnClients.append(productOnClient)
-							shell.appendLine(productOnClient.clientId)
-
-			backend.productOnClient_updateObjects(updateProductOnClients)
+			for clientId in backend.setActionRequestWhereOutdated(actionRequest, productId):
+				shell.appendLine(productOnClient.clientId)
 
 		elif params[0] == u'setActionRequestWithDependencies':
 			if len(params) < 2:
