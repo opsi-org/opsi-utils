@@ -1491,91 +1491,65 @@ class CommandTask(Command):
 			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
-			products = backend.product_getObjects(id=productId)
-			if not products:
-				raise Exception(_(u'Given productId not found'))
-			else:
-				if products[0].getSetupScript():
-					clientIds = backend.getClientIds_list(productId=productId, installationStatus=u'installed')
-					if clientIds:
-						for clientId in clientIds:
-							shell.appendLine(clientId)
-							backend.setProductActionRequest(productId, clientId, 'setup')
+
+			logger.warning(
+				u"The task 'setupWhereInstalled' is obsolete. "
+				u"Please use 'method setupWhereInstalled' instead.")
+
+			for clientId in backend.setupWhereInstalled(productId):
+				shell.appendLine(clientId)
 
 		elif params[0] == u'setupWhereNotInstalled':
 			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
-			products = backend.product_getObjects(id=productId)
-			if not products:
-				raise Exception(_(u'Given productId not found'))
-			else:
-				if products[0].getSetupScript():
-					clientIds = backend.getClientIds_list(productId=productId, installationStatus=u'not_installed')
-					if clientIds:
-						for clientId in clientIds:
-							shell.appendLine(clientId)
-							backend.setProductActionRequest(productId, clientId, u'setup')
+
+			logger.warning(
+				u"The task 'setupWhereNotInstalled' is obsolete. "
+				u"Please use 'method setupWhereNotInstalled' instead.")
+
+			for clientId in backend.setupWhereNotInstalled(productId):
+				shell.appendLine(clientId)
 
 		elif params[0] == u'updateWhereInstalled':
 			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
-			products = backend.product_getObjects(id=productId)
-			if not products:
-				raise Exception(_(u'Given productId not found'))
 
-			if products[0].getUpdateScript():
-				clientIds = backend.getClientIds_list(productId=productId, installationStatus=u'installed')
+			logger.warning(
+				u"The task 'updateWhereInstalled' is obsolete. "
+				u"Please use 'method updateWhereInstalled' instead.")
 
-				for clientId in clientIds:
-					shell.appendLine(clientId)
-					backend.setProductActionRequest(productId, clientId, u'update')
+			for clientId in backend.updateWhereInstalled(productId):
+				shell.appendLine(clientId)
 
 		elif params[0] == u'uninstallWhereInstalled':
 			if len(params) < 2:
 				raise Exception(_(u'Missing product-id'))
 			productId = params[1]
-			products = backend.product_getObjects(id=productId)
-			if not products:
-				raise Exception(_(u'Given productId not found'))
-			else:
-				if products[0].getUninstallScript():
-					clientIds = backend.getClientIds_list(productId=productId, installationStatus=u'installed')
-					if clientIds:
-						for clientId in clientIds:
-							shell.appendLine(clientId)
-							backend.setProductActionRequest(productId, clientId, u'uninstall')
+
+			logger.warning(
+				u"The task 'uninstallWhereInstalled' is obsolete. "
+				u"Please use 'method uninstallWhereInstalled' instead.")
+
+			for clientId in backend.uninstallWhereInstalled(productId):
+				shell.appendLine(clientId)
 
 		elif params[0] == u'setActionRequestWhereOutdated':
 			if len(params) < 2:
 				raise Exception(_(u'Missing action request'))
-			if len(params) < 3:
+			elif len(params) < 3:
 				raise Exception(_(u'Missing product-id'))
+
 			actionRequest = params[1]
 			productId = params[2]
 
-			# Get depot to client assignment
-			depotToClients = {}
-			for clientToDepot in backend.configState_getClientToDepotserver():
-				try:
-					depotToClients[clientToDepot['depotId']].append(clientToDepot['clientId'])
-				except KeyError:
-					depotToClients[clientToDepot['depotId']] = [clientToDepot['clientId']]
+			logger.warning(
+				u"The task 'setActionRequestWhereOutdated' is obsolete. "
+				u"Please use 'method setActionRequestWhereOutdated' instead.")
 
-			updateProductOnClients = []
-			for _depot, clientIds in depotToClients.items():
-				if not clientIds:
-					continue
-
-				for productOnDepot in backend.productOnDepot_getObjects(productId=productId):
-					for productOnClient in backend.productOnClient_getObjects(clientId=clientIds, productId=productOnDepot.productId, installationStatus=u'installed'):
-						if (productOnClient.productVersion != productOnDepot.productVersion) or (productOnClient.packageVersion != productOnDepot.packageVersion):
-							productOnClient.setActionRequest(actionRequest)
-							updateProductOnClients.append(productOnClient)
-							shell.appendLine(productOnClient.clientId)
-
-			backend.productOnClient_updateObjects(updateProductOnClients)
+			for clientId in backend.setActionRequestWhereOutdated(actionRequest, productId):
+				shell.appendLine(clientId)
 
 		elif params[0] == u'setActionRequestWithDependencies':
 			if len(params) < 2:
@@ -1600,28 +1574,13 @@ class CommandTask(Command):
 			actionRequest = params[1]
 			productId = params[2]
 
-			# Get depot to client assignment
-			depotToClients = {}
-			for clientToDepot in backend.configState_getClientToDepotserver():
-				try:
-					depotToClients[clientToDepot['depotId']].append(clientToDepot['clientId'])
-				except KeyError:
-					depotToClients[clientToDepot['depotId']] = [clientToDepot['clientId']]
+			logger.warning(
+				u"The task 'setActionRequestWhereOutdatedWithDependencies' "
+				u"is obsolete. Please use 'method "
+				u"setActionRequestWhereOutdatedWithDependencies' instead.")
 
-			updateProductOnClients = []
-			for _depot, clientIds in depotToClients.items():
-				if not clientIds:
-					continue
-
-				for productOnDepot in backend.productOnDepot_getObjects(productId=productId):
-					for productOnClient in backend.productOnClient_getObjects(clientId=clientIds, productId=productOnDepot.productId, installationStatus=u'installed'):
-						if productOnClient.productVersion != productOnDepot.productVersion or productOnClient.packageVersion != productOnDepot.packageVersion:
-							productOnClient.setActionRequestWithDependencies(actionRequest)
-							updateProductOnClients.append(productOnClient)
-							shell.appendLine(productOnClient.clientId)
-
-			if updateProductOnClients:
-				backend.productOnClient_updateObjects(updateProductOnClients)
+			for clientId in backend.setActionRequestWhereOutdatedWithDependencies(actionRequest, params):
+				shell.appendLine(clientId)
 
 		elif params[0] == u'decodePcpatchPassword':
 			if len(params) < 3:
