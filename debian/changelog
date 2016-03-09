@@ -1,10 +1,15 @@
-opsi-utils (4.0.6.10-1) UNRELEASED; urgency=medium
+opsi-utils (4.0.6.10-1) experimental; urgency=medium
 
   * Implementing type check with isinstance instead of type.
-  * Deprecating task setActionRequestWhereOutdated.
-    In the future use 'method setActionRequestWhereOutdated'.
+  * Using the following tasks from the new backend extension in python-opsi:
+    setupWhereInstalled, setupWhereNotInstalled, updateWhereInstalled,
+    uninstallWhereInstalled, setActionRequestWhereOutdated, setActionRequestWithDependencies,
+    setActionRequestWhereOutdatedWithDependencies.
+    With the implementation of these tasks as backend extensions these tasks
+    are now deprecated and may get removed in future releases.
+    Please use 'method <taskname>' instead.
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 12 Feb 2016 15:43:35 +0100
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 09 Mar 2016 10:25:30 +0100
 
 opsi-utils (4.0.6.9-1) testing; urgency=medium
 
