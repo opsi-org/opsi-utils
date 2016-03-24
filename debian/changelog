@@ -1,4 +1,4 @@
-opsi-utils (4.0.6.10-1) UNRELEASED; urgency=medium
+opsi-utils (4.0.6.10-1) testing; urgency=medium
 
   * Implementing type check with isinstance instead of type.
 
