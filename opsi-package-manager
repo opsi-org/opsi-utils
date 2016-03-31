@@ -1461,7 +1461,7 @@ class OpsiPackageManagerControl(object):
 			if not self.config['depotIds']:
 				try:
 					self.config['depotIds'] = [self.config['localDepotId']]
-				except Exception as e:
+				except KeyError as e:
 					raise Exception(u"Failed to get local depot id: %s" % e)
 			else:
 				self.config['uploadToLocalDepot'] = True
