@@ -1466,18 +1466,20 @@ class OpsiPackageManagerControl(object):
 			else:
 				self.config['uploadToLocalDepot'] = True
 
-			knownDepotIds = self.backend.host_getIdents(type='OpsiDepotserver', returnType='unicode')
-			knownDepotIds.sort()
+			knownDepotIds = set(self.backend.host_getIdents(type='OpsiDepotserver', returnType='unicode'))
 
-			for i in range(len(self.config['depotIds'])):
-				if self.config['depotIds'][i].lower() == 'all':
-					self.config['depotIds'] = knownDepotIds
-					break
-				else:
-					depotId = forceHostId(self.config['depotIds'][i])
+			if any(depotId.lower() == 'all' for depotId in self.config['depotIds']):
+				self.config['depotIds'] = list(knownDepotIds)
+			else:
+				cleanedDepotIds = set()
+				for depotId in self.config['depotIds']:
+					depotId = forceHostId(depotId)
 					if depotId not in knownDepotIds:
 						raise Exception(u"Depot '%s' not in list of known depots: %s" % (depotId, u', '.join(knownDepotIds)))
-					self.config['depotIds'][i] = depotId
+					cleanedDepotIds.add(depotId)
+
+				self.config['depotIds'] = list(cleanedDepotIds)
+
 			self.config['depotIds'].sort()
 
 			if self.config['command'] in (u'install', u'upload', u'extract'):
