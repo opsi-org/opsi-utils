@@ -390,8 +390,8 @@ def lockPackage(tempDir, packageControlFile):
 				if p == line.split()[0].strip():
 					pName = line.split()[-1].strip()
 					# process is running
-					raise Exception(u"Product '%s' is currently locked by process %s (%s)." \
-								% (packageControlFile.getProduct().id, pName, p) )
+					raise Exception(u"Product '%s' is currently locked by process %s (%s)."
+									% (packageControlFile.getProduct().id, pName, p))
 
 	except IOError:
 		pass
