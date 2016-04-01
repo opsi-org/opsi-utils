@@ -465,9 +465,9 @@ class UserInterface(SubjectsObserver):
 			pass
 
 	def subjectsChanged(self, subjects):
-		for s in subjects:
-			if s.getMessage():
-				self.messageChanged(s, s.getMessage())
+		for subject in subjects:
+			if subject.getMessage():
+				self.messageChanged(subject, subject.getMessage())
 
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
 		self.showProgress()
@@ -526,21 +526,21 @@ class UserInterface(SubjectsObserver):
 
 		with self.__lock:
 			subjects = {}
-			for s in self.getSubjects():
-				if s.getType() == u'depot':
-					subjects[s.getId()] = s
+			for subject in self.getSubjects():
+				if subject.getType() == u'depot':
+					subjects[subject.getId()] = subject
 
-			for s in self.getSubjects():
-				if s.getType() == u'upload':
-					subjects[s.getId()] = s
+			for subject in self.getSubjects():
+				if subject.getType() == u'upload':
+					subjects[subject.getId()] = subject
 
 			ids = subjects.keys()
 			ids.sort()
-			maxIdLength = max([len(id) for id in ids] or [0])
+			maxIdLength = max([len(currentID) for currentID in ids] or [0])
 
 			y = 0
-			for id in ids:
-				subject = subjects[id]
+			for currentID in ids:
+				subject = subjects[currentID]
 				if y >= self.progressWindow.height:
 					# Screen full
 					logger.info(u"Screen to small to display all progresses")
@@ -902,7 +902,7 @@ class OpsiPackageManager(object):
 			subject.setMessage(_(u"Processing upload of %s") % os.path.basename(packageFile))
 
 			packageSize = os.stat(packageFile)[stat.ST_SIZE]
-			lMD5 = self.getPackageMd5Sum(packageFile)
+			localChecksum = self.getPackageMd5Sum(packageFile)
 			destination = os.path.basename(packageFile)
 
 			if u"~" in destination:
@@ -948,8 +948,8 @@ class OpsiPackageManager(object):
 							# Sizes match => check md5sum
 							logger.info(u"Size of source and destination matches on depot '%s'" % depotId)
 							depotConnection = self.getDepotConnection(depotId)
-							rMD5 = depotConnection.depot_getMD5Sum(depotRepositoryPath + u'/' + destination)
-							if lMD5 == rMD5:
+							remoteChecksum = depotConnection.depot_getMD5Sum(depotRepositoryPath + u'/' + destination)
+							if localChecksum == remoteChecksum:
 								# md5sum match => do not overwrite
 								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
 								logger.notice(u"No need to upload, '%s' is up to date on '%s'" % (os.path.basename(packageFile), depotId))
@@ -1083,11 +1083,10 @@ class OpsiPackageManager(object):
 
 				remotePackageFile = depotRepositoryPath + u'/' + destination
 				depotConnection = self.getDepotConnection(depotId)
-				rMD5 = depotConnection.depot_getMD5Sum(remotePackageFile)
+				remoteChecksum = depotConnection.depot_getMD5Sum(remotePackageFile)
 				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
-				if lMD5 != rMD5:
-					# md5sum differ
-					raise Exception(u"MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (lMD5, rMD5, depotId))
+				if localChecksum != remoteChecksum:
+					raise Exception(u"MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (localChecksum, remoteChecksum, depotId))
 
 				if info['usage'] >= 0.9:
 					logger.warning(u"Warning: %d%% filesystem usage at repository on depot '%s'" % (int(100 * info['usage']), depotId))
