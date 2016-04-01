@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 opsi-backup
@@ -6,7 +6,7 @@ opsi-backup
 opsi-backup is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010-2013 uib GmbH
+Copyright (C) 2010-2016 uib GmbH
 
 http://www.uib.de/
 
