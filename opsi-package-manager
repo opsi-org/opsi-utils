@@ -572,11 +572,13 @@ class UserInterface(SubjectsObserver):
 						if len(secondsLeft) < 2:
 							secondsLeft = '0' + secondsLeft
 
-						# TODO: rework this ugly piece of string building!
-						progress = u' %8s' % ("%.2f" % subject.getPercent() + u'% ') \
-							+ u'%8s KB' % (subject.getState() / 1000) \
-							+ u'%6s KB/s' % (int(subject.getSpeed() / 1000)) \
-							+ u'%6s:%s ETA' % (minutesLeft, secondsLeft)
+						progress = u' %6s%% %8s KB%6s KB/s%6s:%s ETA' % (
+							"%.2f" % subject.getPercent(),
+							(subject.getState() / 1000),
+							int(subject.getSpeed() / 1000),
+							minutesLeft,
+							secondsLeft
+						)
 
 						free = maxSize - len(message) - len(progress)
 						if free < 0:
