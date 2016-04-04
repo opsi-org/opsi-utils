@@ -38,6 +38,7 @@ import sys
 import termios
 import threading
 import time
+from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 from duplicity import librsync
@@ -1897,29 +1898,28 @@ class OpsiPackageManagerControl(object):
 
 
 if __name__ == "__main__":
-	exception = None
-	originalTerminalSettings = None
-	try:
-		# Save terminal settings
-		fileno = sys.stdin.fileno()
-		originalTerminalSettings = termios.tcgetattr(fileno)
-	except Exception as e:
-		logger.warning(e)
+
+	@contextmanager
+	def keepOriginalTerminalSettings():
+		try:
+			fileno = sys.stdin.fileno()
+			originalTerminalSettings = termios.tcgetattr(fileno)
+		except Exception as readSettingsException:
+			logger.warning(readSettingsException)
+			originalTerminalSettings = None
+
+		try:
+			yield
+		finally:
+			if originalTerminalSettings:  # Restore terminal settings
+				termios.tcsetattr(fileno, termios.TCSANOW, originalTerminalSettings)
 
 	try:
-		OpsiPackageManagerControl()
+		with keepOriginalTerminalSettings():
+			OpsiPackageManagerControl()
 	except SystemExit:
 		pass
-	except Exception as e:
-		exception = e
-
-	# Restore terminal settings
-	if originalTerminalSettings:
-		termios.tcsetattr(fileno, termios.TCSANOW, originalTerminalSettings)
-
-	if exception:
+	except Exception as exception:
 		logger.logException(exception)
 		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace')
 		sys.exit(1)
-
-	sys.exit(0)
