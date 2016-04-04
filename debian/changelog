@@ -1,4 +1,4 @@
-opsi-utils (4.0.6.11-1) UNRELEASED; urgency=medium
+opsi-utils (4.0.6.11-1) experimental; urgency=medium
 
   * opsi-backup: Warn during restore if no backends are given.
   * Various mall changes for easier maintenance.
