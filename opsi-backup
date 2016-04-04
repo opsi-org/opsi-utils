@@ -136,6 +136,9 @@ def main():
 	backup = OpsiBackup(stdout=sys.stdout)
 	result = 0
 	if args.command == 'restore':
+		if not args.backends:
+			logger.warning("No backend given!")
+
 		result = backup._restore(
 			file=args.file, mode=args.mode, backends=args.backends,
 			configuration=args.configuration, force=args.force
