@@ -39,7 +39,7 @@ from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI.Util.Collections import DefaultList
 from OPSI.Util import argparse
 
-__version__ = "4.0.6.6"
+__version__ = "4.0.6.11"
 
 logger = Logger()
 
