@@ -3,7 +3,7 @@
 
 # opsi-makeproductfile is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2015 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2016 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -46,7 +46,7 @@ from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ZsyncFile
 from OPSI.Util import md5sum
 
-__version__ = '4.0.6.3'
+__version__ = '4.0.6.4'
 
 logger = Logger()
 
@@ -55,6 +55,7 @@ try:
 	_ = t.ugettext
 except Exception as e:
 	logger.error(u"Locale not found: %s" % e)
+
 	def _(string):
 		return string
 
@@ -98,8 +99,8 @@ class ProgressNotifier(ProgressObserver):
 		if (subject.getEnd() <= 0):
 			return
 		barlen = self.usedWidth - 10
-		filledlen = int("%0.0f" % (barlen*percent/100))
-		bar = u'='*filledlen + u' '*(barlen-filledlen)
+		filledlen = int("%0.0f" % (barlen * percent / 100))
+		bar = u'='*filledlen + u' ' * (barlen - filledlen)
 		percent = '%0.2f%%' % percent
 		sys.stderr.write('\r %8s [%s]\r' % (percent, bar))
 		sys.stderr.flush()
@@ -173,13 +174,13 @@ def main(argv):
 		elif opt == "--no-pigz":
 			disablePigz = True
 
-	if (len(args) > 1):
+	if len(args) > 1:
 		logger.error(u"Too many arguments")
 		usage()
 		sys.exit(1)
 
-	elif (len(args) > 0):
-		packageSourceDir = os.path.abspath( args[0] )
+	elif len(args) > 0:
+		packageSourceDir = os.path.abspath(args[0])
 
 	logger.setConsoleLevel(logLevel)
 
@@ -204,7 +205,7 @@ def main(argv):
 	if not quiet:
 		print ""
 		print _(u"Locking package")
-	pcf = PackageControlFile(packageControlFilePath, opsi3compatible = compatibilityMode)
+	pcf = PackageControlFile(packageControlFilePath, opsi3compatible=compatibilityMode)
 
 	lockPackage(tempDir, pcf)
 	pps = None
@@ -215,8 +216,12 @@ def main(argv):
 				match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
 				if not match:
 					raise Exception(u"Bad version string '%s' in dependency" % requiredVersion)
-				packageDependency = { 'package': product.id, 'condition': match.group(1), 'version': match.group(2) }
-				pcf.setPackageDependencies([ packageDependency ])
+				packageDependency = {
+					'package': product.id,
+					'condition': match.group(1),
+					'version': match.group(2)
+				}
+				pcf.setPackageDependencies([packageDependency])
 				pcf.setIncrementalPackage(True)
 
 			if not quiet:
@@ -235,7 +240,7 @@ def main(argv):
 				print ""
 				print _(u"Product info")
 				print u"----------------------------------------------------------------------------"
-				print u"   %-20s : %s" % (u'product id',           product.id)
+				print u"   %-20s : %s" % (u'product id', product.id)
 
 				if product.getType() == 'LocalbootProduct':
 					print u"   %-20s : %s" % (u'product type', u'localboot')
@@ -385,8 +390,8 @@ def lockPackage(tempDir, packageControlFile):
 				if p == line.split()[0].strip():
 					pName = line.split()[-1].strip()
 					# process is running
-					raise Exception(u"Product '%s' is currently locked by process %s (%s)." \
-								% (packageControlFile.getProduct().id, pName, p) )
+					raise Exception(u"Product '%s' is currently locked by process %s (%s)."
+									% (packageControlFile.getProduct().id, pName, p))
 
 	except IOError:
 		pass

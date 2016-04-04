@@ -3,7 +3,7 @@
 
 # opsi-package-manager is part of the client management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2015 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2016 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -60,10 +60,10 @@ __version__ = '4.0.6.6'
 logger = Logger()
 
 try:
-	t = gettext.translation('opsi-utils', '/usr/share/locale')
-	_ = t.ugettext
-except Exception as e:
-	logger.error(u"Locale not found: %s" % e)
+	translation = gettext.translation('opsi-utils', '/usr/share/locale')
+	_ = translation.ugettext
+except Exception as gettextError:
+	logger.error(u"Locale not found: %s" % gettextError)
 
 	def _(string):
 		return string
@@ -150,7 +150,7 @@ class CursesWindow:
 			self.win.mvwin(y, x)
 			self.win.redrawwin()
 			self.win.refresh()
-		except:
+		except Exception:
 			pass
 
 	def setTitle(self, title):
@@ -466,9 +466,9 @@ class UserInterface(SubjectsObserver):
 			pass
 
 	def subjectsChanged(self, subjects):
-		for s in subjects:
-			if s.getMessage():
-				self.messageChanged(s, s.getMessage())
+		for subject in subjects:
+			if subject.getMessage():
+				self.messageChanged(subject, subject.getMessage())
 
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
 		self.showProgress()
@@ -527,21 +527,21 @@ class UserInterface(SubjectsObserver):
 
 		with self.__lock:
 			subjects = {}
-			for s in self.getSubjects():
-				if s.getType() == u'depot':
-					subjects[s.getId()] = s
+			for subject in self.getSubjects():
+				if subject.getType() == u'depot':
+					subjects[subject.getId()] = subject
 
-			for s in self.getSubjects():
-				if s.getType() == u'upload':
-					subjects[s.getId()] = s
+			for subject in self.getSubjects():
+				if subject.getType() == u'upload':
+					subjects[subject.getId()] = subject
 
 			ids = subjects.keys()
 			ids.sort()
-			maxIdLength = max([len(id) for id in ids] or [0])
+			maxIdLength = max([len(currentID) for currentID in ids] or [0])
 
 			y = 0
-			for id in ids:
-				subject = subjects[id]
+			for currentID in ids:
+				subject = subjects[currentID]
 				if y >= self.progressWindow.height:
 					# Screen full
 					logger.info(u"Screen to small to display all progresses")
@@ -573,11 +573,13 @@ class UserInterface(SubjectsObserver):
 						if len(secondsLeft) < 2:
 							secondsLeft = '0' + secondsLeft
 
-						# TODO: rework this ugly piece of string building!
-						progress = u' %8s' % ("%.2f" % subject.getPercent() + u'% ') \
-							+ u'%8s KB' % (subject.getState() / 1000) \
-							+ u'%6s KB/s' % (int(subject.getSpeed() / 1000)) \
-							+ u'%6s:%s ETA' % (minutesLeft, secondsLeft)
+						progress = u' %6s%% %8s KB%6s KB/s%6s:%s ETA' % (
+							"%.2f" % subject.getPercent(),
+							(subject.getState() / 1000),
+							int(subject.getSpeed() / 1000),
+							minutesLeft,
+							secondsLeft
+						)
 
 						free = maxSize - len(message) - len(progress)
 						if free < 0:
@@ -637,9 +639,9 @@ class TaskQueue(threading.Thread):
 				self.currentTaskNumber += 1
 				task.start()
 				logger.debug(u"Task '%s' ended" % task.name)
-			except Exception as e:
-				logger.error(u"Task '%s' failed: %s" % (task.name, e))
-				self.errors.append(e)
+			except Exception as error:
+				logger.error(u"Task '%s' failed: %s" % (task.name, error))
+				self.errors.append(error)
 				if i < (len(self.tasks) - 1) and isinstance(task, UploadTask) and isinstance(self.tasks[i + 1], InstallTask):
 					# Upload task failed => do not execute install task
 					logger.notice(u"Upload task failed, skipping install task")
@@ -903,7 +905,7 @@ class OpsiPackageManager(object):
 			subject.setMessage(_(u"Processing upload of %s") % os.path.basename(packageFile))
 
 			packageSize = os.stat(packageFile)[stat.ST_SIZE]
-			lMD5 = self.getPackageMd5Sum(packageFile)
+			localChecksum = self.getPackageMd5Sum(packageFile)
 			destination = os.path.basename(packageFile)
 
 			if u"~" in destination:
@@ -949,8 +951,8 @@ class OpsiPackageManager(object):
 							# Sizes match => check md5sum
 							logger.info(u"Size of source and destination matches on depot '%s'" % depotId)
 							depotConnection = self.getDepotConnection(depotId)
-							rMD5 = depotConnection.depot_getMD5Sum(depotRepositoryPath + u'/' + destination)
-							if lMD5 == rMD5:
+							remoteChecksum = depotConnection.depot_getMD5Sum(depotRepositoryPath + u'/' + destination)
+							if localChecksum == remoteChecksum:
 								# md5sum match => do not overwrite
 								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
 								logger.notice(u"No need to upload, '%s' is up to date on '%s'" % (os.path.basename(packageFile), depotId))
@@ -1076,19 +1078,18 @@ class OpsiPackageManager(object):
 					try:
 						logger.notice(u"Deleting '%s' from depot '%s'" % (oldPackage, depotId))
 						repository.delete(oldPackage)
-					except Exception as e:
-						logger.error(u"Failed to delete '%s' from depot '%s': %s" % (oldPackage, depotId, e))
+					except Exception as deleteError:
+						logger.error(u"Failed to delete '%s' from depot '%s': %s" % (oldPackage, depotId, deleteError))
 
 				logger.notice(u"Verifying upload")
 				subject.setMessage(_(u"Verifying upload"))
 
 				remotePackageFile = depotRepositoryPath + u'/' + destination
 				depotConnection = self.getDepotConnection(depotId)
-				rMD5 = depotConnection.depot_getMD5Sum(remotePackageFile)
+				remoteChecksum = depotConnection.depot_getMD5Sum(remotePackageFile)
 				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
-				if lMD5 != rMD5:
-					# md5sum differ
-					raise Exception(u"MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (lMD5, rMD5, depotId))
+				if localChecksum != remoteChecksum:
+					raise Exception(u"MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (localChecksum, remoteChecksum, depotId))
 
 				if info['usage'] >= 0.9:
 					logger.warning(u"Warning: %d%% filesystem usage at repository on depot '%s'" % (int(100 * info['usage']), depotId))
@@ -1100,22 +1101,22 @@ class OpsiPackageManager(object):
 				remotePackageMd5sumFile = remotePackageFile + u'.md5'
 				try:
 					depotConnection.depot_createMd5SumFile(remotePackageFile, remotePackageMd5sumFile)
-				except Exception as e:
-					logger.warning(u"Failed to create md5sum file '%s': %s" % (remotePackageMd5sumFile, e))
+				except Exception as checksumError:
+					logger.warning(u"Failed to create md5sum file '%s': %s" % (remotePackageMd5sumFile, checksumError))
 
 				remotePackageZsyncFile = remotePackageFile + u'.zsync'
 				try:
 					depotConnection.depot_createZsyncFile(remotePackageFile, remotePackageZsyncFile)
-				except Exception as e:
-					logger.warning(u"Failed to create zsync file '%s': %s" % (remotePackageZsyncFile, e))
+				except Exception as zsyncCreationError:
+					logger.warning(u"Failed to create zsync file '%s': %s" % (remotePackageZsyncFile, zsyncCreationError))
 			finally:
 				self.removeRunningTransfer()
 				repository = None
 
-		except Exception as e:
-			logger.logException(e, LOG_INFO)
-			logger.error(e)
-			subject.setMessage(_("Error: %s") % e, severity=2)
+		except Exception as uploadError:
+			logger.logException(uploadError, LOG_INFO)
+			logger.error(uploadError)
+			subject.setMessage(_("Error: %s") % uploadError, severity=2)
 			raise
 
 	def installOnDepots(self):
@@ -1136,8 +1137,8 @@ class OpsiPackageManager(object):
 					if ppos < dpos:
 						sequence.remove(dependency['package'])
 						sequence.insert(ppos, dependency['package'])
-				except Exception as e:
-					logger.debug(u"While processing package '%s', dependency '%s': %s" % (packageFile, dependency['package'], e))
+				except Exception as sequenceError:
+					logger.debug(u"While processing package '%s', dependency '%s': %s" % (packageFile, dependency['package'], sequenceError))
 
 		sortedPackageFiles = []
 		for productId in sequence:
@@ -1333,9 +1334,9 @@ class OpsiPackageManager(object):
 				else:
 					logger.warning(u"Cannot set action 'update' for product '%s': updateScript not defined" % productId)
 
-		except Exception as e:
-			logger.error(e)
-			subject.setMessage(_("Error: %s") % e, severity=2)
+		except Exception as installationError:
+			logger.error(installationError)
+			subject.setMessage(_("Error: %s") % installationError, severity=2)
 			raise
 
 	def uninstallPackages(self):
@@ -1381,9 +1382,9 @@ class OpsiPackageManager(object):
 			logger.notice(u"Uninstall of package '%s' on depot '%s' finished" % (productId, depotId))
 			subject.setMessage(_(u"Uninstallation of package %s successful") % productId, severity=4)
 
-		except Exception as e:
-			logger.error(e)
-			subject.setMessage(_("Error: %s") % e, severity=2)
+		except Exception as uninstallError:
+			logger.error(uninstallError)
+			subject.setMessage(_("Error: %s") % uninstallError, severity=2)
 			raise
 
 
@@ -1509,9 +1510,9 @@ class OpsiPackageManagerControl(object):
 
 		try:
 			self.processCommand()
-		except Exception as e:
-			logger.logException(e)
-			raise Exception(u"Failed to process command '%s': %s" % (self.config['command'], e))
+		except Exception as processingError:
+			logger.logException(processingError)
+			raise Exception(u"Failed to process command '%s': %s" % (self.config['command'], processingError))
 
 	def processCommand(self):
 		try:
