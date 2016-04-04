@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 opsi-backup
@@ -6,7 +6,7 @@ opsi-backup
 opsi-backup is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010-2013 uib GmbH
+Copyright (C) 2010-2016 uib GmbH
 
 http://www.uib.de/
 
@@ -30,8 +30,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 @license: GNU General Public License version 2
 """
 
-__version__ = "4.0.6.5"
-
 import locale
 import os
 import sys
@@ -40,6 +38,8 @@ from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO
 from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI.Util.Collections import DefaultList
 from OPSI.Util import argparse
+
+__version__ = "4.0.6.11"
 
 logger = Logger()
 
@@ -136,6 +136,9 @@ def main():
 	backup = OpsiBackup(stdout=sys.stdout)
 	result = 0
 	if args.command == 'restore':
+		if not args.backends:
+			logger.warning("No backend given!")
+
 		result = backup._restore(
 			file=args.file, mode=args.mode, backends=args.backends,
 			configuration=args.configuration, force=args.force
@@ -162,7 +165,6 @@ def main():
 
 
 if __name__ == "__main__":
-	ret = 0
 	try:
 		ret = main()
 	except Exception as exception:
