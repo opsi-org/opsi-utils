@@ -1,3 +1,11 @@
+opsi-utils (4.0.6.11-1) experimental; urgency=medium
+
+  * opsi-backup: Warn during restore if no backends are given.
+  * Various mall changes for easier maintenance.
+  * opsi-package-manager: only query for depot information if required.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 04 Apr 2016 17:00:33 +0200
+
 opsi-utils (4.0.6.10-1) testing; urgency=medium
 
   * Implementing type check with isinstance instead of type.
