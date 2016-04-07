@@ -46,7 +46,12 @@ from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ZsyncFile
 from OPSI.Util import md5sum
 
-__version__ = '4.0.6.11'
+try:
+	import argparse
+except ImportError:
+	from OPSI.Util import argparse
+
+__version__ = '4.0.6.12'
 
 logger = Logger()
 
@@ -58,28 +63,6 @@ except Exception as e:
 
 	def _(string):
 		return string
-
-
-def usage():
-	print u"\nUsage: %s [-h] [-z] [-m] [-v|-q] [-F format] [-l log-level] [-i|-c custom name] [-I required version] [-t temp dir] [source directory]" % os.path.basename(sys.argv[0])
-	print u"Provides an opsi package from a package source directory."
-	print u"If no source directory is supplied, the current directory will be used."
-	print u"Options:"
-	print u"   -v          verbose"
-	print u"   -q          quiet"
-	print u"   -l          log-level 0..9"
-	print u"   -n          do not compress"
-	print u"   -F          archive format [tar|cpio], default: cpio"
-	print u"   -h          follow symlinks"
-	print u"   -I          incremental package"
-	print u"   -i          custom name (add custom files)"
-	print u"   -c          custom name (custom only)"
-	print u"   -C          compatibility mode (opsi 3)"
-	print u"   -t          temp dir"
-	print u"   -m          create md5sum file"
-	print u"   -z          create zsync file"
-	print u"   --no-pigz   Disable the usage of pigz"
-	print u""
 
 
 class ProgressNotifier(ProgressObserver):
@@ -113,74 +96,85 @@ class ProgressNotifier(ProgressObserver):
 def main(argv):
 	os.umask(022)
 
-	logLevel = LOG_WARNING
-	packageSourceDir = os.getcwd()
-	tempDir = u'/tmp'
-	customName = u''
-	customOnly = False
-	quiet = False
-	format = 'cpio'
-	compression = 'gzip'
-	disablePigz = False
-	dereference = False
-	requiredVersion = None
-	incremental = False
-	compatibilityMode = False
-	createMd5SumFile = False
-	createZsyncFile = False
-
-	logger.setConsoleLevel(logLevel)
+	logger.setConsoleLevel(LOG_WARNING)
 	logger.setConsoleColor(True)
 	logger.setConsoleFormat(u'%L: %M')
 
-	try:
-		(opts, args) = getopt.getopt(argv, "Chvzmnqi:c:t:l:F:I:", ['no-pigz'])
-	except getopt.GetoptError:
-		usage()
+	parser = argparse.ArgumentParser(add_help=False,
+		description=("Provides an opsi package from a package source directory.\n"
+					"If no source directory is supplied, the current directory will be used.")
+	)
+	parser.add_argument('--help', action='store_true', default=False,
+						help="Show help.")  # Manual implementation because of -h
+	parser.add_argument('--version', '-V', action='version', version=__version__)
+	parser.add_argument('--quiet', '-q', action='store_true', default=False,
+						help="do not show progress")
+	parser.add_argument('--verbose', '-v', default=False, action="store_true",
+						help="verbose")
+	parser.add_argument('--log-level', '-l', dest="logLevel", type=int,
+						default=LOG_WARNING, help="Log-level 0..9")
+	parser.add_argument('-n', dest="compression", help="Do not compress",
+						default='gzip', action='store_const', const=None)
+	parser.add_argument('-F', dest="format", default='cpio', choices=['cpio', 'tar'],
+						help="archive format [tar|cpio], default: cpio")
+	parser.add_argument('-h', dest="dereference", help="follow symlinks",
+						default=False, action='store_true')
+	parser.add_argument('-I', dest="incremental", help="incremental package",
+						metavar='required version', default=0)
+	customGroup = parser.add_mutually_exclusive_group()
+	customGroup.add_argument('-i', dest="customName", default=u'',
+							metavar='custom name',
+							help="custom name (add custom files)")
+	customGroup.add_argument('-c', dest="customOnly", default=False,
+							metavar='custom name',
+							help="custom name (custom only)")
+	parser.add_argument('-C', dest="compatibilityMode", default=False,
+						action="store_true", help="compatibility mode (opsi 3)")
+	parser.add_argument('-t', dest="tempDir", help="temp dir", default=u'/tmp',
+						metavar='directory')
+	parser.add_argument('-m', dest="createMd5SumFile", help="create md5sum file",
+						default=False, action='store_true')
+	parser.add_argument('-z', dest="createZsyncFile", help="create zsync file",
+						default=False, action='store_true')
+	parser.add_argument('--no-pigz', dest="disablePigz",
+						default=False, action='store_true',
+						help="Disable the usage of pigz")
+	parser.add_argument('packageSourceDir', metavar="source directory",
+						nargs='?', default=os.getcwd())
+
+	args = parser.parse_args()
+
+	if args.help:
+		parser.print_help()
 		sys.exit(1)
 
-	for (opt, arg) in opts:
-		if (opt == "-h"):
-			dereference = True
-		elif (opt == "-v"):
-			logLevel = LOG_DEBUG
-			logger.setColor(True)
-		elif (opt == "-l"):
-			logLevel = forceInt(arg)
-			logger.setColor(True)
-		elif (opt == "-n"):
-			compression = None
-		elif (opt == "-q"):
-			logLevel = LOG_NONE
-			quiet = True
-		elif (opt == "-i"):
-			customName = arg
-		elif (opt == "-c"):
-			customName = arg
-			customOnly = True
-		elif (opt == "-I"):
-			requiredVersion = arg
-			incremental = True
-		elif (opt == "-t"):
-			tempDir = forceFilename(arg)
-		elif (opt == "-F"):
-			format = forceUnicode(arg)
-		elif (opt == "-C"):
-			compatibilityMode = True
-		elif (opt == "-m"):
-			createMd5SumFile = True
-		elif (opt == "-z"):
-			createZsyncFile = True
-		elif opt == "--no-pigz":
-			disablePigz = True
+	customName = args.customName
+	customOnly = bool(args.customOnly)
+	if customOnly:
+		customName = args.customOnly
+	requiredVersion = args.incremental
+	if requiredVersion:
+		incremental = True
+	dereference = args.dereference
+	logLevel = args.logLevel
+	compression = args.compression
+	quiet = args.quiet
+	tempDir = forceFilename(args.tempDir)
+	format = forceUnicode(args.format)
+	compatibilityMode = args.compatibilityMode
+	createMd5SumFile = args.createMd5SumFile
+	createZsyncFile = args.createZsyncFile
+	packageSourceDir = args.packageSourceDir
+	disablePigz = args.disablePigz
 
-	if len(args) > 1:
-		logger.error(u"Too many arguments")
-		usage()
-		sys.exit(1)
+	if args.verbose:
+		logLevel = LOG_DEBUG
 
-	elif len(args) > 0:
-		packageSourceDir = os.path.abspath(args[0])
+	if logLevel != LOG_WARNING:
+		logger.setColor(True)
+
+	if quiet:
+		logLevel = LOG_NONE
 
 	logger.setConsoleLevel(logLevel)
 

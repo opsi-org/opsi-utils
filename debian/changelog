@@ -1,3 +1,9 @@
+opsi-utils (4.0.6.12-1) UNRELEASED; urgency=medium
+
+  * opsi-makeproductfile: now using argparse internally
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 07 Apr 2016 17:04:33 +0200
+
 opsi-utils (4.0.6.11-1) experimental; urgency=medium
 
   * opsi-backup: Warn during restore if no backends are given.
