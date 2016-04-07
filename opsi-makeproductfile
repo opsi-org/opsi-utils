@@ -27,7 +27,6 @@ opsi-makeproductfile - create opsi-packages for deployment.
 """
 
 import fcntl
-import getopt
 import gettext
 import os
 import re
