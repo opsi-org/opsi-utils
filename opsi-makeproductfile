@@ -38,7 +38,7 @@ import tty
 import OPSI.Util.File.Archive
 from OPSI.Logger import LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, Logger
 from OPSI.System import execute
-from OPSI.Types import forceInt, forceFilename, forceUnicode
+from OPSI.Types import forceFilename, forceUnicode
 from OPSI.Util.Message import ProgressObserver, ProgressSubject
 from OPSI.Util.Product import ProductPackageSource
 from OPSI.Util.File.Opsi import PackageControlFile
