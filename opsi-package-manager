@@ -42,6 +42,7 @@ from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 from duplicity import librsync
+from subprocess import call
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -1341,7 +1342,15 @@ class OpsiPackageManager(object):
 
 	def uninstallPackages(self):
 		for depotId in self.config['depotIds']:
+			subject = self.getDepotSubject(depotId)
 			productIds = []
+			for product in self.config['productIds']:
+				package = self.backend.product_getObjects(id='%s' % product)
+				if not package:
+					subject.setMessage(_(u"WARNING: Product %s not installed on %s. Nothing to remove." % (product, depotId)))
+					logger.error(u"WARNING: Product %s not installed on %s. Nothing to remove." % (product, depotId))
+					call(['sleep', '1'])
+					
 			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
 				productIds.append(productOnDepot.productId)
 			if not productIds:
