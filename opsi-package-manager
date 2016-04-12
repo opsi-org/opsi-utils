@@ -1345,11 +1345,10 @@ class OpsiPackageManager(object):
 			subject = self.getDepotSubject(depotId)
 			productIds = []
 			for product in self.config['productIds']:
-				package = self.backend.product_getObjects(id='%s' % product)
+				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId='%s' % product)
 				if not package:
-					subject.setMessage(_(u"WARNING: Product %s not installed on %s. Nothing to remove." % (product, depotId)))
-					logger.error(u"WARNING: Product %s not installed on %s. Nothing to remove." % (product, depotId))
-					call(['sleep', '1'])
+					subject.setMessage(_(u"WARNING: Product %s not installed on %s." % (product, depotId)))
+					logger.error(u"WARNING: Product %s not installed on %s." % (product, depotId))
 					
 			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
 				productIds.append(productOnDepot.productId)
