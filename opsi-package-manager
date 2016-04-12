@@ -1372,7 +1372,7 @@ class OpsiPackageManager(object):
 		self.waitForTaskQueues()
 
 		if packageNotInstalled:
-			raise Exception('At least one package failed to uninstall, please check the log')
+			raise Exception('At least one package failed to uninstall, please check the package.log')
 
 	def uninstallPackage(self, productId, depotId):
 		subject = self.getDepotSubject(depotId)
