@@ -1,6 +1,9 @@
 opsi-utils (4.0.6.12-1) experimental; urgency=medium
 
-  * opsi-package-manager: error when trying to uninstall non installed package
+  * opsi-package-manager: return error when trying to remove non installed package
+  * opsi-package-manager: logs into package.log with LogLevel 4
+
+ -- Mathias Radtke <m.radtke@uib.de>  Tue, 12 Apr 2016 15:56:31 +0200
 
 opsi-utils (4.0.6.11-1) experimental; urgency=medium
 
