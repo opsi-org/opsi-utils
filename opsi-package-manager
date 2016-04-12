@@ -1343,13 +1343,15 @@ class OpsiPackageManager(object):
 	def uninstallPackages(self):
 		for depotId in self.config['depotIds']:
 			subject = self.getDepotSubject(depotId)
+			packageNotInstalled = False
 			productIds = []
 			for product in self.config['productIds']:
 				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId='%s' % product)
 				if not package:
 					subject.setMessage(_(u"WARNING: Product %s not installed on depot %s." % (product, depotId)))
 					logger.warning(u"WARNING: Product %s not installed on depot %s." % (product, depotId))
-		
+					packageNotInstalled = True
+
 			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
 				productIds.append(productOnDepot.productId)
 			if not productIds:
@@ -1368,6 +1370,9 @@ class OpsiPackageManager(object):
 			logger.info(u"Starting task queue '%s'" % tq.name)
 			tq.start()
 		self.waitForTaskQueues()
+
+		if packageNotInstalled:
+			raise Exception('At least one package failed to uninstall, please check the log')
 
 	def uninstallPackage(self, productId, depotId):
 		subject = self.getDepotSubject(depotId)
@@ -1756,7 +1761,7 @@ class OpsiPackageManagerControl(object):
 		self.config = {
 			'fileLogLevel': LOG_WARNING,
 			'consoleLogLevel': LOG_NONE,
-			'logFile': '/var/log/opsi/opsi-package-manager.log',
+			'logFile': '/var/log/opsi/package.log',
 			'quiet': False,
 			'tempDir': u'/tmp',
 			'backendConfigDir': u'/etc/opsi/backends',

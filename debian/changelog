@@ -1,3 +1,7 @@
+opsi-utils (4.0.6.12-1) experimental; urgency=medium
+
+  * opsi-package-manager: error when trying to uninstall non installed package
+
 opsi-utils (4.0.6.11-1) experimental; urgency=medium
 
   * opsi-backup: Warn during restore if no backends are given.

@@ -20,10 +20,6 @@ case "$1" in
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 
-			LOGROTATE_TEMP=$(tempfile)
-                        LOGROTATE_CONFIG=/etc/logrotate.d/opsi-package-manager
-                        grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
-                        mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 		fi
 	;;
 

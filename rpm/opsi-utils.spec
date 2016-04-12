@@ -13,10 +13,10 @@ Url:            http://www.opsi.org
 License:        GPLv2+
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        4.0.5.2
+Version:        4.0.6.12
 Release:        1
 Summary:        opsi utils
-Source:         opsi-utils_4.0.5.2-1.tar.gz
+Source:         opsi-utils_4.0.6.12-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
@@ -90,7 +90,6 @@ install -m 0644 data/opsi-product-updater.conf $RPM_BUILD_ROOT/etc/opsi/
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
-install -m 0644 data/etc/logrotate.d/opsi-package-manager $RPM_BUILD_ROOT/etc/logrotate.d/
 
 %if 0%{?suse_version} > 1110
 echo "Detected openSuse / SLES"
