@@ -90,6 +90,7 @@ install -m 0644 data/opsi-product-updater.conf $RPM_BUILD_ROOT/etc/opsi/
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
+install -m 0644 data/etc/logrotate.d/opsi-package-manager $RPM_BUILD_ROOT/etc/logrotate.d/
 
 %if 0%{?suse_version} > 1110
 echo "Detected openSuse / SLES"

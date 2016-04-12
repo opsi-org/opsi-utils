@@ -1347,9 +1347,9 @@ class OpsiPackageManager(object):
 			for product in self.config['productIds']:
 				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId='%s' % product)
 				if not package:
-					subject.setMessage(_(u"WARNING: Product %s not installed on %s." % (product, depotId)))
-					logger.error(u"WARNING: Product %s not installed on %s." % (product, depotId))
-					
+					subject.setMessage(_(u"WARNING: Product %s not installed on depot %s." % (product, depotId)))
+					logger.warning(u"WARNING: Product %s not installed on depot %s." % (product, depotId))
+		
 			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
 				productIds.append(productOnDepot.productId)
 			if not productIds:
@@ -1754,9 +1754,9 @@ class OpsiPackageManagerControl(object):
 
 	def setDefaultConfig(self):
 		self.config = {
-			'fileLogLevel': LOG_DEBUG2,
+			'fileLogLevel': LOG_WARNING,
 			'consoleLogLevel': LOG_NONE,
-			'logFile': None,
+			'logFile': '/var/log/opsi/opsi-package-manager.log',
 			'quiet': False,
 			'tempDir': u'/tmp',
 			'backendConfigDir': u'/etc/opsi/backends',
@@ -1888,7 +1888,7 @@ class OpsiPackageManagerControl(object):
 		print u"  -v, --verbose                           increase verbosity (can be used multiple times)"
 		print u"  -q, --quiet                             do not display any messages"
 		print u"  --log-file         <log-file>           path to debug log file"
-		print u"  --log-file-level   <log-file-level>     log file level (default 8)"
+		print u"  --log-file-level   <log-file-level>     log file level (default 4)"
 		print u"  -d, --depots       <depots>             comma separated list of depot ids to process"
 		print u"			 	             all = all known depots"
 		print u"  -p, --properties   <mode>               mode for default product property values"
