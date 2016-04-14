@@ -1,22 +1,22 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR ORGANIZATION
-#
+# 
 # Translators:
 # Automatically generated, 2010
-# Niko Wenselowski, 2015
+# Mathias Radtke <m.radtke@uib.de>, 2016
+# Niko Wenselowski, 2015-2016
 msgid ""
 msgstr ""
 "Project-Id-Version: opsi.org\n"
 "POT-Creation-Date: 2016-04-14 11:59+CEST\n"
-"PO-Revision-Date: 2015-03-23 16:59+0000\n"
-"Last-Translator: Niko Wenselowski\n"
-"Language-Team: German (http://www.transifex.com/opsi-org/opsiorg/language/"
-"de/)\n"
-"Language: de\n"
+"PO-Revision-Date: 2016-04-14 10:23+0000\n"
+"Last-Translator: Mathias Radtke <m.radtke@uib.de>\n"
+"Language-Team: German (http://www.transifex.com/opsi-org/opsiorg/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: ENCODING\n"
 "Generated-By: pygettext.py 1.5\n"
+"Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../opsi-admin:134
@@ -93,7 +93,7 @@ msgstr "Rohdaten-Ausgabe"
 
 #: ../opsi-admin:152
 msgid "Always exit with exit code 0."
-msgstr ""
+msgstr "Beende immer mit Exit-Code 0."
 
 #: ../opsi-admin:505
 msgid "Delete log-file '%s'?"
@@ -238,9 +238,7 @@ msgstr "Paket-Datei '%s' existiert bereits."
 
 #: ../opsi-makeproductfile:292
 msgid "Press <O> to overwrite, <C> to abort or <N> to specify a new version:"
-msgstr ""
-"Drücken Sie <O> zum Überschreiben, <C> zum Abbrechen oder <N> um einen neue "
-"Versionsnummer anzugeben:"
+msgstr "Drücken Sie <O> zum Überschreiben, <C> zum Abbrechen oder <N> um einen neue Versionsnummer anzugeben:"
 
 #: ../opsi-makeproductfile:307
 msgid "Aborted"
@@ -250,9 +248,7 @@ msgstr "Abgebrochen"
 msgid ""
 "Please specify new product version, press <ENTER> to keep current version "
 "(%s):"
-msgstr ""
-"Bitte eine neue Produkt-Version eingeben, <ENTER> drücken um die momentane "
-"Version (%s) beizubehalten:"
+msgstr "Bitte eine neue Produkt-Version eingeben, <ENTER> drücken um die momentane Version (%s) beizubehalten:"
 
 #: ../opsi-makeproductfile:325
 msgid "Bad product version: %s"
@@ -262,9 +258,7 @@ msgstr "Ungültige Produkt-Version: %s"
 msgid ""
 "Please specify new package version, press <ENTER> to keep current version "
 "(%s):"
-msgstr ""
-"Bitte eine neue Paket-Version eingeben, <ENTER> drücken um die momentane "
-"Version (%s) beizubehalten:"
+msgstr "Bitte eine neue Paket-Version eingeben, <ENTER> drücken um die momentane Version (%s) beizubehalten:"
 
 #: ../opsi-makeproductfile:336
 msgid "Bad package version: %s"
@@ -298,9 +292,7 @@ msgstr "Kopiert den Inhalt von VERZEICHNIS in das Ziel-Verzeichnis."
 msgid ""
 "The destination of the new product source. If no destination directory is "
 "supplied, the current directory is used."
-msgstr ""
-"Das Zielverzeichnis für die neuen Produkt-Quellen. Falls kein "
-"Zielverzeichnis angegeben wird, wird das aktuelle Verzeichnis verwendet."
+msgstr "Das Zielverzeichnis für die neuen Produkt-Quellen. Falls kein Zielverzeichnis angegeben wird, wird das aktuelle Verzeichnis verwendet."
 
 #: ../opsi-newprod:99
 msgid "Please select product type"
@@ -321,20 +313,8 @@ msgid ""
 "Product version:  Version defined by software producer.\n"
 "Package version:  Opsi package version of the product.\n"
 "License required: Is a license required (0|1)?\n"
-"Priority:         The installation priority class of this product (value "
-"between -100 and 100, 0 = neutral).\n"
-msgstr ""
-"\n"
-"Produkt-ID:       Ein eindeutiger Bezeichner für das Produkt.\n"
-"Produkt-Name:     Der volle Name des Produkts.\n"
-"Beschreibung:     Eine Produkt-Beschreibung (\\n für Zeilenumbrüche "
-"verwenden).\n"
-"Hinweis:          Ein zusätzlicher wichtiger Hinweis.\n"
-"Produkt-Version:  Versionsnummer wie vom Software-Hersteller angegeben.\n"
-"Paket-Version:    Opsi-Paket-Versionsnummer des Produkts.\n"
-"Lizenzpflichtig:  Ist das Produkt lizenzpflichtig (0|1)?\n"
-"Priorität:        Die Prioritätsklasse des Produkts (von -100 bis 100, 0 = "
-"neutral).\n"
+"Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral).\n"
+msgstr "\nProdukt-ID:       Ein eindeutiger Bezeichner für das Produkt.\nProdukt-Name:     Der volle Name des Produkts.\nBeschreibung:     Eine Produkt-Beschreibung (\\n für Zeilenumbrüche verwenden).\nHinweis:          Ein zusätzlicher wichtiger Hinweis.\nProdukt-Version:  Versionsnummer wie vom Software-Hersteller angegeben.\nPaket-Version:    Opsi-Paket-Versionsnummer des Produkts.\nLizenzpflichtig:  Ist das Produkt lizenzpflichtig (0|1)?\nPriorität:        Die Prioritätsklasse des Produkts (von -100 bis 100, 0 = neutral).\n"
 
 #: ../opsi-newprod:129
 msgid "Product id"
@@ -424,24 +404,7 @@ msgid ""
 "Custom script:       Relative path to script for action \"custom\".\n"
 "User login script:   Relative path to script for user login.\n"
 "PXE config template: path to a custom pxelinux config template.\n"
-msgstr ""
-"\n"
-"Setup-Skript:               Relativer Pfad zum Skript für die Aktion \"setup"
-"\".\n"
-"Uninstall-Skript:           Relativer Pfad zum Skript für die Aktion "
-"\"uninstall\".\n"
-"Update-Skript:              Relativer Pfad zum Skript für die Aktion \"update"
-"\".\n"
-"Always-Skript:              Relativer Pfad zum Skript für die Aktion \"always"
-"\".\n"
-"Once-Skript:                Relativer Pfad zum Skript für die Aktion \"once"
-"\".\n"
-"Custom-Skript:              Relativer Pfad zum Skript für die Aktion \"custom"
-"\".\n"
-"Benutzer-Anmeldungs-Skript: Relativer Pfad zum Skript für die Benutzer-"
-"Anmeldung.\n"
-"PXE-Konfigurations-Vorlage: Pfad zu einer spezifischen PXE-Konfigurations-"
-"Vorlage.\n"
+msgstr "\nSetup-Skript:               Relativer Pfad zum Skript für die Aktion \"setup\".\nUninstall-Skript:           Relativer Pfad zum Skript für die Aktion \"uninstall\".\nUpdate-Skript:              Relativer Pfad zum Skript für die Aktion \"update\".\nAlways-Skript:              Relativer Pfad zum Skript für die Aktion \"always\".\nOnce-Skript:                Relativer Pfad zum Skript für die Aktion \"once\".\nCustom-Skript:              Relativer Pfad zum Skript für die Aktion \"custom\".\nBenutzer-Anmeldungs-Skript: Relativer Pfad zum Skript für die Benutzer-Anmeldung.\nPXE-Konfigurations-Vorlage: Pfad zu einer spezifischen PXE-Konfigurations-Vorlage.\n"
 
 #: ../opsi-newprod:216
 msgid "Setup script"
@@ -527,8 +490,7 @@ msgstr "Nein"
 msgid ""
 "\n"
 "You have to specify either a required product or a required product class.\n"
-"You have to specify either a required installation status or a required "
-"action.\n"
+"You have to specify either a required installation status or a required action.\n"
 "The requirement type is optional.\n"
 "Possible actions are:\n"
 "   %s\n"
@@ -536,19 +498,7 @@ msgid ""
 "   %s\n"
 "Possible requirement types are:\n"
 "   %s\n"
-msgstr ""
-"\n"
-"Sie müssen entweder ein benötigtes Produkt oder eine benötigte Produkt-"
-"Klasse angeben.\n"
-"Sie müssen entweder einen benötigten Installations-Status oder eine "
-"benötigte Aktion angeben.\n"
-"The requirement type is optional.\n"
-"Mögliche Aktionen sind:\n"
-"   %s\n"
-"Mögliche Installations-Zustände sind:\n"
-"   %s\n"
-"Mögliche Typen von Abhängigkeiten sind:\n"
-"   %s\n"
+msgstr "\nSie müssen entweder ein benötigtes Produkt oder eine benötigte Produkt-Klasse angeben.\nSie müssen entweder einen benötigten Installations-Status oder eine benötigte Aktion angeben.\nThe requirement type is optional.\nMögliche Aktionen sind:\n   %s\nMögliche Installations-Zustände sind:\n   %s\nMögliche Typen von Abhängigkeiten sind:\n   %s\n"
 
 #: ../opsi-newprod:327
 msgid "Create product dependency?"
@@ -601,9 +551,7 @@ msgstr "Der benötigte Installations-Zustand ist ungültig."
 #: ../opsi-newprod:388
 msgid ""
 "Please specify either a required installation status or a required action."
-msgstr ""
-"Bitte entweder einen benötigten Installations-Status oder eine benötigte "
-"Aktion angeben."
+msgstr "Bitte entweder einen benötigten Installations-Status oder eine benötigte Aktion angeben."
 
 #: ../opsi-newprod:394
 msgid "Requirement type is not valid."
@@ -614,21 +562,10 @@ msgid ""
 "\n"
 "Property name:        Name of the property.\n"
 "Property description: Usage description.\n"
-"Possible values:      Comma separated list of possible values for the "
-"property.\n"
-"                      If no possible values are given any values are "
-"allowed.\n"
-"Editable:             Is it allowed to specify a value which is not in the "
-"list of possible values?\n"
-msgstr ""
-"\n"
-"Eigenschafts-Name:         Name der Eigenschaft.\n"
-"Eigenschafts-Beschreibung: Beschreibung der Eigenschaft.\n"
-"Mögliche Werte:            Komma-getrennte Liste der möglichen Werte.\n"
-"                           Werden keine Werte angegeben, sind alle Werte "
-"erlaubt.\n"
-"Editierbar:                Soll es möglich sein einen Wert außerhalb der "
-"Liste der möglichen Werte anzugeben?\n"
+"Possible values:      Comma separated list of possible values for the property.\n"
+"                      If no possible values are given any values are allowed.\n"
+"Editable:             Is it allowed to specify a value which is not in the list of possible values?\n"
+msgstr "\nEigenschafts-Name:         Name der Eigenschaft.\nEigenschafts-Beschreibung: Beschreibung der Eigenschaft.\nMögliche Werte:            Komma-getrennte Liste der möglichen Werte.\n                           Werden keine Werte angegeben, sind alle Werte erlaubt.\nEditierbar:                Soll es möglich sein einen Wert außerhalb der Liste der möglichen Werte anzugeben?\n"
 
 #: ../opsi-newprod:414
 msgid "Create product property?"
@@ -690,9 +627,7 @@ msgstr "Bitte gültige Stadard-Werte angeben: %s"
 msgid ""
 "\n"
 "Maintainer of this opsi package.\n"
-msgstr ""
-"\n"
-"Betreuer dieses opsi-Pakets.\n"
+msgstr "\nBetreuer dieses opsi-Pakets.\n"
 
 #: ../opsi-newprod:539
 msgid "Maintainer name"
@@ -748,9 +683,7 @@ msgstr "%d/%d laufende Task-Warteschlangen"
 
 #: ../opsi-package-manager:816
 msgid "Setting action setup for product %s where installed"
-msgstr ""
-"Setzte Aktion setup für alle Clients auf denen das Produkt %s installiert "
-"ist."
+msgstr "Setzte Aktion setup für alle Clients auf denen das Produkt %s installiert ist."
 
 #: ../opsi-package-manager:836
 msgid "Setting action %s for product %s on client(s): %s"
@@ -768,9 +701,7 @@ msgstr "Entferne Client-spezifische Einstellungen für das Produkt %s"
 
 #: ../opsi-package-manager:861
 msgid "Purging product property states for product '%s' on client(s): %s"
-msgstr ""
-"Entferne Client-spezifische Einstellungen für das Produkt '%s' und die "
-"folgend Clients: %s"
+msgstr "Entferne Client-spezifische Einstellungen für das Produkt '%s' und die folgend Clients: %s"
 
 #: ../opsi-package-manager:899
 msgid "Waiting for free upload slot for %s"
@@ -818,7 +749,7 @@ msgstr "Starte Übetragung von %s"
 
 #: ../opsi-package-manager:1073
 msgid "Upload of %s finished"
-msgstr "Übetragung von %s abgeschlossen"
+msgstr "Übertragung von %s abgeschlossen"
 
 #: ../opsi-package-manager:1086
 msgid "Verifying upload"
@@ -861,21 +792,13 @@ msgid "Installation of package %s successful"
 msgstr "Installation von %s erfolgreich"
 
 #: ../opsi-package-manager:1395
-#, fuzzy
 msgid "Uninstallation of package {0} successful"
-msgstr "Deinstallation des Pakets %s erfolgreich"
+msgstr "Deinstallation des Pakets {0} erfolgreich"
 
 #: ../opsi-package-manager:1560
-#, fuzzy
 msgid "Errors occurred: "
-msgstr "Es sind Fehler aufgetreten: "
+msgstr "Ein Fehler ist aufgetreten:"
 
 #: ../opsi-package-manager:1563
 msgid "Failure while processing %s:"
 msgstr "Fehler beim Bearbeiten von %s:"
-
-#~ msgid "Given productId not found"
-#~ msgstr "Angegebene Produkt-ID wurde nicht gefunden."
-
-#~ msgid "Uninstalling package %s"
-#~ msgstr "Deinstalliere Paket %s"
