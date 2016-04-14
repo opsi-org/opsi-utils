@@ -1348,26 +1348,26 @@ class OpsiPackageManager(object):
 			for product in self.config['productIds']:
 				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId='%s' % product)
 				if not package:
-					subject.setMessage(_(u"WARNING: Product {} not installed on depot {}.".format(product, depotId)), severity=3)
-					logger.warning(u"WARNING: Product {} not installed on depot {}.".format(product, depotId))
+					subject.setMessage(_(u"WARNING: Product {0} not installed on depot {1}.".format(product, depotId)), severity=3)
+					logger.warning(u"WARNING: Product {0} not installed on depot {1}.".format(product, depotId))
 					packageNotInstalled = True
 
 			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
 				productIds.append(productOnDepot.productId)
 			if not productIds:
 				continue
-			tq = TaskQueue(name=u"Uninstall of package(s) {} on depot '{}'".format(', '.join(productIds), depotId))
+			tq = TaskQueue(name=u"Uninstall of package(s) {0} on depot {1!r}".format(', '.join(productIds), depotId))
 			for productId in productIds:
 				tq.addTask(
 					UninstallTask(
-						name=u"Uninstall of package '{}' on depot '{}'".format(productId, depotId),
+						name=u"Uninstall of package {0!r} on depot {1!r}".format(productId, depotId),
 						opsiPackageManager=self,
 						method=self.uninstallPackage,
 						params=[productId, depotId]
 					)
 				)
 			self.taskQueues.append(tq)
-			logger.info(u"Starting task queue '{}'".format(tq.name))
+			logger.info(u"Starting task queue {0!r}".format(tq.name))
 			tq.start()
 		self.waitForTaskQueues()
 		if packageNotInstalled:
@@ -1377,22 +1377,22 @@ class OpsiPackageManager(object):
 		subject = self.getDepotSubject(depotId)
 
 		try:
-			logger.notice(u"Uninstalling package '{}' on depot '{}'".format(productId, depotId))
-			subject.setMessage(_(u"Uninstalling package {}".format(productId)))
+			logger.notice(u"Uninstalling package {0!r} on depot {1!r}".format(productId, depotId))
+			subject.setMessage(_(u"Uninstalling package {0}".format(productId)))
 
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
-			logger.info(u"Using '{}' as repository url".format(depot.getRepositoryRemoteUrl()))
+			logger.info(u"Using {0!r} as repository url".format(depot.getRepositoryRemoteUrl()))
 			repository = getRepository(url=depot.getRepositoryRemoteUrl(), username=depotId, password=depot.getOpsiHostKey())
 			for destination in repository.listdir():
-				if not destination.startswith(u'{}_'.format(productId)):
+				if not destination.startswith(u'{0}_'.format(productId)):
 					continue
-				logger.info(u"Deleting destination '{}' on depot '{}'".format(destination, depotId))
+				logger.info(u"Deleting destination {0!r} on depot {1!r}".format(destination, depotId))
 				repository.delete(destination)
 
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_uninstallPackage(productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall'])
-			logger.notice(u"Uninstall of package '{}' on depot '{}' finished".format(productId, depotId))
-			subject.setMessage(_(u"Uninstallation of package {} successful").format(productId), severity=4)
+			logger.notice(u"Uninstall of package {0!r} on depot {1!r} finished".format(productId, depotId))
+			subject.setMessage(_(u"Uninstallation of package {0} successful").format(productId), severity=4)
 
 		except Exception as uninstallError:
 			logger.error(uninstallError)
