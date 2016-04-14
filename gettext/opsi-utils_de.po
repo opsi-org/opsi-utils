@@ -1,6 +1,6 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR ORGANIZATION
-# 
+#
 # Translators:
 # Automatically generated, 2010
 # Niko Wenselowski, 2015
@@ -748,7 +748,7 @@ msgstr "Starte Übetragung von %s"
 
 #: ../opsi-package-manager:1069
 msgid "Upload of %s finished"
-msgstr "Übetragung von %s abgeschlossen"
+msgstr "Übertragung von %s abgeschlossen"
 
 #: ../opsi-package-manager:1082
 msgid "Verifying upload"
