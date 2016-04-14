@@ -341,7 +341,7 @@ def main(argv):
 						shell.cmdline = cmd
 						shell.execute()
 
-				logger.debug(shell.getLines())
+				logger.debug("Shell lines are: {0!r}".format(shell.getLines()))
 				for line in shell.lines:
 					print(forceUnicode(line['text']).rstrip().encode(outEncoding), file=sys.stdout)
 
@@ -349,7 +349,7 @@ def main(argv):
 					resultAsJSON = json.loads(u'\n'.join([line['text'] for line in shell.lines]))
 					searchForError(dict(resultAsJSON))
 				except (TypeError, ValueError) as error:
-					logger.debug(u"Conversion to dict failed: {0}".format(error))
+					logger.debug2(u"Conversion to dict failed: {0}".format(error))
 			except Exception as error:
 				logger.logException(forceUnicode(error))
 				raise error
@@ -1171,7 +1171,7 @@ class CommandMethod(Command):
 		logger.debug(u'Took %0.3f seconds to process: %s(%s)' % (duration, method, pString))
 		shell.setInfoline(_(u'Took %0.3f seconds to process: %s(%s)') % (duration, method, pString))
 		result = serialize(result)
-		logger.debug2(result)
+		logger.debug2(u"Serialized result: {0!r}".format(result))
 
 		if result:
 			lines = []
