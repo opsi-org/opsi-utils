@@ -89,6 +89,7 @@ install -m 0644 data/opsi-product-updater.conf $RPM_BUILD_ROOT/etc/opsi/
 
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
+install -m 0644 data/etc/logrotate.d/opsi-package-manager $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
 
 %if 0%{?suse_version} > 1110
@@ -98,6 +99,11 @@ if [ "$(zypper --terse versioncmp $LOGROTATE_VERSION 3.8)" == "-1" ]; then
 	echo "Fixing logrotate configuration for logrotate version older than 3.8"
 	LOGROTATE_TEMP=data/etc/logrotate.d/opsi-backup.temp
 	LOGROTATE_CONFIG=data/etc/logrotate.d/opsi-backup
+	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
+	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+
+	LOGROTATE_TEMP=data/etc/logrotate.d/opsi-package-manager.temp
+	LOGROTATE_CONFIG=data/etc/logrotate.d/opsi-package-manager
 	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 
@@ -118,6 +124,11 @@ fi
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 
+			LOGROTATE_TEMP=data/etc/logrotate.d/opsi-package-manager.temp
+			LOGROTATE_CONFIG=data/etc/logrotate.d/opsi-package-manager
+			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
+			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+
 			LOGROTATE_TEMP=data/etc/logrotate.d/opsi-product-updater.temp
 			LOGROTATE_CONFIG=data/etc/logrotate.d/opsi-product-updater
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
@@ -126,6 +137,7 @@ fi
 	%endif
 %endif
 install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
+install -m 0644 data/etc/logrotate.d/opsi-package-manager $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
 
 # ===[ clean ]======================================
@@ -156,6 +168,7 @@ rm -rf $RPM_BUILD_ROOT
 # configfiles
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-product-updater.conf
 %config /etc/logrotate.d/opsi-backup
+%config /etc/logrotate.d/opsi-package-manager
 %config /etc/logrotate.d/opsi-product-updater
 
 # other files
