@@ -1,221 +1,222 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR ORGANIZATION
-# 
+#
 # Translators:
 # Automatically generated, 2010
 # Niko Wenselowski, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: opsi.org\n"
-"POT-Creation-Date: 2015-03-23 15:16+CET\n"
+"POT-Creation-Date: 2016-04-14 11:59+CEST\n"
 "PO-Revision-Date: 2015-03-23 16:59+0000\n"
 "Last-Translator: Niko Wenselowski\n"
-"Language-Team: German (http://www.transifex.com/opsi-org/opsiorg/language/de/)\n"
+"Language-Team: German (http://www.transifex.com/opsi-org/opsiorg/language/"
+"de/)\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: ENCODING\n"
 "Generated-By: pygettext.py 1.5\n"
-"Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../opsi-admin:127
+#: ../opsi-admin:134
 msgid "Usage: %s [options] [command] [args...]"
 msgstr "Verwendung: %s [options] [command] [args...]"
 
-#: ../opsi-admin:128
+#: ../opsi-admin:135
 msgid "Options:"
 msgstr "Optionen:"
 
-#: ../opsi-admin:129
+#: ../opsi-admin:136
 msgid "Display this text"
 msgstr "Diesen Hilfetext anzeigen"
 
-#: ../opsi-admin:130
+#: ../opsi-admin:137
 msgid "Show version and exit"
 msgstr "Versionsnummer ausgeben und beenden"
 
-#: ../opsi-admin:131
+#: ../opsi-admin:138
 msgid "Username (default: current user)"
 msgstr "Benutzername (standard: momentaner Benutzer)"
 
-#: ../opsi-admin:132
+#: ../opsi-admin:139
 msgid "Password (default: prompt for password)"
 msgstr "Passwort (standard: Passwort interaktiv abfragen)"
 
-#: ../opsi-admin:133
+#: ../opsi-admin:140
 msgid "URL of opsiconfd (default: https://localhost:4447/rpc)"
 msgstr "URL des opsiconfd (standard: https://localhost:4447/rpc)"
 
-#: ../opsi-admin:134
+#: ../opsi-admin:141
 msgid "Do not use opsiconfd"
 msgstr "opsiconfd umgehen"
 
-#: ../opsi-admin:135
+#: ../opsi-admin:142
 msgid "Do not use depotserver backend"
 msgstr "Depotserver-Backend nicht verwenden"
 
-#: ../opsi-admin:136
+#: ../opsi-admin:143
 msgid "Set log level (default: 3)"
 msgstr "Log-Level (standard: 3)"
 
-#: ../opsi-admin:137
+#: ../opsi-admin:144
 msgid "0=nothing, 1=essential, 2=critical, 3=error, 4=warning"
 msgstr "0=nichts, 1=essenziell, 2=kritisch, 3=Fehler, 4=Warnungen"
 
-#: ../opsi-admin:138
+#: ../opsi-admin:145
 msgid "5=notice, 6=info, 7=debug, 8=debug2, 9=confidential"
 msgstr "5=Hinweise, 6=Informationen, 7=debug, 8=debug2, 9=vertraulich"
 
-#: ../opsi-admin:139
+#: ../opsi-admin:146
 msgid "Path to log file"
 msgstr "Pfad zur Log-Datei"
 
-#: ../opsi-admin:140
+#: ../opsi-admin:147
 msgid "Start in interactive mode"
 msgstr "Im interaktiven Modus starten"
 
-#: ../opsi-admin:141
+#: ../opsi-admin:148
 msgid "Colorize output"
 msgstr "Farbige Ausgabe"
 
-#: ../opsi-admin:142
+#: ../opsi-admin:149
 msgid "Simple output (only for scalars, lists)"
 msgstr "Einfache Ausgabe (nur für Skalare und Listen)"
 
-#: ../opsi-admin:143
+#: ../opsi-admin:150
 msgid "Shell output"
 msgstr "Shell-Ausgabe"
 
-#: ../opsi-admin:144
+#: ../opsi-admin:151
 msgid "Raw output"
 msgstr "Rohdaten-Ausgabe"
 
-#: ../opsi-admin:473
+#: ../opsi-admin:152
+msgid "Always exit with exit code 0."
+msgstr ""
+
+#: ../opsi-admin:505
 msgid "Delete log-file '%s'?"
 msgstr "Log-Datei '%s' löschen?"
 
-#: ../opsi-admin:716
+#: ../opsi-admin:748
 msgid "Invalid command: '%s'"
 msgstr "Ungültiger Befehl: '%s'"
 
-#: ../opsi-admin:742
+#: ../opsi-admin:774
 msgid "Please type password:"
 msgstr "Bitte Passwort eingeben:"
 
-#: ../opsi-admin:748
+#: ../opsi-admin:780
 msgid "Please retype password:"
 msgstr "Bitte Passwort erneut eingeben:"
 
-#: ../opsi-admin:755
+#: ../opsi-admin:787
 msgid "Supplied passwords do not match"
 msgstr "Die eingegebenen Passwörter stimmen nicht überein."
 
-#: ../opsi-admin:1040
+#: ../opsi-admin:1072
 msgid "Execute a config-interface-method"
 msgstr "Eine config-interface-Methode ausführen"
 
-#: ../opsi-admin:1043
+#: ../opsi-admin:1075
 msgid "Methods are:"
 msgstr "Verfügbare Methoden:"
 
-#: ../opsi-admin:1074
+#: ../opsi-admin:1106
 msgid "No method defined"
 msgstr "Keine Methode angegeben"
 
-#: ../opsi-admin:1139
+#: ../opsi-admin:1172
 msgid "Took %0.3f seconds to process: %s(%s)"
 msgstr "Ausgeführt in %0.3f Sekunden: %s(%s)"
 
-#: ../opsi-admin:1247
+#: ../opsi-admin:1280
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: ../opsi-admin:1278
+#: ../opsi-admin:1311
 msgid "Missing option"
 msgstr "Fehlende Option"
 
-#: ../opsi-admin:1280
+#: ../opsi-admin:1313
 msgid "Unknown option: %s"
 msgstr "Unbekannte Option: %s"
 
-#: ../opsi-admin:1282
+#: ../opsi-admin:1315
 msgid "Missing value"
 msgstr "Fehlender Wert"
 
-#: ../opsi-admin:1290
+#: ../opsi-admin:1323
 msgid "Bad value: %s"
 msgstr "Unerlaubter Wert: %s"
 
-#: ../opsi-admin:1306
+#: ../opsi-admin:1335
 msgid "No log-file set!"
 msgstr "Keine Log-Datei definiert!"
 
-#: ../opsi-admin:1315
+#: ../opsi-admin:1344
 msgid "Show this text"
 msgstr "Diesen Text anzeigen"
 
-#: ../opsi-admin:1318
+#: ../opsi-admin:1347
 msgid "Commands are:"
 msgstr "Verfügbare Befehle:"
 
-#: ../opsi-admin:1329
+#: ../opsi-admin:1358
 msgid "Exit opsi-admin"
 msgstr "opsi-admin beenden"
 
-#: ../opsi-admin:1345
+#: ../opsi-admin:1374
 msgid "show / clear command history"
 msgstr "Befehls-Historie anzeigen/löschen"
 
-#: ../opsi-admin:1366 ../opsi-admin:1401
+#: ../opsi-admin:1395 ../opsi-admin:1430
 msgid "Unknown command: %s"
 msgstr "Unbekannter Befehl: %s"
 
-#: ../opsi-admin:1382
+#: ../opsi-admin:1411
 msgid "show log"
 msgstr "Log-Datei anzeigen"
 
-#: ../opsi-admin:1405
+#: ../opsi-admin:1434
 msgid "File logging is not activated"
 msgstr "Protokollierung in Datei ist nicht aktiviert"
 
-#: ../opsi-admin:1429
+#: ../opsi-admin:1458
 msgid "execute a task"
 msgstr "Einen Task ausführen"
 
-#: ../opsi-admin:1459
+#: ../opsi-admin:1488
 msgid "Unknown task: %s"
 msgstr "Unbekannter Task: %s"
 
-#: ../opsi-admin:1463 ../opsi-admin:1478 ../opsi-admin:1493 ../opsi-admin:1508
-#: ../opsi-admin:1525 ../opsi-admin:1555 ../opsi-admin:1569
+#: ../opsi-admin:1492 ../opsi-admin:1504 ../opsi-admin:1516 ../opsi-admin:1528
+#: ../opsi-admin:1542 ../opsi-admin:1558 ../opsi-admin:1572
 msgid "Missing product-id"
 msgstr "Fehlende Produkt-ID"
 
-#: ../opsi-admin:1467 ../opsi-admin:1482 ../opsi-admin:1497 ../opsi-admin:1512
-msgid "Given productId not found"
-msgstr "Angegebene Produkt-ID wurde nicht gefunden."
-
-#: ../opsi-admin:1523 ../opsi-admin:1553 ../opsi-admin:1567
+#: ../opsi-admin:1540 ../opsi-admin:1556 ../opsi-admin:1570
 msgid "Missing action request"
 msgstr "Fehlende angeforderte Aktion"
 
-#: ../opsi-admin:1557
+#: ../opsi-admin:1560
 msgid "Missing client-id"
 msgstr "Fehlende Client-ID"
 
-#: ../opsi-admin:1599
+#: ../opsi-admin:1587
 msgid "Missing argument"
 msgstr "Fehlendes Argument"
 
-#: ../opsi-admin:1607
+#: ../opsi-admin:1595
 msgid "You have to be root to change pcpatch password!"
 msgstr "Sie müssen root sein um das pcpatch-Passwort ändern zu können!"
 
-#: ../opsi-admin:1611
+#: ../opsi-admin:1599
 msgid "Failed to get my own fully qualified domainname"
 msgstr "Konnte den vollen Hostnamen des Servers nicht ermitteln"
 
-#: ../opsi-makeproductfile:211
+#: ../opsi-makeproductfile:207
 msgid "Locking package"
 msgstr "Sperre Paket"
 
@@ -237,7 +238,9 @@ msgstr "Paket-Datei '%s' existiert bereits."
 
 #: ../opsi-makeproductfile:292
 msgid "Press <O> to overwrite, <C> to abort or <N> to specify a new version:"
-msgstr "Drücken Sie <O> zum Überschreiben, <C> zum Abbrechen oder <N> um einen neue Versionsnummer anzugeben:"
+msgstr ""
+"Drücken Sie <O> zum Überschreiben, <C> zum Abbrechen oder <N> um einen neue "
+"Versionsnummer anzugeben:"
 
 #: ../opsi-makeproductfile:307
 msgid "Aborted"
@@ -247,7 +250,9 @@ msgstr "Abgebrochen"
 msgid ""
 "Please specify new product version, press <ENTER> to keep current version "
 "(%s):"
-msgstr "Bitte eine neue Produkt-Version eingeben, <ENTER> drücken um die momentane Version (%s) beizubehalten:"
+msgstr ""
+"Bitte eine neue Produkt-Version eingeben, <ENTER> drücken um die momentane "
+"Version (%s) beizubehalten:"
 
 #: ../opsi-makeproductfile:325
 msgid "Bad product version: %s"
@@ -257,7 +262,9 @@ msgstr "Ungültige Produkt-Version: %s"
 msgid ""
 "Please specify new package version, press <ENTER> to keep current version "
 "(%s):"
-msgstr "Bitte eine neue Paket-Version eingeben, <ENTER> drücken um die momentane Version (%s) beizubehalten:"
+msgstr ""
+"Bitte eine neue Paket-Version eingeben, <ENTER> drücken um die momentane "
+"Version (%s) beizubehalten:"
 
 #: ../opsi-makeproductfile:336
 msgid "Bad package version: %s"
@@ -291,7 +298,9 @@ msgstr "Kopiert den Inhalt von VERZEICHNIS in das Ziel-Verzeichnis."
 msgid ""
 "The destination of the new product source. If no destination directory is "
 "supplied, the current directory is used."
-msgstr "Das Zielverzeichnis für die neuen Produkt-Quellen. Falls kein Zielverzeichnis angegeben wird, wird das aktuelle Verzeichnis verwendet."
+msgstr ""
+"Das Zielverzeichnis für die neuen Produkt-Quellen. Falls kein "
+"Zielverzeichnis angegeben wird, wird das aktuelle Verzeichnis verwendet."
 
 #: ../opsi-newprod:99
 msgid "Please select product type"
@@ -312,8 +321,20 @@ msgid ""
 "Product version:  Version defined by software producer.\n"
 "Package version:  Opsi package version of the product.\n"
 "License required: Is a license required (0|1)?\n"
-"Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral).\n"
-msgstr "\nProdukt-ID:       Ein eindeutiger Bezeichner für das Produkt.\nProdukt-Name:     Der volle Name des Produkts.\nBeschreibung:     Eine Produkt-Beschreibung (\\n für Zeilenumbrüche verwenden).\nHinweis:          Ein zusätzlicher wichtiger Hinweis.\nProdukt-Version:  Versionsnummer wie vom Software-Hersteller angegeben.\nPaket-Version:    Opsi-Paket-Versionsnummer des Produkts.\nLizenzpflichtig:  Ist das Produkt lizenzpflichtig (0|1)?\nPriorität:        Die Prioritätsklasse des Produkts (von -100 bis 100, 0 = neutral).\n"
+"Priority:         The installation priority class of this product (value "
+"between -100 and 100, 0 = neutral).\n"
+msgstr ""
+"\n"
+"Produkt-ID:       Ein eindeutiger Bezeichner für das Produkt.\n"
+"Produkt-Name:     Der volle Name des Produkts.\n"
+"Beschreibung:     Eine Produkt-Beschreibung (\\n für Zeilenumbrüche "
+"verwenden).\n"
+"Hinweis:          Ein zusätzlicher wichtiger Hinweis.\n"
+"Produkt-Version:  Versionsnummer wie vom Software-Hersteller angegeben.\n"
+"Paket-Version:    Opsi-Paket-Versionsnummer des Produkts.\n"
+"Lizenzpflichtig:  Ist das Produkt lizenzpflichtig (0|1)?\n"
+"Priorität:        Die Prioritätsklasse des Produkts (von -100 bis 100, 0 = "
+"neutral).\n"
 
 #: ../opsi-newprod:129
 msgid "Product id"
@@ -403,7 +424,24 @@ msgid ""
 "Custom script:       Relative path to script for action \"custom\".\n"
 "User login script:   Relative path to script for user login.\n"
 "PXE config template: path to a custom pxelinux config template.\n"
-msgstr "\nSetup-Skript:               Relativer Pfad zum Skript für die Aktion \"setup\".\nUninstall-Skript:           Relativer Pfad zum Skript für die Aktion \"uninstall\".\nUpdate-Skript:              Relativer Pfad zum Skript für die Aktion \"update\".\nAlways-Skript:              Relativer Pfad zum Skript für die Aktion \"always\".\nOnce-Skript:                Relativer Pfad zum Skript für die Aktion \"once\".\nCustom-Skript:              Relativer Pfad zum Skript für die Aktion \"custom\".\nBenutzer-Anmeldungs-Skript: Relativer Pfad zum Skript für die Benutzer-Anmeldung.\nPXE-Konfigurations-Vorlage: Pfad zu einer spezifischen PXE-Konfigurations-Vorlage.\n"
+msgstr ""
+"\n"
+"Setup-Skript:               Relativer Pfad zum Skript für die Aktion \"setup"
+"\".\n"
+"Uninstall-Skript:           Relativer Pfad zum Skript für die Aktion "
+"\"uninstall\".\n"
+"Update-Skript:              Relativer Pfad zum Skript für die Aktion \"update"
+"\".\n"
+"Always-Skript:              Relativer Pfad zum Skript für die Aktion \"always"
+"\".\n"
+"Once-Skript:                Relativer Pfad zum Skript für die Aktion \"once"
+"\".\n"
+"Custom-Skript:              Relativer Pfad zum Skript für die Aktion \"custom"
+"\".\n"
+"Benutzer-Anmeldungs-Skript: Relativer Pfad zum Skript für die Benutzer-"
+"Anmeldung.\n"
+"PXE-Konfigurations-Vorlage: Pfad zu einer spezifischen PXE-Konfigurations-"
+"Vorlage.\n"
 
 #: ../opsi-newprod:216
 msgid "Setup script"
@@ -489,7 +527,8 @@ msgstr "Nein"
 msgid ""
 "\n"
 "You have to specify either a required product or a required product class.\n"
-"You have to specify either a required installation status or a required action.\n"
+"You have to specify either a required installation status or a required "
+"action.\n"
 "The requirement type is optional.\n"
 "Possible actions are:\n"
 "   %s\n"
@@ -497,7 +536,19 @@ msgid ""
 "   %s\n"
 "Possible requirement types are:\n"
 "   %s\n"
-msgstr "\nSie müssen entweder ein benötigtes Produkt oder eine benötigte Produkt-Klasse angeben.\nSie müssen entweder einen benötigten Installations-Status oder eine benötigte Aktion angeben.\nThe requirement type is optional.\nMögliche Aktionen sind:\n   %s\nMögliche Installations-Zustände sind:\n   %s\nMögliche Typen von Abhängigkeiten sind:\n   %s\n"
+msgstr ""
+"\n"
+"Sie müssen entweder ein benötigtes Produkt oder eine benötigte Produkt-"
+"Klasse angeben.\n"
+"Sie müssen entweder einen benötigten Installations-Status oder eine "
+"benötigte Aktion angeben.\n"
+"The requirement type is optional.\n"
+"Mögliche Aktionen sind:\n"
+"   %s\n"
+"Mögliche Installations-Zustände sind:\n"
+"   %s\n"
+"Mögliche Typen von Abhängigkeiten sind:\n"
+"   %s\n"
 
 #: ../opsi-newprod:327
 msgid "Create product dependency?"
@@ -550,7 +601,9 @@ msgstr "Der benötigte Installations-Zustand ist ungültig."
 #: ../opsi-newprod:388
 msgid ""
 "Please specify either a required installation status or a required action."
-msgstr "Bitte entweder einen benötigten Installations-Status oder eine benötigte Aktion angeben."
+msgstr ""
+"Bitte entweder einen benötigten Installations-Status oder eine benötigte "
+"Aktion angeben."
 
 #: ../opsi-newprod:394
 msgid "Requirement type is not valid."
@@ -561,10 +614,21 @@ msgid ""
 "\n"
 "Property name:        Name of the property.\n"
 "Property description: Usage description.\n"
-"Possible values:      Comma separated list of possible values for the property.\n"
-"                      If no possible values are given any values are allowed.\n"
-"Editable:             Is it allowed to specify a value which is not in the list of possible values?\n"
-msgstr "\nEigenschafts-Name:         Name der Eigenschaft.\nEigenschafts-Beschreibung: Beschreibung der Eigenschaft.\nMögliche Werte:            Komma-getrennte Liste der möglichen Werte.\n                           Werden keine Werte angegeben, sind alle Werte erlaubt.\nEditierbar:                Soll es möglich sein einen Wert außerhalb der Liste der möglichen Werte anzugeben?\n"
+"Possible values:      Comma separated list of possible values for the "
+"property.\n"
+"                      If no possible values are given any values are "
+"allowed.\n"
+"Editable:             Is it allowed to specify a value which is not in the "
+"list of possible values?\n"
+msgstr ""
+"\n"
+"Eigenschafts-Name:         Name der Eigenschaft.\n"
+"Eigenschafts-Beschreibung: Beschreibung der Eigenschaft.\n"
+"Mögliche Werte:            Komma-getrennte Liste der möglichen Werte.\n"
+"                           Werden keine Werte angegeben, sind alle Werte "
+"erlaubt.\n"
+"Editierbar:                Soll es möglich sein einen Wert außerhalb der "
+"Liste der möglichen Werte anzugeben?\n"
 
 #: ../opsi-newprod:414
 msgid "Create product property?"
@@ -626,7 +690,9 @@ msgstr "Bitte gültige Stadard-Werte angeben: %s"
 msgid ""
 "\n"
 "Maintainer of this opsi package.\n"
-msgstr "\nBetreuer dieses opsi-Pakets.\n"
+msgstr ""
+"\n"
+"Betreuer dieses opsi-Pakets.\n"
 
 #: ../opsi-newprod:539
 msgid "Maintainer name"
@@ -656,152 +722,160 @@ msgstr "Fertig"
 msgid "Package source directory '%s' created"
 msgstr "Das Paket-Quellverzeichnis '%s' wurde erzeugt."
 
-#: ../opsi-package-manager:417
+#: ../opsi-package-manager:419
 msgid "Log messages"
 msgstr "Log-Meldungen"
 
-#: ../opsi-package-manager:740
+#: ../opsi-package-manager:746
 msgid "%d/%d transfers running"
 msgstr "%d/%d laufende Übertragungen"
 
-#: ../opsi-package-manager:743
+#: ../opsi-package-manager:749
 msgid "%d transfers running"
 msgstr "%d laufende Übertragungen"
 
-#: ../opsi-package-manager:768
+#: ../opsi-package-manager:774
 msgid "Opening package file %s"
 msgstr "Öffne Paket-Datei %s"
 
-#: ../opsi-package-manager:788
+#: ../opsi-package-manager:794
 msgid "Waiting for task queues to finish up"
 msgstr "Warte auf Beendigung der Task-Warteschlangen"
 
-#: ../opsi-package-manager:795
+#: ../opsi-package-manager:801
 msgid "%d/%d task queues running"
 msgstr "%d/%d laufende Task-Warteschlangen"
 
-#: ../opsi-package-manager:810
+#: ../opsi-package-manager:816
 msgid "Setting action setup for product %s where installed"
-msgstr "Setzte Aktion setup für alle Clients auf denen das Produkt %s installiert ist."
+msgstr ""
+"Setzte Aktion setup für alle Clients auf denen das Produkt %s installiert "
+"ist."
 
-#: ../opsi-package-manager:830
+#: ../opsi-package-manager:836
 msgid "Setting action %s for product %s on client(s): %s"
 msgstr "Setzte Aktion %s für das Produkt %s auf den folgenden Clients: %s"
 
-#: ../opsi-package-manager:834 ../opsi-package-manager:860
-#: ../opsi-package-manager:1117 ../opsi-package-manager:1337
-#: ../opsi-package-manager:1385
+#: ../opsi-package-manager:840 ../opsi-package-manager:866
+#: ../opsi-package-manager:1120 ../opsi-package-manager:1340
+#: ../opsi-package-manager:1399
 msgid "Error: %s"
 msgstr "Fehler: %s"
 
-#: ../opsi-package-manager:840
+#: ../opsi-package-manager:846
 msgid "Purging product property states for product %s"
 msgstr "Entferne Client-spezifische Einstellungen für das Produkt %s"
 
-#: ../opsi-package-manager:855
+#: ../opsi-package-manager:861
 msgid "Purging product property states for product '%s' on client(s): %s"
-msgstr "Entferne Client-spezifische Einstellungen für das Produkt '%s' und die folgend Clients: %s"
+msgstr ""
+"Entferne Client-spezifische Einstellungen für das Produkt '%s' und die "
+"folgend Clients: %s"
 
-#: ../opsi-package-manager:893
+#: ../opsi-package-manager:899
 msgid "Waiting for free upload slot for %s"
 msgstr "Warte auf freien Übertragungs-Kanal für %s"
 
-#: ../opsi-package-manager:900
+#: ../opsi-package-manager:906
 msgid "Processing upload of %s"
 msgstr "Starte Übertragung von %s"
 
-#: ../opsi-package-manager:954
+#: ../opsi-package-manager:960
 msgid "No need to upload, %s is up to date"
 msgstr "Übertragung von %s nicht notwendig, neueste Version vorhanden"
 
-#: ../opsi-package-manager:962
+#: ../opsi-package-manager:968
 msgid "Overwriting destination %s"
 msgstr "Überschreibe Ziel %s"
 
-#: ../opsi-package-manager:968
+#: ../opsi-package-manager:974
 msgid "Not enough disk space: %dMB needed, %dMB available"
 msgstr "Nicht genügend freier Specherplatz: %dMB benötigt, %dMB verfügbar."
 
-#: ../opsi-package-manager:980
+#: ../opsi-package-manager:986
 msgid "Starting upload"
 msgstr "Starte Übertragung"
 
-#: ../opsi-package-manager:989
+#: ../opsi-package-manager:995
 msgid "Getting librsync signature of %s"
 msgstr "Rufe librsyc-Signatur für %s ab"
 
-#: ../opsi-package-manager:994
+#: ../opsi-package-manager:1000
 msgid "Calculating delta"
 msgstr "Berechne Delta"
 
-#: ../opsi-package-manager:1030
+#: ../opsi-package-manager:1034
 msgid "Starting delta upload of %s"
 msgstr "Starte Delta-Übetragung von %s"
 
-#: ../opsi-package-manager:1046
+#: ../opsi-package-manager:1050
 msgid "Patching %s"
 msgstr "Patche %s"
 
-#: ../opsi-package-manager:1056
+#: ../opsi-package-manager:1060
 msgid "Starting upload of %s"
 msgstr "Starte Übetragung von %s"
 
-#: ../opsi-package-manager:1069
+#: ../opsi-package-manager:1073
 msgid "Upload of %s finished"
 msgstr "Übetragung von %s abgeschlossen"
 
-#: ../opsi-package-manager:1082
+#: ../opsi-package-manager:1086
 msgid "Verifying upload"
 msgstr "Verifiziere übertragene Datei"
 
-#: ../opsi-package-manager:1094
+#: ../opsi-package-manager:1097
 msgid "Warning: %d%% filesystem usage"
 msgstr "Warnung: %d%% des Dateisystems belegt"
 
-#: ../opsi-package-manager:1097
+#: ../opsi-package-manager:1100
 msgid "Upload of %s successful"
 msgstr "Übertragung von %s erfolgreich"
 
-#: ../opsi-package-manager:1187
+#: ../opsi-package-manager:1190
 msgid "Please select product property defaults"
 msgstr "Bitte Standard-Werte für die Produkt-Eigenschaften wählen"
 
-#: ../opsi-package-manager:1188
+#: ../opsi-package-manager:1191
 msgid "Product"
 msgstr "Produkt"
 
-#: ../opsi-package-manager:1188
+#: ../opsi-package-manager:1191
 msgid "Property"
 msgstr "Eigenschaft"
 
-#: ../opsi-package-manager:1189
+#: ../opsi-package-manager:1192
 msgid "Back"
 msgstr "Zurück"
 
-#: ../opsi-package-manager:1205 ../opsi-package-manager:1219
+#: ../opsi-package-manager:1208 ../opsi-package-manager:1222
 msgid "<other value>"
 msgstr "<anderer Wert>"
 
-#: ../opsi-package-manager:1296
+#: ../opsi-package-manager:1299
 msgid "Installing package %s"
 msgstr "Installiere Paket %s"
 
-#: ../opsi-package-manager:1318
+#: ../opsi-package-manager:1321
 msgid "Installation of package %s successful"
 msgstr "Installation von %s erfolgreich"
 
-#: ../opsi-package-manager:1367
-msgid "Uninstalling package %s"
-msgstr "Deinstalliere Paket %s"
-
-#: ../opsi-package-manager:1381
-msgid "Uninstallation of package %s successful"
+#: ../opsi-package-manager:1395
+#, fuzzy
+msgid "Uninstallation of package {0} successful"
 msgstr "Deinstallation des Pakets %s erfolgreich"
 
-#: ../opsi-package-manager:1546
-msgid "Errors occured: "
+#: ../opsi-package-manager:1560
+#, fuzzy
+msgid "Errors occurred: "
 msgstr "Es sind Fehler aufgetreten: "
 
-#: ../opsi-package-manager:1549
+#: ../opsi-package-manager:1563
 msgid "Failure while processing %s:"
 msgstr "Fehler beim Bearbeiten von %s:"
+
+#~ msgid "Given productId not found"
+#~ msgstr "Angegebene Produkt-ID wurde nicht gefunden."
+
+#~ msgid "Uninstalling package %s"
+#~ msgstr "Deinstalliere Paket %s"
