@@ -1196,5 +1196,3 @@ if __name__ == "__main__":
 		logger.logException(e)
 		print(u"ERROR: {0}".format(forceUnicode(e).encode('utf-8')), file=sys.stderr)
 		sys.exit(1)
-
-	sys.exit(0)
