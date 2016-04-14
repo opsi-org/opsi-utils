@@ -55,7 +55,7 @@ from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 
 import curses
 
-__version__ = '4.0.6.10'
+__version__ = '4.0.6.12'
 
 backend = None
 exitZero = False
@@ -1173,7 +1173,7 @@ class CommandMethod(Command):
 		result = serialize(result)
 		logger.debug2(u"Serialized result: {0!r}".format(result))
 
-		if result:
+		if result is not None:
 			lines = []
 			if shell.output == u'RAW':
 				lines.append(toJson(result))
