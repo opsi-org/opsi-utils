@@ -1142,6 +1142,8 @@ def main(argv):
 	config["installAllAvailable"] = args.installAllAvailable
 	if args.processProductIds:
 		config["processProductIds"] = args.processProductIds.split(",")
+		logger.debug("Setting -i...")
+		config["installAllAvailable"] = True
 
 	logger.setConsoleLevel(args.logLevel)
 
