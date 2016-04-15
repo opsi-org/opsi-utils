@@ -317,6 +317,14 @@ def main(argv):
 
 				for line in LOGO:
 					shell.appendLine(line.get('text'), line.get('color'))
+
+				welcomeMessage = """\
+Welcome to the interactive mode of opsi-admin.
+You can use syntax completion via [TAB]. \
+To exit opsi-admin please type 'exit'."""
+
+				for line in welcomeMessage.split('\n'):
+					shell.appendLine(line, COLOR_NORMAL)
 				shell.run()
 			except Exception as error:
 				logger.logException(forceUnicode(error))
