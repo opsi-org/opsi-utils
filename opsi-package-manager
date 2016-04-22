@@ -42,6 +42,7 @@ from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 from duplicity import librsync
+from subprocess import call
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -1341,46 +1342,57 @@ class OpsiPackageManager(object):
 
 	def uninstallPackages(self):
 		for depotId in self.config['depotIds']:
+			subject = self.getDepotSubject(depotId)
+			packageNotInstalled = False
 			productIds = []
+			for product in self.config['productIds']:
+				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId='%s' % product)
+				if not package:
+					subject.setMessage(_(u"WARNING: Product {0} not installed on depot {1}.".format(product, depotId)), severity=3)
+					logger.warning(u"WARNING: Product {0} not installed on depot {1}.".format(product, depotId))
+					packageNotInstalled = True
+
 			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
 				productIds.append(productOnDepot.productId)
 			if not productIds:
 				continue
-			tq = TaskQueue(name=u"Uninstall of package(s) %s on depot '%s'" % (', '.join(productIds), depotId))
+			tq = TaskQueue(name=u"Uninstall of package(s) {0} on depot {1!r}".format(', '.join(productIds), depotId))
 			for productId in productIds:
 				tq.addTask(
 					UninstallTask(
-						name=u"Uninstall of package '%s' on depot '%s'" % (productId, depotId),
+						name=u"Uninstall of package {0!r} on depot {1!r}".format(productId, depotId),
 						opsiPackageManager=self,
 						method=self.uninstallPackage,
 						params=[productId, depotId]
 					)
 				)
 			self.taskQueues.append(tq)
-			logger.info(u"Starting task queue '%s'" % tq.name)
+			logger.info(u"Starting task queue {0!r}".format(tq.name))
 			tq.start()
 		self.waitForTaskQueues()
+		if packageNotInstalled:
+			raise ValueError('At least one package failed to uninstall, please check /var/log/opsi/package.log for more information')
 
 	def uninstallPackage(self, productId, depotId):
 		subject = self.getDepotSubject(depotId)
 
 		try:
-			logger.notice(u"Uninstalling package '%s' on depot '%s'" % (productId, depotId))
-			subject.setMessage(_(u"Uninstalling package %s") % productId)
+			logger.notice(u"Uninstalling package {0!r} on depot {1!r}".format(productId, depotId))
+			subject.setMessage(_(u"Uninstalling package {0}".format(productId)))
 
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
-			logger.info(u"Using '%s' as repository url" % depot.getRepositoryRemoteUrl())
+			logger.info(u"Using {0!r} as repository url".format(depot.getRepositoryRemoteUrl()))
 			repository = getRepository(url=depot.getRepositoryRemoteUrl(), username=depotId, password=depot.getOpsiHostKey())
 			for destination in repository.listdir():
-				if not destination.startswith(u'%s_' % productId):
+				if not destination.startswith(u'{0}_'.format(productId)):
 					continue
-				logger.info(u"Deleting destination '%s' on depot '%s'" % (destination, depotId))
+				logger.info(u"Deleting destination {0!r} on depot {1!r}".format(destination, depotId))
 				repository.delete(destination)
 
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_uninstallPackage(productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall'])
-			logger.notice(u"Uninstall of package '%s' on depot '%s' finished" % (productId, depotId))
-			subject.setMessage(_(u"Uninstallation of package %s successful") % productId, severity=4)
+			logger.notice(u"Uninstall of package {0!r} on depot {1!r} finished".format(productId, depotId))
+			subject.setMessage(_(u"Uninstallation of package {0} successful").format(productId), severity=4)
 
 		except Exception as uninstallError:
 			logger.error(uninstallError)
@@ -1746,9 +1758,9 @@ class OpsiPackageManagerControl(object):
 
 	def setDefaultConfig(self):
 		self.config = {
-			'fileLogLevel': LOG_DEBUG2,
+			'fileLogLevel': LOG_WARNING,
 			'consoleLogLevel': LOG_NONE,
-			'logFile': None,
+			'logFile': '/var/log/opsi/package.log',
 			'quiet': False,
 			'tempDir': u'/tmp',
 			'backendConfigDir': u'/etc/opsi/backends',
@@ -1880,7 +1892,7 @@ class OpsiPackageManagerControl(object):
 		print u"  -v, --verbose                           increase verbosity (can be used multiple times)"
 		print u"  -q, --quiet                             do not display any messages"
 		print u"  --log-file         <log-file>           path to debug log file"
-		print u"  --log-file-level   <log-file-level>     log file level (default 8)"
+		print u"  --log-file-level   <log-file-level>     log file level (default 4)"
 		print u"  -d, --depots       <depots>             comma separated list of depot ids to process"
 		print u"			 	             all = all known depots"
 		print u"  -p, --properties   <mode>               mode for default product property values"
