@@ -1,0 +1,10 @@
+/var/log/opsi/opsi-package-manager.log {
+    monthly
+    missingok
+    rotate 2
+    compress
+    notifempty
+    size 5M
+    create 640 opsiconfd opsiadmin
+    su opsiconfd opsiadmin
+}

@@ -1,7 +1,15 @@
+opsi-utils (4.0.6.12-1) experimental; urgency=medium
+
+  * opsi-package-manager: return error when trying to remove non installed package
+  * opsi-package-manager: logs into package.log with LogLevel 4
+  * Added logrotate config for /var/log/opsi/opsi-package-manager.log
+
+ -- Mathias Radtke <m.radtke@uib.de>  Tue, 12 Apr 2016 15:56:31 +0200
+
 opsi-utils (4.0.6.11-1) experimental; urgency=medium
 
   * opsi-backup: Warn during restore if no backends are given.
-  * Various mall changes for easier maintenance.
+  * Various small changes for easier maintenance.
   * opsi-package-manager: only query for depot information if required.
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 04 Apr 2016 17:00:33 +0200
