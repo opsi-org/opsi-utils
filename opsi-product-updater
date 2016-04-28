@@ -6,7 +6,7 @@ opsi-product-updater
 opsi-product-updater is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2013-2015 uib GmbH
+Copyright (C) 2013-2016 uib GmbH
 
 http://www.uib.de/
 
@@ -35,7 +35,6 @@ from __future__ import print_function
 
 import formatter
 import htmllib
-import getopt
 import os
 import re
 import smtplib
@@ -58,7 +57,12 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.0.6.9'
+try:
+	import argparse
+except ImportError:
+	from OPSI.Util import argparse  # Only on Python 2.6...
+
+__version__ = '4.0.6.10'
 
 logger = Logger()
 
@@ -1094,23 +1098,7 @@ class OpsiPackageUpdater(object):
 		return packages
 
 
-def usage():
-	print(u"")
-	print(u"Usage: %s [options]" % os.path.basename(sys.argv[0]))
-	print(u"Options:")
-	print(u"    -h    Show this help text")
-	print(u"    -v    Increase verbosity (can be used multiple times)")
-	print(u"    -V    Show version information and exit")
-	print(u"    -c    Location of config file")
-	print(u"    -i    Install all downloadable packages from configured repositories (ignores excludes)")
-	print(u"    -p    List of productIds that will be processed: opsi-winst,opsi-client-agent")
-	print(u"")
-
-
 def main(argv):
-	consoleLevel = LOG_ERROR
-	logger.setConsoleLevel(consoleLevel)
-
 	config = {
 		"userAgent": 'opsi product updater %s' % __version__,
 		"packageDir": '/var/lib/opsi/products',
@@ -1136,31 +1124,30 @@ def main(argv):
 		"zsyncCommand": None,
 		"processProductIds": None
 	}
-	# Get options
-	try:
-		(opts, args) = getopt.getopt(argv, "hivVc:p:")
-	except getopt.GetoptError:
-		usage()
-		sys.exit(1)
 
-	for (opt, arg) in opts:
-		if opt == "-h":
-			usage()
-			return
-		elif opt == "-V":
-			print(__version__)
-			return
-		elif opt == "-c":
-			config["configFile"] = arg
-		elif opt == "-v":
-			consoleLevel += 1
-			logger.setConsoleLevel(consoleLevel)
-		elif opt == "-i":
-			config["installAllAvailable"] = True
-		elif opt == "-p":
-			config["processProductIds"] = arg.split(",")
-		else:
-			raise Exception(u"Unknown parameter given: '%s'" % opt)
+	parser = argparse.ArgumentParser(description="Updater for local opsi products.")
+	parser.add_argument('--version', '-V', action='version', version=__version__)
+	parser.add_argument('--verbose', '-v',
+						dest="logLevel", default=LOG_ERROR, action="count",
+						help="increase verbosity (can be used multiple times)")
+	parser.add_argument('--config', '-c', help="Location of config file",
+						dest="configFile",
+						default='/etc/opsi/opsi-product-updater.conf')
+	parser.add_argument('-i', dest="installAllAvailable",
+						default=False, action='store_true',
+						help="Install all downloadable packages from configured repositories (ignores excludes)")
+	parser.add_argument('-p', dest="processProductIds", metavar="productIDs",
+						help="List of productIds that will be processed: opsi-winst,opsi-client-agent")
+
+	args = parser.parse_args()
+
+	logger.setConsoleLevel(args.logLevel)
+	config["configFile"] = args.configFile
+	config["installAllAvailable"] = args.installAllAvailable
+	if args.processProductIds:
+		config["processProductIds"] = args.processProductIds.split(",")
+		logger.debug("Setting -i...")
+		config["installAllAvailable"] = True
 
 	try:
 		config["zsyncCommand"] = System.which("zsync")
