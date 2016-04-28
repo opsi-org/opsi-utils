@@ -216,7 +216,10 @@ class OpsiPackageUpdater(object):
 		logger.addConfidentialString(self.depotKey)
 		self.readConfigFile()
 
-	def __del__(self):
+	def __enter__(self):
+		return self
+
+	def __exit__(self, exc_type, exc_val, exc_tb):
 		for con in self.depotConnections.values():
 			try:
 				con.backend_exit()
@@ -1176,8 +1179,8 @@ def main(argv):
 	if running:
 		raise Exception(u"Another %s process is running (pid: %s)." % (os.path.basename(sys.argv[0]), running))
 
-	opu = OpsiPackageUpdater(config)
-	opu.processUpdates()
+	with OpsiPackageUpdater(config) as opu:
+		opu.processUpdates()
 
 
 if __name__ == "__main__":
@@ -1193,5 +1196,3 @@ if __name__ == "__main__":
 		logger.logException(e)
 		print(u"ERROR: {0}".format(forceUnicode(e).encode('utf-8')), file=sys.stderr)
 		sys.exit(1)
-
-	sys.exit(0)
