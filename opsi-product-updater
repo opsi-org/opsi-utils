@@ -1138,14 +1138,13 @@ def main(argv):
 
 	args = parser.parse_args()
 
+	logger.setConsoleLevel(args.logLevel)
 	config["configFile"] = args.configFile
 	config["installAllAvailable"] = args.installAllAvailable
 	if args.processProductIds:
 		config["processProductIds"] = args.processProductIds.split(",")
 		logger.debug("Setting -i...")
 		config["installAllAvailable"] = True
-
-	logger.setConsoleLevel(args.logLevel)
 
 	try:
 		config["zsyncCommand"] = System.which("zsync")
