@@ -3,7 +3,7 @@
 
 # opsi-convert is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2007-2015 uib GmbH <info@uib.de>
+# Copyright (C) 2007-2016 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -47,7 +47,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.6.5'
+__version__ = '4.0.6.13'
 
 logLevel = LOG_NONE
 logger = Logger()
@@ -263,7 +263,11 @@ def createBackend(config):
 		if forceUnicodeLower(config['backend']) == u'jsonrpc':
 			logger.debug(u"Creating a JSONRPC backend through BackendManager failed.")
 			logger.debug(u"Trying with a direct connection.")
-			backend = JSONRPCBackend(deflate=True, **config)
+			backend = JSONRPCBackend(
+				deflate=True,
+				application='opsi-convert v{0}'.format(__version__),
+				**config
+			)
 		else:
 			raise
 

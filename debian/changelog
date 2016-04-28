@@ -1,3 +1,16 @@
+opsi-utils (4.0.6.13-1) testing; urgency=medium
+
+  * opsi-makeproductfile: now using argparse internally
+  * opsi-admin got received a welcome message.
+  * Fixed typo in German translation.
+  * opsi-convert: show custom application name if used against webinterface
+    of another server to be able to easily spot the corresponding requests.
+  * opsi-product-updater: Attempts to close open connections now more reliable.
+  * opsi-makeproductfile: use argparse instead of getopt.
+  * opsi-product-updater: running with -p <productId> now implies -i.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 28 Apr 2016 12:29:16 +0200
+
 opsi-utils (4.0.6.12-1) experimental; urgency=medium
 
   * opsi-package-manager: return error when trying to remove non installed package

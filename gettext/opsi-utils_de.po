@@ -1,6 +1,6 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR ORGANIZATION
-# 
+#
 # Translators:
 # Automatically generated, 2010
 # Mathias Radtke <m.radtke@uib.de>, 2016
