@@ -50,7 +50,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.6.12'
+__version__ = '4.0.6.14'
 
 logger = Logger()
 
@@ -152,8 +152,6 @@ def main(argv):
 	if customOnly:
 		customName = args.customOnly
 	requiredVersion = args.incremental
-	if requiredVersion:
-		incremental = True
 	dereference = args.dereference
 	logLevel = args.logLevel
 	compression = args.compression
@@ -205,7 +203,7 @@ def main(argv):
 	try:
 		while True:
 			product = pcf.getProduct()
-			if incremental:
+			if requiredVersion:
 				match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
 				if not match:
 					raise Exception(u"Bad version string '%s' in dependency" % requiredVersion)
@@ -223,7 +221,7 @@ def main(argv):
 				print u"----------------------------------------------------------------------------"
 				print u"   %-20s : %s" % (u'version', product.packageVersion)
 				print u"   %-20s : %s" % (u'custom package name', customName)
-				print u"   %-20s : %s" % (u'incremental package', incremental)
+				print u"   %-20s : %s" % (u'incremental package', bool(requiredVersion))
 
 				dependencies = []
 				for dep in pcf.getPackageDependencies():
