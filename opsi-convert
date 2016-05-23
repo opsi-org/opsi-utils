@@ -34,7 +34,7 @@ import struct
 import sys
 import termios
 
-from OPSI.Logger import LOG_NONE, LOG_ERROR, Logger
+from OPSI.Logger import LOG_DEBUG, LOG_ERROR, LOG_NONE, Logger
 from OPSI.Types import forceUnicode, forceHostId, forceUnicodeLower
 from OPSI.Util import getfqdn
 from OPSI.Util.Message import ProgressObserver
@@ -47,7 +47,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.6.13'
+__version__ = '4.0.7.1'
 
 logLevel = LOG_NONE
 logger = Logger()
@@ -134,7 +134,7 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	parser.add_argument('-s', metavar="OLD SERVER ID", dest="oldServerId",
 						help="use destination host as new server")
 	parser.add_argument('--log-file', '-l', dest="logFile",
-						help="log to this file")
+						help="Log to this file. The loglevel will be DEBUG.")
 	parser.add_argument('readBackend', metavar="<from>", help="Source backend")
 	parser.add_argument('writeBackend', metavar="<to>", help="Target backend")
 
@@ -145,7 +145,11 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	logger.setFileLevel(logLevel)
 	if args.logFile:
 		logger.setLogFile(args.logFile)
-		logger.setFileLevel(logLevel)
+
+		if logLevel > LOG_DEBUG:
+			logger.setFileLevel(logLevel)
+		else:
+			logger.setFileLevel(LOG_DEBUG)
 
 	cleanupFirst = args.cleanupFirst
 	progress = not args.quiet

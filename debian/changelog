@@ -1,3 +1,14 @@
+opsi-utils (4.0.7.1-1) testing; urgency=medium
+
+  * opsi-convert: If you are logging into a file the loglevel will be DEBUG.
+  * opsi-product-updater: The notification mail will now have the DATE field
+    in the header. The field is formatted as specified in RFC 5322.
+  * opsi-package-manager: Setting -v now sets an implicit -q to show the
+    output. If using '-p ask' no -q will be set to be able to still
+    select the wanted properties.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 23 May 2016 14:31:10 +0200
+
 opsi-utils (4.0.6.14-1) testing; urgency=medium
 
   * opsi-makeproductfile: Avoid reference to undefined 'incremental'.
