@@ -47,7 +47,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.6.15'
+__version__ = '4.0.7.1'
 
 logLevel = LOG_NONE
 logger = Logger()
