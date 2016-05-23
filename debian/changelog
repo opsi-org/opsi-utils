@@ -18,7 +18,7 @@ opsi-utils (4.0.6.14-1) testing; urgency=medium
 opsi-utils (4.0.6.13-1) testing; urgency=medium
 
   * opsi-makeproductfile: now using argparse internally
-  * opsi-admin got received a welcome message.
+  * opsi-admin now has a welcome message.
   * Fixed typo in German translation.
   * opsi-convert: show custom application name if used against webinterface
     of another server to be able to easily spot the corresponding requests.
