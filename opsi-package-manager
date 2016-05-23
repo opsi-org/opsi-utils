@@ -42,11 +42,10 @@ from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 from duplicity import librsync
-from subprocess import call
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
-from OPSI.Logger import LOG_DEBUG2, LOG_INFO, LOG_NONE, LOG_WARNING, Logger
+from OPSI.Logger import LOG_INFO, LOG_NONE, LOG_WARNING, Logger
 from OPSI.Types import (forceActionRequest, forceBool, forceHostId, forceInt,
 	forceList, forceProductId, forceUnicode, forceUnicodeList)
 from OPSI.UI import SnackUI
