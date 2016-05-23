@@ -30,7 +30,8 @@ opsi-utils (4.0.6.13-1) testing; urgency=medium
 
 opsi-utils (4.0.6.12-1) experimental; urgency=medium
 
-  * opsi-package-manager: return error when trying to remove non installed package
+  * opsi-package-manager: return error when trying to remove non installed
+    package
   * opsi-package-manager: logs into package.log with LogLevel 4
   * Added logrotate config for /var/log/opsi/opsi-package-manager.log
 
