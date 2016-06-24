@@ -35,7 +35,6 @@ import os
 import sys
 import shutil
 import time
-from contextlib import contextmanager
 
 from OPSI.Logger import Logger, LOG_ERROR
 
@@ -53,10 +52,9 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.7.1'
+__version__ = '4.0.7.2'
 
 logger = Logger()
-ui = None
 
 try:
 	t = gettext.translation('opsi-utils', '/usr/share/locale')
@@ -85,51 +83,56 @@ def main():
 	if not os.path.exists(destDir):
 		raise OSError("Directory '{0}' does not exist!".format(destDir))
 
-	global ui
 	ui = UIFactory(type=u'snack')
 	ui.drawRootText(1, 1, 'opsi')
 
-	product = getProduct()
-
-	productSourceDir = os.path.join(destDir, product.id)
-	if os.path.exists(productSourceDir):
-		overwrite = ui.yesno(
-			title=_(u'Overwrite?'),
-			text=_(u'Directory %s already exists, overwrite?') % productSourceDir,
-			okLabel=_(u'Yes'),
-			cancelLabel=_(u'No')
-		)
-
-		if not overwrite:
-			raise Exception(_(u'Cancelled'))
-		shutil.rmtree(productSourceDir)
-
-	os.mkdir(productSourceDir, 02770)
-	os.mkdir(os.path.join(productSourceDir, 'OPSI'), 02770)
-	os.mkdir(os.path.join(productSourceDir, 'CLIENT_DATA'), 02770)
-	os.mkdir(os.path.join(productSourceDir, 'SERVER_DATA'), 02770)
-
 	try:
-		productDependencies = collectProductDependencies(product)
-		productProperties = collectProductProperties(product)
-		writeMaintainerInfo(productSourceDir, product, productDependencies, productProperties)
+		product = getProduct(ui)
 
-		createTemplates(productSourceDir, templateDirectory)
-		setRights(productSourceDir)
+		productSourceDir = os.path.join(destDir, product.id)
+		if os.path.exists(productSourceDir):
+			overwrite = ui.yesno(
+				title=_(u'Overwrite?'),
+				text=_(u'Directory %s already exists, overwrite?') % productSourceDir,
+				okLabel=_(u'Yes'),
+				cancelLabel=_(u'No')
+			)
 
-		ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
-	except Exception as exc:
-		errorMessage = _("Product creation failed. Removing directory {0}").format(productSourceDir)
+			if not overwrite:
+				raise Exception(_(u'Cancelled'))
+			shutil.rmtree(productSourceDir)
 
-		logger.info(errorMessage)
-		ui.showError(title=_(u'Product creation failed'), text=errorMessage, width=50, height=5)
+		os.mkdir(productSourceDir, 02770)
+		os.mkdir(os.path.join(productSourceDir, 'OPSI'), 02770)
+		os.mkdir(os.path.join(productSourceDir, 'CLIENT_DATA'), 02770)
+		os.mkdir(os.path.join(productSourceDir, 'SERVER_DATA'), 02770)
 
-		shutil.rmtree(productSourceDir)
+		try:
+			productDependencies = collectProductDependencies(ui, product)
+			productProperties = collectProductProperties(ui, product)
+			writeMaintainerInfo(ui, productSourceDir, product, productDependencies, productProperties)
 
-		raise exc
+			createTemplates(productSourceDir, templateDirectory)
+			setRights(productSourceDir)
+
+			ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
+		except Exception as exc:
+			errorMessage = _("Product creation failed. Removing directory {0}").format(productSourceDir)
+
+			logger.info(errorMessage)
+			ui.showError(title=_(u'Product creation failed'), text=errorMessage, width=50, height=5)
+
+			shutil.rmtree(productSourceDir)
+
+			raise exc
+	finally:
+		try:
+			ui.exit()
+		except Exception:
+			pass
 
 
-def getProduct():
+def getProduct(ui):
 	helpText = ''
 	values = [
 		{"name": u"localboot", "selected": True},
@@ -324,7 +327,7 @@ PXE config template: path to a custom pxelinux config template.''')
 	return product
 
 
-def collectProductDependencies(product):
+def collectProductDependencies(ui, product):
 	productDependencies = []
 	helpText = _(u'''You have to specify a required product id.
 You have to specify either a required installation status or a required action.
@@ -418,7 +421,7 @@ Possible requirement types are: %s''') % (
 	return productDependencies
 
 
-def collectProductProperties(product):
+def collectProductProperties(ui, product):
 	productProperties = []
 	helpText = _(u'''Property name:        Name of the property.
 Property description: Usage description.
@@ -546,7 +549,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 	return productProperties
 
 
-def writeMaintainerInfo(productDirectory, product, productDependencies, productProperties):
+def writeMaintainerInfo(ui, productDirectory, product, productDependencies, productProperties):
 	maintainer = u''
 	maintainerEmail = u''
 	helpText = _(u'Maintainer of this opsi package.')
@@ -654,20 +657,8 @@ copied to ``productDirectory``
 
 
 if __name__ == "__main__":
-
-	@contextmanager
-	def exitUI():
-		try:
-			yield
-		except Exception:
-			try:
-				ui.exit()
-			except Exception:
-				pass
-
 	try:
-		with exitUI():
-			main()
+		main()
 	except Exception as exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
