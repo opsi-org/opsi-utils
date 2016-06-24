@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2016-06-24 15:07+CEST\n"
+"POT-Creation-Date: 2016-06-24 15:19+CEST\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -292,16 +292,16 @@ msgstr ""
 msgid "Directory %s already exists, overwrite?"
 msgstr ""
 
-#: ../opsi-newprod:97 ../opsi-newprod:347 ../opsi-newprod:434
+#: ../opsi-newprod:97 ../opsi-newprod:347 ../opsi-newprod:433
 msgid "Yes"
 msgstr ""
 
-#: ../opsi-newprod:98 ../opsi-newprod:348 ../opsi-newprod:435
+#: ../opsi-newprod:98 ../opsi-newprod:348 ../opsi-newprod:434
 msgid "No"
 msgstr ""
 
 #: ../opsi-newprod:102 ../opsi-newprod:150 ../opsi-newprod:189
-#: ../opsi-newprod:275 ../opsi-newprod:571
+#: ../opsi-newprod:275 ../opsi-newprod:570
 msgid "Cancelled"
 msgstr ""
 
@@ -410,7 +410,7 @@ msgid "Priority has to be an number between -100 and 100"
 msgstr ""
 
 #: ../opsi-newprod:240 ../opsi-newprod:322 ../opsi-newprod:415
-#: ../opsi-newprod:507 ../opsi-newprod:543 ../opsi-newprod:591
+#: ../opsi-newprod:506 ../opsi-newprod:542 ../opsi-newprod:590
 msgid "Bad value"
 msgstr ""
 
@@ -558,90 +558,89 @@ msgstr ""
 
 #: ../opsi-newprod:426
 msgid ""
-"Property name:        Name of the property.\n"
+"Property name: Name of the property.\n"
 "Property description: Usage description.\n"
-"Possible values:      Comma separated list of possible values for the property.\n"
-"                      If no possible values are given any values are allowed.\n"
-"Editable:             Is it allowed to specify a value which is not in the list of possible values?"
+"Possible values: Comma separated list of possible values for the property. If no possible values are given any values are allowed.\n"
+"Editable: Is it allowed to specify a value which is not in the list of possible values?"
 msgstr ""
 
-#: ../opsi-newprod:432
+#: ../opsi-newprod:431
 msgid "Create product property?"
 msgstr ""
 
-#: ../opsi-newprod:433
+#: ../opsi-newprod:432
 msgid "Do you want to create a product property?"
 msgstr ""
 
-#: ../opsi-newprod:445
+#: ../opsi-newprod:444
 msgid "Please select property type"
 msgstr ""
 
-#: ../opsi-newprod:462
+#: ../opsi-newprod:461
 msgid "Property name (identifier)"
 msgstr ""
 
-#: ../opsi-newprod:463
+#: ../opsi-newprod:462
 msgid "Property description"
 msgstr ""
 
-#: ../opsi-newprod:466
+#: ../opsi-newprod:465
 msgid "Possible values"
 msgstr ""
 
-#: ../opsi-newprod:467
+#: ../opsi-newprod:466
 msgid "Editable"
 msgstr ""
 
-#: ../opsi-newprod:470
+#: ../opsi-newprod:469
 msgid "Create property for product %s"
 msgstr ""
 
-#: ../opsi-newprod:483
+#: ../opsi-newprod:482
 msgid "Please specify a valid identifier"
 msgstr ""
 
-#: ../opsi-newprod:489
+#: ../opsi-newprod:488
 msgid "Please specify a valid description"
 msgstr ""
 
-#: ../opsi-newprod:503
+#: ../opsi-newprod:502
 msgid "Please specify valid possible values"
 msgstr ""
 
-#: ../opsi-newprod:521
+#: ../opsi-newprod:520
 msgid "Please select a default value"
 msgstr ""
 
-#: ../opsi-newprod:531
+#: ../opsi-newprod:530
 msgid "Please set a default value"
 msgstr ""
 
-#: ../opsi-newprod:540
+#: ../opsi-newprod:539
 msgid "Please specify valid default values: %s"
 msgstr ""
 
-#: ../opsi-newprod:555
+#: ../opsi-newprod:554
 msgid "Maintainer of this opsi package."
 msgstr ""
 
-#: ../opsi-newprod:558
+#: ../opsi-newprod:557
 msgid "Maintainer name"
 msgstr ""
 
-#: ../opsi-newprod:559
+#: ../opsi-newprod:558
 msgid "Maintainer e-mail"
 msgstr ""
 
-#: ../opsi-newprod:563
+#: ../opsi-newprod:562
 msgid "Maintainer info"
 msgstr ""
 
-#: ../opsi-newprod:580
+#: ../opsi-newprod:579
 msgid "Please enter a valid maintainer name."
 msgstr ""
 
-#: ../opsi-newprod:588
+#: ../opsi-newprod:587
 msgid "Please enter a valid e-mail address."
 msgstr ""
 

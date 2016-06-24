@@ -423,11 +423,10 @@ Possible requirement types are: %s''') % (
 
 def collectProductProperties(ui, product):
 	productProperties = []
-	helpText = _(u'''Property name:        Name of the property.
+	helpText = _(u'''Property name: Name of the property.
 Property description: Usage description.
-Possible values:      Comma separated list of possible values for the property.
-                      If no possible values are given any values are allowed.
-Editable:             Is it allowed to specify a value which is not in the list of possible values?''')
+Possible values: Comma separated list of possible values for the property. If no possible values are given any values are allowed.
+Editable: Is it allowed to specify a value which is not in the list of possible values?''')
 	while True:
 		if not ui.yesno(title=_(u'Create product property?'),
 				text=_(u'Do you want to create a product property?'),
