@@ -1,3 +1,12 @@
+opsi-utils (4.0.7.2-1) testing; urgency=medium
+
+  * opsi-newprod: Delete directory if things fail during the creation.
+  * opsi-newprod: Improved texts for depedency creation. Not suggesting
+    currently not handled cases anymore.
+  * opsi-newprod: Various internal refactorings.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 24 Jun 2016 15:05:09 +0200
+
 opsi-utils (4.0.7.1-1) testing; urgency=medium
 
   * opsi-convert: If you are logging into a file the loglevel will be DEBUG.
@@ -18,7 +27,7 @@ opsi-utils (4.0.6.14-1) testing; urgency=medium
 opsi-utils (4.0.6.13-1) testing; urgency=medium
 
   * opsi-makeproductfile: now using argparse internally
-  * opsi-admin got received a welcome message.
+  * opsi-admin now has a welcome message.
   * Fixed typo in German translation.
   * opsi-convert: show custom application name if used against webinterface
     of another server to be able to easily spot the corresponding requests.
@@ -30,7 +39,8 @@ opsi-utils (4.0.6.13-1) testing; urgency=medium
 
 opsi-utils (4.0.6.12-1) experimental; urgency=medium
 
-  * opsi-package-manager: return error when trying to remove non installed package
+  * opsi-package-manager: return error when trying to remove non installed
+    package
   * opsi-package-manager: logs into package.log with LogLevel 4
   * Added logrotate config for /var/log/opsi/opsi-package-manager.log
 
