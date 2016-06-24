@@ -4,7 +4,7 @@
 # opsi-newprod is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 
-# Copyright (C) 2010-2015 uib GmbH - http://www.uib.de/
+# Copyright (C) 2010-2016 uib GmbH - http://www.uib.de/
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -52,7 +52,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.6.3'
+__version__ = '4.0.7.1'
 
 logger = Logger()
 ui = None
@@ -88,7 +88,47 @@ def main():
 	ui = UIFactory(type=u'snack')
 	ui.drawRootText(1, 1, 'opsi')
 
-	# Get product type
+	product = getProduct()
+
+	productSourceDir = os.path.join(destDir, product.id)
+	if os.path.exists(productSourceDir):
+		overwrite = ui.yesno(
+			title=_(u'Overwrite?'),
+			text=_(u'Directory %s already exists, overwrite?') % productSourceDir,
+			okLabel=_(u'Yes'),
+			cancelLabel=_(u'No')
+		)
+
+		if not overwrite:
+			raise Exception(_(u'Cancelled'))
+		shutil.rmtree(productSourceDir)
+
+	os.mkdir(productSourceDir, 02770)
+	os.mkdir(os.path.join(productSourceDir, 'OPSI'), 02770)
+	os.mkdir(os.path.join(productSourceDir, 'CLIENT_DATA'), 02770)
+	os.mkdir(os.path.join(productSourceDir, 'SERVER_DATA'), 02770)
+
+	try:
+		productDependencies = collectProductDependencies(product)
+		productProperties = collectProductProperties(product)
+		writeMaintainerInfo(productSourceDir, product, productDependencies, productProperties)
+
+		createTemplates(productSourceDir, templateDirectory)
+		setRights(productSourceDir)
+
+		ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
+	except Exception as exc:
+		errorMessage = _("Product creation failed. Removing directory {0}").format(productSourceDir)
+
+		logger.info(errorMessage)
+		ui.showError(title=_(u'Product creation failed'), text=errorMessage, width=50, height=5)
+
+		shutil.rmtree(productSourceDir)
+
+		raise exc
+
+
+def getProduct():
 	helpText = ''
 	values = [
 		{"name": u"localboot", "selected": True},
@@ -150,7 +190,7 @@ Priority:         The installation priority class of this product (value between
 		error = None
 		try:
 			product.setId(values[0].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'You have to specify a valid product id.')
 		try:
@@ -162,12 +202,12 @@ Priority:         The installation priority class of this product (value between
 				error = _(u'You have to specify a valid product name.')
 		try:
 			product.setDescription(values[2].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Description is not valid.')
 		try:
 			product.setAdvice(values[3].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Advice is not valid.')
 		try:
@@ -186,12 +226,12 @@ Priority:         The installation priority class of this product (value between
 				error = _(u'You have to specify a valid package version.')
 		try:
 			product.setLicenseRequired(values[6].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'License required must be a boolean value.')
 		try:
 			product.setPriority(values[7].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Priority has to be an number between -100 and 100')
 
@@ -238,44 +278,44 @@ PXE config template: path to a custom pxelinux config template.
 		error = None
 		try:
 			product.setSetupScript(values[0].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Setup script is not valid.')
 		try:
 			product.setUninstallScript(values[1].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Uninstall script is not valid.')
 		try:
 			product.setUpdateScript(values[2].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Update script is not valid.')
 		try:
 			product.setAlwaysScript(values[3].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Always script is not valid.')
 		try:
 			product.setOnceScript(values[4].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Once script is not valid.')
 		try:
 			product.setCustomScript(values[5].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Custom script is not valid.')
 		if productType == 'netboot':
 			try:
 				product.setPxeConfigTemplate(values[6].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'PXE config template is not valid.')
 		else:
 			try:
 				product.setUserLoginScript(values[6].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'User login script is not valid.')
 
@@ -285,25 +325,10 @@ PXE config template: path to a custom pxelinux config template.
 
 		break
 
-	productSourceDir = os.path.join(destDir, product.id)
-	if os.path.exists(productSourceDir):
-		overwrite = ui.yesno(
-			title=_(u'Overwrite?'),
-			text=_(u'Directory %s already exists, overwrite?') % productSourceDir,
-			okLabel=_(u'Yes'),
-			cancelLabel=_(u'No')
-		)
+	return product
 
-		if not overwrite:
-			raise Exception(_(u'Cancelled'))
-		shutil.rmtree(productSourceDir)
 
-	os.mkdir(productSourceDir, 02770)
-	os.mkdir(os.path.join(productSourceDir, 'OPSI'), 02770)
-	os.mkdir(os.path.join(productSourceDir, 'CLIENT_DATA'), 02770)
-	os.mkdir(os.path.join(productSourceDir, 'SERVER_DATA'), 02770)
-
-	# Product dependencies
+def collectProductDependencies(product):
 	productDependencies = []
 	helpText = _(\
 u'''
@@ -400,7 +425,10 @@ Possible requirement types are:
 			productDependencies.append(productDependency)
 			break
 
-	# Product properties
+	return productDependencies
+
+
+def collectProductProperties(product):
 	productProperties = []
 	helpText = _(\
 u'''
@@ -460,13 +488,13 @@ Editable:             Is it allowed to specify a value which is not in the list 
 			error = None
 			try:
 				productProperty.setPropertyId(values[0].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'Please specify a valid identifier')
 
 			try:
 				productProperty.setDescription(values[1].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'Please specify a valid description')
 
@@ -480,7 +508,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 				if possibleValues:
 					try:
 						productProperty.setPossibleValues(possibleValues)
-					except Exception as e:
+					except Exception:
 						if not error:
 							error = _(u'Please specify valid possible values')
 				else:
@@ -528,7 +556,10 @@ Editable:             Is it allowed to specify a value which is not in the list 
 			productProperties.append(productProperty)
 			break
 
-	# Maintainer info
+	return productProperties
+
+
+def writeMaintainerInfo(productDirectory, product, productDependencies, productProperties):
 	maintainer = u''
 	maintainerEmail = u''
 	helpText = _(u'''
@@ -574,12 +605,12 @@ Maintainer of this opsi package.
 
 		break
 
-	pcf = PackageControlFile(os.path.join(productSourceDir, 'OPSI', 'control'))
+	pcf = PackageControlFile(os.path.join(productDirectory, 'OPSI', 'control'))
 	pcf.setProduct(product)
 	pcf.setProductDependencies(productDependencies)
 	pcf.setProductProperties(productProperties)
 
-	tmpChangelog = os.path.join(productSourceDir, 'OPSI', 'changelog.txt')
+	tmpChangelog = os.path.join(productDirectory, 'OPSI', 'changelog.txt')
 	cf = ChangelogFile(tmpChangelog)
 	cf.setEntries([{
 		'package': product.id,
@@ -598,11 +629,6 @@ Maintainer of this opsi package.
 	pcf.setProduct(product)
 	pcf.generate()
 	pcf.chmod(0600)
-
-	createTemplates(productSourceDir, templateDirectory)
-	setRights(productSourceDir)
-
-	ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
 
 
 def createTemplates(productDirectory, templateDirectory=None):
