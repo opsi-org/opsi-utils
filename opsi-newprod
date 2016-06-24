@@ -4,7 +4,7 @@
 # opsi-newprod is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 
-# Copyright (C) 2010-2015 uib GmbH - http://www.uib.de/
+# Copyright (C) 2010-2016 uib GmbH - http://www.uib.de/
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -52,7 +52,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.6.3'
+__version__ = '4.0.7.1'
 
 logger = Logger()
 ui = None
@@ -306,18 +306,13 @@ PXE config template: path to a custom pxelinux config template.
 	# Product dependencies
 	productDependencies = []
 	helpText = _(\
-u'''
-You have to specify a required product id.
+u'''You have to specify a required product id.
 You have to specify either a required installation status or a required action.
-The requirement type is optional.
-Possible actions are:
-   %s
-Possible installation status are:
-   %s
-Possible requirement types are:
-   %s
-''') % (
-		u', '.join([u'setup', u'uninstall', u'update', u'once', u'always', u'custom']),
+The requirement type can be used to specify the position of a requirement. This is optional.
+Possible actions are: %s
+Possible installation status are: %s
+Possible requirement types are: %s''') % (
+		u', '.join([u'setup']),
 		u', '.join([u'installed', 'not_installed']),
 		u', '.join([u'before', u'after'])
 	)
