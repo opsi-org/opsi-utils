@@ -198,7 +198,7 @@ Priority:         The installation priority class of this product (value between
 			product.setName(values[1].get('value'))
 			if not product.name:
 				raise Exception(u'No product name specified')
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'You have to specify a valid product name.')
 		try:
@@ -215,14 +215,14 @@ Priority:         The installation priority class of this product (value between
 			product.setProductVersion(values[4].get('value'))
 			if not product.productVersion:
 				raise Exception(u'No product version specified')
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'You have to specify a valid product version.')
 		try:
 			product.setPackageVersion(values[5].get('value'))
 			if not product.packageVersion:
 				raise Exception(u'No package version specified')
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'You have to specify a valid package version.')
 		try:
@@ -379,26 +379,26 @@ Possible requirement types are: %s''') % (
 			error = None
 			try:
 				productDependency.setProductAction(values[0].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'You have to specify a valid product action.')
 
 			try:
 				productDependency.setRequiredProductId(values[1].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'You have to specify a valid required product id.')
 
 			if values[2].get('value'):
 				try:
 					productDependency.setRequiredAction(values[2].get('value'))
-				except Exception as e:
+				except Exception:
 					if not error:
 						error = _(u'Required action is not valid.')
 			elif values[3].get('value'):
 				try:
 					productDependency.setRequiredInstallationStatus(values[3].get('value'))
-				except Exception as e:
+				except Exception:
 					if not error:
 						error = _(u'Required installation status is not valid.')
 			else:
@@ -407,7 +407,7 @@ Possible requirement types are: %s''') % (
 
 			try:
 				productDependency.setRequirementType(values[4].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'Requirement type is not valid.')
 
@@ -535,7 +535,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 						defaultValues = [result]
 
 				productProperty.setDefaultValues(defaultValues)
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'Please specify valid default values: %s') % e
 
@@ -575,7 +575,7 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 			if not values[0].get('value'):
 				raise Exception(u'Empty maintainer')
 			maintainer = forceUnicode(values[0].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Please enter a valid maintainer name.')
 
@@ -583,7 +583,7 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 			if not values[1].get('value'):
 				raise Exception(u'Empty maintainer e-mail')
 			maintainerEmail = forceEmailAddress(values[1].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Please enter a valid e-mail address.')
 
