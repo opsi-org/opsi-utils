@@ -190,7 +190,7 @@ Priority:         The installation priority class of this product (value between
 		error = None
 		try:
 			product.setId(values[0].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'You have to specify a valid product id.')
 		try:
@@ -202,12 +202,12 @@ Priority:         The installation priority class of this product (value between
 				error = _(u'You have to specify a valid product name.')
 		try:
 			product.setDescription(values[2].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Description is not valid.')
 		try:
 			product.setAdvice(values[3].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Advice is not valid.')
 		try:
@@ -226,12 +226,12 @@ Priority:         The installation priority class of this product (value between
 				error = _(u'You have to specify a valid package version.')
 		try:
 			product.setLicenseRequired(values[6].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'License required must be a boolean value.')
 		try:
 			product.setPriority(values[7].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Priority has to be an number between -100 and 100')
 
@@ -278,44 +278,44 @@ PXE config template: path to a custom pxelinux config template.
 		error = None
 		try:
 			product.setSetupScript(values[0].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Setup script is not valid.')
 		try:
 			product.setUninstallScript(values[1].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Uninstall script is not valid.')
 		try:
 			product.setUpdateScript(values[2].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Update script is not valid.')
 		try:
 			product.setAlwaysScript(values[3].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Always script is not valid.')
 		try:
 			product.setOnceScript(values[4].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Once script is not valid.')
 		try:
 			product.setCustomScript(values[5].get('value'))
-		except Exception as e:
+		except Exception:
 			if not error:
 				error = _(u'Custom script is not valid.')
 		if productType == 'netboot':
 			try:
 				product.setPxeConfigTemplate(values[6].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'PXE config template is not valid.')
 		else:
 			try:
 				product.setUserLoginScript(values[6].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'User login script is not valid.')
 
@@ -488,13 +488,13 @@ Editable:             Is it allowed to specify a value which is not in the list 
 			error = None
 			try:
 				productProperty.setPropertyId(values[0].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'Please specify a valid identifier')
 
 			try:
 				productProperty.setDescription(values[1].get('value'))
-			except Exception as e:
+			except Exception:
 				if not error:
 					error = _(u'Please specify a valid description')
 
@@ -508,7 +508,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 				if possibleValues:
 					try:
 						productProperty.setPossibleValues(possibleValues)
-					except Exception as e:
+					except Exception:
 						if not error:
 							error = _(u'Please specify valid possible values')
 				else:
