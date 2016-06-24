@@ -108,14 +108,24 @@ def main():
 	os.mkdir(os.path.join(productSourceDir, 'CLIENT_DATA'), 02770)
 	os.mkdir(os.path.join(productSourceDir, 'SERVER_DATA'), 02770)
 
-	productDependencies = collectProductDependencies(product)
-	productProperties = collectProductProperties(product)
-	writeMaintainerInfo(productSourceDir, product, productDependencies, productProperties)
+	try:
+		productDependencies = collectProductDependencies(product)
+		productProperties = collectProductProperties(product)
+		writeMaintainerInfo(productSourceDir, product, productDependencies, productProperties)
 
-	createTemplates(productSourceDir, templateDirectory)
-	setRights(productSourceDir)
+		createTemplates(productSourceDir, templateDirectory)
+		setRights(productSourceDir)
 
-	ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
+		ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
+	except Exception as exc:
+		errorMessage = _("Product creation failed. Removing directory {0}").format(productSourceDir)
+
+		logger.info(errorMessage)
+		ui.showError(title=_(u'Product creation failed'), text=errorMessage, width=50, height=5)
+
+		shutil.rmtree(productSourceDir)
+
+		raise exc
 
 
 def getProduct():
