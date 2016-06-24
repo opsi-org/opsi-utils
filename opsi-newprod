@@ -35,6 +35,7 @@ import os
 import sys
 import shutil
 import time
+from contextlib import contextmanager
 
 from OPSI.Logger import Logger, LOG_ERROR
 
@@ -643,18 +644,21 @@ copied to ``productDirectory``
 
 
 if __name__ == "__main__":
+
+	@contextmanager
 	def exitUI():
 		try:
-			ui.exit()
+			yield
 		except Exception:
-			pass
+			try:
+				ui.exit()
+			except Exception:
+				pass
 
 	try:
-		main()
-		exitUI()
-		sys.exit(0)
+		with exitUI():
+			main()
 	except Exception as exception:
-		exitUI()
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
 		print("ERROR: {0}".format(forceUnicode(exception).encode('utf-8')), file=sys.stderr)
