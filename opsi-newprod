@@ -331,19 +331,14 @@ PXE config template: path to a custom pxelinux config template.
 def collectProductDependencies(product):
 	productDependencies = []
 	helpText = _(\
-u'''
-You have to specify either a required product or a required product class.
+u'''You have to specify a required product id.
 You have to specify either a required installation status or a required action.
-The requirement type is optional.
-Possible actions are:
-   %s
-Possible installation status are:
-   %s
-Possible requirement types are:
-   %s
-''') % (
-		u', '.join([u'setup', u'uninstall', u'update', u'once', u'always', u'custom']),
-		u', '.join([u'installed', 'not_installed']),
+The requirement type can be used to specify the position of a requirement. This is optional.
+Possible actions are: %s
+Possible installation status are: %s
+Possible requirement types are: %s''') % (
+		u', '.join([u'setup']),
+		u', '.join([u'installed']),
 		u', '.join([u'before', u'after'])
 	)
 
