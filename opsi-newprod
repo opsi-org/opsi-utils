@@ -154,17 +154,14 @@ def getProduct():
 		product = NetbootProduct(id=u'newprod', productVersion=u'1.0', packageVersion=u'1')
 	product.setDefaults()
 
-	helpText = _(\
-u'''
-Product id:       A unique identifier for the product.
+	helpText = _(u'''Product id:       A unique identifier for the product.
 Product name:     The full name of the product.
 Description:      A description (use \\n for line breaks).
 Advice:           An additional important advice.
 Product version:  Version defined by software producer.
 Package version:  Opsi package version of the product.
 License required: Is a license required (0|1)?
-Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral).
-''')
+Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral).''')
 	while True:
 		values = [
 			{"name": _(u"Product id"), "value": product.id},
@@ -241,8 +238,7 @@ Priority:         The installation priority class of this product (value between
 			continue
 		break
 
-	helpText = _(\
-u'''
+	helpText = _(u'''\
 Setup script:        Relative path to script for action "setup".
 Uninstall script:    Relative path to script for action "uninstall".
 Update script:       Relative path to script for action "update".
@@ -250,8 +246,7 @@ Always script:       Relative path to script for action "always".
 Once script:         Relative path to script for action "once".
 Custom script:       Relative path to script for action "custom".
 User login script:   Relative path to script for user login.
-PXE config template: path to a custom pxelinux config template.
-''')
+PXE config template: path to a custom pxelinux config template.''')
 	while True:
 		values = [
 			{"name": _(u"Setup script"), "value": product.setupScript},
@@ -331,8 +326,7 @@ PXE config template: path to a custom pxelinux config template.
 
 def collectProductDependencies(product):
 	productDependencies = []
-	helpText = _(\
-u'''You have to specify a required product id.
+	helpText = _(u'''You have to specify a required product id.
 You have to specify either a required installation status or a required action.
 The requirement type can be used to specify the position of a requirement. This is optional.
 Possible actions are: %s
@@ -426,14 +420,11 @@ Possible requirement types are: %s''') % (
 
 def collectProductProperties(product):
 	productProperties = []
-	helpText = _(\
-u'''
-Property name:        Name of the property.
+	helpText = _(u'''Property name:        Name of the property.
 Property description: Usage description.
 Possible values:      Comma separated list of possible values for the property.
                       If no possible values are given any values are allowed.
-Editable:             Is it allowed to specify a value which is not in the list of possible values?
-''')
+Editable:             Is it allowed to specify a value which is not in the list of possible values?''')
 	while True:
 		if not ui.yesno(title=_(u'Create product property?'),
 				text=_(u'Do you want to create a product property?'),
@@ -558,9 +549,7 @@ Editable:             Is it allowed to specify a value which is not in the list 
 def writeMaintainerInfo(productDirectory, product, productDependencies, productProperties):
 	maintainer = u''
 	maintainerEmail = u''
-	helpText = _(u'''
-Maintainer of this opsi package.
-''')
+	helpText = _(u'Maintainer of this opsi package.')
 	while True:
 		values = [
 			{"name": _(u"Maintainer name"), "value": maintainer},
