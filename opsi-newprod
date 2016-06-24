@@ -313,7 +313,7 @@ Possible actions are: %s
 Possible installation status are: %s
 Possible requirement types are: %s''') % (
 		u', '.join([u'setup']),
-		u', '.join([u'installed', 'not_installed']),
+		u', '.join([u'installed']),
 		u', '.join([u'before', u'after'])
 	)
 
