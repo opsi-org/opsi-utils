@@ -307,7 +307,7 @@ PXE config template: path to a custom pxelinux config template.
 	productDependencies = []
 	helpText = _(\
 u'''
-You have to specify either a required product or a required product class.
+You have to specify a required product id.
 You have to specify either a required installation status or a required action.
 The requirement type is optional.
 Possible actions are:
