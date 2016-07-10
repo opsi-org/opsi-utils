@@ -1089,11 +1089,13 @@ class OpsiPackageUpdater(object):
 										md5sum = con.read(32768)
 										match = re.search('([a-z\d]{32})', md5sum)
 										if match:
-											packages[i]["md5sum"] = match.group(1)
-											logger.debug(u"Got md5sum for package '%s': %s" % (filename, packages[i]["md5sum"]))
+											foundMd5sum = match.group(1)
+											packages[i]["md5sum"] = foundMd5sum
+											logger.debug(u"Got md5sum for package {0!r}: {1}", filename, foundMd5sum)
 									elif isZsync:
-										packages[i]["zsyncFile"] = url + '/' + link
-										logger.debug(u"Found zsync file for package '%s': %s" % (filename, packages[i]["zsyncFile"]))
+										zsyncFile = url + '/' + link
+										packages[i]["zsyncFile"] = zsyncFile
+										logger.debug(u"Found zsync file for package {0!r}: {1}", filename, zsyncFile)
 									break
 						except Exception as error:
 							logger.error(u"Failed to process link '%s': %s" % (link, error))
