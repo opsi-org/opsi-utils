@@ -1080,8 +1080,9 @@ class OpsiPackageUpdater(object):
 								filename = link[:-6]
 							else:
 								continue
-							for i in range(len(packages)):
-								if packages[i].get('filename') == filename:
+
+							for i, package in enumerate(packages):
+								if package.get('filename') == filename:
 									if isMd5:
 										req = urllib2.Request(url + '/' + link, None, self.httpHeaders)
 										con = opener.open(req)
