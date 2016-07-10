@@ -930,10 +930,11 @@ class OpsiPackageUpdater(object):
 		newestPackages = []
 		for package in packages:
 			found = None
-			for i in range(len(newestPackages)):
-				if newestPackages[i]['productId'] == package['productId']:
+			for i, newPackage in enumerate(newestPackages):
+				if newPackage['productId'] == package['productId']:
 					found = i
 					break
+
 			if found is None:
 				newestPackages.append(package)
 			elif compareVersions(package['version'], '>', newestPackages[i]['version']):
