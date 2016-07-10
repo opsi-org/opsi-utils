@@ -966,8 +966,7 @@ class OpsiPackageUpdater(object):
 		logger.notice(u"Getting installed products")
 		products = []
 		configBackend = self.getConfigBackend()
-		for productOnDepot in configBackend.productOnDepot_getObjects(depotId=self.depotId):
-			product = productOnDepot.toHash()
+		for product in configBackend.productOnDepot_getHashes(depotId=self.depotId):
 			logger.info(u"Found installed product '%s_%s-%s'" % (product['productId'], product['productVersion'], product['packageVersion']))
 			products.append(product)
 		return products
