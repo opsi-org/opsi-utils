@@ -139,7 +139,7 @@ class EmailNotifier(object):
 	def __init__(self, smtphost=u'localhost', smtpport=25, subject=u'opsi product updater', sender=u'', receivers=[]):
 		self.receivers = forceUnicodeList(receivers)
 		if not self.receivers:
-			raise Exception(u"List of mail recipients empty")
+			raise ValueError(u"List of mail recipients empty")
 		self.smtphost = forceUnicode(smtphost)
 		self.smtpport = forceInt(smtpport)
 		self.sender = forceUnicode(sender)
@@ -215,10 +215,10 @@ class OpsiPackageUpdater(object):
 		self.depotId = forceHostId(getfqdn(conf='/etc/opsi/global.conf').lower())
 		depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=self.depotId)
 		if not depots:
-			raise Exception(u"Depot '%s' not found in backend" % self.depotId)
+			raise ValueError(u"Depot '%s' not found in backend" % self.depotId)
 		self.depotKey = depots[0].opsiHostKey
 		if not self.depotKey:
-			raise Exception(u"Opsi host key for depot '%s' not found in backend" % self.depotId)
+			raise ValueError(u"Opsi host key for depot '%s' not found in backend" % self.depotId)
 		logger.addConfidentialString(self.depotKey)
 		self.readConfigFile()
 
@@ -242,7 +242,7 @@ class OpsiPackageUpdater(object):
 		try:
 			logger.notice(u"Reading config file '%s'" % self.config["configFile"])
 			if not os.path.isfile(self.config["configFile"]):
-				raise Exception(u"File not found")
+				raise OSError(u"File not found")
 
 			self.config['repositories'] = []
 
@@ -315,13 +315,13 @@ class OpsiPackageUpdater(object):
 							if not value.strip():
 								continue
 							if not re.search('^\d{1,2}\:\d{1,2}$', value.strip()):
-								raise Exception(u"Start time '%s' not in needed format 'HH:MM'" % value.strip())
+								raise ValueError(u"Start time '%s' not in needed format 'HH:MM'" % value.strip())
 							self.config["installationWindowStartTime"] = value.strip()
 						elif option.lower() == 'windowend':
 							if not value.strip():
 								continue
 							if not re.search('^\d{1,2}\:\d{1,2}$', value.strip()):
-								raise Exception(u"End time '%s' not in needed format 'HH:MM'" % value.strip())
+								raise ValueError(u"End time '%s' not in needed format 'HH:MM'" % value.strip())
 							self.config["installationWindowEndTime"] = value.strip()
 						elif option.lower() == 'exceptproductids':
 							self.config['installationWindowExceptions'] = []
@@ -362,9 +362,9 @@ class OpsiPackageUpdater(object):
 					if opsiDepotId:
 						depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=opsiDepotId)
 						if not depots:
-							raise Exception(u"Depot '%s' not found in backend" % opsiDepotId)
+							raise ValueError(u"Depot '%s' not found in backend" % opsiDepotId)
 						if not depots[0].repositoryRemoteUrl:
-							raise Exception(u"Repository remote url for depot '%s' not found in backend" % opsiDepotId)
+							raise ValueError(u"Repository remote url for depot '%s' not found in backend" % opsiDepotId)
 						repository = ProductRepositoryInfo(
 							baseUrl=depots[0].repositoryRemoteUrl,
 							dirs=['/'],
@@ -496,7 +496,7 @@ class OpsiPackageUpdater(object):
 								found = True
 								break
 						if not found:
-							raise Exception(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
+							raise ValueError(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
 					if newProductList:
 						downloadablePackages = newProductList
 				newPackages = []
@@ -588,7 +588,7 @@ class OpsiPackageUpdater(object):
 							if md5 == availablePackage["md5sum"]:
 								logger.info(u"Md5sum match, package download verified")
 							else:
-								raise Exception(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
+								raise RuntimeError(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
 						else:
 							logger.info(u"Md5sum mismatch and no zsync. Doing nothing.")
 					else:
@@ -681,7 +681,7 @@ class OpsiPackageUpdater(object):
 					self.getConfigBackend().depot_installPackage(filename=packageFile, force=True, propertyDefaultValues=propertyDefaultValues, tempDir=self.config.get('tempdir', '/tmp'))
 					productOnDepots = self.getConfigBackend().productOnDepot_getObjects(depotId=self.depotId, productId=package['productId'])
 					if not productOnDepots:
-						raise Exception(u"Product '%s' not found on depot '%s' after installation" % (package['productId'], self.depotId))
+						raise ValueError(u"Product '%s' not found on depot '%s' after installation" % (package['productId'], self.depotId))
 					package['product'] = self.getConfigBackend().product_getObjects(
 						id=productOnDepots[0].productId,
 						productVersion=productOnDepots[0].productVersion,
@@ -990,7 +990,7 @@ class OpsiPackageUpdater(object):
 			repositoryLocalUrl = depotConnection.getDepot_hash(repository.opsiDepotId).get("repositoryLocalUrl")
 			logger.info(u"Got repository local url '%s' for depot '%s'" % (repositoryLocalUrl, repository.opsiDepotId))
 			if not repositoryLocalUrl or not repositoryLocalUrl.startswith('file://'):
-				raise Exception(u"Invalid repository local url for depot '%s'" % repository.opsiDepotId)
+				raise ValueError(u"Invalid repository local url for depot '%s'" % repository.opsiDepotId)
 			depotRepositoryPath = repositoryLocalUrl[7:]
 
 		passwordManager = urllib2.HTTPPasswordMgrWithDefaultRealm()
@@ -1096,7 +1096,7 @@ class OpsiPackageUpdater(object):
 							logger.error(u"Failed to process link '%s': %s" % (link, error))
 			except Exception as error:
 				logger.logException(error, LOG_INFO)
-				raise Exception(u"Failed to process url '%s': %s" % (url, error))
+				raise RuntimeError(u"Failed to process url '%s': %s" % (url, error))
 		return packages
 
 
@@ -1166,7 +1166,7 @@ def main():
 	except Exception as error:
 		logger.error(error)
 	if running:
-		raise Exception(u"Another %s process is running (pid: %s)." % (os.path.basename(sys.argv[0]), running))
+		raise RuntimeError(u"Another %s process is running (pid: %s)." % (os.path.basename(sys.argv[0]), running))
 
 	with OpsiPackageUpdater(config) as opu:
 		opu.processUpdates()
