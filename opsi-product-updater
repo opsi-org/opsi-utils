@@ -737,11 +737,11 @@ class OpsiPackageUpdater(object):
 								installationStatus=['installed'],
 							)
 							if productOnClients:
-								for i in range(len(productOnClients)):
+								for i, poc in enumerate(productOnClients):
 									productOnClients[i].setActionRequest('setup')
 									if self.config['wolAction'] and not package['productId'] in self.config['wolActionExcludeProductIds']:
-										if not productOnClients[i].clientId in wakeOnLanClients:
-											wakeOnLanClients.append(productOnClients[i].clientId)
+										if poc.clientId not in wakeOnLanClients:
+											wakeOnLanClients.append(poc.clientId)  # TODO: make this a set...
 								self.getConfigBackend().productOnClient_updateObjects(productOnClients)
 
 				if wakeOnLanClients:
