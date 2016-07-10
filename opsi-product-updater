@@ -937,9 +937,9 @@ class OpsiPackageUpdater(object):
 
 			if found is None:
 				newestPackages.append(package)
-			elif compareVersions(package['version'], '>', newestPackages[i]['version']):
-				logger.debug("Package version '%s' is newer than version '%s'" % (package['version'], newestPackages[i]['version']))
-				newestPackages[i] = package
+			elif compareVersions(package['version'], '>', newestPackages[found]['version']):
+				logger.debug("Package version '%s' is newer than version '%s'" % (package['version'], newestPackages[found]['version']))
+				newestPackages[found] = package
 		return newestPackages
 
 	def getLocalPackages(self):
