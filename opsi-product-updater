@@ -1100,7 +1100,7 @@ class OpsiPackageUpdater(object):
 		return packages
 
 
-def main(argv):
+def main():
 	config = {
 		"userAgent": 'opsi product updater %s' % __version__,
 		"packageDir": '/var/lib/opsi/products',
@@ -1176,7 +1176,7 @@ if __name__ == "__main__":
 	logger.setConsoleColor(True)
 
 	try:
-		main(sys.argv[1:])
+		main()
 	except SystemExit:
 		pass
 	except KeyboardInterrupt:
