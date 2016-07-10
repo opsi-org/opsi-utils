@@ -213,13 +213,17 @@ class OpsiPackageUpdater(object):
 		self.configBackend = None
 		self.depotConnections = {}
 		self.depotId = forceHostId(getfqdn(conf='/etc/opsi/global.conf').lower())
+
 		depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=self.depotId)
-		if not depots:
+		try:
+			self.depotKey = depots[0].opsiHostKey
+		except IndexError:
 			raise ValueError(u"Depot '%s' not found in backend" % self.depotId)
-		self.depotKey = depots[0].opsiHostKey
+
 		if not self.depotKey:
 			raise ValueError(u"Opsi host key for depot '%s' not found in backend" % self.depotId)
 		logger.addConfidentialString(self.depotKey)
+
 		self.readConfigFile()
 
 	def __enter__(self):
