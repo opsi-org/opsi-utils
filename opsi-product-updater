@@ -232,11 +232,10 @@ class OpsiPackageUpdater(object):
 			except Exception:
 				pass
 
-		if self.configBackend:
-			try:
-				self.configBackend.backend_exit()
-			except Exception:
-				pass
+		try:
+			self.configBackend.backend_exit()
+		except Exception:
+			pass
 
 	def readConfigFile(self):
 		try:
