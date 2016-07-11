@@ -534,7 +534,7 @@ Editable: Is it allowed to specify a value which is not in the list of possible 
 						defaultValues = [result]
 
 				productProperty.setDefaultValues(defaultValues)
-			except Exception:
+			except Exception as e:
 				if not error:
 					error = _(u'Please specify valid default values: %s') % e
 
