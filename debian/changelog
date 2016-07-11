@@ -1,3 +1,9 @@
+opsi-utils (4.0.7.3-1) stable; urgency=medium
+
+  * opsi-product-updater: Various small refactorings.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 11 Jul 2016 12:46:24 +0200
+
 opsi-utils (4.0.7.2-1) testing; urgency=medium
 
   * opsi-newprod: Delete directory if things fail during the creation.
