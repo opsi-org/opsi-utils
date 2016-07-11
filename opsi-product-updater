@@ -1168,6 +1168,7 @@ def main(argv):
 
 	if running:
 		raise Exception(u"Another %s process is running (pid: %s)." % (os.path.basename(sys.argv[0]), running))
+	logger.info(u"We are the only {0} running.", os.path.basename(sys.argv[0]))
 
 	with OpsiPackageUpdater(config) as opu:
 		opu.processUpdates()
