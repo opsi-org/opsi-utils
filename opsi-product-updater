@@ -1164,7 +1164,8 @@ def main(argv):
 			if int(anotherPid) != pid:
 				running = anotherPid
 	except Exception as error:
-		logger.error(error)
+		logger.debug(u"Check for running processes failed: {0}", error)
+
 	if running:
 		raise Exception(u"Another %s process is running (pid: %s)." % (os.path.basename(sys.argv[0]), running))
 
