@@ -52,7 +52,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.7.2'
+__version__ = '4.0.7.3'
 
 logger = Logger()
 
@@ -534,7 +534,7 @@ Editable: Is it allowed to specify a value which is not in the list of possible 
 						defaultValues = [result]
 
 				productProperty.setDefaultValues(defaultValues)
-			except Exception:
+			except Exception as e:
 				if not error:
 					error = _(u'Please specify valid default values: %s') % e
 
