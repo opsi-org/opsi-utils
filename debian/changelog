@@ -1,6 +1,61 @@
+opsi-utils (4.0.7.4-1) stable; urgency=medium
+
+  * opsi-product-updater.conf: Added additional repositories for Linux
+    and opsi-local-image products.
+  * opsi-admin: When run without loglevel set do not hide the error message
+    if something fails.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 28 Jul 2016 16:26:30 +0200
+
+opsi-utils (4.0.7.3-1) stable; urgency=medium
+
+  * opsi-product-updater: Various small refactorings.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 11 Jul 2016 12:46:24 +0200
+
+opsi-utils (4.0.7.2-1) testing; urgency=medium
+
+  * opsi-newprod: Delete directory if things fail during the creation.
+  * opsi-newprod: Improved texts for depedency creation. Not suggesting
+    currently not handled cases anymore.
+  * opsi-newprod: Various internal refactorings.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 24 Jun 2016 15:05:09 +0200
+
+opsi-utils (4.0.7.1-1) testing; urgency=medium
+
+  * opsi-convert: If you are logging into a file the loglevel will be DEBUG.
+  * opsi-product-updater: The notification mail will now have the DATE field
+    in the header. The field is formatted as specified in RFC 5322.
+  * opsi-package-manager: Setting -v now sets an implicit -q to show the
+    output. If using '-p ask' no -q will be set to be able to still
+    select the wanted properties.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 23 May 2016 14:31:10 +0200
+
+opsi-utils (4.0.6.14-1) testing; urgency=medium
+
+  * opsi-makeproductfile: Avoid reference to undefined 'incremental'.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 29 Apr 2016 12:21:49 +0200
+
+opsi-utils (4.0.6.13-1) testing; urgency=medium
+
+  * opsi-makeproductfile: now using argparse internally
+  * opsi-admin now has a welcome message.
+  * Fixed typo in German translation.
+  * opsi-convert: show custom application name if used against webinterface
+    of another server to be able to easily spot the corresponding requests.
+  * opsi-product-updater: Attempts to close open connections now more reliable.
+  * opsi-makeproductfile: use argparse instead of getopt.
+  * opsi-product-updater: running with -p <productId> now implies -i.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 28 Apr 2016 12:29:16 +0200
+
 opsi-utils (4.0.6.12-1) experimental; urgency=medium
 
-  * opsi-package-manager: return error when trying to remove non installed package
+  * opsi-package-manager: return error when trying to remove non installed
+    package
   * opsi-package-manager: logs into package.log with LogLevel 4
   * Added logrotate config for /var/log/opsi/opsi-package-manager.log
 
