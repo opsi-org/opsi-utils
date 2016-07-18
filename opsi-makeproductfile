@@ -138,11 +138,14 @@ def main(argv):
 	parser.add_argument('--no-pigz', dest="disablePigz",
 						default=False, action='store_true',
 						help="Disable the usage of pigz")
+	parser.add_argument('--newPackageVersion', help="Create new Package with given package version ", default=u'', dest="newPackageVersion", metavar='packageversion'),
+	parser.add_argument('--newProductVersion', help="Create new Package with given product version ", default=u'', dest="newProductVersion", metavar='productversion'),
 	parser.add_argument('packageSourceDir', metavar="source directory",
 						nargs='?', default=os.getcwd())
 
 	args = parser.parse_args()
-
+	if args.newProductVersion or args.newPackageVersion:
+		overwriteVersions = True
 	if args.help:
 		parser.print_help()
 		sys.exit(1)
@@ -281,33 +284,41 @@ def main(argv):
 			if not quiet and os.path.exists(pps.getPackageFile()):
 				print _(u"Package file '%s' already exists.") % pps.getPackageFile()
 				print _(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"),
-				newVersion = False
-				fd = sys.stdin.fileno()
-				savedSettings = termios.tcgetattr(fd)
-				tty.setraw(fd)
-				try:
-					while True:
-						ch = sys.stdin.read(1)
-						if ch in ('o', 'O'):
-							if os.path.exists(pps.packageFile + u'.md5'):
-								os.remove(pps.packageFile + u'.md5')
-							if os.path.exists(pps.packageFile + u'.zsync'):
-								os.remove(pps.packageFile + u'.zsync')
-							break
-						elif ch in ('c', 'C'):
-							raise Exception(_(u"Aborted"))
-						elif ch in ('n', 'N'):
-							newVersion = True
-							break
-				finally:
-					termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
-					print '\r\033[0K'
-
+				newVersion =  overwriteVersions
+				if not newVersion:
+					fd = sys.stdin.fileno()
+					savedSettings = termios.tcgetattr(fd)
+					tty.setraw(fd)
+					try:
+						while True:
+							ch = sys.stdin.read(1)
+							if ch in ('o', 'O'):
+								if os.path.exists(pps.packageFile + u'.md5'):
+									os.remove(pps.packageFile + u'.md5')
+								if os.path.exists(pps.packageFile + u'.zsync'):
+									os.remove(pps.packageFile + u'.zsync')
+								break
+							elif ch in ('c', 'C'):
+								raise Exception(_(u"Aborted"))
+							elif ch in ('n', 'N'):
+								newVersion = True
+								break
+					finally:
+						termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
+						print '\r\033[0K'
+					continue
+				
 				if newVersion:
 					while True:
 						print '\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion,
-						newVersion = sys.stdin.readline().strip()
+						if overwriteVersions:
+							newVersion = product.productVersion
+							if args.newProductVersion:
+								newVersion = args.newProductVersion
+						else:
+							newVersion = sys.stdin.readline().strip()
 						try:
+							print _(u"product version: %s") % newVersion
 							if newVersion:
 								product.setProductVersion(newVersion)
 								pcf.generate()
@@ -317,15 +328,21 @@ def main(argv):
 
 					while True:
 						print '\r%s' % _(u"Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion,
-						newVersion = sys.stdin.readline().strip()
+						if overwriteVersions:
+							newVersion = product.packageVersion
+							if args.newPackageVersion:
+								newVersion = args.newPackageVersion
+						else:
+							newVersion = sys.stdin.readline().strip()
+						
 						try:
+							print _(u"package version: %s") % newVersion
 							if newVersion:
 								product.setPackageVersion(newVersion)
 								pcf.generate()
 							break
 						except Exception:
 							print _(u"Bad package version: %s") % newVersion
-					continue
 
 			# Regenerating to fix encoding
 			pcf.generate()
