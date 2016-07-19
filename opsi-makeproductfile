@@ -140,11 +140,13 @@ def main(argv):
 						help="Disable the usage of pigz"),
 	parser.add_argument('packageSourceDir', metavar="source directory",
 						nargs='?', default=os.getcwd())
-	versions = parser.add_argument_group('Versions', 'Set versions for package (if one (package-version or product-version) is given the one will be overwritten)')
+	versions = parser.add_argument_group('Versions', 'Set versions for package (if one (package-version or product-version) is given the other one will be overwritten)')
 	versions.add_argument('--overwrite-versions', help="Overwrite both versions ", action='store_true', dest="overwriteVersions"),
 	versions.add_argument('--package-version', help="Create new package with given package version ", default=u'', dest="newPackageVersion", metavar='packageversion'),
 	versions.add_argument('--product-version', help="Create new package with given product version ", default=u'', dest="newProductVersion", metavar='productversion'),
+	
 	args = parser.parse_args()
+	overwriteVersions = False
 	if args.newProductVersion or args.newPackageVersion or args.overwriteVersions:
 		overwriteVersions = True
 	if args.help:
