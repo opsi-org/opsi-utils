@@ -141,14 +141,17 @@ def main(argv):
 	parser.add_argument('packageSourceDir', metavar="source directory",
 						nargs='?', default=os.getcwd())
 	versions = parser.add_argument_group('Versions', 'Set versions for package (if one (package-version or product-version) is given the other one will be overwritten)')
-	versions.add_argument('--overwrite-versions', help="Overwrite both versions ", action='store_true', dest="overwriteVersions"),
+	versions.add_argument('--keep-versions', help="Keep both versions ", action='store_true', dest="keepVersions"),
 	versions.add_argument('--package-version', help="Create new package with given package version ", default=u'', dest="newPackageVersion", metavar='packageversion'),
 	versions.add_argument('--product-version', help="Create new package with given product version ", default=u'', dest="newProductVersion", metavar='productversion'),
 	
 	args = parser.parse_args()
-	overwriteVersions = False
-	if args.newProductVersion or args.newPackageVersion or args.overwriteVersions:
-		overwriteVersions = True
+	keepVersions = args.keepVersions
+	keepOneVersion = False
+	newProductVersion = args.newProductVersion
+	newPackageVersion = args.newPackageVersion
+	if newProductVersion or newPackageVersion:
+		keepOneVersion = True
 	if args.help:
 		parser.print_help()
 		sys.exit(1)
@@ -287,41 +290,48 @@ def main(argv):
 			if not quiet and os.path.exists(pps.getPackageFile()):
 				print _(u"Package file '%s' already exists.") % pps.getPackageFile()
 				print _(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"),
-				newVersion =  overwriteVersions
-				if not newVersion:
-					fd = sys.stdin.fileno()
-					savedSettings = termios.tcgetattr(fd)
-					tty.setraw(fd)
-					try:
-						while True:
+				newVersion = False
+				fd = sys.stdin.fileno()
+				savedSettings = termios.tcgetattr(fd)
+				tty.setraw(fd)
+				try:
+					while True:
+						if keepVersions:
+							ch = 'o'
+						elif keepOneVersion:
+							ch = 'n'
+						else: 
 							ch = sys.stdin.read(1)
-							if ch in ('o', 'O'):
-								if os.path.exists(pps.packageFile + u'.md5'):
-									os.remove(pps.packageFile + u'.md5')
-								if os.path.exists(pps.packageFile + u'.zsync'):
-									os.remove(pps.packageFile + u'.zsync')
-								break
-							elif ch in ('c', 'C'):
-								raise Exception(_(u"Aborted"))
-							elif ch in ('n', 'N'):
-								newVersion = True
-								break
-					finally:
-						termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
-						print '\r\033[0K'
-					continue
-				
+						if ch in ('o', 'O'):
+							if os.path.exists(pps.packageFile + u'.md5'):
+								os.remove(pps.packageFile + u'.md5')
+							if os.path.exists(pps.packageFile + u'.zsync'):
+								os.remove(pps.packageFile + u'.zsync')
+							break
+						elif ch in ('c', 'C'):
+							raise Exception(_(u"Aborted"))
+						elif ch in ('n', 'N'):
+							newVersion = True
+							break
+				finally:
+					termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
+					print '\r\033[0K'
+
 				if newVersion:
 					while True:
 						print '\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion,
-						if overwriteVersions:
-							newVersion = product.productVersion
-							if args.newProductVersion:
-								newVersion = args.newProductVersion
-						else:
+						# newVersion = sys.stdin.readline().strip()
+						newVersion = newProductVersion
+						if not keepVersions and not keepOneVersion:
 							newVersion = sys.stdin.readline().strip()
+						else:
+							if newProductVersion:
+								newVersion = newProductVersion
+							elif keepVersions:
+								newVersion = product.productVersion
+							else:
+								newVersion = sys.stdin.readline().strip()
 						try:
-							print _(u"product version: %s") % newVersion
 							if newVersion:
 								product.setProductVersion(newVersion)
 								pcf.generate()
@@ -331,21 +341,28 @@ def main(argv):
 
 					while True:
 						print '\r%s' % _(u"Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion,
-						if overwriteVersions:
-							newVersion = product.packageVersion
-							if args.newPackageVersion:
-								newVersion = args.newPackageVersion
-						else:
+						newVersion = newPackageVersion
+						if not keepVersions and not keepOneVersion:
 							newVersion = sys.stdin.readline().strip()
-						
+						else:
+							if newPackageVersion:
+								newVersion = newPackageVersion
+							elif keepVersions:
+								newVersion = product.packageVersion
+							else:
+								newVersion = sys.stdin.readline().strip()
 						try:
-							print _(u"package version: %s") % newVersion
 							if newVersion:
 								product.setPackageVersion(newVersion)
 								pcf.generate()
 							break
 						except Exception:
 							print _(u"Bad package version: %s") % newVersion
+					keepVersions=True
+					# keepOneVersion=False
+					newProductVersion=newPackageVersion=None
+					newVersion=None
+					continue
 
 			# Regenerating to fix encoding
 			pcf.generate()
