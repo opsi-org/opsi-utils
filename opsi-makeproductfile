@@ -104,7 +104,7 @@ def main(argv):
 					"If no source directory is supplied, the current directory will be used.")
 	)
 	parser.add_argument('--help', action='store_true', default=False,
-						help="Show help.")  # Manual implementation because of -h
+			help="Show help.")  # Manual implementation because of -h
 	parser.add_argument('--version', '-V', action='version', version=__version__)
 	parser.add_argument('--quiet', '-q', action='store_true', default=False,
 						help="do not show progress")
@@ -140,11 +140,17 @@ def main(argv):
 						help="Disable the usage of pigz"),
 	parser.add_argument('packageSourceDir', metavar="source directory",
 						nargs='?', default=os.getcwd())
-	versions = parser.add_argument_group('Versions', 'Set versions for package (if one (package-version or product-version) is given the other one will be overwritten)')
-	versions.add_argument('--keep-versions', help="Keep both versions ", action='store_true', dest="keepVersions"),
-	versions.add_argument('--package-version', help="Create new package with given package version ", default=u'', dest="newPackageVersion", metavar='packageversion'),
-	versions.add_argument('--product-version', help="Create new package with given product version ", default=u'', dest="newProductVersion", metavar='productversion'),
-	
+
+	versionsgroup = parser.add_argument_group('Versions',
+		'Set versions for package. Combinations are possible.')
+	versionsgroup.add_argument('--keep-versions', action='store_true',
+		help="Keep versions and overwrite package", dest="keepVersions"),
+	versionsgroup.add_argument('--package-version', help="Set new package version ",
+		default=u'', metavar='packageversion', dest="newPackageVersion"),
+	versionsgroup.add_argument('--product-version', default=u'',
+		dest="newProductVersion", metavar='productversion',
+		help="Set new product version for package"),
+
 	args = parser.parse_args()
 	keepVersions = args.keepVersions
 	keepOneVersion = False
@@ -302,7 +308,7 @@ def main(argv):
 							ch = 'o'
 						elif keepOneVersion:
 							ch = 'n'
-						else: 
+						else:
 							ch = sys.stdin.read(1)
 
 						if ch in ('o', 'O'):
@@ -364,10 +370,10 @@ def main(argv):
 						except Exception:
 							print _(u"Bad package version: %s") % newVersion
 
-					keepVersions=True
-					keepOneVersion=False
-					newProductVersion=newPackageVersion=None
-					newVersion=None
+					keepVersions = True
+					keepOneVersion = False
+					newProductVersion = newPackageVersion = None
+					newVersion = None
 					continue
 
 			# Regenerating to fix encoding
