@@ -149,18 +149,19 @@ def main(argv):
 				default=u'', metavar='packageversion', dest="newPackageVersion")
 	vgroup.add_argument('--product-version', default=u'',
 				dest="newProductVersion", metavar='productversion',
-				help="Set new product version for package"),
+				help="Set new product version for package")
 
 	args = parser.parse_args()
+	if args.help:
+		parser.print_help()
+		sys.exit(1)
+
 	keepVersions = args.keepVersions
 	keepOneVersion = False
 	newProductVersion = args.newProductVersion
 	newPackageVersion = args.newPackageVersion
 	if newProductVersion or newPackageVersion:
 		keepOneVersion = True
-	if args.help:
-		parser.print_help()
-		sys.exit(1)
 
 	customName = args.customName
 	customOnly = bool(args.customOnly)
@@ -329,7 +330,6 @@ def main(argv):
 				if newVersion:
 					while True:
 						print '\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion,
-						# newVersion = sys.stdin.readline().strip()
 						newVersion = newProductVersion
 						if not keepVersions and not keepOneVersion:
 							newVersion = sys.stdin.readline().strip()
