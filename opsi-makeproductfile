@@ -147,6 +147,9 @@ def main(argv):
 		parser.print_help()
 		sys.exit(1)
 
+	reload(sys)
+	sys.setdefaultencoding("utf-8")
+
 	customName = args.customName
 	customOnly = bool(args.customOnly)
 	if customOnly:
