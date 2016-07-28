@@ -1,3 +1,12 @@
+opsi-utils (4.0.7.4-1) stable; urgency=medium
+
+  * opsi-product-updater.conf: Added additional repositories for Linux
+    and opsi-local-image products.
+  * opsi-admin: When run without loglevel set do not hide the error message
+    if something fails.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 28 Jul 2016 16:26:30 +0200
+
 opsi-utils (4.0.7.3-1) stable; urgency=medium
 
   * opsi-product-updater: Various small refactorings.

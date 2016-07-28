@@ -41,6 +41,7 @@ import select
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Logger import (COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
@@ -55,7 +56,7 @@ from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 
 import curses
 
-__version__ = '4.0.6.13'
+__version__ = '4.0.7.4'
 
 backend = None
 exitZero = False
@@ -749,7 +750,7 @@ class Shell:
 					logger.logException(error)
 					message = u"Failed to execute {0!r}: {1}".format(self.cmdline, forceUnicode(error))
 					logger.error(message)
-					raise Exception(message)
+					raise RuntimeError(message)
 				break
 
 		if invalid:
@@ -1649,11 +1650,15 @@ class CommandTask(Command):
 					process.close()
 
 if __name__ == "__main__":
+	@contextmanager
 	def shellExit():
 		try:
-			shell.exit()
-		except Exception:
-			pass
+			yield
+		finally:
+			try:
+				shell.exit()
+			except Exception:
+				pass
 
 	try:
 		locale.setlocale(locale.LC_ALL, '')
@@ -1666,17 +1671,16 @@ if __name__ == "__main__":
 		signal(SIGQUIT, signalHandler)
 
 	try:
-		main(sys.argv[1:])
-		shellExit()
+		with shellExit():
+			main(sys.argv[1:])
 		exitCode = 0
 	except ErrorInResultException as error:
-		shellExit()
 		logger.warning(u"Error in result: {0}".format(forceUnicode(error)))
 		exitCode = 2
-	except Exception as exception:
-		shellExit()
+	except Exception as error:
 		logger.setConsoleLevel(LOG_ERROR)
-		logger.logException(exception)
+		logger.logException(error)
+		logger.error("Error during execution: {0}", error)
 		exitCode = 1
 
 	if exitZero:
