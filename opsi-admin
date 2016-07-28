@@ -1677,9 +1677,10 @@ if __name__ == "__main__":
 	except ErrorInResultException as error:
 		logger.warning(u"Error in result: {0}".format(forceUnicode(error)))
 		exitCode = 2
-	except Exception as exception:
+	except Exception as error:
 		logger.setConsoleLevel(LOG_ERROR)
-		logger.logException(exception)
+		logger.logException(error)
+		logger.error("Error during execution: {0}", error)
 		exitCode = 1
 
 	if exitZero:
