@@ -750,7 +750,7 @@ class Shell:
 					logger.logException(error)
 					message = u"Failed to execute {0!r}: {1}".format(self.cmdline, forceUnicode(error))
 					logger.error(message)
-					raise Exception(message)
+					raise RuntimeError(message)
 				break
 
 		if invalid:
