@@ -4,6 +4,7 @@ opsi-utils (4.0.7.5-1) stable; urgency=medium
 
  -- Mathias Radtke <m.radtke@uib.de>  Tue, 02 Aug 2016 12:34:49 +0200
 
+
 opsi-utils (4.0.7.4-1) stable; urgency=medium
 
   * opsi-product-updater.conf: Added additional repositories for Linux
