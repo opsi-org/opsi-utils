@@ -43,6 +43,7 @@ from OPSI.Util.Message import ProgressObserver, ProgressSubject
 from OPSI.Util.Product import ProductPackageSource
 from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ZsyncFile
+from OPSI.Util.Task.Rights import setRights
 from OPSI.Util import md5sum
 
 try:
@@ -336,6 +337,7 @@ def main(argv):
 				progressSubject.attachObserver(ProgressNotifier())
 				print _(u"Creating package file '%s'") % pps.getPackageFile()
 			pps.pack(progressSubject=progressSubject)
+			setRights(pps.getPackageFile())
 
 			if not quiet:
 				print "\n"
@@ -346,13 +348,15 @@ def main(argv):
 				md5 = md5sum(pps.getPackageFile())
 				with open(md5sumFile, 'w') as f:
 					f.write(md5)
+				setRights(md5sumFile)
 
 			if createZsyncFile:
-				zsyncFile = u'%s.zsync' % pps.getPackageFile()
+				zsyncFilePath = u'%s.zsync' % pps.getPackageFile()
 				if not quiet:
-					print _(u"Creating zsync file '%s'") % zsyncFile
-				zsyncFile = ZsyncFile(zsyncFile)
+					print _(u"Creating zsync file '%s'") % zsyncFilePath
+				zsyncFile = ZsyncFile(zsyncFilePath)
 				zsyncFile.generate(pps.getPackageFile())
+				setRights(zsyncFilePath)
 			break
 	finally:
 		if pps:
