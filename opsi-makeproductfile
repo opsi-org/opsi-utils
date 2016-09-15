@@ -64,6 +64,10 @@ except Exception as e:
 		return string
 
 
+class CancelledByUserError(Exception):
+	pass
+
+
 class ProgressNotifier(ProgressObserver):
 	def __init__(self):
 		self.usedWidth = 60
@@ -295,7 +299,7 @@ def main(argv):
 								os.remove(pps.packageFile + u'.zsync')
 							break
 						elif ch in ('c', 'C'):
-							raise Exception(_(u"Aborted"))
+							raise CancelledByUserError(_(u"Aborted"))
 						elif ch in ('n', 'N'):
 							newVersion = True
 							break

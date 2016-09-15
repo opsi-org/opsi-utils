@@ -66,6 +66,10 @@ except Exception as error:
 		return string
 
 
+class CancelledByUserError(Exception):
+	pass
+
+
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version', version=__version__)
@@ -99,7 +103,7 @@ def main():
 			)
 
 			if not overwrite:
-				raise Exception(_(u'Cancelled'))
+				raise CancelledByUserError(_(u'Cancelled'))
 			shutil.rmtree(productSourceDir)
 
 		os.mkdir(productSourceDir, 02770)
@@ -147,7 +151,7 @@ def getProduct(ui):
 		height=14
 	)
 	if not productType:
-		raise Exception(_(u'Cancelled'))
+		raise CancelledByUserError(_(u'Cancelled'))
 	productType = productType[0]
 
 	product = None
@@ -186,7 +190,7 @@ Priority:         The installation priority class of this product (value between
 		)
 
 		if not values:
-			raise Exception(_(u'Cancelled'))
+			raise CancelledByUserError(_(u'Cancelled'))
 
 		error = None
 		try:
@@ -272,7 +276,7 @@ PXE config template: path to a custom pxelinux config template.''')
 		)
 
 		if not values:
-			raise Exception(_(u'Cancelled'))
+			raise CancelledByUserError(_(u'Cancelled'))
 
 		error = None
 		try:
@@ -567,7 +571,7 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 		)
 
 		if not values:
-			raise Exception(_('Cancelled'))
+			raise CancelledByUserError(_('Cancelled'))
 
 		error = None
 		try:
