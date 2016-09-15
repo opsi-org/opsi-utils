@@ -63,7 +63,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse  # Only on Python 2.6...
 
-__version__ = '4.0.7.3'
+__version__ = '4.0.7.4'
 
 logger = Logger()
 
@@ -203,7 +203,7 @@ class EmailNotifier(object):
 				if hasattr(smtpObj, 'esmtp_features'):
 					logger.debug('ESMTP Features: {0}'.format(smtpObj.esmtp_features))
 
-			raise Exception(u"Failed to send email using smtp server '%s': %s" % (self.smtphost, error))
+			raise RuntimeError(u"Failed to send email using smtp server '%s': %s" % (self.smtphost, error))
 
 
 class OpsiPackageUpdater(object):
@@ -438,7 +438,7 @@ class OpsiPackageUpdater(object):
 				else:
 					logger.error(u"Unhandled section '%s'" % section)
 		except Exception as exclude:
-			raise Exception(u"Failed to read config file '%s': %s" % (self.config["configFile"], exclude))
+			raise RuntimeError(u"Failed to read config file '%s': %s" % (self.config["configFile"], exclude))
 
 	def getConfigBackend(self):
 		if not self.configBackend:

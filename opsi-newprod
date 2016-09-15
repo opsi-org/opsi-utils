@@ -52,7 +52,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.7.3'
+__version__ = '4.0.7.4'
 
 logger = Logger()
 
@@ -197,7 +197,7 @@ Priority:         The installation priority class of this product (value between
 		try:
 			product.setName(values[1].get('value'))
 			if not product.name:
-				raise Exception(u'No product name specified')
+				raise ValueError(u'No product name specified')
 		except Exception:
 			if not error:
 				error = _(u'You have to specify a valid product name.')
@@ -214,14 +214,14 @@ Priority:         The installation priority class of this product (value between
 		try:
 			product.setProductVersion(values[4].get('value'))
 			if not product.productVersion:
-				raise Exception(u'No product version specified')
+				raise ValueError(u'No product version specified')
 		except Exception:
 			if not error:
 				error = _(u'You have to specify a valid product version.')
 		try:
 			product.setPackageVersion(values[5].get('value'))
 			if not product.packageVersion:
-				raise Exception(u'No package version specified')
+				raise ValueError(u'No package version specified')
 		except Exception:
 			if not error:
 				error = _(u'You have to specify a valid package version.')
@@ -572,7 +572,7 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 		error = None
 		try:
 			if not values[0].get('value'):
-				raise Exception(u'Empty maintainer')
+				raise ValueError(u'Empty maintainer')
 			maintainer = forceUnicode(values[0].get('value'))
 		except Exception:
 			if not error:
@@ -580,7 +580,7 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 
 		try:
 			if not values[1].get('value'):
-				raise Exception(u'Empty maintainer e-mail')
+				raise ValueError(u'Empty maintainer e-mail')
 			maintainerEmail = forceEmailAddress(values[1].get('value'))
 		except Exception:
 			if not error:
