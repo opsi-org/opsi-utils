@@ -47,7 +47,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.7.1'
+__version__ = '4.0.7.6'
 
 logLevel = LOG_NONE
 logger = Logger()
@@ -86,7 +86,7 @@ class ProgressNotifier(ProgressObserver):
 
 		if self.error:
 			sys.stdout.write("\033[K")
-			print u"Error occured: %s" % self.error
+			print u"Error occurred: %s" % self.error
 			sys.stdout.write("\033[K")
 		self.error = None
 		for subject in self.overallProgressSubject, self.currentProgressSubject:
