@@ -116,7 +116,7 @@ def main():
 	parser = argparse.ArgumentParser(
 		description="Convert an opsi database into an other.",
 		epilog="""
-The backends (<from> and <to>) can either be the name of a backend as defined
+The backends can either be the name of a backend as defined
 in /etc/opsi/backends (file, mysql, ...) or the the url of an opsi
 configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	parser.add_argument('--version', '-V', action='version', version=__version__)
@@ -135,8 +135,8 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 						help="use destination host as new server")
 	parser.add_argument('--log-file', '-l', dest="logFile",
 						help="Log to this file. The loglevel will be DEBUG.")
-	parser.add_argument('readBackend', metavar="<from>", help="Source backend")
-	parser.add_argument('writeBackend', metavar="<to>", help="Target backend")
+	parser.add_argument('readBackend', metavar="source", help="Backend to read data from.")
+	parser.add_argument('writeBackend', metavar="destination", help="Backend to write data to.")
 
 	args = parser.parse_args()
 
