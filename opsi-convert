@@ -301,5 +301,3 @@ if __name__ == "__main__":
 		logger.logException(e)
 		print >> sys.stderr, u"ERROR: %s" % e
 		sys.exit(1)
-
-	sys.exit(0)
