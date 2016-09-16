@@ -135,8 +135,8 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 						help="use destination host as new server")
 	parser.add_argument('--log-file', '-l', dest="logFile",
 						help="Log to this file. The loglevel will be DEBUG.")
-	parser.add_argument('readBackend', metavar="source", help="Source backend")
-	parser.add_argument('writeBackend', metavar="target", help="Target backend")
+	parser.add_argument('readBackend', metavar="source", help="Backend to read data from.")
+	parser.add_argument('writeBackend', metavar="destination", help="Backend to write data to.")
 
 	args = parser.parse_args()
 
