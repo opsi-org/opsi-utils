@@ -51,7 +51,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.6.14'
+__version__ = '4.0.7.1'
 
 logger = Logger()
 
@@ -63,6 +63,10 @@ except Exception as e:
 
 	def _(string):
 		return string
+
+
+class CancelledByUserError(Exception):
+	pass
 
 
 class ProgressNotifier(ProgressObserver):
@@ -185,17 +189,17 @@ def main(argv):
 	logger.info(u"Archive format: %s" % format)
 
 	if format not in ['tar', 'cpio']:
-		raise Exception(u"Unsupported archive format: %s" % format)
+		raise ValueError(u"Unsupported archive format: %s" % format)
 
 	if not os.path.isdir(packageSourceDir):
-		raise Exception(u"No such directory: %s" % packageSourceDir)
+		raise OSError(u"No such directory: %s" % packageSourceDir)
 
 	if customName:
 		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI.%s' % customName, u'control')
 	if not customName or not os.path.exists(packageControlFilePath):
 		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI', u'control')
 		if not os.path.exists(packageControlFilePath):
-			raise Exception(u"Control file '%s' not found" % packageControlFilePath)
+			raise OSError(u"Control file '%s' not found" % packageControlFilePath)
 
 	if not quiet:
 		print ""
@@ -210,7 +214,7 @@ def main(argv):
 			if requiredVersion:
 				match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
 				if not match:
-					raise Exception(u"Bad version string '%s' in dependency" % requiredVersion)
+					raise ValueError(u"Bad version string '%s' in dependency" % requiredVersion)
 				packageDependency = {
 					'package': product.id,
 					'condition': match.group(1),
@@ -299,7 +303,7 @@ def main(argv):
 								os.remove(pps.packageFile + u'.zsync')
 							break
 						elif ch in ('c', 'C'):
-							raise Exception(_(u"Aborted"))
+							raise CancelledByUserError(_(u"Aborted"))
 						elif ch in ('n', 'N'):
 							newVersion = True
 							break
@@ -388,7 +392,7 @@ def lockPackage(tempDir, packageControlFile):
 				if p == line.split()[0].strip():
 					pName = line.split()[-1].strip()
 					# process is running
-					raise Exception(u"Product '%s' is currently locked by process %s (%s)."
+					raise RuntimeError(u"Product '%s' is currently locked by process %s (%s)."
 									% (packageControlFile.getProduct().id, pName, p))
 
 	except IOError:

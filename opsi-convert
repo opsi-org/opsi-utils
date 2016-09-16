@@ -195,13 +195,13 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 			# Is an ip address
 			newServerId = getfqdn(name=newServerId)
 			if re.search('^[\d\.]+$', newServerId):
-				raise Exception(u"Cannot resolve '%s'" % newServerId)
+				raise ValueError(u"Cannot resolve '%s'" % newServerId)
 
 	if newServerId:
 		try:
 			newServerId = forceHostId(newServerId)
 		except Exception:
-			raise Exception(u"Bad server-id '%s' for new server" % newServerId)
+			raise ValueError(u"Bad server-id '%s' for new server" % newServerId)
 
 	sanityCheck(read, write)
 
@@ -236,7 +236,7 @@ def parseBackend(config, backendString):
 			config['address'] = match.group(1) + match.group(3)
 			config['username'] = match.group(2)
 		else:
-			raise Exception(u"Bad source URL '%s'" % backendString)
+			raise ValueError(u"Bad source URL '%s'" % backendString)
 	else:
 		logger.debug(u"Assuming {0!r} is a backend name.".format(backendString))
 		config['backend'] = backendString
@@ -247,9 +247,9 @@ def sanityCheck(read, write):
 		if read['backend'] == write['backend']:
 			if read['backend'] == 'JSONRPC':
 				if read['address'] == write['address']:
-					raise Exception(u"Source and destination backend are the same.")
+					raise ValueError(u"Source and destination backend are the same.")
 			else:
-				raise Exception(u"Source and destination backend are the same.")
+				raise ValueError(u"Source and destination backend are the same.")
 
 
 def createBackend(config):
