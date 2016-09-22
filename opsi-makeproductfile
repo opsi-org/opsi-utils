@@ -120,7 +120,7 @@ def main(argv):
 	parser.add_argument('-n', dest="compression", help="Do not compress",
 						default='gzip', action='store_const', const=None)
 	parser.add_argument('-F', dest="format", default='cpio', choices=['cpio', 'tar'],
-						help="archive format [tar|cpio], default: cpio")
+						help="Archive format to use. Default: cpio")
 	parser.add_argument('-h', dest="dereference", help="follow symlinks",
 						default=False, action='store_true')
 	parser.add_argument('-I', dest="incremental", help="incremental package",
