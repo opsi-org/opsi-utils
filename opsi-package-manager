@@ -95,9 +95,9 @@ class Task:
 		except Exception as error:
 			logger.logException(error)
 			self.exception = error
-			self.ended = True
 			raise
-		self.ended = True
+		finally:
+			self.ended = True
 
 
 class UploadTask(Task):
