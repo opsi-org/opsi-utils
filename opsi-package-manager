@@ -1313,8 +1313,15 @@ class OpsiPackageManager(object):
 						if propertyDefaultValues[productProperty.propertyId] is None:
 							propertyDefaultValues[productProperty.propertyId] = []
 
+			installationParameters = {
+				'force': self.config['forceInstall'],
+				'propertyDefaultValues': propertyDefaultValues,
+				'tempDir': self.config['tempDir'],
+			}
+			if self.config['forceInstallationProductId']:
+				installationParameters['forceProductId'] = self.config['forceInstallationProductId']
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_installPackage(depotPackageFile, force=self.config['forceInstall'], propertyDefaultValues=propertyDefaultValues, tempDir=self.config['tempDir'])
+			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)
 
 			logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
 			subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
@@ -1439,6 +1446,7 @@ class OpsiPackageManagerControl(object):
 		parser.add_option("--log-file", action="store", dest="logFile")
 		parser.add_option("--log-file-level", action="store", dest="fileLogLevel")
 		parser.add_option("--purge-client-properties", action="store_true", dest="purgeClientProperties")
+		parser.add_option("--force-product-id", dest="forceInstallationProductId")
 
 		# Get commandline options and arguments
 		try:
@@ -1508,6 +1516,13 @@ class OpsiPackageManagerControl(object):
 				if self.config['command'] == u'extract' and self.config['newProductId'] and len(self.config['packageFiles']) > 1:
 					raise ValueError(u"Cannot use new product id with multiple package files")
 
+				if self.config['command'] == u'install' and self.config['forceInstallationProductId']:
+					if len(self.config['packageFiles']) > 1:
+						raise ValueError(
+							u"Too many opsi packages given. "
+							u"Please supply only one package if forcing "
+							u"a product ID."
+						)
 			elif self.config['command'] in (u'list', u'differences'):
 				if not self.config['productIds']:
 					self.config['productIds'] = ['*']
@@ -1781,7 +1796,8 @@ class OpsiPackageManagerControl(object):
 			'overwriteAlways': False,
 			'setupWhereInstalled': False,
 			'updateWhereInstalled': False,
-			'purgeClientProperties': False
+			'purgeClientProperties': False,
+			'forceInstallationProductId': False,
 		}
 
 	def setCommandlineConfig(self):
@@ -1825,6 +1841,8 @@ class OpsiPackageManagerControl(object):
 			self.config['updateWhereInstalled'] = True
 		if self.opts.purgeClientProperties:
 			self.config['purgeClientProperties'] = True
+		if self.opts.forceInstallationProductId:
+			self.config['forceInstallationProductId'] = forceProductId(self.opts.forceInstallationProductId)
 
 		# Get command
 		if self.opts.COMMAND_INSTALL:
@@ -1914,6 +1932,7 @@ class OpsiPackageManagerControl(object):
 		print u"  --max-bandwidth    <kbps>               maximum transfer rate for each transfer (in kilobytes per second)"
 		print u"                                             0 = unlimited (default)"
 		print u"  --new-product-id   <product-id>         set a new product id when extracting opsi package"
+		print u"  --force-product-id <product-id>         Use a specific product ID during installation."
 		print u""
 
 
