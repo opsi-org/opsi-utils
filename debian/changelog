@@ -1,3 +1,13 @@
+opsi-utils (4.0.7.7-1) testing; urgency=medium
+
+  * opsi-makeproductfile: new options --keep-versions, --package-version
+    and --product-version for non-interactive use.
+  * opsi-package-manager: it is now possible to specifiy a product id to
+    use with --new-product-id when installing a package.
+    This allows installation of a package with a different product id.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 23 Sep 2016 15:44:11 +0200
+
 opsi-utils (4.0.7.6-1) testing; urgency=medium
 
   * Raising more specific exceptions.
@@ -12,7 +22,6 @@ opsi-utils (4.0.7.5-1) stable; urgency=medium
   * commended exclude on standard uib repository. Windows products will be updated as default
 
  -- Mathias Radtke <m.radtke@uib.de>  Tue, 02 Aug 2016 12:34:49 +0200
-
 
 opsi-utils (4.0.7.4-1) stable; urgency=medium
 
