@@ -8,15 +8,15 @@
 
 Name:           opsi-utils
 BuildRequires:  python >= 2.6
-Requires:       python-opsi >= 4.0.6.50 zsync python >= 2.6
+Requires:       python-opsi >= 4.0.7.22 zsync python >= 2.6
 Url:            http://www.opsi.org
 License:        GPLv2+
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        4.0.6.12
+Version:        4.0.7.5
 Release:        1
 Summary:        opsi utils
-Source:         opsi-utils_4.0.6.12-1.tar.gz
+Source:         opsi-utils_4.0.7.5-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}

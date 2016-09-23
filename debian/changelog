@@ -1,3 +1,28 @@
+opsi-utils (4.0.7.6-1) testing; urgency=medium
+
+  * Raising more specific exceptions.
+  * opsi-makeproductfile: set rights to created files after creation.
+  * opsi-makeproductfile: explicit set of default encoding to utf-8.
+  * Small changes to texts.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 16 Sep 2016 09:30:57 +0200
+
+opsi-utils (4.0.7.5-1) stable; urgency=medium
+
+  * commended exclude on standard uib repository. Windows products will be updated as default
+
+ -- Mathias Radtke <m.radtke@uib.de>  Tue, 02 Aug 2016 12:34:49 +0200
+
+
+opsi-utils (4.0.7.4-1) stable; urgency=medium
+
+  * opsi-product-updater.conf: Added additional repositories for Linux
+    and opsi-local-image products.
+  * opsi-admin: When run without loglevel set do not hide the error message
+    if something fails.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 28 Jul 2016 16:26:30 +0200
+
 opsi-utils (4.0.7.3-1) stable; urgency=medium
 
   * opsi-product-updater: Various small refactorings.

@@ -41,6 +41,7 @@ import select
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Logger import (COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
@@ -55,7 +56,7 @@ from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 
 import curses
 
-__version__ = '4.0.6.13'
+__version__ = '4.0.7.6'
 
 backend = None
 exitZero = False
@@ -749,7 +750,7 @@ class Shell:
 					logger.logException(error)
 					message = u"Failed to execute {0!r}: {1}".format(self.cmdline, forceUnicode(error))
 					logger.error(message)
-					raise Exception(message)
+					raise RuntimeError(message)
 				break
 
 		if invalid:
@@ -1143,7 +1144,7 @@ class CommandMethod(Command):
 				# Do not create Object instances!
 				params[-1] = fromJson(params[-1], preventObjectCreation=True)
 				if not isinstance(params[-1], dict):
-					raise Exception(u"kwargs param is not a dict: %s" % params[-1])
+					raise ValueError(u"kwargs param is not a dict: %s" % params[-1])
 
 				for (key, value) in params.pop(-1).items():
 					keywords[str(key)] = deserialize(value)
@@ -1214,7 +1215,7 @@ class CommandMethod(Command):
 								lines.append(u'%s=%s' % (key, value))
 							lines.append(u'')
 						elif isinstance(resultElement, (tuple, list)):
-							raise Exception(u"Simple output not possible for list of lists")
+							raise ValueError(u"Simple output not possible for list of lists")
 						else:
 							lines.append(forceUnicode(resultElement))
 				else:
@@ -1316,11 +1317,11 @@ class CommandSet(Command):
 		global logLevel
 
 		if len(params) <= 0:
-			raise Exception(_(u'Missing option'))
+			raise ValueError(_(u'Missing option'))
 		if params[0] not in (u'color', u'log-file', u'log-level'):
-			raise Exception(_(u'Unknown option: %s') % params[0])
+			raise ValueError(_(u'Unknown option: %s') % params[0])
 		if len(params) <= 1:
-			raise Exception(_(u'Missing value'))
+			raise ValueError(_(u'Missing value'))
 
 		if params[0] == u'color':
 			if params[1] == u'on':
@@ -1328,7 +1329,7 @@ class CommandSet(Command):
 			elif params[1] == u'off':
 				shell.setColor(False)
 			else:
-				raise Exception(_(u'Bad value: %s') % params[1])
+				raise ValueError(_(u'Bad value: %s') % params[1])
 
 		elif params[0] == u'log-file':
 			if params[1] == u'off':
@@ -1340,7 +1341,7 @@ class CommandSet(Command):
 
 		elif params[0] == u'log-level':
 			if not logFile:
-				raise Exception(_(u'No log-file set!'))
+				raise ValueError(_(u'No log-file set!'))
 			logger.setFileLevel(int(params[1]))
 
 
@@ -1400,7 +1401,7 @@ class CommandHistory(Command):
 			# By default: show history
 			params = [u'show']
 		elif params[0] not in (u'clear', u'show'):
-			raise Exception(_(u'Unknown command: %s') % params[0])
+			raise ValueError(_(u'Unknown command: %s') % params[0])
 
 		if params[0] == u'show':
 			for line in shell.cmdList:
@@ -1435,11 +1436,11 @@ class CommandLog(Command):
 			# By default: show log
 			params = [u'show']
 		elif params[0] not in (u'show',):
-			raise Exception(_(u'Unknown command: %s') % params[0])
+			raise ValueError(_(u'Unknown command: %s') % params[0])
 
 		if params[0] == u'show':
 			if not logFile:
-				raise Exception(_(u'File logging is not activated'))
+				raise RuntimeError(_(u'File logging is not activated'))
 
 			with open(logFile) as log:
 				for line in log:
@@ -1493,11 +1494,11 @@ class CommandTask(Command):
 		if len(params) <= 0:
 			return
 		elif params[0] not in tasknames:
-			raise Exception(_(u'Unknown task: %s') % params[0])
+			raise ValueError(_(u'Unknown task: %s') % params[0])
 
 		if params[0] == u'setupWhereInstalled':
 			if len(params) < 2:
-				raise Exception(_(u'Missing product-id'))
+				raise ValueError(_(u'Missing product-id'))
 			productId = params[1]
 
 			logger.warning(
@@ -1509,7 +1510,7 @@ class CommandTask(Command):
 
 		elif params[0] == u'setupWhereNotInstalled':
 			if len(params) < 2:
-				raise Exception(_(u'Missing product-id'))
+				raise ValueError(_(u'Missing product-id'))
 			productId = params[1]
 
 			logger.warning(
@@ -1521,7 +1522,7 @@ class CommandTask(Command):
 
 		elif params[0] == u'updateWhereInstalled':
 			if len(params) < 2:
-				raise Exception(_(u'Missing product-id'))
+				raise ValueError(_(u'Missing product-id'))
 			productId = params[1]
 
 			logger.warning(
@@ -1533,7 +1534,7 @@ class CommandTask(Command):
 
 		elif params[0] == u'uninstallWhereInstalled':
 			if len(params) < 2:
-				raise Exception(_(u'Missing product-id'))
+				raise ValueError(_(u'Missing product-id'))
 			productId = params[1]
 
 			logger.warning(
@@ -1545,9 +1546,9 @@ class CommandTask(Command):
 
 		elif params[0] == u'setActionRequestWhereOutdated':
 			if len(params) < 2:
-				raise Exception(_(u'Missing action request'))
+				raise ValueError(_(u'Missing action request'))
 			elif len(params) < 3:
-				raise Exception(_(u'Missing product-id'))
+				raise ValueError(_(u'Missing product-id'))
 
 			actionRequest = params[1]
 			productId = params[2]
@@ -1561,11 +1562,11 @@ class CommandTask(Command):
 
 		elif params[0] == u'setActionRequestWithDependencies':
 			if len(params) < 2:
-				raise Exception(_(u'Missing action request'))
+				raise ValueError(_(u'Missing action request'))
 			if len(params) < 3:
-				raise Exception(_(u'Missing product-id'))
+				raise ValueError(_(u'Missing product-id'))
 			if len(params) < 4:
-				raise Exception(_(u'Missing client-id'))
+				raise ValueError(_(u'Missing client-id'))
 			actionRequest = params[1]
 			productId = params[2]
 			clientId = params[3]
@@ -1575,9 +1576,9 @@ class CommandTask(Command):
 
 		elif params[0] == u'setActionRequestWhereOutdatedWithDependencies':
 			if len(params) < 2:
-				raise Exception(_(u'Missing action request'))
+				raise ValueError(_(u'Missing action request'))
 			if len(params) < 3:
-				raise Exception(_(u'Missing product-id'))
+				raise ValueError(_(u'Missing product-id'))
 
 			actionRequest = params[1]
 			productId = params[2]
@@ -1592,7 +1593,7 @@ class CommandTask(Command):
 
 		elif params[0] == u'decodePcpatchPassword':
 			if len(params) < 3:
-				raise Exception(_(u'Missing argument'))
+				raise ValueError(_(u'Missing argument'))
 			crypt = params[1]
 			key = params[2]
 			cleartext = blowfishDecrypt(key, crypt)
@@ -1600,11 +1601,11 @@ class CommandTask(Command):
 
 		elif params[0] == u'setPcpatchPassword':
 			if os.getuid() != 0:
-				raise Exception(_(u"You have to be root to change pcpatch password!"))
+				raise RuntimeError(_(u"You have to be root to change pcpatch password!"))
 
 			fqdn = getfqdn(conf='/etc/opsi/global.conf')
 			if fqdn.count('.') < 2:
-				raise Exception(_(u"Failed to get my own fully qualified domainname"))
+				raise RuntimeError(_(u"Failed to get my own fully qualified domainname"))
 
 			password = u''
 			if len(params) < 2:
@@ -1628,7 +1629,7 @@ class CommandTask(Command):
 						break
 				process.close()
 				if not dn:
-					raise Exception(u"Failed to get DN for user pcpatch")
+					raise RuntimeError(u"Failed to get DN for user pcpatch")
 				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null" \
 						% (which('univention-admin'), dn, password)
 				os.system(cmd.encode(outEncoding))
@@ -1649,11 +1650,15 @@ class CommandTask(Command):
 					process.close()
 
 if __name__ == "__main__":
+	@contextmanager
 	def shellExit():
 		try:
-			shell.exit()
-		except Exception:
-			pass
+			yield
+		finally:
+			try:
+				shell.exit()
+			except Exception:
+				pass
 
 	try:
 		locale.setlocale(locale.LC_ALL, '')
@@ -1666,17 +1671,16 @@ if __name__ == "__main__":
 		signal(SIGQUIT, signalHandler)
 
 	try:
-		main(sys.argv[1:])
-		shellExit()
+		with shellExit():
+			main(sys.argv[1:])
 		exitCode = 0
 	except ErrorInResultException as error:
-		shellExit()
 		logger.warning(u"Error in result: {0}".format(forceUnicode(error)))
 		exitCode = 2
-	except Exception as exception:
-		shellExit()
+	except Exception as error:
 		logger.setConsoleLevel(LOG_ERROR)
-		logger.logException(exception)
+		logger.logException(error)
+		logger.error("Error during execution: {0}", error)
 		exitCode = 1
 
 	if exitZero:

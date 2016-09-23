@@ -55,7 +55,7 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.0.7.1'
+__version__ = '4.0.7.6'
 
 logger = Logger()
 
@@ -95,9 +95,9 @@ class Task:
 		except Exception as error:
 			logger.logException(error)
 			self.exception = error
-			self.ended = True
 			raise
-		self.ended = True
+		finally:
+			self.ended = True
 
 
 class UploadTask(Task):
@@ -342,7 +342,7 @@ class UserInterface(SubjectsObserver):
 		try:
 			locale.setlocale(locale.LC_ALL, '')
 		except Exception as error:
-			raise Exception(
+			raise RuntimeError(
 				u"Setting locale failed - do you have $LC_ALL set? "
 				u"Error: {0}".format(error)
 			)
@@ -625,7 +625,7 @@ class TaskQueue(threading.Thread):
 	def run(self):
 		self.currentTaskNumber = -1
 		if not self.tasks:
-			raise Exception(u"No tasks in queue")
+			raise RuntimeError(u"No tasks in queue")
 		self.started = True
 		logger.debug(u"TaskQueue '%s' started" % self.name)
 		i = 0
@@ -916,7 +916,7 @@ class OpsiPackageManager(object):
 
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			if not depot.repositoryLocalUrl.startswith('file://'):
-				raise Exception(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
+				raise ValueError(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
 			depotRepositoryPath = depot.repositoryLocalUrl[7:]
 			if depotRepositoryPath.endswith('/'):
 				depotRepositoryPath = depotRepositoryPath[:-1]
@@ -972,7 +972,7 @@ class OpsiPackageManager(object):
 			if info['available'] < packageSize:
 				subject.setMessage(_(u"Not enough disk space: %dMB needed, %dMB available")
 					% ((packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024))))
-				raise Exception(u"Not enough disk space on depot '%s': %dMB needed, %dMB available"
+				raise OSError(u"Not enough disk space on depot '%s': %dMB needed, %dMB available"
 					% (depotId, (packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024)))
 				)
 
@@ -1089,7 +1089,7 @@ class OpsiPackageManager(object):
 				remoteChecksum = depotConnection.depot_getMD5Sum(remotePackageFile)
 				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
 				if localChecksum != remoteChecksum:
-					raise Exception(u"MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (localChecksum, remoteChecksum, depotId))
+					raise ValueError(u"MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (localChecksum, remoteChecksum, depotId))
 
 				if info['usage'] >= 0.9:
 					logger.warning(u"Warning: %d%% filesystem usage at repository on depot '%s'" % (int(100 * info['usage']), depotId))
@@ -1163,7 +1163,7 @@ class OpsiPackageManager(object):
 				errors = []
 				for productOnDepot in lockedProductsOnDepot:
 					errors.append(u"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId))
-				raise Exception(u'\n' + u'\n'.join(errors) + u'\nUse --force to force installation')
+				raise RuntimeError(u'\n' + u'\n'.join(errors) + u'\nUse --force to force installation')
 
 		if self.userInterface and (self.config['properties'] == 'ask'):
 			productProperties = []
@@ -1282,7 +1282,7 @@ class OpsiPackageManager(object):
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
 				if not depot.repositoryLocalUrl.startswith('file://'):
-					raise Exception(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
+					raise ValueError(u"Repository local url '%s' not supported" % depot.repositoryLocalUrl)
 				depotPackageFile = depot.repositoryLocalUrl[7:]
 				if depotPackageFile.endswith('/'):
 					depotPackageFile = depotPackageFile[:-1]
@@ -1294,14 +1294,27 @@ class OpsiPackageManager(object):
 			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
 
 			packageFile = os.path.basename(packageFile)
-			logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
-			subject.setMessage(_(u"Installing package %s") % packageFile)
+			if self.config['newProductId']:
+				logger.notice(u"Installing package {packageFile!r} as {forcedProductId!r} on depot {depotId!r}",
+					packageFile=packageFile,
+					forcedProductId=self.config['newProductId'],
+					depotId=depotId
+				)
+				subject.setMessage(_(u"Installing package {filename} as {forcedProductId}").format(filename=packageFile, forcedProductId=self.config['newProductId']))
+			else:
+				logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
+				subject.setMessage(_(u"Installing package %s") % packageFile)
 
 			product = self.getPackageControlFile(packageFile).getProduct()
+			if self.config['newProductId']:
+				product.setId(self.config['newProductId'])
 			productId = product.getId()
 
 			propertyDefaultValues = {}
 			for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
+				if self.config['newProductId']:
+					productProperty.productId = productId
+
 				propertyDefaultValues[productProperty.propertyId] = productProperty.defaultValues
 				if propertyDefaultValues[productProperty.propertyId] is None:
 					propertyDefaultValues[productProperty.propertyId] = []
@@ -1313,11 +1326,26 @@ class OpsiPackageManager(object):
 						if propertyDefaultValues[productProperty.propertyId] is None:
 							propertyDefaultValues[productProperty.propertyId] = []
 
+			installationParameters = {
+				'force': self.config['forceInstall'],
+				'propertyDefaultValues': propertyDefaultValues,
+				'tempDir': self.config['tempDir'],
+			}
+			if self.config['newProductId']:
+				installationParameters['forceProductId'] = self.config['newProductId']
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_installPackage(depotPackageFile, force=self.config['forceInstall'], propertyDefaultValues=propertyDefaultValues, tempDir=self.config['tempDir'])
+			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)
 
-			logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
-			subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
+			if self.config['newProductId']:
+				logger.notice(u"Installation of package '{packageFile}' as {forcedProductId} on depot '{depotId}' successful",
+					packageFile=packageFile,
+					forcedProductId=self.config['newProductId'],
+					depotId=depotId
+				)
+				subject.setMessage(_(u"Installation of package {packageFile} as {forcedProductId} successful").format(packageFile=packageFile, forcedProductId=self.config['newProductId']), severity=4)
+			else:
+				logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
+				subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
 
 			if self.config['setupWhereInstalled']:
 				if product.getSetupScript():
@@ -1477,7 +1505,7 @@ class OpsiPackageManagerControl(object):
 				try:
 					self.config['depotIds'] = [self.config['localDepotId']]
 				except KeyError as e:
-					raise Exception(u"Failed to get local depot id: %s" % e)
+					raise RuntimeError(u"Failed to get local depot id: %s" % e)
 			else:
 				self.config['uploadToLocalDepot'] = True
 
@@ -1490,7 +1518,7 @@ class OpsiPackageManagerControl(object):
 				for depotId in self.config['depotIds']:
 					depotId = forceHostId(depotId)
 					if depotId not in knownDepotIds:
-						raise Exception(u"Depot '%s' not in list of known depots: %s" % (depotId, u', '.join(knownDepotIds)))
+						raise RuntimeError(u"Depot '%s' not in list of known depots: %s" % (depotId, u', '.join(knownDepotIds)))
 					cleanedDepotIds.add(depotId)
 
 				self.config['depotIds'] = list(cleanedDepotIds)
@@ -1499,24 +1527,31 @@ class OpsiPackageManagerControl(object):
 
 			if self.config['command'] in (u'install', u'upload', u'extract'):
 				if len(self.config['packageFiles']) < 1:
-					raise Exception(u"No opsi package given")
+					raise ValueError(u"No opsi package given")
 				if self.config['command'] in (u'install', u'upload', u'extract'):
 					for i in range(len(self.config['packageFiles'])):
 						self.config['packageFiles'][i] = os.path.abspath(self.config['packageFiles'][i])
 						if not os.path.exists(self.config['packageFiles'][i]):
-							raise Exception(u"Package file '%s' does not exist or access denied" % self.config['packageFiles'][i])
+							raise OSError(u"Package file '%s' does not exist or access denied" % self.config['packageFiles'][i])
 				if self.config['command'] == u'extract' and self.config['newProductId'] and len(self.config['packageFiles']) > 1:
-					raise Exception(u"Cannot use new product id with multiple package files")
+					raise ValueError(u"Cannot use new product id with multiple package files")
 
+				if self.config['command'] == u'install' and self.config['newProductId']:
+					if len(self.config['packageFiles']) > 1:
+						raise ValueError(
+							u"Too many opsi packages given. "
+							u"Please supply only one package if forcing "
+							u"a product ID."
+						)
 			elif self.config['command'] in (u'list', u'differences'):
 				if not self.config['productIds']:
 					self.config['productIds'] = ['*']
 				if self.config['command'] == u'differences' and len(self.config['depotIds']) <= 1:
-					raise Exception(u"More than one depot id needed to display differences")
+					raise ValueError(u"More than one depot id needed to display differences")
 
 			elif self.config['command'] == u'remove':
 				if not self.config['productIds']:
-					raise Exception(u"No opsi product id given")
+					raise ValueError(u"No opsi product id given")
 		except Exception:
 			if self.backend:
 				self.backend.backend_exit()
@@ -1526,7 +1561,7 @@ class OpsiPackageManagerControl(object):
 			self.processCommand()
 		except Exception as processingError:
 			logger.logException(processingError)
-			raise Exception(u"Failed to process command '%s': %s" % (self.config['command'], processingError))
+			raise RuntimeError(u"Failed to process command '%s': %s" % (self.config['command'], processingError))
 
 	def processCommand(self):
 		try:
@@ -1609,14 +1644,14 @@ class OpsiPackageManagerControl(object):
 
 			productId = ppf.getMetaData().getProduct().getId()
 			if not productId:
-				raise Exception(u"Failed to extract source from package '%s': product id not found in meta data" % (packageFile))
+				raise ValueError(u"Failed to extract source from package '%s': product id not found in meta data" % (packageFile))
 			newProductId = None
 			if self.config['newProductId']:
 				productId = forceProductId(self.config['newProductId'])
 				newProductId = productId
 			packageDestinationDir = os.path.join(destinationDir, productId)
 			if os.path.exists(packageDestinationDir):
-				raise Exception(u"Destination directory '%s' already exists" % packageDestinationDir)
+				raise OSError(u"Destination directory '%s' already exists" % packageDestinationDir)
 			os.mkdir(packageDestinationDir)
 			ppf.unpackSource(destinationDir=packageDestinationDir, newProductId=newProductId, progressSubject=progressSubject)
 			if not self.config['quiet']:
@@ -1781,12 +1816,12 @@ class OpsiPackageManagerControl(object):
 			'overwriteAlways': False,
 			'setupWhereInstalled': False,
 			'updateWhereInstalled': False,
-			'purgeClientProperties': False
+			'purgeClientProperties': False,
 		}
 
 	def setCommandlineConfig(self):
 		if self.opts.properties == 'ask' and self.opts.quiet:
-			raise Exception(u"You cannot use properties=ask in quiet mode")
+			raise ValueError(u"You cannot use properties=ask in quiet mode")
 
 		if self.opts.quiet:
 			self.config['quiet'] = True
@@ -1804,7 +1839,7 @@ class OpsiPackageManagerControl(object):
 		if self.opts.depots:
 			self.config['depotIds'] = self.opts.depots.split(',')
 		if self.opts.newProductId:
-			self.config['newProductId'] = self.opts.newProductId
+			self.config['newProductId'] = forceProductId(self.opts.newProductId)
 		if self.opts.maxBandwidth:
 			self.config['maxBandwidth'] = self.opts.maxBandwidth
 		if self.opts.maxTransfers:
@@ -1829,31 +1864,31 @@ class OpsiPackageManagerControl(object):
 		# Get command
 		if self.opts.COMMAND_INSTALL:
 			if self.config['command']:
-				raise Exception(u"More than one command specified")
+				raise ValueError(u"More than one command specified")
 			self.config['command'] = u'install'
 		if self.opts.COMMAND_UPLOAD:
 			if self.config['command']:
-				raise Exception(u"More than one command specified")
+				raise ValueError(u"More than one command specified")
 			self.config['command'] = u'upload'
 		if self.opts.COMMAND_LIST:
 			if self.config['command']:
-				raise Exception(u"More than one command specified")
+				raise ValueError(u"More than one command specified")
 			self.config['command'] = u'list'
 		if self.opts.COMMAND_REMOVE:
 			if self.config['command']:
-				raise Exception(u"More than one command specified")
+				raise ValueError(u"More than one command specified")
 			self.config['command'] = u'remove'
 		if self.opts.COMMAND_EXTRACT:
 			if self.config['command']:
-				raise Exception(u"More than one command specified")
+				raise ValueError(u"More than one command specified")
 			self.config['command'] = u'extract'
 		if self.opts.COMMAND_DIFFERENCES:
 			if self.config['command']:
-				raise Exception(u"More than one command specified")
+				raise ValueError(u"More than one command specified")
 			self.config['command'] = u'differences'
 
 		if not self.config['command']:
-			raise Exception(u"No command specified")
+			raise ValueError(u"No command specified")
 
 		if self.config['command'] in (u'install', u'upload', u'extract'):
 			self.config['packageFiles'] = self.args
@@ -1913,7 +1948,8 @@ class OpsiPackageManagerControl(object):
 		print u"                                             0 = unlimited (default)"
 		print u"  --max-bandwidth    <kbps>               maximum transfer rate for each transfer (in kilobytes per second)"
 		print u"                                             0 = unlimited (default)"
-		print u"  --new-product-id   <product-id>         set a new product id when extracting opsi package"
+		print u"  --new-product-id   <product-id>         Set a new product id when extracting opsi package or"
+		print u"                                          set a specific product ID during installation."
 		print u""
 
 

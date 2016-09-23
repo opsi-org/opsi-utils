@@ -47,7 +47,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.7.1'
+__version__ = '4.0.7.6'
 
 logLevel = LOG_NONE
 logger = Logger()
@@ -86,7 +86,7 @@ class ProgressNotifier(ProgressObserver):
 
 		if self.error:
 			sys.stdout.write("\033[K")
-			print u"Error occured: %s" % self.error
+			print u"Error occurred: %s" % self.error
 			sys.stdout.write("\033[K")
 		self.error = None
 		for subject in self.overallProgressSubject, self.currentProgressSubject:
@@ -116,7 +116,7 @@ def main():
 	parser = argparse.ArgumentParser(
 		description="Convert an opsi database into an other.",
 		epilog="""
-The backends (<from> and <to>) can either be the name of a backend as defined
+The backends can either be the name of a backend as defined
 in /etc/opsi/backends (file, mysql, ...) or the the url of an opsi
 configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	parser.add_argument('--version', '-V', action='version', version=__version__)
@@ -135,8 +135,8 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 						help="use destination host as new server")
 	parser.add_argument('--log-file', '-l', dest="logFile",
 						help="Log to this file. The loglevel will be DEBUG.")
-	parser.add_argument('readBackend', metavar="<from>", help="Source backend")
-	parser.add_argument('writeBackend', metavar="<to>", help="Target backend")
+	parser.add_argument('readBackend', metavar="source", help="Backend to read data from.")
+	parser.add_argument('writeBackend', metavar="destination", help="Backend to write data to.")
 
 	args = parser.parse_args()
 
@@ -195,13 +195,13 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 			# Is an ip address
 			newServerId = getfqdn(name=newServerId)
 			if re.search('^[\d\.]+$', newServerId):
-				raise Exception(u"Cannot resolve '%s'" % newServerId)
+				raise ValueError(u"Cannot resolve '%s'" % newServerId)
 
 	if newServerId:
 		try:
 			newServerId = forceHostId(newServerId)
 		except Exception:
-			raise Exception(u"Bad server-id '%s' for new server" % newServerId)
+			raise ValueError(u"Bad server-id '%s' for new server" % newServerId)
 
 	sanityCheck(read, write)
 
@@ -236,7 +236,7 @@ def parseBackend(config, backendString):
 			config['address'] = match.group(1) + match.group(3)
 			config['username'] = match.group(2)
 		else:
-			raise Exception(u"Bad source URL '%s'" % backendString)
+			raise ValueError(u"Bad source URL '%s'" % backendString)
 	else:
 		logger.debug(u"Assuming {0!r} is a backend name.".format(backendString))
 		config['backend'] = backendString
@@ -247,9 +247,9 @@ def sanityCheck(read, write):
 		if read['backend'] == write['backend']:
 			if read['backend'] == 'JSONRPC':
 				if read['address'] == write['address']:
-					raise Exception(u"Source and destination backend are the same.")
+					raise ValueError(u"Source and destination backend are the same.")
 			else:
-				raise Exception(u"Source and destination backend are the same.")
+				raise ValueError(u"Source and destination backend are the same.")
 
 
 def createBackend(config):
@@ -301,5 +301,3 @@ if __name__ == "__main__":
 		logger.logException(e)
 		print >> sys.stderr, u"ERROR: %s" % e
 		sys.exit(1)
-
-	sys.exit(0)

@@ -43,6 +43,7 @@ from OPSI.Util.Message import ProgressObserver, ProgressSubject
 from OPSI.Util.Product import ProductPackageSource
 from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ZsyncFile
+from OPSI.Util.Task.Rights import setRights
 from OPSI.Util import md5sum
 
 try:
@@ -50,7 +51,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse
 
-__version__ = '4.0.6.14'
+__version__ = '4.0.7.6'
 
 logger = Logger()
 
@@ -62,6 +63,10 @@ except Exception as e:
 
 	def _(string):
 		return string
+
+
+class CancelledByUserError(Exception):
+	pass
 
 
 class ProgressNotifier(ProgressObserver):
@@ -115,7 +120,7 @@ def main(argv):
 	parser.add_argument('-n', dest="compression", help="Do not compress",
 				default='gzip', action='store_const', const=None)
 	parser.add_argument('-F', dest="format", default='cpio', choices=['cpio', 'tar'],
-				help="archive format [tar|cpio], default: cpio")
+						help="Archive format to use. Default: cpio")
 	parser.add_argument('-h', dest="dereference", help="follow symlinks",
 				default=False, action='store_true')
 	parser.add_argument('-I', dest="incremental", help="incremental package",
@@ -205,17 +210,17 @@ def main(argv):
 	logger.info(u"Archive format: %s" % format)
 
 	if format not in ['tar', 'cpio']:
-		raise Exception(u"Unsupported archive format: %s" % format)
+		raise ValueError(u"Unsupported archive format: %s" % format)
 
 	if not os.path.isdir(packageSourceDir):
-		raise Exception(u"No such directory: %s" % packageSourceDir)
+		raise OSError(u"No such directory: %s" % packageSourceDir)
 
 	if customName:
 		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI.%s' % customName, u'control')
 	if not customName or not os.path.exists(packageControlFilePath):
 		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI', u'control')
 		if not os.path.exists(packageControlFilePath):
-			raise Exception(u"Control file '%s' not found" % packageControlFilePath)
+			raise OSError(u"Control file '%s' not found" % packageControlFilePath)
 
 	if not quiet:
 		print ""
@@ -230,7 +235,7 @@ def main(argv):
 			if requiredVersion:
 				match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
 				if not match:
-					raise Exception(u"Bad version string '%s' in dependency" % requiredVersion)
+					raise ValueError(u"Bad version string '%s' in dependency" % requiredVersion)
 				packageDependency = {
 					'package': product.id,
 					'condition': match.group(1),
@@ -396,6 +401,7 @@ def main(argv):
 				progressSubject.attachObserver(ProgressNotifier())
 				print _(u"Creating package file '%s'") % pps.getPackageFile()
 			pps.pack(progressSubject=progressSubject)
+			setRights(pps.getPackageFile())
 
 			if not quiet:
 				print "\n"
@@ -406,13 +412,15 @@ def main(argv):
 				md5 = md5sum(pps.getPackageFile())
 				with open(md5sumFile, 'w') as f:
 					f.write(md5)
+				setRights(md5sumFile)
 
 			if createZsyncFile:
-				zsyncFile = u'%s.zsync' % pps.getPackageFile()
+				zsyncFilePath = u'%s.zsync' % pps.getPackageFile()
 				if not quiet:
-					print _(u"Creating zsync file '%s'") % zsyncFile
-				zsyncFile = ZsyncFile(zsyncFile)
+					print _(u"Creating zsync file '%s'") % zsyncFilePath
+				zsyncFile = ZsyncFile(zsyncFilePath)
 				zsyncFile.generate(pps.getPackageFile())
+				setRights(zsyncFilePath)
 			break
 	finally:
 		if pps:
@@ -441,7 +449,7 @@ def lockPackage(tempDir, packageControlFile):
 				if p == line.split()[0].strip():
 					pName = line.split()[-1].strip()
 					# process is running
-					raise Exception(u"Product '%s' is currently locked by process %s (%s)."
+					raise RuntimeError(u"Product '%s' is currently locked by process %s (%s)."
 									% (packageControlFile.getProduct().id, pName, p))
 
 	except IOError:
