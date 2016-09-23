@@ -143,7 +143,7 @@ def main(argv):
 
 	vgroup = parser.add_argument_group('Versions',
 		'Set versions for package. Combinations are possible.')
-	vgroup.add_argument('--keep-versions', action='store_true',
+	vgroup.add_argument('--keep-versions', '-k', action='store_true',
 				help="Keep versions and overwrite package", dest="keepVersions")
 	vgroup.add_argument('--package-version', help="Set new package version ",
 				default=u'', metavar='packageversion', dest="newPackageVersion")
