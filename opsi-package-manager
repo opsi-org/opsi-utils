@@ -1306,10 +1306,15 @@ class OpsiPackageManager(object):
 				subject.setMessage(_(u"Installing package %s") % packageFile)
 
 			product = self.getPackageControlFile(packageFile).getProduct()
+			if self.config['newProductId']:
+				product.setId(self.config['newProductId'])
 			productId = product.getId()
 
 			propertyDefaultValues = {}
 			for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
+				if self.config['newProductId']:
+					productProperty.productId = productId
+
 				propertyDefaultValues[productProperty.propertyId] = productProperty.defaultValues
 				if propertyDefaultValues[productProperty.propertyId] is None:
 					propertyDefaultValues[productProperty.propertyId] = []
