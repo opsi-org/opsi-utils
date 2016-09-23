@@ -1336,8 +1336,16 @@ class OpsiPackageManager(object):
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)
 
-			logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
-			subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
+			if self.config['newProductId']:
+				logger.notice(u"Installation of package '{packageFile}' as {forcedProductId} on depot '{depotId}' successful",
+					packageFile=packageFile,
+					forcedProductId=self.config['newProductId'],
+					depotId=depotId
+				)
+				subject.setMessage(_(u"Installation of package {packageFile} as {forcedProductId} successful").format(packageFile=packageFile, forcedProductId=self.config['newProductId']), severity=4)
+			else:
+				logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
+				subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
 
 			if self.config['setupWhereInstalled']:
 				if product.getSetupScript():
