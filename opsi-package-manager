@@ -1294,8 +1294,16 @@ class OpsiPackageManager(object):
 			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
 
 			packageFile = os.path.basename(packageFile)
-			logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
-			subject.setMessage(_(u"Installing package %s") % packageFile)
+			if self.config['forceInstallationProductId']:
+				logger.notice(u"Installing package {packageFile!r} as {forcedProductId!r} on depot {depotId!r}",
+					packageFile=packageFile,
+					forcedProductId=self.config['forceInstallationProductId'],
+					depotId=depotId
+				)
+				subject.setMessage(_(u"Installing package {filename} as {forcedProductId}").format(filename=packageFile, forcedProductId=self.config['forceInstallationProductId']))
+			else:
+				logger.notice(u"Imetalling package '%s' on depot '%s'" % (packageFile, depotId))
+				subject.setMessage(_(u"Installing package %s") % packageFile)
 
 			product = self.getPackageControlFile(packageFile).getProduct()
 			productId = product.getId()
