@@ -1294,13 +1294,13 @@ class OpsiPackageManager(object):
 			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
 
 			packageFile = os.path.basename(packageFile)
-			if self.config['forceInstallationProductId']:
+			if self.config['newProductId']:
 				logger.notice(u"Installing package {packageFile!r} as {forcedProductId!r} on depot {depotId!r}",
 					packageFile=packageFile,
-					forcedProductId=self.config['forceInstallationProductId'],
+					forcedProductId=self.config['newProductId'],
 					depotId=depotId
 				)
-				subject.setMessage(_(u"Installing package {filename} as {forcedProductId}").format(filename=packageFile, forcedProductId=self.config['forceInstallationProductId']))
+				subject.setMessage(_(u"Installing package {filename} as {forcedProductId}").format(filename=packageFile, forcedProductId=self.config['newProductId']))
 			else:
 				logger.notice(u"Imetalling package '%s' on depot '%s'" % (packageFile, depotId))
 				subject.setMessage(_(u"Installing package %s") % packageFile)
@@ -1326,8 +1326,8 @@ class OpsiPackageManager(object):
 				'propertyDefaultValues': propertyDefaultValues,
 				'tempDir': self.config['tempDir'],
 			}
-			if self.config['forceInstallationProductId']:
-				installationParameters['forceProductId'] = self.config['forceInstallationProductId']
+			if self.config['newProductId']:
+				installationParameters['forceProductId'] = self.config['newProductId']
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)
 
@@ -1454,7 +1454,6 @@ class OpsiPackageManagerControl(object):
 		parser.add_option("--log-file", action="store", dest="logFile")
 		parser.add_option("--log-file-level", action="store", dest="fileLogLevel")
 		parser.add_option("--purge-client-properties", action="store_true", dest="purgeClientProperties")
-		parser.add_option("--force-product-id", dest="forceInstallationProductId")
 
 		# Get commandline options and arguments
 		try:
@@ -1524,7 +1523,7 @@ class OpsiPackageManagerControl(object):
 				if self.config['command'] == u'extract' and self.config['newProductId'] and len(self.config['packageFiles']) > 1:
 					raise ValueError(u"Cannot use new product id with multiple package files")
 
-				if self.config['command'] == u'install' and self.config['forceInstallationProductId']:
+				if self.config['command'] == u'install' and self.config['newProductId']:
 					if len(self.config['packageFiles']) > 1:
 						raise ValueError(
 							u"Too many opsi packages given. "
@@ -1805,7 +1804,6 @@ class OpsiPackageManagerControl(object):
 			'setupWhereInstalled': False,
 			'updateWhereInstalled': False,
 			'purgeClientProperties': False,
-			'forceInstallationProductId': False,
 		}
 
 	def setCommandlineConfig(self):
@@ -1828,7 +1826,7 @@ class OpsiPackageManagerControl(object):
 		if self.opts.depots:
 			self.config['depotIds'] = self.opts.depots.split(',')
 		if self.opts.newProductId:
-			self.config['newProductId'] = self.opts.newProductId
+			self.config['newProductId'] = forceProductId(self.opts.newProductId)
 		if self.opts.maxBandwidth:
 			self.config['maxBandwidth'] = self.opts.maxBandwidth
 		if self.opts.maxTransfers:
@@ -1849,8 +1847,6 @@ class OpsiPackageManagerControl(object):
 			self.config['updateWhereInstalled'] = True
 		if self.opts.purgeClientProperties:
 			self.config['purgeClientProperties'] = True
-		if self.opts.forceInstallationProductId:
-			self.config['forceInstallationProductId'] = forceProductId(self.opts.forceInstallationProductId)
 
 		# Get command
 		if self.opts.COMMAND_INSTALL:
@@ -1939,8 +1935,8 @@ class OpsiPackageManagerControl(object):
 		print u"                                             0 = unlimited (default)"
 		print u"  --max-bandwidth    <kbps>               maximum transfer rate for each transfer (in kilobytes per second)"
 		print u"                                             0 = unlimited (default)"
-		print u"  --new-product-id   <product-id>         set a new product id when extracting opsi package"
-		print u"  --force-product-id <product-id>         Use a specific product ID during installation."
+		print u"  --new-product-id   <product-id>         Set a new product id when extracting opsi package or"
+		print u"                                          set a specific product ID during installation."
 		print u""
 
 
