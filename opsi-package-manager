@@ -1294,14 +1294,27 @@ class OpsiPackageManager(object):
 			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
 
 			packageFile = os.path.basename(packageFile)
-			logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
-			subject.setMessage(_(u"Installing package %s") % packageFile)
+			if self.config['newProductId']:
+				logger.notice(u"Installing package {packageFile!r} as {forcedProductId!r} on depot {depotId!r}",
+					packageFile=packageFile,
+					forcedProductId=self.config['newProductId'],
+					depotId=depotId
+				)
+				subject.setMessage(_(u"Installing package {filename} as {forcedProductId}").format(filename=packageFile, forcedProductId=self.config['newProductId']))
+			else:
+				logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
+				subject.setMessage(_(u"Installing package %s") % packageFile)
 
 			product = self.getPackageControlFile(packageFile).getProduct()
+			if self.config['newProductId']:
+				product.setId(self.config['newProductId'])
 			productId = product.getId()
 
 			propertyDefaultValues = {}
 			for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
+				if self.config['newProductId']:
+					productProperty.productId = productId
+
 				propertyDefaultValues[productProperty.propertyId] = productProperty.defaultValues
 				if propertyDefaultValues[productProperty.propertyId] is None:
 					propertyDefaultValues[productProperty.propertyId] = []
@@ -1313,11 +1326,26 @@ class OpsiPackageManager(object):
 						if propertyDefaultValues[productProperty.propertyId] is None:
 							propertyDefaultValues[productProperty.propertyId] = []
 
+			installationParameters = {
+				'force': self.config['forceInstall'],
+				'propertyDefaultValues': propertyDefaultValues,
+				'tempDir': self.config['tempDir'],
+			}
+			if self.config['newProductId']:
+				installationParameters['forceProductId'] = self.config['newProductId']
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_installPackage(depotPackageFile, force=self.config['forceInstall'], propertyDefaultValues=propertyDefaultValues, tempDir=self.config['tempDir'])
+			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)
 
-			logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
-			subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
+			if self.config['newProductId']:
+				logger.notice(u"Installation of package '{packageFile}' as {forcedProductId} on depot '{depotId}' successful",
+					packageFile=packageFile,
+					forcedProductId=self.config['newProductId'],
+					depotId=depotId
+				)
+				subject.setMessage(_(u"Installation of package {packageFile} as {forcedProductId} successful").format(packageFile=packageFile, forcedProductId=self.config['newProductId']), severity=4)
+			else:
+				logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
+				subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
 
 			if self.config['setupWhereInstalled']:
 				if product.getSetupScript():
@@ -1508,6 +1536,13 @@ class OpsiPackageManagerControl(object):
 				if self.config['command'] == u'extract' and self.config['newProductId'] and len(self.config['packageFiles']) > 1:
 					raise ValueError(u"Cannot use new product id with multiple package files")
 
+				if self.config['command'] == u'install' and self.config['newProductId']:
+					if len(self.config['packageFiles']) > 1:
+						raise ValueError(
+							u"Too many opsi packages given. "
+							u"Please supply only one package if forcing "
+							u"a product ID."
+						)
 			elif self.config['command'] in (u'list', u'differences'):
 				if not self.config['productIds']:
 					self.config['productIds'] = ['*']
@@ -1781,7 +1816,7 @@ class OpsiPackageManagerControl(object):
 			'overwriteAlways': False,
 			'setupWhereInstalled': False,
 			'updateWhereInstalled': False,
-			'purgeClientProperties': False
+			'purgeClientProperties': False,
 		}
 
 	def setCommandlineConfig(self):
@@ -1804,7 +1839,7 @@ class OpsiPackageManagerControl(object):
 		if self.opts.depots:
 			self.config['depotIds'] = self.opts.depots.split(',')
 		if self.opts.newProductId:
-			self.config['newProductId'] = self.opts.newProductId
+			self.config['newProductId'] = forceProductId(self.opts.newProductId)
 		if self.opts.maxBandwidth:
 			self.config['maxBandwidth'] = self.opts.maxBandwidth
 		if self.opts.maxTransfers:
@@ -1913,7 +1948,8 @@ class OpsiPackageManagerControl(object):
 		print u"                                             0 = unlimited (default)"
 		print u"  --max-bandwidth    <kbps>               maximum transfer rate for each transfer (in kilobytes per second)"
 		print u"                                             0 = unlimited (default)"
-		print u"  --new-product-id   <product-id>         set a new product id when extracting opsi package"
+		print u"  --new-product-id   <product-id>         Set a new product id when extracting opsi package or"
+		print u"                                          set a specific product ID during installation."
 		print u""
 
 
