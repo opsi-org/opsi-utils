@@ -106,54 +106,75 @@ def main(argv):
 
 	parser = argparse.ArgumentParser(add_help=False,
 		description=("Provides an opsi package from a package source directory.\n"
-					"If no source directory is supplied, the current directory will be used.")
+				"If no source directory is supplied, the current directory will be used.")
 	)
 	parser.add_argument('--help', action='store_true', default=False,
-						help="Show help.")  # Manual implementation because of -h
+				help="Show help.")  # Manual implementation because of -h
 	parser.add_argument('--version', '-V', action='version', version=__version__)
 	parser.add_argument('--quiet', '-q', action='store_true', default=False,
-						help="do not show progress")
+				help="do not show progress")
 	parser.add_argument('--verbose', '-v', default=False, action="store_true",
-						help="verbose")
+				help="verbose")
 	parser.add_argument('--log-level', '-l', dest="logLevel", type=int,
-						default=LOG_WARNING, help="Log-level 0..9")
+				default=LOG_WARNING, help="Log-level 0..9")
 	parser.add_argument('-n', dest="compression", help="Do not compress",
-						default='gzip', action='store_const', const=None)
+				default='gzip', action='store_const', const=None)
 	parser.add_argument('-F', dest="format", default='cpio', choices=['cpio', 'tar'],
 						help="Archive format to use. Default: cpio")
 	parser.add_argument('-h', dest="dereference", help="follow symlinks",
-						default=False, action='store_true')
+				default=False, action='store_true')
 	parser.add_argument('-I', dest="incremental", help="incremental package",
-						metavar='required version', default=0)
+				metavar='required version', default=0)
 	customGroup = parser.add_mutually_exclusive_group()
 	customGroup.add_argument('-i', dest="customName", default=u'',
-							metavar='custom name',
-							help="custom name (add custom files)")
+					metavar='custom name',
+					help="custom name (add custom files)")
 	customGroup.add_argument('-c', dest="customOnly", default=False,
-							metavar='custom name',
-							help="custom name (custom only)")
+					metavar='custom name',
+					help="custom name (custom only)")
 	parser.add_argument('-C', dest="compatibilityMode", default=False,
-						action="store_true", help="compatibility mode (opsi 3)")
+				action="store_true", help="compatibility mode (opsi 3)")
 	parser.add_argument('-t', dest="tempDir", help="temp dir", default=u'/tmp',
-						metavar='directory')
+				metavar='directory')
 	parser.add_argument('-m', dest="createMd5SumFile", help="create md5sum file",
-						default=False, action='store_true')
+				default=False, action='store_true')
 	parser.add_argument('-z', dest="createZsyncFile", help="create zsync file",
-						default=False, action='store_true')
+				default=False, action='store_true')
 	parser.add_argument('--no-pigz', dest="disablePigz",
-						default=False, action='store_true',
-						help="Disable the usage of pigz")
+				default=False, action='store_true',
+				help="Disable the usage of pigz")
 	parser.add_argument('packageSourceDir', metavar="source directory",
-						nargs='?', default=os.getcwd())
+				nargs='?', default=os.getcwd())
+
+	vgroup = parser.add_argument_group('Versions',
+		'Set versions for package. Combinations are possible.')
+	vgroup.add_argument('--keep-versions', '-k', action='store_true',
+				help="Keep versions and overwrite package", dest="keepVersions")
+	vgroup.add_argument('--package-version', help="Set new package version ",
+				default=u'', metavar='packageversion', dest="newPackageVersion")
+	vgroup.add_argument('--product-version', default=u'',
+				dest="newProductVersion", metavar='productversion',
+				help="Set new product version for package")
 
 	args = parser.parse_args()
-
 	if args.help:
 		parser.print_help()
 		sys.exit(1)
 
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
+
+	keepVersions = args.keepVersions
+	needOneVersion = False
+	newProductVersion = args.newProductVersion
+	newPackageVersion = args.newPackageVersion
+	if newProductVersion or newPackageVersion:
+		needOneVersion = True
+	doNotUseTerminal = False
+	if keepVersions:
+		doNotUseTerminal = True
+	if newPackageVersion and newProductVersion:
+		doNotUseTerminal = True
 
 	customName = args.customName
 	customOnly = bool(args.customOnly)
@@ -290,31 +311,52 @@ def main(argv):
 				print _(u"Package file '%s' already exists.") % pps.getPackageFile()
 				print _(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"),
 				newVersion = False
-				fd = sys.stdin.fileno()
-				savedSettings = termios.tcgetattr(fd)
-				tty.setraw(fd)
-				try:
-					while True:
-						ch = sys.stdin.read(1)
-						if ch in ('o', 'O'):
-							if os.path.exists(pps.packageFile + u'.md5'):
-								os.remove(pps.packageFile + u'.md5')
-							if os.path.exists(pps.packageFile + u'.zsync'):
-								os.remove(pps.packageFile + u'.zsync')
-							break
-						elif ch in ('c', 'C'):
-							raise CancelledByUserError(_(u"Aborted"))
-						elif ch in ('n', 'N'):
-							newVersion = True
-							break
-				finally:
-					termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
-					print '\r\033[0K'
+				if keepVersions and needOneVersion:
+					newVersion = True
+				elif keepVersions:
+					if os.path.exists(pps.packageFile + u'.md5'):
+						os.remove(pps.packageFile + u'.md5')
+					if os.path.exists(pps.packageFile + u'.zsync'):
+						os.remove(pps.packageFile + u'.zsync')
+				elif needOneVersion:
+					newVersion = True
+
+				if not doNotUseTerminal:
+					fd = sys.stdin.fileno()
+					savedSettings = termios.tcgetattr(fd)
+					tty.setraw(fd)
+					try:
+						while True:
+							ch = sys.stdin.read(1)
+							if ch in ('o', 'O'):
+								if os.path.exists(pps.packageFile + u'.md5'):
+									os.remove(pps.packageFile + u'.md5')
+								if os.path.exists(pps.packageFile + u'.zsync'):
+									os.remove(pps.packageFile + u'.zsync')
+								break
+							elif ch in ('c', 'C'):
+								raise Exception(_(u"Aborted"))
+							elif ch in ('n', 'N'):
+								newVersion = True
+								break
+					finally:
+						termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
+						print '\r\033[0K'
 
 				if newVersion:
 					while True:
 						print '\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion,
-						newVersion = sys.stdin.readline().strip()
+						newVersion = newProductVersion
+						if not keepVersions and not needOneVersion:
+							newVersion = sys.stdin.readline().strip()
+						else:
+							if newProductVersion:
+								newVersion = newProductVersion
+							elif keepVersions:
+								newVersion = product.productVersion
+							else:
+								newVersion = sys.stdin.readline().strip()
+
 						try:
 							if newVersion:
 								product.setProductVersion(newVersion)
@@ -325,7 +367,17 @@ def main(argv):
 
 					while True:
 						print '\r%s' % _(u"Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion,
-						newVersion = sys.stdin.readline().strip()
+						newVersion = newPackageVersion
+						if not keepVersions and not needOneVersion:
+							newVersion = sys.stdin.readline().strip()
+						else:
+							if newPackageVersion:
+								newVersion = newPackageVersion
+							elif keepVersions:
+								newVersion = product.packageVersion
+							else:
+								newVersion = sys.stdin.readline().strip()
+
 						try:
 							if newVersion:
 								product.setPackageVersion(newVersion)
@@ -333,6 +385,11 @@ def main(argv):
 							break
 						except Exception:
 							print _(u"Bad package version: %s") % newVersion
+
+					keepVersions = True
+					needOneVersion = False
+					newProductVersion = newPackageVersion = None
+					newVersion = None
 					continue
 
 			# Regenerating to fix encoding
