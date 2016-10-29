@@ -97,6 +97,15 @@ if sys.version_info[:2] == (2, 6) and sys.version_info[2] >= 6:
 # End of Patch
 
 
+def listRepoConfigs(repoDir):
+	try:
+		for entry in os.listdir(repoDir):
+			if entry.endswith('.repo') and os.path.isfile(entry):
+				yield os.path.join(repoDir, entry)
+	except OSError as oserr:
+		logger.warning("Problem listing {0}: {1}".format(repoDir, oserr))
+
+
 def splitAndStrip(string, sep):
 	for singleValue in string.split(sep):
 		singleValue = singleValue.strip()
@@ -284,6 +293,8 @@ class OpsiPackageUpdater(object):
 							socket.setdefaulttimeout(float(value.strip()))
 						elif option.lower() == 'tempdir':
 							self.config["tempdir"] = value.strip()
+						elif option.lower() == 'repositoryconfigdir':
+							self.config["repositoryConfigDir"] = value.strip()
 
 				elif section.lower() == 'notification':
 					for (option, value) in config.items(section):
@@ -361,6 +372,29 @@ class OpsiPackageUpdater(object):
 					logger.error(u"Unhandled section '%s'" % section)
 		except Exception as exclude:
 			raise RuntimeError(u"Failed to read config file '%s': %s" % (self.config["configFile"], exclude))
+
+		for configFile in listRepoConfigs(self.config['repositoryConfigDir']):
+			iniFile = IniFile(filename=configFile, raw=True)
+
+			try:
+				config = iniFile.parse()
+				for section in config.sections():
+					if not section.lower().startswith('repository'):
+						continue
+
+					try:
+						repository = self._getRepository(config, section)
+						self.config['repositories'].append(repository)
+					except RepositoryDisabledError:
+						logger.info(u"Repository {0} deactivated", section)
+					except MissingConfigurationValueError as mcverr:
+						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
+					except ConfigurationError as cerr:
+						logger.error(u"Configuration problem in {section}: {error}", error=cerr, section=section)
+					except Exception as err:
+						logger.error(u"Can't load repository from {section}: {error}", error=err, section=configFile)
+			except Exception as error:
+				logger.error("Unable to load repositories from {filename}: {error}", filename=configFile, error=error)
 
 	def _getRepository(self, config, section):
 		try:
@@ -1121,6 +1155,7 @@ def main():
 		"userAgent": 'opsi product updater %s' % __version__,
 		"packageDir": '/var/lib/opsi/products',
 		"configFile": '/etc/opsi/opsi-product-updater.conf',
+		"repositoryConfigDir": '/etc/opsi/product-updater.repos.d',
 		"notification": False,
 		"smtphost": u'localhost',
 		"smtpport": 25,

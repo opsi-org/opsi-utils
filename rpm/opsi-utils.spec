@@ -184,10 +184,10 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) /usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
 
 # directories
-#%dir /usr/share/locale/de/LC_MESSAGES
 %if 0%{?suse_version}
 %dir /etc/opsi
 %endif
+%dir /etc/opsi/product-updater.repos.d
 
 # ===[ changelog ]==================================
 %changelog
