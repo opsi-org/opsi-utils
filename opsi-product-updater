@@ -365,7 +365,7 @@ class OpsiPackageUpdater(object):
 	def _getRepository(self, config, section):
 		try:
 			if not forceBool(config.get(section, 'active')):
-				raise RepositoryDisabledError
+				raise RepositoryDisabledError(section)
 		except Exception:
 			pass
 		active = True
