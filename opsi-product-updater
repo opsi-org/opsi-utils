@@ -492,14 +492,13 @@ class OpsiPackageUpdater(object):
 					# Checking if given productIds are available and process only these products
 					newProductList = []
 					for product in self.config["processProductIds"]:
-						found = False
 						for pac in downloadablePackages:
 							if product == pac["productId"]:
 								newProductList.append(pac)
-								found = True
 								break
-						if not found:
+						else:
 							raise ValueError(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
+
 					if newProductList:
 						downloadablePackages = newProductList
 				newPackages = []
