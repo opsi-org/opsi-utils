@@ -107,15 +107,15 @@ class ProductRepositoryInfo(object):
 			self.baseUrl = u'http%s' % self.baseUrl[6:]
 
 	def getDownloadUrls(self):
-		urls = []
+		urls = set()
 		for directory in self.dirs:
 			if directory in (u'', u'/', u'.'):
 				url = self.baseUrl
 			else:
 				url = u'%s/%s' % (self.baseUrl, directory)
 
-			if url not in urls:
-				urls.append(url)
+			urls.add(url)
+
 		return urls
 
 
