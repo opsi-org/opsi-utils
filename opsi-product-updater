@@ -700,7 +700,7 @@ class OpsiPackageUpdater(object):
 					logger.info(u"No new packages installed")
 					return
 
-				wakeOnLanClients = []
+				wakeOnLanClients = set()
 				shutdownProduct = None
 				if self.config['wolAction'] and self.config["wolShutdownWanted"]:
 					for product in self.getConfigBackend().productOnDepot_getObjects(depotId=self.depotId, productId='shutdownwanted'):
@@ -744,8 +744,7 @@ class OpsiPackageUpdater(object):
 								for i, poc in enumerate(productOnClients):
 									productOnClients[i].setActionRequest('setup')
 									if self.config['wolAction'] and not package['productId'] in self.config['wolActionExcludeProductIds']:
-										if poc.clientId not in wakeOnLanClients:
-											wakeOnLanClients.append(poc.clientId)  # TODO: make this a set...
+										wakeOnLanClients.add(poc.clientId)
 								self.getConfigBackend().productOnClient_updateObjects(productOnClients)
 
 				if wakeOnLanClients:
