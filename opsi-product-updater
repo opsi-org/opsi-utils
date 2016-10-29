@@ -97,6 +97,13 @@ if sys.version_info[:2] == (2, 6) and sys.version_info[2] >= 6:
 # End of Patch
 
 
+def splitAndStrip(string, sep):
+	for singleValue in string.split(sep):
+		singleValue = singleValue.strip()
+		if singleValue:
+			yield singleValue
+
+
 class ProductRepositoryInfo(object):
 	def __init__(self, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[]):
 		self.baseUrl = forceUnicode(baseUrl)
@@ -298,11 +305,8 @@ class OpsiPackageUpdater(object):
 							self.config["sender"] = forceEmailAddress(value.strip())
 						elif option.lower() == 'receivers':
 							self.config["receivers"] = []
-							receivers = value.split(u",")
-							for receiver in receivers:
-								receiver = receiver.strip()
-								if not receiver:
-									continue
+
+							for receiver in splitAndStrip(value, u","):
 								self.config["receivers"].append(forceEmailAddress(receiver))
 
 				elif section.lower() == 'wol':
@@ -311,11 +315,8 @@ class OpsiPackageUpdater(object):
 							self.config["wolAction"] = forceBool(value.strip())
 						elif option.lower() == 'excludeproductids':
 							self.config['wolActionExcludeProductIds'] = []
-							productIds = value.split(u',')
-							for productId in productIds:
-								productId = productId.strip()
-								if not productId:
-									continue
+
+							for productId in splitAndStrip(value, u','):
 								self.config["wolActionExcludeProductIds"].append(forceProductId(productId))
 						elif option.lower() == 'shutdownwanted':
 							self.config["wolShutdownWanted"] = forceBool(value.strip())
@@ -340,11 +341,8 @@ class OpsiPackageUpdater(object):
 							self.config["installationWindowEndTime"] = value.strip()
 						elif option.lower() == 'exceptproductids':
 							self.config['installationWindowExceptions'] = []
-							productIds = value.split(',')
-							for productId in productIds:
-								productId = productId.strip()
-								if not productId:
-									continue
+
+							for productId in splitAndStrip(value, ','):
 								self.config["installationWindowExceptions"].append(forceProductId(productId))
 
 				elif section.lower().startswith('repository'):
@@ -411,12 +409,6 @@ class OpsiPackageUpdater(object):
 			repository = ProductRepositoryInfo(baseUrl=baseUrl, proxy=proxy)
 		else:
 			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set" % section)
-
-		def splitAndStrip(string, sep):
-			for singleValue in string.split(sep):
-				singleValue = singleValue.strip()
-				if singleValue:
-					yield singleValue
 
 		for (option, value) in config.items(section):
 			if option.lower() == 'username':
