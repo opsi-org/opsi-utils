@@ -953,16 +953,21 @@ class OpsiPackageUpdater(object):
 			try:
 				productId = '_'.join(f.split('_')[:-1])
 				version = f[:-5].split('_')[-1]
-				packages.append(
-					{
-						"productId": productId.lower(),
-						"version": version,
-						"packageFile": packageFile,
-						"filename": f,
-						"md5sum": md5sum(packageFile)
-					}
-				)
-				logger.debug(u"Local package info: %s" % packages[-1])
+				if not self.config['forceChecksumCalculation'] and os.path.exists(f + '.md5'):
+					with open(f + '.md5') as hashFile:
+						packageMd5 = hashFile.read().strip()
+				else:
+					packageMd5 = md5sum(packageFile)
+
+				packageInfo = {
+					"productId": productId.lower(),
+					"version": version,
+					"packageFile": packageFile,
+					"filename": f,
+					"md5sum": packageMd5
+				}
+				logger.debug(u"Local package info: %s" % packageInfo)
+				packages.append(packageInfo)
 			except Exception as e:
 				logger.error("Failed to process file '%s': %s" % (f, e))
 		return packages
@@ -1130,7 +1135,8 @@ def main():
 		"repositories": [],
 		"installAllAvailable": False,
 		"zsyncCommand": None,
-		"processProductIds": None
+		"processProductIds": None,
+		"forceChecksumCalculation": False,
 	}
 
 	parser = argparse.ArgumentParser(description="Updater for local opsi products.")
@@ -1141,11 +1147,19 @@ def main():
 	parser.add_argument('--config', '-c', help="Location of config file",
 						dest="configFile",
 						default='/etc/opsi/opsi-product-updater.conf')
-	parser.add_argument('-i', dest="installAllAvailable",
+	parser.add_argument('-i', '--install-all', dest="installAllAvailable",
 						default=False, action='store_true',
 						help="Install all downloadable packages from configured repositories (ignores excludes)")
-	parser.add_argument('-p', dest="processProductIds", metavar="productIDs",
+	parser.add_argument('-p', '--products', dest="processProductIds", metavar="productIDs", # TODO: change this to let argparse do the collection
 						help="List of productIds that will be processed: opsi-winst,opsi-client-agent")
+
+	checksumGroup = parser.add_mutually_exclusive_group()
+	checksumGroup.add_argument('--force-checksum-calculation',
+		dest='forceChecksumCalculation', action="store_true", default=False,
+		help="Force calculation of a checksum (MD5) for every package.")
+	checksumGroup.add_argument('--use-existing-checksum',
+		dest='forceChecksumCalculation', action="store_false",
+		help="Use existing checksums from the .md5-file of a package if possible. (Default)")
 
 	args = parser.parse_args()
 
@@ -1156,6 +1170,8 @@ def main():
 		config["processProductIds"] = args.processProductIds.split(",")
 		logger.debug("Setting -i...")
 		config["installAllAvailable"] = True
+
+	config["forceChecksumCalculation"] = args.forceChecksumCalculation
 
 	try:
 		config["zsyncCommand"] = System.which("zsync")
