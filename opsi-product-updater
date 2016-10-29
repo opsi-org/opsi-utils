@@ -352,7 +352,7 @@ class OpsiPackageUpdater(object):
 					except RepositoryDisabledError:
 						logger.info(u"Repository {0} deactivated", section)
 					except MissingConfigurationValueError as mcverr:
-						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr section=section)
+						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
 					except ConfigurationError as cerr:
 						logger.error(u"Configuration problem in {section}: {error}", error=cerr, section=section)
 					except Exception as err:
