@@ -88,7 +88,7 @@ if sys.version_info[:2] == (2, 6) and sys.version_info[2] >= 6:
 class ProductRepositoryInfo(object):
 	def __init__(self, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[]):
 		self.baseUrl = forceUnicode(baseUrl)
-		self.dirs = [forceUnicode(dir) for dir in dirs]
+		self.dirs = forceUnicodeList(dirs)
 		self.excludes = excludes
 		self.includes = includes
 		self.username = forceUnicode(username)
