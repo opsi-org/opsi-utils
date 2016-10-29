@@ -68,6 +68,18 @@ __version__ = '4.0.7.6'
 logger = Logger()
 
 
+class RepositoryDisabledError(Exception):
+	pass
+
+
+class ConfigurationError(ValueError):
+	pass
+
+
+class MissingConfigurationValueError(ConfigurationError):
+	pass
+
+
 def _(string):
 	return string
 
@@ -337,108 +349,121 @@ class OpsiPackageUpdater(object):
 
 				elif section.lower().startswith('repository'):
 					try:
-						if not forceBool(config.get(section, 'active')):
-							continue
-					except Exception:
-						pass
-					active = True
-					baseUrl = None
-					opsiDepotId = None
-					proxy = None
-					for (option, value) in config.items(section):
-						if option.lower() == 'active':
-							active = forceBool(value)
-						elif option.lower() == 'baseurl':
-							if value.strip():
-								baseUrl = forceUrl(value.strip())
-						elif option.lower() == 'opsidepotid':
-							if value.strip():
-								opsiDepotId = forceHostId(value.strip())
-						elif option.lower() == 'proxy':
-							if value.strip():
-								proxy = forceUrl(value.strip())
-					if not active:
-						logger.info(u"Repository %s deactivated" % section)
-						continue
-
-					repository = None
-					if opsiDepotId:
-						depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=opsiDepotId)
-						if not depots:
-							raise ValueError(u"Depot '%s' not found in backend" % opsiDepotId)
-						if not depots[0].repositoryRemoteUrl:
-							raise ValueError(u"Repository remote url for depot '%s' not found in backend" % opsiDepotId)
-						repository = ProductRepositoryInfo(
-							baseUrl=depots[0].repositoryRemoteUrl,
-							dirs=['/'],
-							username=self.depotId,
-							password=self.depotKey,
-							opsiDepotId=opsiDepotId
-						)
-
-					elif baseUrl:
-						if proxy:
-							logger.notice(u"Using Proxy: %s" % proxy)
-						repository = ProductRepositoryInfo(baseUrl=baseUrl, proxy=proxy)
-					else:
-						logger.error(u"Repository section '%s': neither baseUrl nor opsiDepotId set" % section)
-						continue
-
-					for (option, value) in config.items(section):
-						if option.lower() == 'username':
-							repository.username = forceUnicode(value.strip())
-						elif option.lower() == 'password':
-							repository.password = forceUnicode(value.strip())
-							if repository.password:
-								logger.addConfidentialString(repository.password)
-						elif option.lower() == 'autoinstall':
-							repository.autoInstall = forceBool(value.strip())
-						elif option.lower() == 'autoupdate':
-							repository.autoUpdate = forceBool(value.strip())
-						elif option.lower() == 'autosetup':
-							repository.autoSetup = forceBool(value.strip())
-						elif option.lower() == 'onlydownload':
-							repository.onlyDownload = forceBool(value.strip())
-						elif option.lower() == 'inheritproductproperties':
-							if not opsiDepotId:
-								logger.warning(u"InheritProductProperties not possible with normal http ressource.")
-								repository.inheritProductProperties = False
-							else:
-								repository.inheritProductProperties = forceBool(value.strip())
-						elif option.lower() == 'dirs':
-							repository.dirs = []
-							dirs = value.split(',')
-							for directory in dirs:
-								directory = directory.strip()
-								if not directory:
-									continue
-								repository.dirs.append(forceFilename(directory))
-						elif option.lower() == 'excludes':
-							repository.excludes = []
-							excludes = value.split(',')
-							for exclude in excludes:
-								exclude = exclude.strip()
-								if not exclude:
-									continue
-								repository.excludes.append(re.compile(exclude))
-						elif option.lower() == 'includeproductids':
-							repository.includes = []
-							includes = value.split(',')
-							for include in includes:
-								include = include.strip()
-								if not include:
-									continue
-								repository.includes.append(re.compile(include))
-
-					if self.config.get('installAllAvailable'):
-						repository.autoInstall = True
-						repository.autoUpdate = True
-						repository.excludes = []
-					self.config['repositories'].append(repository)
+						repository = self._getRepository(config, section)
+						self.config['repositories'].append(repository)
+					except RepositoryDisabledError:
+						logger.info(u"Repository {0} deactivated", section)
+					except MissingConfigurationValueError as mcverr:
+						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr section=section)
+					except ConfigurationError as cerr:
+						logger.error(u"Configuration problem in {section}: {error}", error=cerr, section=section)
+					except Exception as err:
+						logger.error(u"Can't load repository from {section}: {error}", error=err, section=section)
 				else:
 					logger.error(u"Unhandled section '%s'" % section)
 		except Exception as exclude:
 			raise RuntimeError(u"Failed to read config file '%s': %s" % (self.config["configFile"], exclude))
+
+	def _getRepository(self, config, section):
+		try:
+			if not forceBool(config.get(section, 'active')):
+				raise RepositoryDisabledError
+		except Exception:
+			pass
+		active = True
+		baseUrl = None
+		opsiDepotId = None
+		proxy = None
+		for (option, value) in config.items(section):
+			if option.lower() == 'active':
+				active = forceBool(value)
+			elif option.lower() == 'baseurl':
+				if value.strip():
+					baseUrl = forceUrl(value.strip())
+			elif option.lower() == 'opsidepotid':
+				if value.strip():
+					opsiDepotId = forceHostId(value.strip())
+			elif option.lower() == 'proxy':
+				if value.strip():
+					proxy = forceUrl(value.strip())
+
+		if not active:
+			raise RepositoryDisabledError(section)
+
+		repository = None
+		if opsiDepotId:
+			depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=opsiDepotId)
+			if not depots:
+				raise ConfigurationError(u"Depot '%s' not found in backend" % opsiDepotId)
+			if not depots[0].repositoryRemoteUrl:
+				raise ConfigurationError(u"Repository remote url for depot '%s' not found in backend" % opsiDepotId)
+			repository = ProductRepositoryInfo(
+				baseUrl=depots[0].repositoryRemoteUrl,
+				dirs=['/'],
+				username=self.depotId,
+				password=self.depotKey,
+				opsiDepotId=opsiDepotId
+			)
+
+		elif baseUrl:
+			if proxy:
+				logger.notice(u"Using Proxy: %s" % proxy)
+			repository = ProductRepositoryInfo(baseUrl=baseUrl, proxy=proxy)
+		else:
+			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set" % section)
+
+		for (option, value) in config.items(section):
+			if option.lower() == 'username':
+				repository.username = forceUnicode(value.strip())
+			elif option.lower() == 'password':
+				repository.password = forceUnicode(value.strip())
+				if repository.password:
+					logger.addConfidentialString(repository.password)
+			elif option.lower() == 'autoinstall':
+				repository.autoInstall = forceBool(value.strip())
+			elif option.lower() == 'autoupdate':
+				repository.autoUpdate = forceBool(value.strip())
+			elif option.lower() == 'autosetup':
+				repository.autoSetup = forceBool(value.strip())
+			elif option.lower() == 'onlydownload':
+				repository.onlyDownload = forceBool(value.strip())
+			elif option.lower() == 'inheritproductproperties':
+				if not opsiDepotId:
+					logger.warning(u"InheritProductProperties not possible with normal http ressource.")
+					repository.inheritProductProperties = False
+				else:
+					repository.inheritProductProperties = forceBool(value.strip())
+			elif option.lower() == 'dirs':
+				repository.dirs = []
+				dirs = value.split(',')
+				for directory in dirs:
+					directory = directory.strip()
+					if not directory:
+						continue
+					repository.dirs.append(forceFilename(directory))
+			elif option.lower() == 'excludes':
+				repository.excludes = []
+				excludes = value.split(',')
+				for exclude in excludes:
+					exclude = exclude.strip()
+					if not exclude:
+						continue
+					repository.excludes.append(re.compile(exclude))
+			elif option.lower() == 'includeproductids':
+				repository.includes = []
+				includes = value.split(',')
+				for include in includes:
+					include = include.strip()
+					if not include:
+						continue
+					repository.includes.append(re.compile(include))
+
+		if self.config.get('installAllAvailable'):
+			repository.autoInstall = True
+			repository.autoUpdate = True
+			repository.excludes = []
+
+		return repository
 
 	def getConfigBackend(self):
 		if not self.configBackend:
