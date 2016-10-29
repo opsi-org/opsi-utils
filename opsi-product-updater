@@ -412,6 +412,12 @@ class OpsiPackageUpdater(object):
 		else:
 			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set" % section)
 
+		def splitAndStrip(string, sep):
+			for singleValue in string.split(sep):
+				singleValue = singleValue.strip()
+				if singleValue:
+					yield singleValue
+
 		for (option, value) in config.items(section):
 			if option.lower() == 'username':
 				repository.username = forceUnicode(value.strip())
@@ -435,27 +441,15 @@ class OpsiPackageUpdater(object):
 					repository.inheritProductProperties = forceBool(value.strip())
 			elif option.lower() == 'dirs':
 				repository.dirs = []
-				dirs = value.split(',')
-				for directory in dirs:
-					directory = directory.strip()
-					if not directory:
-						continue
+				for directory in splitAndStrip(value, ','):
 					repository.dirs.append(forceFilename(directory))
 			elif option.lower() == 'excludes':
 				repository.excludes = []
-				excludes = value.split(',')
-				for exclude in excludes:
-					exclude = exclude.strip()
-					if not exclude:
-						continue
+				for exclude in splitAndStrip(value, ','):
 					repository.excludes.append(re.compile(exclude))
 			elif option.lower() == 'includeproductids':
 				repository.includes = []
-				includes = value.split(',')
-				for include in includes:
-					include = include.strip()
-					if not include:
-						continue
+				for include in splitAndStrip(value, ','):
 					repository.includes.append(re.compile(include))
 
 		if self.config.get('installAllAvailable'):
