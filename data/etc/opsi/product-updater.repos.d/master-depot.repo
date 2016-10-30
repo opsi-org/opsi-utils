@@ -1,0 +1,12 @@
+; This configuration will sync data from another opsi server.
+; Usually this will be your configserver but it is also possible to
+; work with depotservers.
+
+[repository_master]
+active = false
+opsiDepotId =
+autoInstall = true
+autoUpdate = true
+autoSetup = true
+; Inherit ProductProperty defaults from master repository
+inheritProductProperties = false

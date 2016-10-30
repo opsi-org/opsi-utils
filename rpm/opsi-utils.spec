@@ -86,6 +86,11 @@ install -m 0755 opsi-backup $RPM_BUILD_ROOT/usr/bin/
 
 mkdir -p $RPM_BUILD_ROOT/etc/opsi
 install -m 0644 data/opsi-product-updater.conf $RPM_BUILD_ROOT/etc/opsi/
+install -m 0644 data/etc/opsi/product-updater.repos.d/example.repo.template $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
+install -m 0644 data/etc/opsi/product-updater.repos.d/master-depot.repo $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
+install -m 0644 data/etc/opsi/product-updater.repos.d/uib-linux.repo $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
+install -m 0644 data/etc/opsi/product-updater.repos.d/uib-local_image.repo $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
+install -m 0644 data/etc/opsi/product-updater.repos.d/uib-windows.repo $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
 
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
@@ -167,6 +172,11 @@ rm -rf $RPM_BUILD_ROOT
 
 # configfiles
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-product-updater.conf
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/example.repo.template
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/master-depot.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/uib-linux.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/uib-local_image.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/uib-windows.repo
 %config /etc/logrotate.d/opsi-backup
 %config /etc/logrotate.d/opsi-package-manager
 %config /etc/logrotate.d/opsi-product-updater
