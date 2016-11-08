@@ -955,9 +955,11 @@ class OpsiPackageUpdater(object):
 				version = f[:-5].split('_')[-1]
 				checkSumFile = f + '.md5'
 				if not self.config['forceChecksumCalculation'] and os.path.exists(checkSumFile):
+					logger.debug("Reading existing checksum from {0}", checkSumFile)
 					with open(checkSumFile) as hashFile:
 						packageMd5 = hashFile.read().strip()
 				else:
+					logger.debug("Calculating checksum for {0}", packageFile)
 					packageMd5 = md5sum(packageFile)
 
 				packageInfo = {
