@@ -153,8 +153,8 @@ def main():
 	elif args.command == 'create':
 		result = backup.create(
 			destination=args.destination, mode=args.mode,
-			backends=args.backends, no_configuration=args.no_configuration,
-			compression=args.compression, flush_logs=args.flush_logs
+			backends=args.backends, noConfiguration=args.no_configuration,
+			compression=args.compression, flushLogs=args.flush_logs
 		)
 
 	try:
