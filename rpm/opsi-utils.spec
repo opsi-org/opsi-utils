@@ -1,21 +1,21 @@
 #
 # spec file for package opsi-utils
 #
-# Copyright (c) 2010 uib GmbH.
+# Copyright (c) 2010-2016 uib GmbH.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
 
 Name:           opsi-utils
 BuildRequires:  python >= 2.6
-Requires:       python-opsi >= 4.0.7.22 zsync python >= 2.6
+Requires:       python-opsi >= 4.1 zsync python >= 2.6
 Url:            http://www.opsi.org
 License:        GPLv2+
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
 Version:        4.0.7.5
 Release:        1
-Summary:        opsi utils
+Summary:        Tools for working on a opsi server.
 Source:         opsi-utils_4.0.7.5-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch

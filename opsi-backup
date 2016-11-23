@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 @copyright:	uib GmbH <info@uib.de>
 @author: Christian Kampka <c.kampka@uib.de>
+@author: Niko Wenselowski <n.wenselowski@uib.de>
 @license: GNU General Public License version 2
 """
 
@@ -39,7 +40,7 @@ from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI.Util.Collections import DefaultList
 from OPSI.Util import argparse
 
-__version__ = "4.0.6.11"
+__version__ = "4.1.1.1"
 
 logger = Logger()
 
@@ -139,21 +140,21 @@ def main():
 		if not args.backends:
 			logger.warning("No backend given!")
 
-		result = backup._restore(
+		result = backup.restore(
 			file=args.file, mode=args.mode, backends=args.backends,
 			configuration=args.configuration, force=args.force
 		)
 	elif args.command == 'verify':
-		result = backup._verify(file=args.file)
+		result = backup.verify(file=args.file)
 		if result == 0:
 			print("Verified")
 		else:
 			print("Verification failed")
 	elif args.command == 'create':
-		result = backup._create(
+		result = backup.create(
 			destination=args.destination, mode=args.mode,
-			backends=args.backends, no_configuration=args.no_configuration,
-			compression=args.compression, flush_logs=args.flush_logs
+			backends=args.backends, noConfiguration=args.no_configuration,
+			compression=args.compression, flushLogs=args.flush_logs
 		)
 
 	try:
