@@ -1097,20 +1097,19 @@ class OpsiPackageUpdater(object):
 						version = link[:-5].split('_')[-1]
 						packageFile = url + '/' + link
 						logger.info(u"Found opsi package: %s" % packageFile)
-						packages.append(
-							{
-								"repository": repository,
-								"productId": productId.lower(),
-								"version": version,
-								"packageFile": packageFile,
-								"filename": link,
-								"md5sum": None,
-								"zsyncFile": None
-							}
-						)
+						packageInfo = {
+							"repository": repository,
+							"productId": productId.lower(),
+							"version": version,
+							"packageFile": packageFile,
+							"filename": link,
+							"md5sum": None,
+							"zsyncFile": None
+						}
 						if depotConnection:
-							packages[-1]["md5sum"] = depotConnection.getMD5Sum(u'%s/%s' % (depotRepositoryPath, link))
-						logger.debug(u"Repository package info: %s" % packages[-1])
+							packageInfo["md5sum"] = depotConnection.getMD5Sum(u'%s/%s' % (depotRepositoryPath, link))
+						logger.debug(u"Repository package info: {0}", packageInfo)
+						packages.append(packageInfo)
 					except Exception as error:
 						logger.error(u"Failed to process link '%s': %s" % (link, error))
 
