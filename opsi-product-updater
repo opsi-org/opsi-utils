@@ -515,6 +515,11 @@ class OpsiPackageUpdater(object):
 			)
 		return self.depotConnections[depotId]
 
+	def listActiveRepos(self):
+		logger.notice("Active repositories:")
+		for repository in self.config['repositories']:
+			logger.notice("{name}: {url}", name=repository.name, url=repository.baseUrl)
+
 	def processUpdates(self):
 		notifier = None
 		if self.config["notification"]:
