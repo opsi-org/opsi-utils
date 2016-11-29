@@ -520,6 +520,12 @@ class OpsiPackageUpdater(object):
 		for repository in self.config['repositories']:
 			logger.notice("{name}: {url}", name=repository.name, url=repository.baseUrl)
 
+	def listProductsInRepositories(self):
+		for repository in self.config["repositories"]:
+			logger.notice("Packages in {name}:", name=repository.name)
+			for package in self.getDownloadablePackagesFromRepository(repository):
+				logger.notice('\t{productId} (Version {version})', **package)
+
 	def processUpdates(self):
 		notifier = None
 		if self.config["notification"]:
@@ -1210,6 +1216,9 @@ def main():
 	updateparser = modeparsers.add_parser('update', help='Update existing packages from repositories.')
 	repoparser = modeparsers.add_parser('repository', help='Repository management.')
 	repoparser.add_argument('--list-active', dest="listActiveRepos", action="store_true", help='Lists all active repositories')
+	repoparser.add_argument('--list-products',
+							action="store_true", dest="listAvailableProducts",
+							help='Lists the repositories and the products they provide.')
 
 	args = parser.parse_args()
 
@@ -1245,6 +1254,8 @@ def main():
 		elif args.mode == 'repository':
 			if args.listActiveRepos:
 				opu.listActiveRepos()
+			elif args.listAvailableProducts:
+				opu.listProductsInRepositories()
 
 
 if __name__ == "__main__":
