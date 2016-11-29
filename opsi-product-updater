@@ -36,6 +36,7 @@ from __future__ import print_function
 import email.utils
 import formatter
 import htmllib
+import operator
 import os
 import re
 import smtplib
@@ -523,7 +524,11 @@ class OpsiPackageUpdater(object):
 	def listProductsInRepositories(self):
 		for repository in self.config["repositories"]:
 			logger.notice("Packages in {name}:", name=repository.name)
-			for package in self.getDownloadablePackagesFromRepository(repository):
+			packages = sorted(
+				self.getDownloadablePackagesFromRepository(repository),
+				key=operator.itemgetter('productId')
+			)
+			for package in packages:
 				logger.notice('\t{productId} (Version {version})', **package)
 
 	def processUpdates(self):
