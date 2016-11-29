@@ -271,7 +271,7 @@ class OpsiPackageUpdater(object):
 
 	def readConfigFile(self):
 		try:
-			logger.notice(u"Reading config file '%s'" % self.config["configFile"])
+			logger.info(u"Reading config file '%s'" % self.config["configFile"])
 			if not os.path.isfile(self.config["configFile"]):
 				raise OSError(u"File not found")
 
@@ -1205,9 +1205,9 @@ def main():
 
 	try:
 		config["zsyncCommand"] = System.which("zsync")
-		logger.notice(u"Zsync command found: %s" % config["zsyncCommand"])
+		logger.info(u"Zsync command found: %s" % config["zsyncCommand"])
 	except Exception:
-		logger.info(u"Zsync command not found")
+		logger.warning(u"Zsync command not found")
 
 	pid = os.getpid()
 	running = None
