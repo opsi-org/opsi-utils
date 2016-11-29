@@ -36,6 +36,7 @@ from __future__ import print_function
 import email.utils
 import formatter
 import htmllib
+import operator
 import os
 import re
 import smtplib
@@ -68,6 +69,18 @@ __version__ = '4.0.7.6'
 logger = Logger()
 
 
+class RepositoryDisabledError(Exception):
+	pass
+
+
+class ConfigurationError(ValueError):
+	pass
+
+
+class MissingConfigurationValueError(ConfigurationError):
+	pass
+
+
 def _(string):
 	return string
 
@@ -85,8 +98,25 @@ if sys.version_info[:2] == (2, 6) and sys.version_info[2] >= 6:
 # End of Patch
 
 
+def listRepoConfigs(repoDir):
+	try:
+		for entry in os.listdir(repoDir):
+			if entry.endswith('.repo') and os.path.isfile(entry):
+				yield os.path.join(repoDir, entry)
+	except OSError as oserr:
+		logger.warning("Problem listing {0}: {1}".format(repoDir, oserr))
+
+
+def splitAndStrip(string, sep):
+	for singleValue in string.split(sep):
+		singleValue = singleValue.strip()
+		if singleValue:
+			yield singleValue
+
+
 class ProductRepositoryInfo(object):
-	def __init__(self, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[]):
+	def __init__(self, name, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[]):
+		self.name = forceUnicode(name)
 		self.baseUrl = forceUnicode(baseUrl)
 		self.dirs = forceUnicodeList(dirs)
 		self.excludes = excludes
@@ -243,7 +273,7 @@ class OpsiPackageUpdater(object):
 
 	def readConfigFile(self):
 		try:
-			logger.notice(u"Reading config file '%s'" % self.config["configFile"])
+			logger.info(u"Reading config file '%s'" % self.config["configFile"])
 			if not os.path.isfile(self.config["configFile"]):
 				raise OSError(u"File not found")
 
@@ -265,6 +295,8 @@ class OpsiPackageUpdater(object):
 							socket.setdefaulttimeout(float(value.strip()))
 						elif option.lower() == 'tempdir':
 							self.config["tempdir"] = value.strip()
+						elif option.lower() == 'repositoryconfigdir':
+							self.config["repositoryConfigDir"] = value.strip()
 
 				elif section.lower() == 'notification':
 					for (option, value) in config.items(section):
@@ -286,11 +318,8 @@ class OpsiPackageUpdater(object):
 							self.config["sender"] = forceEmailAddress(value.strip())
 						elif option.lower() == 'receivers':
 							self.config["receivers"] = []
-							receivers = value.split(u",")
-							for receiver in receivers:
-								receiver = receiver.strip()
-								if not receiver:
-									continue
+
+							for receiver in splitAndStrip(value, u","):
 								self.config["receivers"].append(forceEmailAddress(receiver))
 
 				elif section.lower() == 'wol':
@@ -299,11 +328,8 @@ class OpsiPackageUpdater(object):
 							self.config["wolAction"] = forceBool(value.strip())
 						elif option.lower() == 'excludeproductids':
 							self.config['wolActionExcludeProductIds'] = []
-							productIds = value.split(u',')
-							for productId in productIds:
-								productId = productId.strip()
-								if not productId:
-									continue
+
+							for productId in splitAndStrip(value, u','):
 								self.config["wolActionExcludeProductIds"].append(forceProductId(productId))
 						elif option.lower() == 'shutdownwanted':
 							self.config["wolShutdownWanted"] = forceBool(value.strip())
@@ -328,117 +354,147 @@ class OpsiPackageUpdater(object):
 							self.config["installationWindowEndTime"] = value.strip()
 						elif option.lower() == 'exceptproductids':
 							self.config['installationWindowExceptions'] = []
-							productIds = value.split(',')
-							for productId in productIds:
-								productId = productId.strip()
-								if not productId:
-									continue
+
+							for productId in splitAndStrip(value, ','):
 								self.config["installationWindowExceptions"].append(forceProductId(productId))
 
 				elif section.lower().startswith('repository'):
 					try:
-						if not forceBool(config.get(section, 'active')):
-							continue
-					except Exception:
-						pass
-					active = True
-					baseUrl = None
-					opsiDepotId = None
-					proxy = None
-					for (option, value) in config.items(section):
-						if option.lower() == 'active':
-							active = forceBool(value)
-						elif option.lower() == 'baseurl':
-							if value.strip():
-								baseUrl = forceUrl(value.strip())
-						elif option.lower() == 'opsidepotid':
-							if value.strip():
-								opsiDepotId = forceHostId(value.strip())
-						elif option.lower() == 'proxy':
-							if value.strip():
-								proxy = forceUrl(value.strip())
-					if not active:
-						logger.info(u"Repository %s deactivated" % section)
-						continue
-
-					repository = None
-					if opsiDepotId:
-						depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=opsiDepotId)
-						if not depots:
-							raise ValueError(u"Depot '%s' not found in backend" % opsiDepotId)
-						if not depots[0].repositoryRemoteUrl:
-							raise ValueError(u"Repository remote url for depot '%s' not found in backend" % opsiDepotId)
-						repository = ProductRepositoryInfo(
-							baseUrl=depots[0].repositoryRemoteUrl,
-							dirs=['/'],
-							username=self.depotId,
-							password=self.depotKey,
-							opsiDepotId=opsiDepotId
-						)
-
-					elif baseUrl:
-						if proxy:
-							logger.notice(u"Using Proxy: %s" % proxy)
-						repository = ProductRepositoryInfo(baseUrl=baseUrl, proxy=proxy)
-					else:
-						logger.error(u"Repository section '%s': neither baseUrl nor opsiDepotId set" % section)
-						continue
-
-					for (option, value) in config.items(section):
-						if option.lower() == 'username':
-							repository.username = forceUnicode(value.strip())
-						elif option.lower() == 'password':
-							repository.password = forceUnicode(value.strip())
-							if repository.password:
-								logger.addConfidentialString(repository.password)
-						elif option.lower() == 'autoinstall':
-							repository.autoInstall = forceBool(value.strip())
-						elif option.lower() == 'autoupdate':
-							repository.autoUpdate = forceBool(value.strip())
-						elif option.lower() == 'autosetup':
-							repository.autoSetup = forceBool(value.strip())
-						elif option.lower() == 'onlydownload':
-							repository.onlyDownload = forceBool(value.strip())
-						elif option.lower() == 'inheritproductproperties':
-							if not opsiDepotId:
-								logger.warning(u"InheritProductProperties not possible with normal http ressource.")
-								repository.inheritProductProperties = False
-							else:
-								repository.inheritProductProperties = forceBool(value.strip())
-						elif option.lower() == 'dirs':
-							repository.dirs = []
-							dirs = value.split(',')
-							for directory in dirs:
-								directory = directory.strip()
-								if not directory:
-									continue
-								repository.dirs.append(forceFilename(directory))
-						elif option.lower() == 'excludes':
-							repository.excludes = []
-							excludes = value.split(',')
-							for exclude in excludes:
-								exclude = exclude.strip()
-								if not exclude:
-									continue
-								repository.excludes.append(re.compile(exclude))
-						elif option.lower() == 'includeproductids':
-							repository.includes = []
-							includes = value.split(',')
-							for include in includes:
-								include = include.strip()
-								if not include:
-									continue
-								repository.includes.append(re.compile(include))
-
-					if self.config.get('installAllAvailable'):
-						repository.autoInstall = True
-						repository.autoUpdate = True
-						repository.excludes = []
-					self.config['repositories'].append(repository)
+						repository = self._getRepository(config, section)
+						self.config['repositories'].append(repository)
+					except RepositoryDisabledError:
+						logger.info(u"Repository {0} deactivated", section)
+					except MissingConfigurationValueError as mcverr:
+						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
+					except ConfigurationError as cerr:
+						logger.error(u"Configuration problem in {section}: {error}", error=cerr, section=section)
+					except Exception as err:
+						logger.error(u"Can't load repository from {section}: {error}", error=err, section=section)
 				else:
 					logger.error(u"Unhandled section '%s'" % section)
 		except Exception as exclude:
 			raise RuntimeError(u"Failed to read config file '%s': %s" % (self.config["configFile"], exclude))
+
+		for configFile in listRepoConfigs(self.config['repositoryConfigDir']):
+			iniFile = IniFile(filename=configFile, raw=True)
+
+			try:
+				config = iniFile.parse()
+				for section in config.sections():
+					if not section.lower().startswith('repository'):
+						continue
+
+					try:
+						repository = self._getRepository(config, section)
+						self.config['repositories'].append(repository)
+					except RepositoryDisabledError:
+						logger.info(u"Repository {0} deactivated", section)
+					except MissingConfigurationValueError as mcverr:
+						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
+					except ConfigurationError as cerr:
+						logger.error(u"Configuration problem in {section}: {error}", error=cerr, section=section)
+					except Exception as err:
+						logger.error(u"Can't load repository from {section}: {error}", error=err, section=configFile)
+			except Exception as error:
+				logger.error("Unable to load repositories from {filename}: {error}", filename=configFile, error=error)
+
+	def _getRepository(self, config, section):
+		try:
+			if not forceBool(config.get(section, 'active')):
+				raise RepositoryDisabledError(section)
+		except Exception:
+			pass
+		active = True
+		baseUrl = None
+		opsiDepotId = None
+		proxy = None
+		for (option, value) in config.items(section):
+			if option.lower() == 'active':
+				active = forceBool(value)
+			elif option.lower() == 'baseurl':
+				if value.strip():
+					baseUrl = forceUrl(value.strip())
+			elif option.lower() == 'opsidepotid':
+				if value.strip():
+					opsiDepotId = forceHostId(value.strip())
+			elif option.lower() == 'proxy':
+				if value.strip():
+					proxy = forceUrl(value.strip())
+
+		if not active:
+			raise RepositoryDisabledError(section)
+
+		repository = None
+		if opsiDepotId:
+			depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=opsiDepotId)
+			if not depots:
+				raise ConfigurationError(u"Depot '%s' not found in backend" % opsiDepotId)
+			if not depots[0].repositoryRemoteUrl:
+				raise ConfigurationError(u"Repository remote url for depot '%s' not found in backend" % opsiDepotId)
+
+			repository = ProductRepositoryInfo(
+				name=opsiDepotId,
+				baseUrl=depots[0].repositoryRemoteUrl,
+				dirs=['/'],
+				username=self.depotId,
+				password=self.depotKey,
+				opsiDepotId=opsiDepotId
+			)
+
+		elif baseUrl:
+			if proxy:
+				logger.notice(u"Using Proxy: %s" % proxy)
+			repoName = section.replace('repository_', '', 1)
+			repository = ProductRepositoryInfo(
+				name=repoName,
+				baseUrl=baseUrl,
+				proxy=proxy
+			)
+		else:
+			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set" % section)
+
+		for (option, value) in config.items(section):
+			if option.lower() == 'username':
+				repository.username = forceUnicode(value.strip())
+			elif option.lower() == 'password':
+				repository.password = forceUnicode(value.strip())
+				if repository.password:
+					logger.addConfidentialString(repository.password)
+			elif option.lower() == 'autoinstall':
+				repository.autoInstall = forceBool(value.strip())
+			elif option.lower() == 'autoupdate':
+				repository.autoUpdate = forceBool(value.strip())
+			elif option.lower() == 'autosetup':
+				repository.autoSetup = forceBool(value.strip())
+			elif option.lower() == 'onlydownload':
+				repository.onlyDownload = forceBool(value.strip())
+			elif option.lower() == 'inheritproductproperties':
+				if not opsiDepotId:
+					logger.warning(u"InheritProductProperties not possible with normal http ressource.")
+					repository.inheritProductProperties = False
+				else:
+					repository.inheritProductProperties = forceBool(value.strip())
+			elif option.lower() == 'dirs':
+				repository.dirs = []
+				for directory in splitAndStrip(value, ','):
+					repository.dirs.append(forceFilename(directory))
+			elif option.lower() == 'excludes':
+				repository.excludes = []
+				for exclude in splitAndStrip(value, ','):
+					repository.excludes.append(re.compile(exclude))
+			elif option.lower() == 'includeproductids':
+				repository.includes = []
+				for include in splitAndStrip(value, ','):
+					repository.includes.append(re.compile(include))
+			elif option.lower() == 'name':
+				repository.name = forceUnicode(value)
+
+		if self.config.get('installAllAvailable'):
+			repository.autoInstall = True
+			repository.autoUpdate = True
+			repository.excludes = []
+
+		return repository
 
 	def getConfigBackend(self):
 		if not self.configBackend:
@@ -459,6 +515,21 @@ class OpsiPackageUpdater(object):
 				password=password
 			)
 		return self.depotConnections[depotId]
+
+	def listActiveRepos(self):
+		logger.notice("Active repositories:")
+		for repository in self.config['repositories']:
+			logger.notice("{name}: {url}", name=repository.name, url=repository.baseUrl)
+
+	def listProductsInRepositories(self):
+		for repository in self.config["repositories"]:
+			logger.notice("Packages in {name}:", name=repository.name)
+			packages = sorted(
+				self.getDownloadablePackagesFromRepository(repository),
+				key=operator.itemgetter('productId')
+			)
+			for package in packages:
+				logger.notice('\t{productId} (Version {version})', **package)
 
 	def processUpdates(self):
 		notifier = None
@@ -490,11 +561,11 @@ class OpsiPackageUpdater(object):
 				downloadablePackages = self.onlyNewestPackages(self.getDownloadablePackages())
 				if self.config["processProductIds"]:
 					# Checking if given productIds are available and process only these products
-					newProductList = []
+					newProductList = set()
 					for product in self.config["processProductIds"]:
 						for pac in downloadablePackages:
 							if product == pac["productId"]:
-								newProductList.append(pac)
+								newProductList.add(pac)
 								break
 						else:
 							raise ValueError(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
@@ -984,13 +1055,14 @@ class OpsiPackageUpdater(object):
 		return products
 
 	def getDownloadablePackages(self):
-		downloadablePackages = []
+		downloadablePackages = set()
 		for repository in self.config.get("repositories", []):
-			downloadablePackages.extend(self.getDownloadablePackagesFromRepository(repository))
+			logger.notice(u"Getting package infos from repository '%s'" % repository.baseUrl)
+			for package in self.getDownloadablePackagesFromRepository(repository):
+				downloadablePackages.add(package)
 		return downloadablePackages
 
 	def getDownloadablePackagesFromRepository(self, repository):
-		logger.notice(u"Getting package infos from repository '%s'" % repository.baseUrl)
 		packages = []
 
 		depotConnection = None
@@ -1059,20 +1131,19 @@ class OpsiPackageUpdater(object):
 						version = link[:-5].split('_')[-1]
 						packageFile = url + '/' + link
 						logger.info(u"Found opsi package: %s" % packageFile)
-						packages.append(
-							{
-								"repository": repository,
-								"productId": productId.lower(),
-								"version": version,
-								"packageFile": packageFile,
-								"filename": link,
-								"md5sum": None,
-								"zsyncFile": None
-							}
-						)
+						packageInfo = {
+							"repository": repository,
+							"productId": productId.lower(),
+							"version": version,
+							"packageFile": packageFile,
+							"filename": link,
+							"md5sum": None,
+							"zsyncFile": None
+						}
 						if depotConnection:
-							packages[-1]["md5sum"] = depotConnection.getMD5Sum(u'%s/%s' % (depotRepositoryPath, link))
-						logger.debug(u"Repository package info: %s" % packages[-1])
+							packageInfo["md5sum"] = depotConnection.getMD5Sum(u'%s/%s' % (depotRepositoryPath, link))
+						logger.debug(u"Repository package info: {0}", packageInfo)
+						packages.append(packageInfo)
 					except Exception as error:
 						logger.error(u"Failed to process link '%s': %s" % (link, error))
 
@@ -1080,15 +1151,16 @@ class OpsiPackageUpdater(object):
 					for link in htmlParser.getLinks():
 						isMd5 = link.endswith('.opsi.md5')
 						isZsync = link.endswith('.opsi.zsync')
-						try:
-							filename = None
-							if isMd5:
-								filename = link[:-4]
-							elif isZsync:
-								filename = link[:-6]
-							else:
-								continue
 
+						filename = None
+						if isMd5:
+							filename = link[:-4]
+						elif isZsync:
+							filename = link[:-6]
+						else:
+							continue
+
+						try:
 							for i, package in enumerate(packages):
 								if package.get('filename') == filename:
 									if isMd5:
@@ -1118,6 +1190,7 @@ def main():
 		"userAgent": 'opsi product updater %s' % __version__,
 		"packageDir": '/var/lib/opsi/products',
 		"configFile": '/etc/opsi/opsi-product-updater.conf',
+		"repositoryConfigDir": '/etc/opsi/product-updater.repos.d',
 		"notification": False,
 		"smtphost": u'localhost',
 		"smtpport": 25,
@@ -1149,11 +1222,8 @@ def main():
 	parser.add_argument('--config', '-c', help="Location of config file",
 						dest="configFile",
 						default='/etc/opsi/opsi-product-updater.conf')
-	parser.add_argument('-i', '--install-all', dest="installAllAvailable",
-						default=False, action='store_true',
-						help="Install all downloadable packages from configured repositories (ignores excludes)")
-	parser.add_argument('-p', '--products', dest="processProductIds", metavar="productIDs", # TODO: change this to let argparse do the collection
-						help="List of productIds that will be processed: opsi-winst,opsi-client-agent")
+	parser.add_argument('-p', dest="processProductIds", metavar="productIDs", # TODO: change this to let argparse do the collection
+					help="List of productIds that will be processed: opsi-winst,opsi-client-agent")
 
 	checksumGroup = parser.add_mutually_exclusive_group()
 	checksumGroup.add_argument('--force-checksum-calculation',
@@ -1163,23 +1233,30 @@ def main():
 		dest='forceChecksumCalculation', action="store_false",
 		help="Use existing checksums from the .md5-file of a package if possible. (Default)")
 
+	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
+	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
+	updateparser = modeparsers.add_parser('update', help='Update existing packages from repositories.')
+	repoparser = modeparsers.add_parser('repository', help='Repository management.')
+	repoparser.add_argument('--list-active', dest="listActiveRepos", action="store_true", help='Lists all active repositories')
+	repoparser.add_argument('--list-products',
+							action="store_true", dest="listAvailableProducts",
+							help='Lists the repositories and the products they provide.')
+
 	args = parser.parse_args()
 
 	logger.setConsoleLevel(args.logLevel)
 	config["configFile"] = args.configFile
-	config["installAllAvailable"] = args.installAllAvailable
+	config["installAllAvailable"] = args.mode == 'install'
 	if args.processProductIds:
-		config["processProductIds"] = args.processProductIds.split(",")
-		logger.debug("Setting -i...")
-		config["installAllAvailable"] = True
+		config["processProductIds"] = set(splitAndStrip(args.processProductIds, ","))
 
 	config["forceChecksumCalculation"] = args.forceChecksumCalculation
 
 	try:
 		config["zsyncCommand"] = System.which("zsync")
-		logger.notice(u"Zsync command found: %s" % config["zsyncCommand"])
+		logger.info(u"Zsync command found: %s" % config["zsyncCommand"])
 	except Exception:
-		logger.info(u"Zsync command not found")
+		logger.warning(u"Zsync command not found")
 
 	pid = os.getpid()
 	running = None
@@ -1196,7 +1273,13 @@ def main():
 	logger.info(u"We are the only {0} running.", os.path.basename(sys.argv[0]))
 
 	with OpsiPackageUpdater(config) as opu:
-		opu.processUpdates()
+		if args.mode in ('install', 'update'):
+			opu.processUpdates()
+		elif args.mode == 'repository':
+			if args.listActiveRepos:
+				opu.listActiveRepos()
+			elif args.listAvailableProducts:
+				opu.listProductsInRepositories()
 
 
 if __name__ == "__main__":

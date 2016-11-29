@@ -1,0 +1,13 @@
+; This repository provides products for deploying and managing Linux
+; clients with opsi.
+
+[repository_uib_linux]
+name = opsi Linux Support
+active = true
+baseUrl = http://download.uib.de
+dirs = opsi4.0/products/opsi-linux
+autoInstall = false
+autoUpdate = true
+autoSetup = false
+; Set Proxy handler like: http://10.10.10.1:8080
+proxy =

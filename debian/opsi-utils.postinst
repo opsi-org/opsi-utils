@@ -6,6 +6,19 @@ case "$1" in
 	configure)
 		chown root:opsiadmin /etc/opsi/opsi-product-updater.conf
 		chmod 660 /etc/opsi/opsi-product-updater.conf
+		chown root:opsiadmin /etc/opsi/product-updater.repos.d
+		chmod 770 /etc/opsi/product-updater.repos.d
+
+		chown root:opsiadmin /etc/opsi/product-updater.repos.d/example.repo.template
+		chmod 660 /etc/opsi/product-updater.repos.d/example.repo.template
+		chown root:opsiadmin /etc/opsi/product-updater.repos.d/master-depot.repo
+		chmod 660 /etc/opsi/product-updater.repos.d/master-depot.repo
+		chown root:opsiadmin /etc/opsi/product-updater.repos.d/uib-linux.repo
+		chmod 660 /etc/opsi/product-updater.repos.d/uib-linux.repo
+		chown root:opsiadmin /etc/opsi/product-updater.repos.d/uib-local_image.repo
+		chmod 660 /etc/opsi/product-updater.repos.d/uib-local_image.repo
+		chown root:opsiadmin /etc/opsi/product-updater.repos.d/uib-windows.repo
+		chmod 660 /etc/opsi/product-updater.repos.d/uib-windows.repo
 
 		# Making logrotate config backwards-compatible
 		LOGROTATE_VERSION="$(dpkg --list | grep logrotate | grep "^ii" | awk '{ print $3 }' | cut -d '-' -f 1)"

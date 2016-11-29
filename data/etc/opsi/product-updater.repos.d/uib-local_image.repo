@@ -1,0 +1,13 @@
+; This repository provides products used for the Local Image extension
+; for opsi.
+
+[repository_uib_local_image]
+name = opsi Local Image Backup extension
+active = false
+baseUrl = http://download.uib.de
+dirs = opsi4.0/products/opsi-local-image
+autoInstall = false
+autoUpdate = true
+autoSetup = false
+; Set Proxy handler like: http://10.10.10.1:8080
+proxy =
