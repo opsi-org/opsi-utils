@@ -535,11 +535,11 @@ class OpsiPackageUpdater(object):
 				downloadablePackages = self.onlyNewestPackages(self.getDownloadablePackages())
 				if self.config["processProductIds"]:
 					# Checking if given productIds are available and process only these products
-					newProductList = []
+					newProductList = set()
 					for product in self.config["processProductIds"]:
 						for pac in downloadablePackages:
 							if product == pac["productId"]:
-								newProductList.append(pac)
+								newProductList.add(pac)
 								break
 						else:
 							raise ValueError(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
@@ -1021,9 +1021,10 @@ class OpsiPackageUpdater(object):
 		return products
 
 	def getDownloadablePackages(self):
-		downloadablePackages = []
+		downloadablePackages = set()
 		for repository in self.config.get("repositories", []):
-			downloadablePackages.extend(self.getDownloadablePackagesFromRepository(repository))
+			for package in self.getDownloadablePackagesFromRepository(repository):
+				downloadablePackages.add(package)
 		return downloadablePackages
 
 	def getDownloadablePackagesFromRepository(self, repository):
