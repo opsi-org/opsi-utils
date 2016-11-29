@@ -1118,15 +1118,16 @@ class OpsiPackageUpdater(object):
 					for link in htmlParser.getLinks():
 						isMd5 = link.endswith('.opsi.md5')
 						isZsync = link.endswith('.opsi.zsync')
-						try:
-							filename = None
-							if isMd5:
-								filename = link[:-4]
-							elif isZsync:
-								filename = link[:-6]
-							else:
-								continue
 
+						filename = None
+						if isMd5:
+							filename = link[:-4]
+						elif isZsync:
+							filename = link[:-6]
+						else:
+							continue
+
+						try:
 							for i, package in enumerate(packages):
 								if package.get('filename') == filename:
 									if isMd5:
