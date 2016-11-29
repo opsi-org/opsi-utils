@@ -485,6 +485,8 @@ class OpsiPackageUpdater(object):
 				repository.includes = []
 				for include in splitAndStrip(value, ','):
 					repository.includes.append(re.compile(include))
+			elif option.lower() == 'name':
+				repository.name = forceUnicode(value)
 
 		if self.config.get('installAllAvailable'):
 			repository.autoInstall = True
