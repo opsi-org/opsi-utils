@@ -114,7 +114,8 @@ def splitAndStrip(string, sep):
 
 
 class ProductRepositoryInfo(object):
-	def __init__(self, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[]):
+	def __init__(self, name, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[]):
+		self.name = forceUnicode(name)
 		self.baseUrl = forceUnicode(baseUrl)
 		self.dirs = forceUnicodeList(dirs)
 		self.excludes = excludes
@@ -429,7 +430,9 @@ class OpsiPackageUpdater(object):
 				raise ConfigurationError(u"Depot '%s' not found in backend" % opsiDepotId)
 			if not depots[0].repositoryRemoteUrl:
 				raise ConfigurationError(u"Repository remote url for depot '%s' not found in backend" % opsiDepotId)
+
 			repository = ProductRepositoryInfo(
+				name=opsiDepotId,
 				baseUrl=depots[0].repositoryRemoteUrl,
 				dirs=['/'],
 				username=self.depotId,
@@ -440,7 +443,12 @@ class OpsiPackageUpdater(object):
 		elif baseUrl:
 			if proxy:
 				logger.notice(u"Using Proxy: %s" % proxy)
-			repository = ProductRepositoryInfo(baseUrl=baseUrl, proxy=proxy)
+			repoName = section.replace('repository_', '', 1)
+			repository = ProductRepositoryInfo(
+				name=repoName,
+				baseUrl=baseUrl,
+				proxy=proxy
+			)
 		else:
 			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set" % section)
 
