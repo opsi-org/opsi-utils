@@ -2,6 +2,7 @@
 ; Windows clients with opsi.
 
 [repository_uib_windows]
+name = opsi Windows Support
 active = true
 baseUrl = http://download.uib.de
 dirs = opsi4.0/products/localboot, opsi4.0/products/netboot
