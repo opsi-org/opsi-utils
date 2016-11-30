@@ -1214,7 +1214,10 @@ def main():
 		"forceChecksumCalculation": False,
 	}
 
-	parser = argparse.ArgumentParser(description="Updater for local opsi products.")
+	parser = argparse.ArgumentParser(
+		description="Updater for local opsi products.",
+		epilog="Modes have their own options that can be viewed with MODE -h."
+	)
 	parser.add_argument('--version', '-V', action='version', version=__version__)
 	parser.add_argument('--verbose', '-v',
 						dest="logLevel", default=LOG_ERROR, action="count",
