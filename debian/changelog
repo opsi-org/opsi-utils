@@ -6,7 +6,7 @@ opsi-utils (4.1.1.1-1) UNRELEASED; urgency=medium
   * opsi-product-updater will load additional repository configs from
     /etc/opsi/product-updater.repos.d.
   * opsi-product-updater learned to list repositories and their products
-    via "repository --list-active" and "repository --list-products".
+    via "repo --list-active" and "repo --list-products".
   * opsi-backup uses the new methods introduced in python-opsi 4.1.
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 29 Nov 2016 13:57:13 +0100

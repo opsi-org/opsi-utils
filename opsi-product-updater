@@ -1239,7 +1239,7 @@ def main():
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
 	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
 	updateparser = modeparsers.add_parser('update', help='Update existing packages from repositories.')
-	repoparser = modeparsers.add_parser('repository', help='Repository management.')
+	repoparser = modeparsers.add_parser('repo', help='Repository management.')
 	repoparser.add_argument('--list-active', dest="listActiveRepos", action="store_true", help='Lists all active repositories')
 	repoparser.add_argument('--list-products',
 							action="store_true", dest="listAvailableProducts",
