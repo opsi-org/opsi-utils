@@ -568,6 +568,9 @@ class OpsiPackageUpdater(object):
 								newProductList.append(pac)
 								break
 						else:
+							logger.error("Product '{productId}' not found in repository!", productId=product)
+							possibleProductIDs = sorted(set(pac["productId"] for pac in downloadablePackages))
+							logger.notice("Possible products are: {0}", ', '.join(possibleProductIDs))
 							raise ValueError(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
 
 					if newProductList:
