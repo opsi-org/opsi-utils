@@ -1225,8 +1225,6 @@ def main():
 	parser.add_argument('--config', '-c', help="Location of config file",
 						dest="configFile",
 						default='/etc/opsi/opsi-product-updater.conf')
-	parser.add_argument('-p', dest="processProductIds", metavar="productIDs", # TODO: change this to let argparse do the collection
-					help="List of productIds that will be processed: opsi-winst,opsi-client-agent")
 
 	checksumGroup = parser.add_mutually_exclusive_group()
 	checksumGroup.add_argument('--force-checksum-calculation',
@@ -1238,7 +1236,15 @@ def main():
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
 	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
+	installparser.add_argument('--product-ids', '-p', nargs='+',
+								dest="processProductIds", metavar="productID",
+								help="ProductIds that will be processed.")
+
 	updateparser = modeparsers.add_parser('update', help='Update existing packages from repositories.')
+	updateparser.add_argument('--product-ids', '-p', nargs='+',
+								dest="processProductIds", metavar="productID",
+								help="ProductIds that will be processed.")
+
 	repoparser = modeparsers.add_parser('repo', help='Repository management.')
 	repoparser.add_argument('--list-active', dest="listActiveRepos", action="store_true", help='Lists all active repositories')
 	repoparser.add_argument('--list-products',
@@ -1251,7 +1257,7 @@ def main():
 	config["configFile"] = args.configFile
 	config["installAllAvailable"] = args.mode == 'install'
 	if args.processProductIds:
-		config["processProductIds"] = set(splitAndStrip(args.processProductIds, ","))
+		config["processProductIds"] = set(args.processProductIds)
 
 	config["forceChecksumCalculation"] = args.forceChecksumCalculation
 
