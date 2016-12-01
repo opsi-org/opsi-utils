@@ -271,6 +271,15 @@ class OpsiPackageUpdater(object):
 		except Exception:
 			pass
 
+	def getActiveRepositories(self):
+		name = self.config.get("repositoryName", None)
+
+		for repo in self.config.get('repositories', []):
+			if name and repo.name != name:
+				continue
+
+			yield repo
+
 	def readConfigFile(self):
 		try:
 			logger.info(u"Reading config file '%s'" % self.config["configFile"])
@@ -518,11 +527,11 @@ class OpsiPackageUpdater(object):
 
 	def listActiveRepos(self):
 		logger.notice("Active repositories:")
-		for repository in self.config['repositories']:
+		for repository in self.getActiveRepositories():
 			logger.notice("{name}: {url}", name=repository.name, url=repository.baseUrl)
 
 	def listProductsInRepositories(self):
-		for repository in self.config["repositories"]:
+		for repository in self.getActiveRepositories():
 			logger.notice("Packages in {name}:", name=repository.name)
 			packages = sorted(
 				self.getDownloadablePackagesFromRepository(repository),
@@ -1056,7 +1065,7 @@ class OpsiPackageUpdater(object):
 
 	def getDownloadablePackages(self):
 		downloadablePackages = []
-		for repository in self.config.get("repositories", []):
+		for repository in self.getActiveRepositories():
 			logger.notice(u"Getting package infos from repository '%s'" % repository.name)
 			for package in self.getDownloadablePackagesFromRepository(repository):
 				downloadablePackages.append(package)
@@ -1208,6 +1217,7 @@ def main():
 		"installationWindowEndTime": None,
 		"installationWindowExceptions": None,
 		"repositories": [],
+		"repositoryName": None,
 		"installAllAvailable": False,
 		"zsyncCommand": None,
 		"processProductIds": None,
@@ -1239,6 +1249,9 @@ def main():
 		dest='forceChecksumCalculation', action="store_false",
 		help="Use existing checksums from the .md5-file of a package if possible. (Default)")
 
+	parser.add_argument('--repo', metavar="repository_name", dest="repository",
+						default=None, help="Limit the actions the given repository.")
+
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
 	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
 	installparser.add_argument('--product-ids', '-p', nargs='+',
@@ -1268,6 +1281,7 @@ def main():
 		config["processProductIds"] = set(args.processProductIds)
 
 	config["forceChecksumCalculation"] = args.forceChecksumCalculation
+	config["repositoryName"] = args.repository
 
 	try:
 		config["zsyncCommand"] = System.which("zsync")
