@@ -1251,6 +1251,9 @@ def main():
 							action="store_true", dest="listAvailableProducts",
 							help='Lists the repositories and the products they provide.')
 
+	# Setting a default to not stumble over possibly not present args.
+	repoparser.set_defaults(processProductIds=[])
+
 	args = parser.parse_args()
 
 	logger.setConsoleLevel(args.logLevel)
