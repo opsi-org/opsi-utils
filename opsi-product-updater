@@ -1278,7 +1278,7 @@ def main():
 	with OpsiPackageUpdater(config) as opu:
 		if args.mode in ('install', 'update'):
 			opu.processUpdates()
-		elif args.mode == 'repository':
+		elif args.mode == 'repo':
 			if args.listActiveRepos:
 				opu.listActiveRepos()
 			elif args.listAvailableProducts:
