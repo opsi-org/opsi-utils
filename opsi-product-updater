@@ -1219,12 +1219,17 @@ def main():
 		epilog="Modes have their own options that can be viewed with MODE -h."
 	)
 	parser.add_argument('--version', '-V', action='version', version=__version__)
-	parser.add_argument('--verbose', '-v',
-						dest="logLevel", default=LOG_ERROR, action="count",
-						help="increase verbosity (can be used multiple times)")
 	parser.add_argument('--config', '-c', help="Location of config file",
 						dest="configFile",
 						default='/etc/opsi/opsi-product-updater.conf')
+
+	logGroup = parser.add_mutually_exclusive_group()
+	logGroup.add_argument('--verbose', '-v',
+		dest="logLevel", default=LOG_ERROR, action="count",
+		help="increase verbosity (can be used multiple times)")
+	logGroup.add_argument('--log-level', '-l',
+		dest="logLevel", choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		help="Set the desired loglevel.")
 
 	checksumGroup = parser.add_mutually_exclusive_group()
 	checksumGroup.add_argument('--force-checksum-calculation',
