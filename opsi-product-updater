@@ -1057,7 +1057,7 @@ class OpsiPackageUpdater(object):
 	def getDownloadablePackages(self):
 		downloadablePackages = []
 		for repository in self.config.get("repositories", []):
-			logger.notice(u"Getting package infos from repository '%s'" % repository.baseUrl)
+			logger.notice(u"Getting package infos from repository '%s'" % repository.name)
 			for package in self.getDownloadablePackagesFromRepository(repository):
 				downloadablePackages.append(package)
 		return downloadablePackages
