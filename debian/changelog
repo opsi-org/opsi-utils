@@ -10,6 +10,10 @@ opsi-utils (4.1.1.1-1) UNRELEASED; urgency=medium
   * opsi-backup uses the new methods introduced in python-opsi 4.1.
   * opsi-product-updater: the -p option now takes a list of items separated
     by space and not by comma (old behaviour).
+  * opsi-product-updater: Repositories now can have a "name" set in
+    configuration files.
+  * opsi-product-updater: limit actions to a repository by specifying
+    "--repo name_of_repo".
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 29 Nov 2016 13:57:13 +0100
 
