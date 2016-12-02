@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.1-2) experimental; urgency=medium
+
+  * RPM: create product-updater.repos.d in install.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 02 Dec 2016 11:34:14 +0100
+
 opsi-utils (4.1.1.1-1) experimental; urgency=medium
 
   * opsi-product-updater: changed parsing of commandline options.
