@@ -1,4 +1,4 @@
-opsi-utils (4.1.1.1-1) UNRELEASED; urgency=medium
+opsi-utils (4.1.1.1-1) experimental; urgency=medium
 
   * opsi-product-updater: changed parsing of commandline options.
     "-i" has been replaced by "install". For the default behaviour please
