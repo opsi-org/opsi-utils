@@ -59,12 +59,21 @@ This package contains the opsi util collection.
 
 # ===[ install ]====================================
 %install
+mkdir -p $RPM_BUILD_ROOT/usr/share/locale/da/LC_MESSAGES
+msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/da/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_da.po
+chmod 644 $RPM_BUILD_ROOT/usr/share/locale/da/LC_MESSAGES/opsi-utils.mo
 mkdir -p $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_de.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
+mkdir -p $RPM_BUILD_ROOT/usr/share/locale/es/LC_MESSAGES
+msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/es/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_es.po
+chmod 644 $RPM_BUILD_ROOT/usr/share/locale/es/LC_MESSAGES/opsi-utils.mo
 mkdir -p $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
+mkdir -p $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES
+msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_ru.po
+chmod 644 $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo
 
 mkdir -p $RPM_BUILD_ROOT/usr/share/man/man1/
 install -m 644 doc/compiled/opsi-admin.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
@@ -180,8 +189,11 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/opsi-product-updater
 /usr/bin/opsi-backup
 
+%attr(644,root,root) /usr/share/locale/da/LC_MESSAGES/opsi-utils.mo
 %attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
+%attr(644,root,root) /usr/share/locale/es/LC_MESSAGES/opsi-utils.mo
 %attr(644,root,root) /usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
+%attr(644,root,root) /usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo
 
 # directories
 #%dir /usr/share/locale/de/LC_MESSAGES

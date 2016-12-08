@@ -1,3 +1,10 @@
+opsi-utils (4.0.7.7-3) stable; urgency=medium
+
+  * Updated translations.
+  * Added new translations: ES, RU
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 08 Dec 2016 14:36:00 +0100
+
 opsi-utils (4.0.7.7-2) testing; urgency=medium
 
   * Updated translations for: DE, FR
