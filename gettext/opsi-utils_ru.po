@@ -1,0 +1,809 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# 
+# Translators:
+# Alexander Savchenko, 2014
+# Вячеслав Сухарников, 2016
+msgid ""
+msgstr ""
+"Project-Id-Version: opsi.org\n"
+"POT-Creation-Date: 2016-10-11 16:40+CEST\n"
+"PO-Revision-Date: 2016-10-11 14:42+0000\n"
+"Last-Translator: Niko Wenselowski\n"
+"Language-Team: Russian (http://www.transifex.com/opsi-org/opsiorg/language/ru/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: ../opsi-admin:135
+msgid "Usage: %s [options] [command] [args...]"
+msgstr "Применение: %s [опции] [команда] [аргументы...]"
+
+#: ../opsi-admin:136
+msgid "Options:"
+msgstr "Опции:"
+
+#: ../opsi-admin:137
+msgid "Display this text"
+msgstr "Отобразить этот текст"
+
+#: ../opsi-admin:138
+msgid "Show version and exit"
+msgstr "Показать версию и выйти"
+
+#: ../opsi-admin:139
+msgid "Username (default: current user)"
+msgstr "Имя пользователя (по умолчанию: текущий пользователь)"
+
+#: ../opsi-admin:140
+msgid "Password (default: prompt for password)"
+msgstr "Пароль (по умолчанию: запрос пароля)"
+
+#: ../opsi-admin:141
+msgid "URL of opsiconfd (default: https://localhost:4447/rpc)"
+msgstr "URL для доступа к opsiconfd (по умолчанию: https://localhost:4447/rpc)"
+
+#: ../opsi-admin:142
+msgid "Do not use opsiconfd"
+msgstr "Не использовать opsiconfd"
+
+#: ../opsi-admin:143
+msgid "Do not use depotserver backend"
+msgstr "Не использовать depotserver backend"
+
+#: ../opsi-admin:144
+msgid "Set log level (default: 3)"
+msgstr "Установить Log level (по умолчанию: 3)"
+
+#: ../opsi-admin:145
+msgid "0=nothing, 1=essential, 2=critical, 3=error, 4=warning"
+msgstr "0=nothing, 1=essential, 2=critical, 3=error, 4=warning"
+
+#: ../opsi-admin:146
+msgid "5=notice, 6=info, 7=debug, 8=debug2, 9=confidential"
+msgstr "5=notice, 6=info, 7=debug, 8=debug2, 9=confidential"
+
+#: ../opsi-admin:147
+msgid "Path to log file"
+msgstr "Расположение лог-файла"
+
+#: ../opsi-admin:148
+msgid "Start in interactive mode"
+msgstr "Запуск в интерактивном режиме"
+
+#: ../opsi-admin:149
+msgid "Colorize output"
+msgstr "Раскрасить вывод"
+
+#: ../opsi-admin:150
+msgid "Simple output (only for scalars, lists)"
+msgstr "Простой вывод (только для скаляров и списков)"
+
+#: ../opsi-admin:151
+msgid "Shell output"
+msgstr "Консольный вывод"
+
+#: ../opsi-admin:152
+msgid "Raw output"
+msgstr "Raw-вывод"
+
+#: ../opsi-admin:153
+msgid "Always exit with exit code 0."
+msgstr "Всегда завершать с exit code 0."
+
+#: ../opsi-admin:514
+msgid "Delete log-file '%s'?"
+msgstr "Удалить log-файл '%s'?"
+
+#: ../opsi-admin:757
+msgid "Invalid command: '%s'"
+msgstr "Неверная команда: '%s'"
+
+#: ../opsi-admin:783
+msgid "Please type password:"
+msgstr "Пожалуйста, введите пароль:"
+
+#: ../opsi-admin:789
+msgid "Please retype password:"
+msgstr "Пожалуйста, повторите пароль:"
+
+#: ../opsi-admin:796
+msgid "Supplied passwords do not match"
+msgstr "Введенные пароли не совпадают"
+
+#: ../opsi-admin:1081
+msgid "Execute a config-interface-method"
+msgstr "Выполнить config-interface-method"
+
+#: ../opsi-admin:1084
+msgid "Methods are:"
+msgstr "Методы:"
+
+#: ../opsi-admin:1115
+msgid "No method defined"
+msgstr "Метод не определён"
+
+#: ../opsi-admin:1181
+msgid "Took %0.3f seconds to process: %s(%s)"
+msgstr "Потребовалось %0.3f секунд для выполнения: %s(%s)"
+
+#: ../opsi-admin:1289
+msgid "Settings"
+msgstr "Настройки"
+
+#: ../opsi-admin:1320
+msgid "Missing option"
+msgstr "Отсутствует опция"
+
+#: ../opsi-admin:1322
+msgid "Unknown option: %s"
+msgstr "Неизвестная опция: %s"
+
+#: ../opsi-admin:1324
+msgid "Missing value"
+msgstr "Отсутствует значение"
+
+#: ../opsi-admin:1332
+msgid "Bad value: %s"
+msgstr "Неверное значение: %s"
+
+#: ../opsi-admin:1344
+msgid "No log-file set!"
+msgstr "Не указан лог-файл!"
+
+#: ../opsi-admin:1353
+msgid "Show this text"
+msgstr "Показать этот текст"
+
+#: ../opsi-admin:1356
+msgid "Commands are:"
+msgstr "Команды:"
+
+#: ../opsi-admin:1367
+msgid "Exit opsi-admin"
+msgstr "Выйти из opsi-admin"
+
+#: ../opsi-admin:1383
+msgid "show / clear command history"
+msgstr "Показать / очистить историю команд"
+
+#: ../opsi-admin:1404 ../opsi-admin:1439
+msgid "Unknown command: %s"
+msgstr "Неизвестная команда: %s"
+
+#: ../opsi-admin:1420
+msgid "show log"
+msgstr "Показать лог"
+
+#: ../opsi-admin:1443
+msgid "File logging is not activated"
+msgstr "Логирование в файл отключено"
+
+#: ../opsi-admin:1467
+msgid "execute a task"
+msgstr "Выполнить задание"
+
+#: ../opsi-admin:1497
+msgid "Unknown task: %s"
+msgstr "Неизвестное задание: %s"
+
+#: ../opsi-admin:1501 ../opsi-admin:1513 ../opsi-admin:1525 ../opsi-admin:1537
+#: ../opsi-admin:1551 ../opsi-admin:1567 ../opsi-admin:1581
+msgid "Missing product-id"
+msgstr "Отсутствует ID продукта"
+
+#: ../opsi-admin:1549 ../opsi-admin:1565 ../opsi-admin:1579
+msgid "Missing action request"
+msgstr "Отсутствует требуемое действие"
+
+#: ../opsi-admin:1569
+msgid "Missing client-id"
+msgstr "Отсутствует client-id"
+
+#: ../opsi-admin:1596
+msgid "Missing argument"
+msgstr "Отсутствует аргумент"
+
+#: ../opsi-admin:1604
+msgid "You have to be root to change pcpatch password!"
+msgstr "Требуются права root, чтобы сменить пароль для pcpatch!"
+
+#: ../opsi-admin:1608
+msgid "Failed to get my own fully qualified domainname"
+msgstr "Не удалось определить полное имя сервера"
+
+#: ../opsi-makeproductfile:227
+msgid "Locking package"
+msgstr "Блокировка пакета"
+
+#: ../opsi-makeproductfile:249
+msgid "Package info"
+msgstr "Информация о пакете"
+
+#: ../opsi-makeproductfile:261
+msgid "Product info"
+msgstr "Информация о продукте"
+
+#: ../opsi-makeproductfile:283
+msgid "Product scripts"
+msgstr "Скрипты продукта"
+
+#: ../opsi-makeproductfile:311
+msgid "Package file '%s' already exists."
+msgstr "Файл пакета '%s' уже существует."
+
+#: ../opsi-makeproductfile:312
+msgid "Press <O> to overwrite, <C> to abort or <N> to specify a new version:"
+msgstr "Нажмите <O> для перезаписи, <C> , чтобы прервать, или <N> для указания новой версии:"
+
+#: ../opsi-makeproductfile:338
+msgid "Aborted"
+msgstr "Прервано"
+
+#: ../opsi-makeproductfile:348
+msgid ""
+"Please specify new product version, press <ENTER> to keep current version "
+"(%s):"
+msgstr "Пожалуйста, укажите новую версию продукта, нажмите <ENTER> , чтобы оставить текущую версию (%s):"
+
+#: ../opsi-makeproductfile:366
+msgid "Bad product version: %s"
+msgstr "Неверная версия продукта: %s"
+
+#: ../opsi-makeproductfile:369
+msgid ""
+"Please specify new package version, press <ENTER> to keep current version "
+"(%s):"
+msgstr "Пожалуйста, укажите новую версию пакета, нажмите <ENTER> , чтобы оставить текущую версию (%s):"
+
+#: ../opsi-makeproductfile:387
+msgid "Bad package version: %s"
+msgstr "Неверная версия пакета: %s"
+
+#: ../opsi-makeproductfile:402
+msgid "Creating package file '%s'"
+msgstr "Создание файла пакета '%s'"
+
+#: ../opsi-makeproductfile:411
+msgid "Creating md5sum file '%s'"
+msgstr "Создание md5sum-файла '%s'"
+
+#: ../opsi-makeproductfile:420
+msgid "Creating zsync file '%s'"
+msgstr "Создание zsync-файла '%s'"
+
+#: ../opsi-makeproductfile:428
+msgid "Cleaning up"
+msgstr "Очистка"
+
+#: ../opsi-makeproductfile:431
+msgid "Unlocking package"
+msgstr "Разблокировка пакета"
+
+#: ../opsi-newprod:78
+msgid "Copies the contents of DIRECTORY to the destination directory."
+msgstr "Копирование содержимого DIRECTORY в назначенную папку."
+
+#: ../opsi-newprod:80
+msgid ""
+"The destination of the new product source. If no destination directory is "
+"supplied, the current directory is used."
+msgstr "Место назначения исходников нового продукта. Если не указан целевой каталог, то используется текущий."
+
+#: ../opsi-newprod:99
+msgid "Overwrite?"
+msgstr "Перезаписать?"
+
+#: ../opsi-newprod:100
+msgid "Directory %s already exists, overwrite?"
+msgstr "Директория %s уже существует, перезаписать?"
+
+#: ../opsi-newprod:101 ../opsi-newprod:351 ../opsi-newprod:437
+msgid "Yes"
+msgstr "Да"
+
+#: ../opsi-newprod:102 ../opsi-newprod:352 ../opsi-newprod:438
+msgid "No"
+msgstr "Нет"
+
+#: ../opsi-newprod:106 ../opsi-newprod:154 ../opsi-newprod:193
+#: ../opsi-newprod:279 ../opsi-newprod:574
+msgid "Cancelled"
+msgstr "Отменено"
+
+#: ../opsi-newprod:122
+msgid "Done"
+msgstr "Готово"
+
+#: ../opsi-newprod:122
+msgid "Package source directory '%s' created"
+msgstr "Исходный каталог пакета '%s' создан"
+
+#: ../opsi-newprod:124
+msgid "Product creation failed. Removing directory {0}"
+msgstr "Не удалось создать продукт. Удаление директории {0}"
+
+#: ../opsi-newprod:127
+msgid "Product creation failed"
+msgstr "Не удалось создать продукт"
+
+#: ../opsi-newprod:147
+msgid "Please select product type"
+msgstr "Пожалуйста, выберите тип продукта"
+
+#: ../opsi-newprod:164
+msgid ""
+"Product id:       A unique identifier for the product.\n"
+"Product name:     The full name of the product.\n"
+"Description:      A description (use \\n for line breaks).\n"
+"Advice:           An additional important advice.\n"
+"Product version:  Version defined by software producer.\n"
+"Package version:  Opsi package version of the product.\n"
+"License required: Is a license required (0|1)?\n"
+"Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral)."
+msgstr "ID продукта: уникальный идентификатор продукта.\nНазвание продукта: полное название продукта.\nОписание: описание (используйте \\n для перевода строки).\nПримечание: Дополнительное важное примечание.\nВерсия продукта: Версия, определенная производителем ПО.\nВерсия пакета: Версия OPSI-пакета продукта.\nТребуется лицензия: Требуется лицензия (0|1)?\nПриоритет: Класс приоритета установки продукта (значение между -100 и 100, 0 = нейтральный)."
+
+#: ../opsi-newprod:174
+msgid "Product id"
+msgstr "ID продукта"
+
+#: ../opsi-newprod:175
+msgid "Product name"
+msgstr "Название продукта"
+
+#: ../opsi-newprod:176
+msgid "Description"
+msgstr "Описание"
+
+#: ../opsi-newprod:177
+msgid "Advice"
+msgstr "Примечание"
+
+#: ../opsi-newprod:178
+msgid "Product version"
+msgstr "Версия продукта"
+
+#: ../opsi-newprod:179
+msgid "Package version"
+msgstr "Версия пакета"
+
+#: ../opsi-newprod:180
+msgid "License required"
+msgstr "Требуется лицензия"
+
+#: ../opsi-newprod:181
+msgid "Priority"
+msgstr "Приоритет"
+
+#: ../opsi-newprod:184 ../opsi-newprod:268
+msgid "PXE config template"
+msgstr "Шаблон PXE-конфига"
+
+#: ../opsi-newprod:187
+msgid "product information"
+msgstr "Информация о продукте"
+
+#: ../opsi-newprod:200
+msgid "You have to specify a valid product id."
+msgstr "Вы должны указать действительный ID продукта."
+
+#: ../opsi-newprod:207
+msgid "You have to specify a valid product name."
+msgstr "Вы должны указать действительное название продукта."
+
+#: ../opsi-newprod:212
+msgid "Description is not valid."
+msgstr "Недействительное описание."
+
+#: ../opsi-newprod:217
+msgid "Advice is not valid."
+msgstr "Недействительное примечание."
+
+#: ../opsi-newprod:224
+msgid "You have to specify a valid product version."
+msgstr "Вы должны указать действительную версию продукта."
+
+#: ../opsi-newprod:231
+msgid "You have to specify a valid package version."
+msgstr "Вы должны указать действительную версию пакета."
+
+#: ../opsi-newprod:236
+msgid "License required must be a boolean value."
+msgstr "Требуется лицензия должно иметь значение типа boolean."
+
+#: ../opsi-newprod:241
+msgid "Priority has to be an number between -100 and 100"
+msgstr "Приоритет должен быть числом между -100 и 100"
+
+#: ../opsi-newprod:244 ../opsi-newprod:326 ../opsi-newprod:419
+#: ../opsi-newprod:510 ../opsi-newprod:546 ../opsi-newprod:594
+msgid "Bad value"
+msgstr "Неверное значение"
+
+#: ../opsi-newprod:248
+msgid ""
+"Setup script:        Relative path to script for action \"setup\".\n"
+"Uninstall script:    Relative path to script for action \"uninstall\".\n"
+"Update script:       Relative path to script for action \"update\".\n"
+"Always script:       Relative path to script for action \"always\".\n"
+"Once script:         Relative path to script for action \"once\".\n"
+"Custom script:       Relative path to script for action \"custom\".\n"
+"User login script:   Relative path to script for user login.\n"
+"PXE config template: path to a custom pxelinux config template."
+msgstr "Setup-скрипт: относительный путь к скрипту для действия \"setup\".\nUninstall-скрпит: относительный путь к скрипту для действия \"uninstall\".\nUpdate-скрипт: относительный путь к скрипту для действия \"update\".\nAlways-скрипт: относительный путь к скрипту для действия \"always\".\nOnce-скрпит: относительный пусть к скрипту для действия \"once\".\nCustom-скрипт: относительный путь к скрипту для действия \"custom\".\nUser login скрипт: относительный путь к скрипту входа пользователя.\nШаблон PXE-конфига: путь к шаблону  пользовательской конфигурации pxelinux."
+
+#: ../opsi-newprod:259
+msgid "Setup script"
+msgstr "Setup-скрипт"
+
+#: ../opsi-newprod:260
+msgid "Uninstall script"
+msgstr "Uninstall-скрипт"
+
+#: ../opsi-newprod:261
+msgid "Update script"
+msgstr "Update-скрипт"
+
+#: ../opsi-newprod:262
+msgid "Always script"
+msgstr "Always-скрипт"
+
+#: ../opsi-newprod:263
+msgid "Once script"
+msgstr "Once-скрипт"
+
+#: ../opsi-newprod:264
+msgid "Custom script"
+msgstr "Custom-скрипт"
+
+#: ../opsi-newprod:270
+msgid "User login script"
+msgstr "User login скрипт"
+
+#: ../opsi-newprod:273
+msgid "product scripts"
+msgstr "Скрипты продукта"
+
+#: ../opsi-newprod:286
+msgid "Setup script is not valid."
+msgstr "Недействительный Setup-скрипт."
+
+#: ../opsi-newprod:291
+msgid "Uninstall script is not valid."
+msgstr "Недействительный Uninstall-скрипт."
+
+#: ../opsi-newprod:296
+msgid "Update script is not valid."
+msgstr "Недействительный Update-скрипт."
+
+#: ../opsi-newprod:301
+msgid "Always script is not valid."
+msgstr "Недействительный Always-скрипт."
+
+#: ../opsi-newprod:306
+msgid "Once script is not valid."
+msgstr "Недействительный Once-скрипт."
+
+#: ../opsi-newprod:311
+msgid "Custom script is not valid."
+msgstr "Недействительный Custom-скрипт."
+
+#: ../opsi-newprod:317
+msgid "PXE config template is not valid."
+msgstr "Недействительный шаблон PXE-конфига."
+
+#: ../opsi-newprod:323
+msgid "User login script is not valid."
+msgstr "Недействительный User login скрипт."
+
+#: ../opsi-newprod:336
+msgid ""
+"You have to specify a required product id.\n"
+"You have to specify either a required installation status or a required action.\n"
+"The requirement type can be used to specify the position of a requirement. This is optional.\n"
+"Possible actions are: %s\n"
+"Possible installation status are: %s\n"
+"Possible requirement types are: %s"
+msgstr "Вы должны указать требуемый ID продукта.\nВы должны указать требуемый инсталляционный статус или требуемое действие.\nТип зависимости опционален.\nВозможные действия:\n   %s\nВозможные инсталляционные статусы:\n   %s\nВозможные типы зависимости:\n   %s"
+
+#: ../opsi-newprod:349
+msgid "Create product dependency?"
+msgstr "Создать зависимость продукта?"
+
+#: ../opsi-newprod:350
+msgid "Do you want to create a product dependency?"
+msgstr "Хотите создать зависимость продукта?"
+
+#: ../opsi-newprod:367
+msgid "Dependency for action"
+msgstr "Зависимость для действия"
+
+#: ../opsi-newprod:368
+msgid "Required product id"
+msgstr "Требуемый ID продукта"
+
+#: ../opsi-newprod:369
+msgid "Required action"
+msgstr "Требуемое действие"
+
+#: ../opsi-newprod:370
+msgid "Required installation status"
+msgstr "Требуемый инсталляционный статус"
+
+#: ../opsi-newprod:371
+msgid "Requirement type"
+msgstr "Тип зависиммости"
+
+#: ../opsi-newprod:375
+msgid "Create dependency for product %s"
+msgstr "Создать зависимость продукта %s"
+
+#: ../opsi-newprod:388
+msgid "You have to specify a valid product action."
+msgstr "Вы должны указать допустимое действие продукта."
+
+#: ../opsi-newprod:394
+msgid "You have to specify a valid required product id."
+msgstr "Вы должны указать действительный ID требуемого продукта."
+
+#: ../opsi-newprod:401
+msgid "Required action is not valid."
+msgstr "Недействительное требуемое действие."
+
+#: ../opsi-newprod:407
+msgid "Required installation status is not valid."
+msgstr "Недействительный требуемый инсталляционный статус."
+
+#: ../opsi-newprod:410
+msgid ""
+"Please specify either a required installation status or a required action."
+msgstr "Пожалуйста укажите какой-либо требуемый инсталляционный статус или требуемое действие."
+
+#: ../opsi-newprod:416
+msgid "Requirement type is not valid."
+msgstr "Недействительный тип зависимости."
+
+#: ../opsi-newprod:430
+msgid ""
+"Property name: Name of the property.\n"
+"Property description: Usage description.\n"
+"Possible values: Comma separated list of possible values for the property. If no possible values are given any values are allowed.\n"
+"Editable: Is it allowed to specify a value which is not in the list of possible values?"
+msgstr "Название свойства:  название свойства.\nОписание свойства: описание использования.\nВозможные значения: список возможных значений свойства, разделитель списка - запятая.\n                      Если никаких возможных значений не указано, то можно использовать любые значения.\nРедактируемое: Разрешено ли указывать значение не из списка возможных значений?"
+
+#: ../opsi-newprod:435
+msgid "Create product property?"
+msgstr "Создать свойство продукта?"
+
+#: ../opsi-newprod:436
+msgid "Do you want to create a product property?"
+msgstr "Хотите создать свойство продукта?"
+
+#: ../opsi-newprod:448
+msgid "Please select property type"
+msgstr "Пожалуйста, выберите тип свойства"
+
+#: ../opsi-newprod:465
+msgid "Property name (identifier)"
+msgstr "Название свойства (идентификатор)"
+
+#: ../opsi-newprod:466
+msgid "Property description"
+msgstr "Описание свойства"
+
+#: ../opsi-newprod:469
+msgid "Possible values"
+msgstr "Возможные значения"
+
+#: ../opsi-newprod:470
+msgid "Editable"
+msgstr "Редактируемое"
+
+#: ../opsi-newprod:473
+msgid "Create property for product %s"
+msgstr "Создать свойство для продукта %s"
+
+#: ../opsi-newprod:486
+msgid "Please specify a valid identifier"
+msgstr "Пожалуйста, укажите действительный идентификатор"
+
+#: ../opsi-newprod:492
+msgid "Please specify a valid description"
+msgstr "Пожалуйста, укажите действительное описание"
+
+#: ../opsi-newprod:506
+msgid "Please specify valid possible values"
+msgstr "Пожалуйста, укажите действительные возможные значения"
+
+#: ../opsi-newprod:524
+msgid "Please select a default value"
+msgstr "Пожалуйста, выберите значение по умолчанию"
+
+#: ../opsi-newprod:534
+msgid "Please set a default value"
+msgstr "Пожалуйста, установите значение по умолчанию"
+
+#: ../opsi-newprod:543
+msgid "Please specify valid default values: %s"
+msgstr "Пожалуйста, укажите действительные значения по умолчанию: %s"
+
+#: ../opsi-newprod:558
+msgid "Maintainer of this opsi package."
+msgstr "Сопровождающий этого OPSI-пакета."
+
+#: ../opsi-newprod:561
+msgid "Maintainer name"
+msgstr "Имя сопровождающего"
+
+#: ../opsi-newprod:562
+msgid "Maintainer e-mail"
+msgstr "E-mail сопровождающего"
+
+#: ../opsi-newprod:566
+msgid "Maintainer info"
+msgstr "Информация о сопровождающем"
+
+#: ../opsi-newprod:583
+msgid "Please enter a valid maintainer name."
+msgstr "Пожалуйста, введите действительное имя сопровождающего."
+
+#: ../opsi-newprod:591
+msgid "Please enter a valid e-mail address."
+msgstr "Пожалуйста, введите действительный e-mail сопровождающего."
+
+#: ../opsi-package-manager:418
+msgid "Log messages"
+msgstr "Журнал сообщений"
+
+#: ../opsi-package-manager:745
+msgid "%d/%d transfers running"
+msgstr "%d/%d выполняется передача"
+
+#: ../opsi-package-manager:748
+msgid "%d transfers running"
+msgstr "%d выполняется передача"
+
+#: ../opsi-package-manager:773
+msgid "Opening package file %s"
+msgstr "Открытие файла пакета '%s'"
+
+#: ../opsi-package-manager:793
+msgid "Waiting for task queues to finish up"
+msgstr "Ожидание завершения очереди задач"
+
+#: ../opsi-package-manager:800
+msgid "%d/%d task queues running"
+msgstr "%d/%d выполнение очереди задач"
+
+#: ../opsi-package-manager:815
+msgid "Setting action setup for product %s where installed"
+msgstr "Установка действия setup на всех клиентах, где установлен продукт %s"
+
+#: ../opsi-package-manager:835
+msgid "Setting action %s for product %s on client(s): %s"
+msgstr "Установка действия %s для продукта %s на клиенте(ах): %s"
+
+#: ../opsi-package-manager:839 ../opsi-package-manager:865
+#: ../opsi-package-manager:1119 ../opsi-package-manager:1367
+#: ../opsi-package-manager:1426
+msgid "Error: %s"
+msgstr "Ошибка: %s"
+
+#: ../opsi-package-manager:845
+msgid "Purging product property states for product %s"
+msgstr "Удаление клиентских настроек для продукта %s"
+
+#: ../opsi-package-manager:860
+msgid "Purging product property states for product '%s' on client(s): %s"
+msgstr "Удаление клиентских настроек для продукта '%s' на клиенте(ах): %s"
+
+#: ../opsi-package-manager:898
+msgid "Waiting for free upload slot for %s"
+msgstr "Ожидание свободного слота загрузки для %s"
+
+#: ../opsi-package-manager:905
+msgid "Processing upload of %s"
+msgstr "Обработка загрузки %s"
+
+#: ../opsi-package-manager:959
+msgid "No need to upload, %s is up to date"
+msgstr "Загрузка не требуется, %s находится в актуальном состоянии"
+
+#: ../opsi-package-manager:967
+msgid "Overwriting destination %s"
+msgstr "Перезапись %s"
+
+#: ../opsi-package-manager:973
+msgid "Not enough disk space: %dMB needed, %dMB available"
+msgstr "Недостаточно места на диске: %dМБ необходимо, %dМБ доступно"
+
+#: ../opsi-package-manager:985
+msgid "Starting upload"
+msgstr "Запуск загрузки"
+
+#: ../opsi-package-manager:994
+msgid "Getting librsync signature of %s"
+msgstr "Получение librsync-сигнатуры %s"
+
+#: ../opsi-package-manager:999
+msgid "Calculating delta"
+msgstr "Расчёт дельты"
+
+#: ../opsi-package-manager:1033
+msgid "Starting delta upload of %s"
+msgstr "Запуск дельта-загрузки %s"
+
+#: ../opsi-package-manager:1049
+msgid "Patching %s"
+msgstr "Исправление %s"
+
+#: ../opsi-package-manager:1059
+msgid "Starting upload of %s"
+msgstr "Запуск загрузки %s"
+
+#: ../opsi-package-manager:1072
+msgid "Upload of %s finished"
+msgstr "Загрузка %s завершена"
+
+#: ../opsi-package-manager:1085
+msgid "Verifying upload"
+msgstr "Проверка загруженных файлов"
+
+#: ../opsi-package-manager:1096
+msgid "Warning: %d%% filesystem usage"
+msgstr "Предупреждение: %d%% файловой системы занято"
+
+#: ../opsi-package-manager:1099
+msgid "Upload of %s successful"
+msgstr "Загрузка %s выполнена успешно"
+
+#: ../opsi-package-manager:1189
+msgid "Please select product property defaults"
+msgstr "Пожалуйста, выберите значения по умолчанию для свойств продукта"
+
+#: ../opsi-package-manager:1190
+msgid "Product"
+msgstr "Продукт"
+
+#: ../opsi-package-manager:1190
+msgid "Property"
+msgstr "Свойство"
+
+#: ../opsi-package-manager:1191
+msgid "Back"
+msgstr "Назад"
+
+#: ../opsi-package-manager:1207 ../opsi-package-manager:1221
+msgid "<other value>"
+msgstr "<другое значение>"
+
+#: ../opsi-package-manager:1303
+msgid "Installing package {filename} as {forcedProductId}"
+msgstr ""
+
+#: ../opsi-package-manager:1306
+msgid "Installing package %s"
+msgstr "Установка пакета %s"
+
+#: ../opsi-package-manager:1345
+msgid "Installation of package {packageFile} as {forcedProductId} successful"
+msgstr ""
+
+#: ../opsi-package-manager:1348
+msgid "Installation of package %s successful"
+msgstr "Установка пакета %s выполнена успешно"
+
+#: ../opsi-package-manager:1422
+msgid "Uninstallation of package {0} successful"
+msgstr "Удаление пакета {0} выполнено успешно"
+
+#: ../opsi-package-manager:1594
+msgid "Errors occurred: "
+msgstr "Произошли ошибки:"
+
+#: ../opsi-package-manager:1597
+msgid "Failure while processing %s:"
+msgstr "Сбой во время обработки %s:"
