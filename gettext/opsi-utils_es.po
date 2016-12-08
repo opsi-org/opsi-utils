@@ -2,336 +2,336 @@
 # Copyright (C) YEAR ORGANIZATION
 # 
 # Translators:
-# Lars Juul <lju@eucl.dk>, 2015-2016
+# Martin Scalese <m.scalese@uib.de>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: opsi.org\n"
 "POT-Creation-Date: 2016-10-11 16:40+CEST\n"
-"PO-Revision-Date: 2016-11-17 16:34+0000\n"
-"Last-Translator: Lars Juul <lju@eucl.dk>\n"
-"Language-Team: Danish (http://www.transifex.com/opsi-org/opsiorg/language/da/)\n"
+"PO-Revision-Date: 2016-10-11 14:42+0000\n"
+"Last-Translator: Niko Wenselowski\n"
+"Language-Team: Spanish (http://www.transifex.com/opsi-org/opsiorg/language/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: ENCODING\n"
 "Generated-By: pygettext.py 1.5\n"
-"Language: da\n"
+"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../opsi-admin:135
 msgid "Usage: %s [options] [command] [args...]"
-msgstr "Brug: %s [indstillinger] [kommando] [argumenter...]"
+msgstr "Uso: %s [opciones][comando][argumento]"
 
 #: ../opsi-admin:136
 msgid "Options:"
-msgstr "Indstillinger:"
+msgstr "Opciones:"
 
 #: ../opsi-admin:137
 msgid "Display this text"
-msgstr "Vis denne tekst"
+msgstr "Mostrar este texto"
 
 #: ../opsi-admin:138
 msgid "Show version and exit"
-msgstr "Vis version og afslut"
+msgstr "Mostrar versión y salir"
 
 #: ../opsi-admin:139
 msgid "Username (default: current user)"
-msgstr "Brugernavn (standard: nuværende bruger)"
+msgstr "Nombre de usuario (por defecto: el usuario actual)"
 
 #: ../opsi-admin:140
 msgid "Password (default: prompt for password)"
-msgstr "Kodeord (standard: spørg efter kodeord)"
+msgstr "Contraseña (por defecto: solicitar contraseña)"
 
 #: ../opsi-admin:141
 msgid "URL of opsiconfd (default: https://localhost:4447/rpc)"
-msgstr "URL til opsiconfd (standard: https://localhost:4447/rpc)"
+msgstr "URL del opsiconfd (defecto: https://localhost:4447/rpc)"
 
 #: ../opsi-admin:142
 msgid "Do not use opsiconfd"
-msgstr "Brug ikke opsiconfd"
+msgstr "No utilizar opsiconfd"
 
 #: ../opsi-admin:143
 msgid "Do not use depotserver backend"
-msgstr "Brug ikke depotserver backend"
+msgstr "No utilizar el backend del depotserver"
 
 #: ../opsi-admin:144
 msgid "Set log level (default: 3)"
-msgstr "Sæt lognings level (standard: 3) "
+msgstr "Establecer el log level (defecto: 3)"
 
 #: ../opsi-admin:145
 msgid "0=nothing, 1=essential, 2=critical, 3=error, 4=warning"
-msgstr "0=intet, 1=væsentligt, 2=kritisk, 3=fejl, 4=advarsler"
+msgstr "0=nada, 1=esencial, 2=crítico, 3=error, 4=advertencia"
 
 #: ../opsi-admin:146
 msgid "5=notice, 6=info, 7=debug, 8=debug2, 9=confidential"
-msgstr "5=noter, 6=info, 7=debug, 9=fortroligt"
+msgstr "5=anuncios, 6=info, 7=debug, 8=debug2, 9=confidencial"
 
 #: ../opsi-admin:147
 msgid "Path to log file"
-msgstr "Sti til log fil"
+msgstr "Directorio al log de archivo"
 
 #: ../opsi-admin:148
 msgid "Start in interactive mode"
-msgstr "Start i interaktiv tilstand"
+msgstr "Comenzar en módo interactivo"
 
 #: ../opsi-admin:149
 msgid "Colorize output"
-msgstr "Farvelæg output"
+msgstr "Colorizar el output"
 
 #: ../opsi-admin:150
 msgid "Simple output (only for scalars, lists)"
-msgstr "Enkel udgang (kun for skalarer, lister)"
+msgstr "Output simple (sólo para escalas, listas)"
 
 #: ../opsi-admin:151
 msgid "Shell output"
-msgstr "Shell output"
+msgstr "Output en shell"
 
 #: ../opsi-admin:152
 msgid "Raw output"
-msgstr "Rå output"
+msgstr "Output Raw"
 
 #: ../opsi-admin:153
 msgid "Always exit with exit code 0."
-msgstr "Altid afslut med kode 0."
+msgstr "Salir siempre con exit code 0"
 
 #: ../opsi-admin:514
 msgid "Delete log-file '%s'?"
-msgstr "Slet log fil '%s'?"
+msgstr "Eliminar el archivo de log '%s'?"
 
 #: ../opsi-admin:757
 msgid "Invalid command: '%s'"
-msgstr "Ugyldig kommando: '%s'"
+msgstr "Comando inválido: '%s'"
 
 #: ../opsi-admin:783
 msgid "Please type password:"
-msgstr "Venligst indtast kodeord:"
+msgstr "Por favor introduzca su contraseña:"
 
 #: ../opsi-admin:789
 msgid "Please retype password:"
-msgstr "Skriv kodeord igen:"
+msgstr "Por favor reintroduzca la contraseña:"
 
 #: ../opsi-admin:796
 msgid "Supplied passwords do not match"
-msgstr "Indtastede kodeord matcher ikke"
+msgstr "Las contraseñas proveeidas no coinciden"
 
 #: ../opsi-admin:1081
 msgid "Execute a config-interface-method"
-msgstr "Udfør en konfig-interface-metode"
+msgstr "Ejecutar un método de interface de configuración"
 
 #: ../opsi-admin:1084
 msgid "Methods are:"
-msgstr "Metoder er:"
+msgstr "Los métodos son:"
 
 #: ../opsi-admin:1115
 msgid "No method defined"
-msgstr "Ingen defineret metode"
+msgstr "No hay método definido"
 
 #: ../opsi-admin:1181
 msgid "Took %0.3f seconds to process: %s(%s)"
-msgstr "Tog %0.3f sekunder at behandle: %s(%s)"
+msgstr "Tomo %0.3f segundos para procesar: %s(%s)"
 
 #: ../opsi-admin:1289
 msgid "Settings"
-msgstr "Indstillinger"
+msgstr "Configuraciones"
 
 #: ../opsi-admin:1320
 msgid "Missing option"
-msgstr "Manglende indstillinger"
+msgstr "Opciones faltantes"
 
 #: ../opsi-admin:1322
 msgid "Unknown option: %s"
-msgstr "Ukendt indstilling: %s"
+msgstr "Opción desconocida: %s"
 
 #: ../opsi-admin:1324
 msgid "Missing value"
-msgstr "Manglende værdi"
+msgstr "Valor faltante"
 
 #: ../opsi-admin:1332
 msgid "Bad value: %s"
-msgstr "Ugyldig værdi: %s"
+msgstr "Valor falso: %s"
 
 #: ../opsi-admin:1344
 msgid "No log-file set!"
-msgstr "Ingen log fil sat!"
+msgstr "Archivo de log no establecido"
 
 #: ../opsi-admin:1353
 msgid "Show this text"
-msgstr "Vis denne tekst"
+msgstr "Mostrar este texto"
 
 #: ../opsi-admin:1356
 msgid "Commands are:"
-msgstr "Kommandoer er:"
+msgstr "Los comandos son:"
 
 #: ../opsi-admin:1367
 msgid "Exit opsi-admin"
-msgstr "Afslut opsi-admin"
+msgstr "Salir del opsi-admin"
 
 #: ../opsi-admin:1383
 msgid "show / clear command history"
-msgstr "vis / ryd kommando historik"
+msgstr "mostrar / limpiar historial de comandos"
 
 #: ../opsi-admin:1404 ../opsi-admin:1439
 msgid "Unknown command: %s"
-msgstr "Ukendt kommando: %s"
+msgstr "Comando desconocido: %s"
 
 #: ../opsi-admin:1420
 msgid "show log"
-msgstr "vis logfil"
+msgstr "mostrar log"
 
 #: ../opsi-admin:1443
 msgid "File logging is not activated"
-msgstr "Fil log er ikke aktiveret"
+msgstr "Logeo de archivo no está activado"
 
 #: ../opsi-admin:1467
 msgid "execute a task"
-msgstr "Udfør en opgave"
+msgstr "ejecutar una tarea"
 
 #: ../opsi-admin:1497
 msgid "Unknown task: %s"
-msgstr "Ukendt opgave: %s"
+msgstr "Tarea desconocida: %s"
 
 #: ../opsi-admin:1501 ../opsi-admin:1513 ../opsi-admin:1525 ../opsi-admin:1537
 #: ../opsi-admin:1551 ../opsi-admin:1567 ../opsi-admin:1581
 msgid "Missing product-id"
-msgstr "Mangler produkt-id"
+msgstr "ID de producto faltante"
 
 #: ../opsi-admin:1549 ../opsi-admin:1565 ../opsi-admin:1579
 msgid "Missing action request"
-msgstr "mangler handling anmodning"
+msgstr "Falta pedido de acción"
 
 #: ../opsi-admin:1569
 msgid "Missing client-id"
-msgstr "Mangler klient-id"
+msgstr "Falta ID de cliente"
 
 #: ../opsi-admin:1596
 msgid "Missing argument"
-msgstr "argument mangler"
+msgstr "Argumento faltante"
 
 #: ../opsi-admin:1604
 msgid "You have to be root to change pcpatch password!"
-msgstr "Du skal være root for at kunne ændre koden for pcpatch!"
+msgstr "Tiene que ser root para poder cambiar la contraseña pcpatch"
 
 #: ../opsi-admin:1608
 msgid "Failed to get my own fully qualified domainname"
-msgstr "Det lykkedes ikke at hente mit egen fuldt kvalificeret domænenavn"
+msgstr "Fallo al intentar conseguir el FQDN"
 
 #: ../opsi-makeproductfile:227
 msgid "Locking package"
-msgstr "Låser pakke"
+msgstr "Bloqueando paquete"
 
 #: ../opsi-makeproductfile:249
 msgid "Package info"
-msgstr "Pakke info"
+msgstr "Información de paquete"
 
 #: ../opsi-makeproductfile:261
 msgid "Product info"
-msgstr "Produkt info"
+msgstr "Información de producto"
 
 #: ../opsi-makeproductfile:283
 msgid "Product scripts"
-msgstr "Produkt scripts"
+msgstr "Scripts de productos"
 
 #: ../opsi-makeproductfile:311
 msgid "Package file '%s' already exists."
-msgstr "Pakke fil '%s' eksistere allerede."
+msgstr "El archivo del paquete '%s' ya existe"
 
 #: ../opsi-makeproductfile:312
 msgid "Press <O> to overwrite, <C> to abort or <N> to specify a new version:"
-msgstr "Tryk <O> for at overskrive, <C> for at afbryde eller <N> for at angive ny version:"
+msgstr "Presione <O> para sobreescribir, <C> para abortar o <N> para especificar una nueva versión:"
 
 #: ../opsi-makeproductfile:338
 msgid "Aborted"
-msgstr "Afbrudt"
+msgstr "Abortado"
 
 #: ../opsi-makeproductfile:348
 msgid ""
 "Please specify new product version, press <ENTER> to keep current version "
 "(%s):"
-msgstr "Venligst angiv ny produkt version, tryk >ENTER> for at beholde nuværende version (%s):"
+msgstr "Por favor especifique una nueva versión de producto, presione <ENTER> para mantener la versión acutal (%s)"
 
 #: ../opsi-makeproductfile:366
 msgid "Bad product version: %s"
-msgstr "Ugyldig produkt version: %s"
+msgstr "Versión de producto incorrecta: %s"
 
 #: ../opsi-makeproductfile:369
 msgid ""
 "Please specify new package version, press <ENTER> to keep current version "
 "(%s):"
-msgstr "Venligst angiv ny pakke version, tryk <ENTER> for at beholde nuværende version (%s):"
+msgstr "Por favor especifique la nueva versión del paquete, presione <ENTER> para mantener la versión actual (%s):"
 
 #: ../opsi-makeproductfile:387
 msgid "Bad package version: %s"
-msgstr "Ugyldig pakke version: %s"
+msgstr "Versión de paquete incorrecta: %s"
 
 #: ../opsi-makeproductfile:402
 msgid "Creating package file '%s'"
-msgstr "Opretter pakke fil '%s'"
+msgstr "Creando el paquete de archivo '%s'"
 
 #: ../opsi-makeproductfile:411
 msgid "Creating md5sum file '%s'"
-msgstr "Opretter md5sum fil '%s'"
+msgstr "Creando el archivo md5sum '%s'"
 
 #: ../opsi-makeproductfile:420
 msgid "Creating zsync file '%s'"
-msgstr "Opretter zsync fil '%s'"
+msgstr "Creando el archivo zsync '%s'"
 
 #: ../opsi-makeproductfile:428
 msgid "Cleaning up"
-msgstr "Rydder op"
+msgstr "Limpiando detalles"
 
 #: ../opsi-makeproductfile:431
 msgid "Unlocking package"
-msgstr "Låse pakke op"
+msgstr "Desbloqueando el paquete"
 
 #: ../opsi-newprod:78
 msgid "Copies the contents of DIRECTORY to the destination directory."
-msgstr "Kopierer indholdet af BIBLIOTEK til destinationen bibliotek."
+msgstr "Copia los contenidos del Directorio al directorio destinado."
 
 #: ../opsi-newprod:80
 msgid ""
 "The destination of the new product source. If no destination directory is "
 "supplied, the current directory is used."
-msgstr "Destinationen for det nye produkt. Hvis ingen målmappe leveres, bliver det aktuelle bibliotek brugt."
+msgstr "El destino del nuevo producto de fuente. Si no se provee un directorio de destino, se utilizará el actual directorio."
 
 #: ../opsi-newprod:99
 msgid "Overwrite?"
-msgstr "Overskriv?"
+msgstr "Sobreescribir?"
 
 #: ../opsi-newprod:100
 msgid "Directory %s already exists, overwrite?"
-msgstr "Katalog %s eksistere allerede, overskriv?"
+msgstr "Directorio %s ya existe, sobreescribir?"
 
 #: ../opsi-newprod:101 ../opsi-newprod:351 ../opsi-newprod:437
 msgid "Yes"
-msgstr "Ja"
+msgstr "Sí"
 
 #: ../opsi-newprod:102 ../opsi-newprod:352 ../opsi-newprod:438
 msgid "No"
-msgstr "Nej"
+msgstr "No"
 
 #: ../opsi-newprod:106 ../opsi-newprod:154 ../opsi-newprod:193
 #: ../opsi-newprod:279 ../opsi-newprod:574
 msgid "Cancelled"
-msgstr "Afbrudt"
+msgstr "Cancelado"
 
 #: ../opsi-newprod:122
 msgid "Done"
-msgstr "Færdig"
+msgstr "Hecho"
 
 #: ../opsi-newprod:122
 msgid "Package source directory '%s' created"
-msgstr "Pakke kilde mappe '%s' oprettet"
+msgstr "Directorio fuente para el paquete '%s' creado"
 
 #: ../opsi-newprod:124
 msgid "Product creation failed. Removing directory {0}"
-msgstr "Produkt oprettelse fejlet. Fjerner katalog {0}"
+msgstr ""
 
 #: ../opsi-newprod:127
 msgid "Product creation failed"
-msgstr "Produkt oprettelse fejlet"
+msgstr ""
 
 #: ../opsi-newprod:147
 msgid "Please select product type"
-msgstr "Venglist vælg produkt type"
+msgstr "Por favor seleccione el tipo de producto"
 
 #: ../opsi-newprod:164
 msgid ""
@@ -343,84 +343,84 @@ msgid ""
 "Package version:  Opsi package version of the product.\n"
 "License required: Is a license required (0|1)?\n"
 "Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral)."
-msgstr "Produkt-id: En unik identifikation for produktet.\nProduktnavn: Det fulde navn på produktet.\nBeskrivelse: En beskrivelse (brug \\ n for linjeskift) .\nRådgivning: En ekstra vigtig information.\nProdukt-version: Version defineret af software producenten.\nPakke-version: Opsi pakke version af produktet.\nLicens kræves: Er en licens krævet (0 | 1) ?\nPrioritet: Installationen prioritet klasse af dette produkt (værdi mellem -100 og 100, 0 = neutral) ."
+msgstr ""
 
 #: ../opsi-newprod:174
 msgid "Product id"
-msgstr "Produkt id"
+msgstr "ID de producto"
 
 #: ../opsi-newprod:175
 msgid "Product name"
-msgstr "Produkt navn"
+msgstr "Nombre de producto"
 
 #: ../opsi-newprod:176
 msgid "Description"
-msgstr "Beskrivelse"
+msgstr "Descripción"
 
 #: ../opsi-newprod:177
 msgid "Advice"
-msgstr "Forslag"
+msgstr "Aviso"
 
 #: ../opsi-newprod:178
 msgid "Product version"
-msgstr "Produkt version"
+msgstr "Versión de producto"
 
 #: ../opsi-newprod:179
 msgid "Package version"
-msgstr "Pakke version"
+msgstr "Versión de paquete"
 
 #: ../opsi-newprod:180
 msgid "License required"
-msgstr "Licens påkrævet"
+msgstr "Licencia requerida"
 
 #: ../opsi-newprod:181
 msgid "Priority"
-msgstr "Priotet"
+msgstr "Prioridad"
 
 #: ../opsi-newprod:184 ../opsi-newprod:268
 msgid "PXE config template"
-msgstr "PXE konfigurations skabelon"
+msgstr "Template de config de PXE"
 
 #: ../opsi-newprod:187
 msgid "product information"
-msgstr "Produkt information"
+msgstr "Información de producto"
 
 #: ../opsi-newprod:200
 msgid "You have to specify a valid product id."
-msgstr "Du skal angive et gyldigt produkt id."
+msgstr "Tiene que especificar un ID de producto válido"
 
 #: ../opsi-newprod:207
 msgid "You have to specify a valid product name."
-msgstr "Du skal angive et gyldigt produkt navn."
+msgstr "Tiene que especificar a un nombre de producto válido"
 
 #: ../opsi-newprod:212
 msgid "Description is not valid."
-msgstr "Beskrivelse er ikke gyldig"
+msgstr "La descripción no es válida"
 
 #: ../opsi-newprod:217
 msgid "Advice is not valid."
-msgstr "Forslag er ikke gyldig"
+msgstr "Aviso no es válido."
 
 #: ../opsi-newprod:224
 msgid "You have to specify a valid product version."
-msgstr "Du skal angive et gyldigt produkt versions nummer."
+msgstr "Tiene que especificar una versión de producto válida."
 
 #: ../opsi-newprod:231
 msgid "You have to specify a valid package version."
-msgstr "Du skal angive et gyldigt pakke versions nummer"
+msgstr "Tiene que especificar una versión de paquete válida."
 
 #: ../opsi-newprod:236
 msgid "License required must be a boolean value."
-msgstr "Licens kræves skal være en boolesk værdi."
+msgstr "El requirimiento de licencia debe ser un valor del tipo boolean."
 
 #: ../opsi-newprod:241
 msgid "Priority has to be an number between -100 and 100"
-msgstr "Prioritet skal være et nummer mellem -100 og 100 "
+msgstr "La prioridad tiene que ser un número entre -100 y 100"
 
 #: ../opsi-newprod:244 ../opsi-newprod:326 ../opsi-newprod:419
 #: ../opsi-newprod:510 ../opsi-newprod:546 ../opsi-newprod:594
 msgid "Bad value"
-msgstr "Ugyldig værdi"
+msgstr "Valor incorrecto"
 
 #: ../opsi-newprod:248
 msgid ""
@@ -432,71 +432,71 @@ msgid ""
 "Custom script:       Relative path to script for action \"custom\".\n"
 "User login script:   Relative path to script for user login.\n"
 "PXE config template: path to a custom pxelinux config template."
-msgstr "Setup script: Relativ sti til scriptet for handling \"setup\" .\nAfinstaller script: Relativ sti til scriptet for handling \"afinstallere\" .\nOpdatering script: Relativ sti til scriptet for handling \"update\" .\nAltid script: Relativ sti til script for handling \"altid\" .\nEngang scriptet: Relativ sti til scriptet for handling \"én gang\" .\nBrugerdefineret script: Relativ sti til scriptet for handling \"custom\" .\nBruger login script: Relativ sti til scriptet for bruger login.\nPXE config skabelon: sti til en brugerdefineret pxelinux config template."
+msgstr ""
 
 #: ../opsi-newprod:259
 msgid "Setup script"
-msgstr "Setup script"
+msgstr "Script de setup"
 
 #: ../opsi-newprod:260
 msgid "Uninstall script"
-msgstr "Afinstallerings script"
+msgstr "Script de desinstalación"
 
 #: ../opsi-newprod:261
 msgid "Update script"
-msgstr "Opdaterings script"
+msgstr "Script de update"
 
 #: ../opsi-newprod:262
 msgid "Always script"
-msgstr "Altid script"
+msgstr "Always (siempre) script"
 
 #: ../opsi-newprod:263
 msgid "Once script"
-msgstr "Engangs script"
+msgstr "Once script (único uso)"
 
 #: ../opsi-newprod:264
 msgid "Custom script"
-msgstr "Brugerdefineret script"
+msgstr "Custom script (customizado)"
 
 #: ../opsi-newprod:270
 msgid "User login script"
-msgstr "Bruger login script"
+msgstr "User login script (login de usuario)"
 
 #: ../opsi-newprod:273
 msgid "product scripts"
-msgstr "produkt script"
+msgstr "scripts de productos"
 
 #: ../opsi-newprod:286
 msgid "Setup script is not valid."
-msgstr "Setup script er ikke gyldig."
+msgstr "Script de setup no es válido."
 
 #: ../opsi-newprod:291
 msgid "Uninstall script is not valid."
-msgstr "Afinstallerings script er ikke gyldig."
+msgstr "Script de desinstalación no es válido."
 
 #: ../opsi-newprod:296
 msgid "Update script is not valid."
-msgstr "Opdaterings script er ikke gyldig."
+msgstr "Update script no es válido."
 
 #: ../opsi-newprod:301
 msgid "Always script is not valid."
-msgstr "Altid script er ikke gyldig."
+msgstr "Script \"always\" no es válido."
 
 #: ../opsi-newprod:306
 msgid "Once script is not valid."
-msgstr "Engangs script er ikke gyldig."
+msgstr "Once (único uso) script no es válido."
 
 #: ../opsi-newprod:311
 msgid "Custom script is not valid."
-msgstr "Brugerdefineret script er ikke gyldig."
+msgstr "Script custom no es válido."
 
 #: ../opsi-newprod:317
 msgid "PXE config template is not valid."
-msgstr "PXE konfigurations skabelon er ikke gyldig."
+msgstr "Template de config PXE no es válido."
 
 #: ../opsi-newprod:323
 msgid "User login script is not valid."
-msgstr "Bruger login script er ikke gyldig."
+msgstr "Script de login de usuario no es válido."
 
 #: ../opsi-newprod:336
 msgid ""
@@ -506,64 +506,64 @@ msgid ""
 "Possible actions are: %s\n"
 "Possible installation status are: %s\n"
 "Possible requirement types are: %s"
-msgstr "Du skal angive enten et krævet produkt eller en påkrævet produkt klasse.\nDu skal angive enten en krævet installation status eller en nødvendig handling. Kravs type er optional.\nMulige handlinger er: %s\nMulig installation status er: %s\nMulige krav typer er: %s"
+msgstr ""
 
 #: ../opsi-newprod:349
 msgid "Create product dependency?"
-msgstr "Opret produkt egenskab?"
+msgstr "Crear dependencia de producto?"
 
 #: ../opsi-newprod:350
 msgid "Do you want to create a product dependency?"
-msgstr "Ønsker du at oprette et produkt egenskab?"
+msgstr "Quiere crear otra dependencia de producto?"
 
 #: ../opsi-newprod:367
 msgid "Dependency for action"
-msgstr "Afhængighed for handling"
+msgstr "Acción para dependencia"
 
 #: ../opsi-newprod:368
 msgid "Required product id"
-msgstr "Krævet produkt id"
+msgstr "ID de producto requerida"
 
 #: ../opsi-newprod:369
 msgid "Required action"
-msgstr "Nødvendig handling"
+msgstr "Acción requerida"
 
 #: ../opsi-newprod:370
 msgid "Required installation status"
-msgstr "Nødvendig installations status"
+msgstr "Estado de instalación requerido"
 
 #: ../opsi-newprod:371
 msgid "Requirement type"
-msgstr "Kravs type"
+msgstr "Tipo de requerimiento"
 
 #: ../opsi-newprod:375
 msgid "Create dependency for product %s"
-msgstr "Opret afhængighed for produkt %s"
+msgstr "Crear dependencias para el producto %s"
 
 #: ../opsi-newprod:388
 msgid "You have to specify a valid product action."
-msgstr "Du skal angive en gyldig produkt opgave."
+msgstr "Debe especificar una acción válida para el producto."
 
 #: ../opsi-newprod:394
 msgid "You have to specify a valid required product id."
-msgstr "Du skal angive et gyldigt produkt id."
+msgstr "Tiene que especificar una ID de producto válida."
 
 #: ../opsi-newprod:401
 msgid "Required action is not valid."
-msgstr "Krævet opgave ikke gyldig."
+msgstr "Acción requerida no es válida."
 
 #: ../opsi-newprod:407
 msgid "Required installation status is not valid."
-msgstr "Krævet installations status er ikke gyldig."
+msgstr "El estado de instalación no es válido."
 
 #: ../opsi-newprod:410
 msgid ""
 "Please specify either a required installation status or a required action."
-msgstr "Angiv enten en krævet installation status eller en krævet handling."
+msgstr "Por favor especifique un estado de instalación requerida o una acción requerida."
 
 #: ../opsi-newprod:416
 msgid "Requirement type is not valid."
-msgstr "Kravs type er ikke gyldig."
+msgstr "El tipo de requerimiento no es válido."
 
 #: ../opsi-newprod:430
 msgid ""
@@ -571,238 +571,238 @@ msgid ""
 "Property description: Usage description.\n"
 "Possible values: Comma separated list of possible values for the property. If no possible values are given any values are allowed.\n"
 "Editable: Is it allowed to specify a value which is not in the list of possible values?"
-msgstr "Egenskabsnavn: Navn på egenskab.\nEgenskabs beskrivelse: Brug af beskrivelse.\nMulige værdier: Komma separeret liste over mulige værdier for egenskab. Hvis der er givet nogen mulig værdi eventuelle værdier er tilladte.\nRedigerbar: Er det tilladt at angive en værdi, som ikke er på listen over mulig værdier?"
+msgstr ""
 
 #: ../opsi-newprod:435
 msgid "Create product property?"
-msgstr "Opret produkt egenskab?"
+msgstr "Crear la propiedad de producto?"
 
 #: ../opsi-newprod:436
 msgid "Do you want to create a product property?"
-msgstr "Vil du oprette et produkts egenskab?"
+msgstr "Desea crear una propiedad de producto?"
 
 #: ../opsi-newprod:448
 msgid "Please select property type"
-msgstr "Angiv egenskabstype"
+msgstr "Por favor seleccione el tipo de propiedad"
 
 #: ../opsi-newprod:465
 msgid "Property name (identifier)"
-msgstr "Egenskabsnavn (identifier)"
+msgstr "Nombre de propiedad (Identificador)"
 
 #: ../opsi-newprod:466
 msgid "Property description"
-msgstr "Egenskabs beskrivelse"
+msgstr "Descripción de propiedad"
 
 #: ../opsi-newprod:469
 msgid "Possible values"
-msgstr "Mulige værdier"
+msgstr "Valores posibles"
 
 #: ../opsi-newprod:470
 msgid "Editable"
-msgstr "Redigerbar"
+msgstr "Editable"
 
 #: ../opsi-newprod:473
 msgid "Create property for product %s"
-msgstr "Opret egenskab for produkt %s"
+msgstr "Crear propiedad para el producto %s"
 
 #: ../opsi-newprod:486
 msgid "Please specify a valid identifier"
-msgstr "Angiv en gyldig identifikator"
+msgstr "Por favor especifique un identificador válido"
 
 #: ../opsi-newprod:492
 msgid "Please specify a valid description"
-msgstr "Angiv en gyldig beskrivelse"
+msgstr "Por favor especifique una descripción válida"
 
 #: ../opsi-newprod:506
 msgid "Please specify valid possible values"
-msgstr "Angiv en gyldig mulig værdi"
+msgstr "Por favor especifique valores válidos posibles"
 
 #: ../opsi-newprod:524
 msgid "Please select a default value"
-msgstr "Venligst vælg en standard værdi"
+msgstr "Por favor seleccione un valor por defecto"
 
 #: ../opsi-newprod:534
 msgid "Please set a default value"
-msgstr "Venligst sæt en standard værdi"
+msgstr "Por favor establezca un valor por defecto"
 
 #: ../opsi-newprod:543
 msgid "Please specify valid default values: %s"
-msgstr "Angiv gyldige standardværdier: %s"
+msgstr "Por favor especifique un valores válidos por defecto: %s"
 
 #: ../opsi-newprod:558
 msgid "Maintainer of this opsi package."
-msgstr "Vedligeholder af denne opsi pakke."
+msgstr ""
 
 #: ../opsi-newprod:561
 msgid "Maintainer name"
-msgstr "Vedligeholderens navn"
+msgstr "Nombre del mantenedor"
 
 #: ../opsi-newprod:562
 msgid "Maintainer e-mail"
-msgstr "Vedligeholderens e-mail"
+msgstr "Email del mantenedor"
 
 #: ../opsi-newprod:566
 msgid "Maintainer info"
-msgstr "Vedligeholderens info"
+msgstr "Información del mantenedor"
 
 #: ../opsi-newprod:583
 msgid "Please enter a valid maintainer name."
-msgstr "Venligst indtast et gyldigt vedligeholder navn."
+msgstr "Por favor ingrese el nombre del mantenedor."
 
 #: ../opsi-newprod:591
 msgid "Please enter a valid e-mail address."
-msgstr "Venligst indtast en gyldig e-mail adresse."
+msgstr "Por favor ingrese una dirección de correo válida."
 
 #: ../opsi-package-manager:418
 msgid "Log messages"
-msgstr "Log beskeder"
+msgstr "Mensajes de log"
 
 #: ../opsi-package-manager:745
 msgid "%d/%d transfers running"
-msgstr "%d/%d overførsler kører"
+msgstr "%d%d transferencias ejecutandosé"
 
 #: ../opsi-package-manager:748
 msgid "%d transfers running"
-msgstr "%d overførsler kører"
+msgstr "%d tranferencias ejecutandosé"
 
 #: ../opsi-package-manager:773
 msgid "Opening package file %s"
-msgstr "Åbner pakke fil %s"
+msgstr "Abriendo el archivo del paquete %s"
 
 #: ../opsi-package-manager:793
 msgid "Waiting for task queues to finish up"
-msgstr "Venter på at opgave køer afslutter"
+msgstr "Esperando la finalización de la cola de tareas"
 
 #: ../opsi-package-manager:800
 msgid "%d/%d task queues running"
-msgstr "%d/%d opgave køer kører"
+msgstr "%d/%d cola de tareas ejecutandosé"
 
 #: ../opsi-package-manager:815
 msgid "Setting action setup for product %s where installed"
-msgstr "Sætter handlingen setup for produktet %s hvor det allerede er installeret"
+msgstr "Estableciendo acción de setup para el producto %s donde fue instalado"
 
 #: ../opsi-package-manager:835
 msgid "Setting action %s for product %s on client(s): %s"
-msgstr "Sætter handling %s for produktet %s på kliente(n/erne): %s"
+msgstr "Estableciendo acción %s para el producto %s en el/los cliente(s): %s"
 
 #: ../opsi-package-manager:839 ../opsi-package-manager:865
 #: ../opsi-package-manager:1119 ../opsi-package-manager:1367
 #: ../opsi-package-manager:1426
 msgid "Error: %s"
-msgstr "Fejl: %s"
+msgstr "Error: %s"
 
 #: ../opsi-package-manager:845
 msgid "Purging product property states for product %s"
-msgstr "Renser produkts egenskaber for produktet %s"
+msgstr "Purgando estado de propiedad para el producto %s"
 
 #: ../opsi-package-manager:860
 msgid "Purging product property states for product '%s' on client(s): %s"
-msgstr "Renser produkts egenskaber for produktet '%s' på kliente(n/rne): %s"
+msgstr "Purgando las propiedades de estado para el/los producto(s) '%s' en el/los cliente(s): %s"
 
 #: ../opsi-package-manager:898
 msgid "Waiting for free upload slot for %s"
-msgstr "Venter på et frit upload slot til %s"
+msgstr "Esperando por una ranura libre para %s"
 
 #: ../opsi-package-manager:905
 msgid "Processing upload of %s"
-msgstr "Behandler upload af %s"
+msgstr "Procesando la subida de %s"
 
 #: ../opsi-package-manager:959
 msgid "No need to upload, %s is up to date"
-msgstr "Ingen grund til at uploade, %s er nyeste version"
+msgstr "No hay necesidad de subir, %s se encuentra actualizado"
 
 #: ../opsi-package-manager:967
 msgid "Overwriting destination %s"
-msgstr "Overskriver destination %s"
+msgstr "Sobreescribir destination %s"
 
 #: ../opsi-package-manager:973
 msgid "Not enough disk space: %dMB needed, %dMB available"
-msgstr "Ikke nok diskplads: %d MB nødvendigt, %d MB tilgængelig"
+msgstr "No hay suficiente espacio: %dMB son necesarios, %dMB disponibles"
 
 #: ../opsi-package-manager:985
 msgid "Starting upload"
-msgstr "Upload starter"
+msgstr "Comenzando la subida"
 
 #: ../opsi-package-manager:994
 msgid "Getting librsync signature of %s"
-msgstr "Henter librsync signatur af %s"
+msgstr "Obteniendo firma librsync de %s"
 
 #: ../opsi-package-manager:999
 msgid "Calculating delta"
-msgstr "Beregner delta"
+msgstr "Calculando delta"
 
 #: ../opsi-package-manager:1033
 msgid "Starting delta upload of %s"
-msgstr "Starter delta upload af %s"
+msgstr "Comenzando subida delta de %s"
 
 #: ../opsi-package-manager:1049
 msgid "Patching %s"
-msgstr "Pacther %s"
+msgstr "Parcheando %s"
 
 #: ../opsi-package-manager:1059
 msgid "Starting upload of %s"
-msgstr "Starter upload af %s"
+msgstr "Comenzando la subida de %s"
 
 #: ../opsi-package-manager:1072
 msgid "Upload of %s finished"
-msgstr "Upload af %s færdig"
+msgstr "Subida de %s finalizada"
 
 #: ../opsi-package-manager:1085
 msgid "Verifying upload"
-msgstr "Bekræfter upload"
+msgstr "Verificando subida"
 
 #: ../opsi-package-manager:1096
 msgid "Warning: %d%% filesystem usage"
-msgstr "Advarsel: %d%% af filsystem brugt"
+msgstr "Advertencia: %d%% utilización de sistema de archivo"
 
 #: ../opsi-package-manager:1099
 msgid "Upload of %s successful"
-msgstr "Upload af %s vellykket"
+msgstr "Subida de %s exitosa"
 
 #: ../opsi-package-manager:1189
 msgid "Please select product property defaults"
-msgstr "Vælg produkt egenskabs standarder"
+msgstr "Por favor seleccione las propiedades de producto por defecto"
 
 #: ../opsi-package-manager:1190
 msgid "Product"
-msgstr "Produkt"
+msgstr "Producto"
 
 #: ../opsi-package-manager:1190
 msgid "Property"
-msgstr "Egenskab"
+msgstr "Propiedad"
 
 #: ../opsi-package-manager:1191
 msgid "Back"
-msgstr "Tilbage"
+msgstr "Volver"
 
 #: ../opsi-package-manager:1207 ../opsi-package-manager:1221
 msgid "<other value>"
-msgstr "<anden værdi>"
+msgstr "<other value>"
 
 #: ../opsi-package-manager:1303
 msgid "Installing package {filename} as {forcedProductId}"
-msgstr "Installere pakke {filename} som {forcedProductId}"
+msgstr ""
 
 #: ../opsi-package-manager:1306
 msgid "Installing package %s"
-msgstr "Installere pakke %s"
+msgstr "Instalando paquete %s"
 
 #: ../opsi-package-manager:1345
 msgid "Installation of package {packageFile} as {forcedProductId} successful"
-msgstr "Installation af pakke {packageFile} som {forcedProductId} lykkedes"
+msgstr ""
 
 #: ../opsi-package-manager:1348
 msgid "Installation of package %s successful"
-msgstr "Installation af pakke %s vellykket"
+msgstr "Instalación del paquete %s exitosa"
 
 #: ../opsi-package-manager:1422
 msgid "Uninstallation of package {0} successful"
-msgstr "Afinstallation af pakke {0} vellykket"
+msgstr "Desinstalación del paquete {0} exitosa"
 
 #: ../opsi-package-manager:1594
 msgid "Errors occurred: "
-msgstr "Fejl opstod:"
+msgstr "Errores han ocurrido:"
 
 #: ../opsi-package-manager:1597
 msgid "Failure while processing %s:"
-msgstr "Fejl under behandling af %s:"
+msgstr "Fallo mientras se procesaba %s:"
