@@ -3,7 +3,7 @@
 
 # opsi-package-manager is part of the client management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2016 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2017 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -1957,6 +1957,8 @@ class OpsiPackageManagerControl(object):
 		print u"                                             0 = unlimited (default)"
 		print u"  --new-product-id   <product-id>         Set a new product id when extracting opsi package or"
 		print u"                                          set a specific product ID during installation."
+		print u"  --suppress-pcf-generation               Suppress the generation of a package content file during package"
+		print u"                                          installation. Do not use with WAN extension!"
 		print u""
 
 
