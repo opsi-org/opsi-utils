@@ -1,14 +1,14 @@
 #
 # spec file for package opsi-utils
 #
-# Copyright (c) 2010 uib GmbH.
+# Copyright (c) 2010-2017 uib GmbH.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
 
 Name:           opsi-utils
 BuildRequires:  python >= 2.6
-Requires:       python-opsi >= 4.0.7.22 zsync python >= 2.6
+Requires:       python-opsi >= 4.0.7.32 zsync python >= 2.6
 Url:            http://www.opsi.org
 License:        GPLv2+
 Group:          Productivity/Networking/Opsi
