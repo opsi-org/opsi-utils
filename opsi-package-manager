@@ -1333,6 +1333,9 @@ class OpsiPackageManager(object):
 			}
 			if self.config['newProductId']:
 				installationParameters['forceProductId'] = self.config['newProductId']
+			if self.config['suppressPackageContentFileGeneration']:
+				installationParameters['suppressPackageContentFileGeneration'] = self.config['suppressPackageContentFileGeneration']
+
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)
 
@@ -1467,6 +1470,7 @@ class OpsiPackageManagerControl(object):
 		parser.add_option("--log-file", action="store", dest="logFile")
 		parser.add_option("--log-file-level", action="store", dest="fileLogLevel")
 		parser.add_option("--purge-client-properties", action="store_true", dest="purgeClientProperties")
+		parser.add_option("--suppress-pcf-generation", action="store_true", dest="suppressPackageContentFileGeneration")
 
 		# Get commandline options and arguments
 		try:
@@ -1817,6 +1821,7 @@ class OpsiPackageManagerControl(object):
 			'setupWhereInstalled': False,
 			'updateWhereInstalled': False,
 			'purgeClientProperties': False,
+			'suppressPackageContentFileGeneration': False,
 		}
 
 	def setCommandlineConfig(self):
@@ -1860,6 +1865,8 @@ class OpsiPackageManagerControl(object):
 			self.config['updateWhereInstalled'] = True
 		if self.opts.purgeClientProperties:
 			self.config['purgeClientProperties'] = True
+		if self.opts.suppressPackageContentFileGeneration:
+			self.config['suppressPackageContentFileGeneration'] = True
 
 		# Get command
 		if self.opts.COMMAND_INSTALL:
