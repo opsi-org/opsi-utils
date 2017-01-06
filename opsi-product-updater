@@ -530,7 +530,11 @@ class OpsiPackageUpdater(object):
 		for repository in self.getActiveRepositories():
 			logger.notice("{name}: {url}", name=repository.name, url=repository.baseUrl)
 
-	def listProductsInRepositories(self):
+	def listProductsInRepositories(self, withDiff=False):
+		if withDiff:
+			localProducts = self.getInstalledProducts()
+			localProducts = {product['productId']: product for product in localProducts}
+
 		for repository in self.getActiveRepositories():
 			logger.notice("Packages in {name}:", name=repository.name)
 			packages = sorted(
@@ -538,7 +542,21 @@ class OpsiPackageUpdater(object):
 				key=operator.itemgetter('productId')
 			)
 			for package in packages:
-				logger.notice('\t{productId} (Version {version})', **package)
+				if withDiff:
+					try:
+						localProduct = localProducts[package['productId']]
+					except KeyError as kerr:
+						logger.debug(kerr)
+						logger.notice('\t{productId} (Version {version}, not installed)', **package)
+						continue
+
+					localVersion = '{productVersion}-{packageVersion}'.format(**localProduct)
+					if compareVersions(package['version'], '==', localVersion):
+						logger.notice('\t{productId} (Version {version}, installed)', **package)
+					else:
+						logger.notice('\t{productId} (Version {version}, installed {localVersion})', localVersion=localVersion, **package)
+				else:
+					logger.notice('\t{productId} (Version {version})', **package)
 
 	def processUpdates(self):
 		notifier = None
@@ -1271,6 +1289,9 @@ def main():
 	repoparser.add_argument('--list-products',
 							action="store_true", dest="listAvailableProducts",
 							help='Lists the repositories and the products they provide.')
+	repoparser.add_argument('--list-product-diffs',
+							action="store_true", dest="listProductDiffs",
+							help='Lists the repositories, the products they provide and information about the installation status.')
 
 	# Setting a default to not stumble over possibly not present args.
 	repoparser.set_defaults(processProductIds=[])
@@ -1314,6 +1335,8 @@ def main():
 				opu.listActiveRepos()
 			elif args.listAvailableProducts:
 				opu.listProductsInRepositories()
+			elif args.listProductDiffs:
+				opu.listProductsInRepositories(withDiff=True)
 
 
 if __name__ == "__main__":
