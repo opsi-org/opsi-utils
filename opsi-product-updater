@@ -531,6 +531,13 @@ class OpsiPackageUpdater(object):
 			logger.notice("{name}: {url}", name=repository.name, url=repository.baseUrl)
 
 	def listProductsInRepositories(self, withDiff=False):
+		"""
+		Lists the products available at the actives repositories.
+
+		If `withDiff` is `True` it will also compare the version on the
+		repository to the one locally installed and show if there is a
+		difference.
+		"""
 		if withDiff:
 			localProducts = self.getInstalledProducts()
 			localProducts = {product['productId']: product for product in localProducts}
