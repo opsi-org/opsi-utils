@@ -1,3 +1,11 @@
+opsi-utils (4.1.1.2-1) UNRELEASED; urgency=medium
+
+  * opsi-makeproductfile now supports long options.
+  * opsi-product-updater: new option --list-product-diffs to show differences
+    in versions between repository and local depot.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 02 Dec 2016 11:34:14 +0100
+
 opsi-utils (4.1.1.1-2) experimental; urgency=medium
 
   * RPM: create product-updater.repos.d in install.
