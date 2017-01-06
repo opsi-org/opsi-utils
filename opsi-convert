@@ -125,6 +125,9 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	parser.add_argument('--verbose', '-v',
 						dest="logLevel", default=LOG_NONE, action="count",
 						help="increase verbosity (can be used multiple times)")
+	parser.add_argument('--log-level', dest="logLevel", default=LOG_NONE,
+						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+ 						help="Set log-level (0..9)")
 	parser.add_argument('--clean-destination', '-c', dest="cleanupFirst",
 						default=False, action='store_true',
 						help="clean destination database before writing")

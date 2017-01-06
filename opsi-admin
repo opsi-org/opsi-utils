@@ -141,7 +141,7 @@ def usage():
 	print((u"  -a, --address        " + _(u"URL of opsiconfd (default: https://localhost:4447/rpc)")).encode(outEncoding))
 	print((u"  -d, --direct         " + _(u"Do not use opsiconfd")).encode(outEncoding))
 	print((u"      --no-depot       " + _(u"Do not use depotserver backend")).encode(outEncoding))
-	print((u"  -l, --loglevel       " + _(u"Set log level (default: 3)")).encode(outEncoding))
+	print((u"  -l, --log-level      " + _(u"Set log level (default: 3)")).encode(outEncoding))
 	print((u"                       " + _(u"0=nothing, 1=essential, 2=critical, 3=error, 4=warning")).encode(outEncoding))
 	print((u"                       " + _(u"5=notice, 6=info, 7=debug, 8=debug2, 9=confidential")).encode(outEncoding))
 	print((u"  -f, --log-file       " + _(u"Path to log file")).encode(outEncoding))
@@ -176,10 +176,10 @@ def main(argv):
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV",
 			[
-				"username=", "password=", "address=", "loglevel=", "log-file=",
-				"interactive", "direct", "no-depot", "colorize",
-				"shell-output", "simple-output", "raw-output", "help",
-				"version", "exit-zero"
+				"username=", "password=", "address=", "loglevel=",
+				"log-level=", "log-file=", "interactive", "direct", "no-depot",
+				"colorize", "shell-output", "simple-output", "raw-output",
+				"help", "version", "exit-zero"
 			]
 		)
 	except getopt.GetoptError:
@@ -197,7 +197,7 @@ def main(argv):
 			username = forceUnicode(arg)
 		elif opt in ("-p", "--password"):
 			password = forceUnicode(arg)
-		elif opt in ("-l", "--loglevel"):
+		elif opt in ("-l", "--log-level", "--loglevel"):
 			logLevel = forceInt(arg)
 		elif opt in ("-f", "--log-file"):
 			global logFile
