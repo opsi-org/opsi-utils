@@ -135,8 +135,6 @@ def main(argv):
 	customGroup.add_argument('--custom-only', '-c', metavar='custom name',
 							dest="customOnly", default=False,
 							help="custom name (custom only)")
-	parser.add_argument('-C', dest="compatibilityMode", default=False,
-						action="store_true", help="compatibility mode (opsi 3)")
 	parser.add_argument('--temp-directory', '-t',
 						dest="tempDir", help="temp dir", default=u'/tmp',
 						metavar='directory')
@@ -230,7 +228,7 @@ def main(argv):
 	if not quiet:
 		print ""
 		print _(u"Locking package")
-	pcf = PackageControlFile(packageControlFilePath, opsi3compatible=compatibilityMode)
+	pcf = PackageControlFile(packageControlFilePath)
 
 	lockPackage(tempDir, pcf)
 	pps = None
