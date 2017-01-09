@@ -6,7 +6,7 @@ opsi-product-updater
 opsi-product-updater is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2013-2016 uib GmbH
+Copyright (C) 2013-2017 uib GmbH
 
 http://www.uib.de/
 
@@ -46,7 +46,7 @@ import time
 import urllib
 import urllib2
 
-from OPSI.Logger import LOG_INFO, LOG_ERROR, Logger
+from OPSI.Logger import LOG_ERROR, LOG_INFO, LOG_NOTICE, Logger
 from OPSI.Object import NetbootProduct, ProductOnClient
 from OPSI.Types import (forceBool, forceEmailAddress, forceFilename,
 	forceHostAddress, forceHostId, forceInt, forceProductId, forceUnicode,
@@ -1306,6 +1306,9 @@ def main():
 	args = parser.parse_args()
 
 	logger.setConsoleLevel(args.logLevel)
+	if args.mode == 'repo' and args.logLevel < LOG_NOTICE:
+		logger.setConsoleLevel(LOG_NOTICE)
+
 	config["configFile"] = args.configFile
 	config["installAllAvailable"] = args.mode == 'install'
 	if args.processProductIds:
