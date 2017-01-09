@@ -29,7 +29,6 @@ opsi-makeproductfile - create opsi-packages for deployment.
 import fcntl
 import gettext
 import os
-import re
 import struct
 import sys
 import termios
@@ -125,9 +124,6 @@ def main(argv):
 	parser.add_argument('--follow-symlinks', '-h',
 						dest="dereference", help="follow symlinks",
 						default=False, action='store_true')
-	parser.add_argument('-I', metavar='required version', dest="incremental",
-						help="incremental package",
-						default=0)
 	customGroup = parser.add_mutually_exclusive_group()
 	customGroup.add_argument('--custom-name', '-i', metavar='custom name',
 							dest="customName", default=u'',
@@ -183,7 +179,6 @@ def main(argv):
 	customOnly = bool(args.customOnly)
 	if customOnly:
 		customName = args.customOnly
-	requiredVersion = args.incremental
 	dereference = args.dereference
 	logLevel = args.logLevel
 	compression = args.compression
@@ -235,17 +230,6 @@ def main(argv):
 	try:
 		while True:
 			product = pcf.getProduct()
-			if requiredVersion:
-				match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
-				if not match:
-					raise ValueError(u"Bad version string '%s' in dependency" % requiredVersion)
-				packageDependency = {
-					'package': product.id,
-					'condition': match.group(1),
-					'version': match.group(2)
-				}
-				pcf.setPackageDependencies([packageDependency])
-				pcf.setIncrementalPackage(True)
 
 			if not quiet:
 				print u""
@@ -253,7 +237,6 @@ def main(argv):
 				print u"----------------------------------------------------------------------------"
 				print u"   %-20s : %s" % (u'version', product.packageVersion)
 				print u"   %-20s : %s" % (u'custom package name', customName)
-				print u"   %-20s : %s" % (u'incremental package', bool(requiredVersion))
 
 				dependencies = []
 				for dep in pcf.getPackageDependencies():
