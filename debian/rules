@@ -22,11 +22,15 @@ export DH_OPTIONS
 
 
 override_dh_install:
-	msgfmt -o debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_de.po
-	chmod 644 debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
-	msgfmt -o debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
-	chmod 644 debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
 	msgfmt -o debian/opsi-utils/usr/share/locale/da/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_da.po
 	chmod 644 debian/opsi-utils/usr/share/locale/da/LC_MESSAGES/opsi-utils.mo
+	msgfmt -o debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_de.po
+	chmod 644 debian/opsi-utils/usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
+	msgfmt -o debian/opsi-utils/usr/share/locale/es/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_es.po
+	chmod 644 debian/opsi-utils/usr/share/locale/es/LC_MESSAGES/opsi-utils.mo
+	msgfmt -o debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
+	chmod 644 debian/opsi-utils/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
+	msgfmt -o debian/opsi-utils/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_ru.po
+	chmod 644 debian/opsi-utils/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo
 
 	dh_install

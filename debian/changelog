@@ -31,6 +31,26 @@ opsi-utils (4.1.1.1-1) experimental; urgency=medium
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 29 Nov 2016 13:57:13 +0100
 
+opsi-utils (4.0.7.9-1) stable; urgency=medium
+
+  * opsi-makeproductfile: Do remove a possibly existing package file before
+    creating a new one to avoid problems with setting rights.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 09 Jan 2017 14:19:58 +0100
+
+opsi-utils (4.0.7.8-1) experimental; urgency=medium
+
+  * opsi-package-manager: new option --suppress-pcf-generation.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 02 Jan 2017 17:25:49 +0100
+
+opsi-utils (4.0.7.7-3) stable; urgency=medium
+
+  * Updated translations.
+  * Added new translations: ES, RU
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 08 Dec 2016 14:36:00 +0100
+
 opsi-utils (4.0.7.7-2) testing; urgency=medium
 
   * Updated translations for: DE, FR

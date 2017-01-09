@@ -76,7 +76,12 @@ If 'KBPS' is "0" there will be no limit.
 The default is "0".
 
 *--new-product-id* 'PRODUCT_ID'::
-Set a new product id when extracting opsi package.
+Set a new product id when extracting opsi package or set a specific
+product ID during installation.
+
+*--suppress-pcf-generation*::
+Suppress the generation of a package content file during package
+installation. Do not use with WAN extension!
 
 
 COMMANDS
@@ -121,5 +126,5 @@ See <http://www.opsi.org/> for more information.
 
 COPYING
 -------
-Copyright \(C) 2013-2015 uib GmbH.
+Copyright \(C) 2013-2017 uib GmbH.
 This software is released under the GNU General Public License version 2.
