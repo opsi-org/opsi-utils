@@ -1,3 +1,10 @@
+opsi-utils (4.0.7.9-1) stable; urgency=medium
+
+  * opsi-makeproductfile: Do remove a possibly existing package file before
+    creating a new one to avoid problems with setting rights.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 09 Jan 2017 14:19:58 +0100
+
 opsi-utils (4.0.7.8-1) experimental; urgency=medium
 
   * opsi-package-manager: new option --suppress-pcf-generation.
