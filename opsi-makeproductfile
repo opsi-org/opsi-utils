@@ -185,7 +185,6 @@ def main(argv):
 	quiet = args.quiet
 	tempDir = forceFilename(args.tempDir)
 	format = forceUnicode(args.format)
-	compatibilityMode = args.compatibilityMode
 	createMd5SumFile = args.createMd5SumFile
 	createZsyncFile = args.createZsyncFile
 	packageSourceDir = args.packageSourceDir
