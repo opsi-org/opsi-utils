@@ -101,8 +101,9 @@ if sys.version_info[:2] == (2, 6) and sys.version_info[2] >= 6:
 def listRepoConfigs(repoDir):
 	try:
 		for entry in os.listdir(repoDir):
-			if entry.endswith('.repo') and os.path.isfile(entry):
-				yield os.path.join(repoDir, entry)
+			filePath = os.path.join(repoDir, entry)
+			if entry.endswith('.repo') and os.path.isfile(filePath):
+				yield filePath
 	except OSError as oserr:
 		logger.warning("Problem listing {0}: {1}".format(repoDir, oserr))
 
