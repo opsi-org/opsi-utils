@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
 
+import argparse
 import email.utils
 import formatter
 import htmllib
@@ -58,11 +59,6 @@ from OPSI.Util.Task.Rights import setRights
 from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
-
-try:
-	import argparse
-except ImportError:
-	from OPSI.Util import argparse  # Only on Python 2.6...
 
 __version__ = '4.1.1.2'
 
