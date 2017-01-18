@@ -3,7 +3,7 @@
 
 # opsi-convert is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2007-2016 uib GmbH <info@uib.de>
+# Copyright (C) 2007-2017 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -26,6 +26,7 @@ opsi-convert converts opsi-backends.
 :license: GNU Affero General Public License version 3
 """
 
+import argparse
 import fcntl
 import getpass
 import os
@@ -42,12 +43,7 @@ from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Backend.Replicator import BackendReplicator
 
-try:
-	import argparse
-except ImportError:
-	from OPSI.Util import argparse
-
-__version__ = '4.0.7.6'
+__version__ = '4.1.1.1'
 
 logLevel = LOG_NONE
 logger = Logger()
