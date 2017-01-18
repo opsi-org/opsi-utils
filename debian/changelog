@@ -4,6 +4,7 @@ opsi-utils (4.1.1.2-1) UNRELEASED; urgency=medium
   * opsi-product-updater: new option --list-product-diffs to show differences
     in versions between repository and local depot.
   * opsi-makeproductfile: removed support for opsi 3 compatible packages.
+  * Removed support for python 2.6.
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 09 Jan 2017 15:07:34 +0100
 

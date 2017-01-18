@@ -26,6 +26,7 @@ opsi-makeproductfile - create opsi-packages for deployment.
 :license: GNU Affero General Public License version 3
 """
 
+import argparse
 import fcntl
 import gettext
 import os
@@ -44,11 +45,6 @@ from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ZsyncFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.Util import md5sum
-
-try:
-	import argparse
-except ImportError:
-	from OPSI.Util import argparse
 
 __version__ = '4.1.1.2'
 

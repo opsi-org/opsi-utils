@@ -6,7 +6,7 @@ opsi-backup
 opsi-backup is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010-2016 uib GmbH
+Copyright (C) 2010-2017 uib GmbH
 
 http://www.uib.de/
 
@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 @license: GNU General Public License version 2
 """
 
+import argparse
 import locale
 import os
 import sys
@@ -38,7 +39,6 @@ import sys
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO
 from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI.Util.Collections import DefaultList
-from OPSI.Util import argparse
 
 __version__ = "4.1.1.1"
 

@@ -4,7 +4,7 @@
 # opsi-newprod is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 
-# Copyright (C) 2010-2016 uib GmbH - http://www.uib.de/
+# Copyright (C) 2010-2017 uib GmbH - http://www.uib.de/
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -29,6 +29,7 @@ Creating opsi product source folders.
 
 from __future__ import print_function
 
+import argparse
 import codecs
 import gettext
 import os
@@ -47,12 +48,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-try:
-	import argparse
-except ImportError:
-	from OPSI.Util import argparse
-
-__version__ = '4.0.7.6'
+__version__ = '4.1.1.1'
 
 logger = Logger()
 
