@@ -1,12 +1,14 @@
-opsi-utils (4.1.1.2-1) UNRELEASED; urgency=medium
+opsi-utils (4.1.1.2-1) testing; urgency=medium
 
   * opsi-makeproductfile now supports long options.
   * opsi-product-updater: new option --list-product-diffs to show differences
     in versions between repository and local depot.
   * opsi-makeproductfile: removed support for opsi 3 compatible packages.
   * Removed support for python 2.6.
+  * opsi-product-updater: 'repo' mode commands will always show output.
+  * opsi-product-updater: Check for repo name is now case-insensitive.
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 09 Jan 2017 15:07:34 +0100
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 27 Jan 2017 14:58:33 +0100
 
 opsi-utils (4.1.1.1-2) experimental; urgency=medium
 
