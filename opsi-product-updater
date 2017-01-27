@@ -259,7 +259,7 @@ class OpsiPackageUpdater(object):
 		name = self.config.get("repositoryName", None)
 
 		for repo in self.config.get('repositories', []):
-			if name and repo.name.lower() != name.lower():
+			if name and repo.name.strip().lower() != name.strip().lower():
 				continue
 
 			yield repo
