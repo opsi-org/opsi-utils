@@ -38,7 +38,6 @@ import sys
 
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO
 from OPSI.Util.Task.Backup import OpsiBackup
-from OPSI.Util.Collections import DefaultList
 
 __version__ = "4.1.1.1"
 
@@ -116,7 +115,7 @@ def main():
 	parser_create.add_argument("destination", nargs="?")
 	parser_create.add_argument("--mode", nargs=1, choices=['raw', 'data'], default="raw")
 	parser_create.add_argument("--flush-logs", action="store_true", default=False)
-	parser_create.add_argument("--backends", action="append", default=DefaultList(["auto"]))
+	parser_create.add_argument("--backends", action="append")
 	parser_create.add_argument("--no-configuration", action="store_true", default=False)
 	parser_create.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz', 'bz2', 'none'])
 
@@ -151,6 +150,10 @@ def main():
 		else:
 			print("Verification failed")
 	elif args.command == 'create':
+		if not args.backends:
+			logger.debug("No backends given, assuming 'auto'")
+			args.backends = ['auto']
+
 		result = backup.create(
 			destination=args.destination, mode=args.mode,
 			backends=args.backends, noConfiguration=args.no_configuration,
