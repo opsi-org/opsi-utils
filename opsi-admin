@@ -155,6 +155,32 @@ def usage():
 	print((u"").encode(outEncoding))
 
 
+@contextmanager
+def workInTemporaryDirectory():
+	"Creates a temporary folder to work in. Deletes the folder afterwards."
+
+	@contextmanager
+	def cd(path):
+		'Change the current directory to `path` as long as the context exists.'
+
+		oldDir = os.getcwd()
+		os.chdir(path)
+		try:
+			yield
+		finally:
+			os.chdir(oldDir)
+
+	temporaryFolder = tempfile.mkdtemp()
+	with cd(temporaryFolder):
+		try:
+			yield temporaryFolder
+		finally:
+			try:
+				shutil.rmtree(temporaryFolder)
+			except OSError:
+				pass
+
+
 def main(argv):
 	os.umask(077)
 	global interactive
@@ -1618,6 +1644,11 @@ class CommandTask(Command):
 				raise ValueError("Can not use empty password!")
 			logger.addConfidentialString(password)
 
+			try:
+				oldPassword = backend.user_getCredentials(username='pcpatch')['password']
+			except KeyError:
+				oldPassword = None
+
 			backend.user_setCredentials(username='pcpatch', password=password)
 
 			try:
@@ -1635,11 +1666,41 @@ class CommandTask(Command):
 
 				if not dn:
 					raise RuntimeError(u"Failed to get DN for user pcpatch")
-				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null" \
-						% (univentionAdmin, dn, password)
-				os.system(cmd.encode(outEncoding))
 
-				return
+				with workInTemporaryDirectory() as tempDir:
+
+					if oldPassword:
+						pwFilePath = os.path.join(tempDir, 'pcpatch.secret')
+						with open(pwFilePath, 'w') as pwFile:
+							pwFile.write(oldPassword)
+
+						cmd = u"{udm} users/user modify --binddn '{dn}' --bindpwfile {pwfile} --dn {dn} --set password='{pw}' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null".format(
+							udm=univentionAdmin,
+							dn=dn,
+							pw=password,
+							pwfile=pwFilePath
+						)
+					else:
+						cmd = None
+
+					try:
+						if not cmd:
+							raise RuntimeError("Old credentials missing.")
+
+						logger.debug("Trying to set password through machine account.")
+						os.system(cmd.encode(outEncoding))
+					except Exception as err:
+						logger.debug("Setting the password with the credentials of pcpatch failed: {0}", err)
+
+						logger.debug("Trying to use machine account...")
+						cmd = u"{udm} users/user modify --dn {dn} --set password='{pw}' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null".format(
+							udm=univentionAdmin,
+							dn=dn,
+							pw=password
+						)
+						os.system(cmd.encode(outEncoding))
+
+				return  # UCS processing done.
 
 			try:
 				# smbldap
