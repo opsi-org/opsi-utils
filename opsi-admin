@@ -1625,8 +1625,7 @@ class CommandTask(Command):
 			except CommandNotFoundException:
 				univentionAdmin = None
 
-			if univentionAdmin:
-				# Univention
+			if univentionAdmin:  # We are running on Univention
 				dn = None
 				with closing(os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % univentionAdmin, 'r')) as process:
 					for line in process.readlines():
