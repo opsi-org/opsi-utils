@@ -3,7 +3,7 @@
 
 # opsi-admin is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2016 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2017 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -42,12 +42,13 @@ import subprocess
 import sys
 import time
 from contextlib import contextmanager
+from functools import closing
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Logger import (COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
 	COLOR_NORMAL, COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
 	LOG_NONE, LOG_ERROR, Logger)
-from OPSI.System import which
+from OPSI.System import which, CommandNotFoundException
 from OPSI.Types import OpsiRpcError
 from OPSI.Types import (forceBool, forceFilename, forceInt, forceUnicode,
 	forceUnicodeLower)
@@ -1620,34 +1621,41 @@ class CommandTask(Command):
 			backend.user_setCredentials(username='pcpatch', password=password)
 
 			try:
+				univentionAdmin = which('univention-admin')
+			except CommandNotFoundException:
+				univentionAdmin = None
+
+			if univentionAdmin:
 				# Univention
 				dn = None
-				process = os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % which('univention-admin'), 'r')
-				for line in process.readlines():
-					if line.startswith('DN'):
-						dn = line.strip().split(' ')[1]
-						break
-				process.close()
+				with closing(os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % univentionAdmin, 'r')) as process:
+					for line in process.readlines():
+						if line.startswith('DN'):
+							dn = line.strip().split(' ')[1]
+							break
+
 				if not dn:
 					raise RuntimeError(u"Failed to get DN for user pcpatch")
 				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null" \
-						% (which('univention-admin'), dn, password)
+						% (univentionAdmin, dn, password)
 				os.system(cmd.encode(outEncoding))
-			except Exception:
-				try:
-					# smbldap
-					process = os.popen(u'%s pcpatch 1>/dev/null 2>/dev/null' % which('smbldap-passwd'), 'w')
-					process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
-					process.close()
-				except Exception:
-					# unix
-					process = os.popen(u'%s 1>/dev/null 2>/dev/null' % which(u'chpasswd'), 'w')
-					process.write((u"pcpatch:%s\n" % password).encode(outEncoding))
-					process.close()
 
-					process = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
-					process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
-					process.close()
+				return
+
+			try:
+				# smbldap
+				process = os.popen(u'%s pcpatch 1>/dev/null 2>/dev/null' % which('smbldap-passwd'), 'w')
+				process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
+				process.close()
+			except Exception:
+				# unix
+				process = os.popen(u'%s 1>/dev/null 2>/dev/null' % which(u'chpasswd'), 'w')
+				process.write((u"pcpatch:%s\n" % password).encode(outEncoding))
+				process.close()
+
+				process = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
+				process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
+				process.close()
 
 if __name__ == "__main__":
 	@contextmanager
