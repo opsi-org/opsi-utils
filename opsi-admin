@@ -41,8 +41,8 @@ import select
 import subprocess
 import sys
 import time
+from contextlib import closing
 from contextlib import contextmanager
-from functools import closing
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Logger import (COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
