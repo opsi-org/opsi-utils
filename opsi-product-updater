@@ -1027,6 +1027,10 @@ class OpsiPackageUpdater(object):
 					if not link.endswith('.opsi'):
 						continue
 
+					if link.startswith('/'):
+						#Fix for IIS repos
+						link = link[1:]
+
 					excluded = False
 					included = True
 
