@@ -1649,6 +1649,9 @@ class CommandTask(Command):
 			except KeyError:
 				oldPassword = None
 
+			if oldPassword:
+				logger.addConfidentialString(oldPassword)
+
 			backend.user_setCredentials(username='pcpatch', password=password)
 
 			try:
