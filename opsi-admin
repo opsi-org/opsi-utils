@@ -48,7 +48,7 @@ from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Logger import (COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
 	COLOR_NORMAL, COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
 	LOG_NONE, LOG_ERROR, Logger)
-from OPSI.System import which, CommandNotFoundException
+from OPSI.System import which
 from OPSI.Types import OpsiRpcError, BackendMissingDataError
 from OPSI.Types import (forceBool, forceFilename, forceInt, forceUnicode,
 	forceUnicodeLower)
@@ -1653,7 +1653,9 @@ class CommandTask(Command):
 						"pcpatch <password>'."
 					)
 
-				with closing(os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % univentionAdmin, 'r')) as process:
+				univentionAdmin = which('univention-admin')
+
+				with closing(os.popen(u'{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=univentionAdmin), 'r')) as process:
 					for line in process.readlines():
 						if line.startswith('DN'):
 							dn = line.strip().split(' ')[1]
@@ -1666,34 +1668,36 @@ class CommandTask(Command):
 
 				try:
 					if UMCClient is not None:  # UCS 4.2
-						client = Client()
-						client.authenticate(username, oldPassword)
+						client = UMCClient()
+						client.authenticate('pcpatch', oldPassword)
 						client.umc_set(
-							{'password': {
-								'password': oldPassword,
-								'new_password': password}
+							{
+								'password': {
+									'password': oldPassword,
+									'new_password': password
+								}
 							}
 						)
-					elif UMCConnection and ucr: # UCS 4.1 and older
+					elif UMCConnection and ucr:  # UCS 4.1 and older
 						client = UMCConnection(ucr.get('ldap/master'))
 						client.auth('pcpatch', oldPassword)
-						client.request('',
-							{'password': {
-								'password': oldPassword,
-								'new_password': password}
+						client.request(
+							'',
+							{
+								'password': {
+									'password': oldPassword,
+									'new_password': password
+								}
 							},
-						    command='set'
-					    )
+							command='set'
+						)
 					else:
 						raise RuntimeError(
 							"Invalid import setup encountered! "
 							"Maybe unsupported UCS version."
 						)
-
 				except Exception as err:
 					logger.debug("Setting the password with the credentials of pcpatch failed: {0}", err)
-
-					univentionAdmin = which('univention-admin')
 
 					logger.debug("Trying to use machine account...")
 					cmd = u"{udm} users/user modify --dn {dn} --set password='{pw}' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null".format(
