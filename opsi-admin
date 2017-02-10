@@ -1655,7 +1655,7 @@ class CommandTask(Command):
 
 				univentionAdmin = which('univention-admin')
 
-				with closing(os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % univentionAdmin, 'r')) as process:
+				with closing(os.popen(u'{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=univentionAdmin), 'r')) as process:
 					for line in process.readlines():
 						if line.startswith('DN'):
 							dn = line.strip().split(' ')[1]
