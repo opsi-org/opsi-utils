@@ -49,11 +49,27 @@ from OPSI.Logger import (COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
 	COLOR_NORMAL, COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
 	LOG_NONE, LOG_ERROR, Logger)
 from OPSI.System import which, CommandNotFoundException
-from OPSI.Types import OpsiRpcError
+from OPSI.Types import OpsiRpcError, BackendMissingDataError
 from OPSI.Types import (forceBool, forceFilename, forceInt, forceUnicode,
 	forceUnicodeLower)
 from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 	objectToBeautifiedText, objectToBash, serialize, toJson)
+
+try:
+	# UCS 4.2
+	from univention.lib.umc import Client as UMCClient
+	RUNNING_ON_UCS = True
+	UMCConnection = None
+	ucr = None
+except ImportError:
+	try:
+		# UCS 4.1
+		from univention.lib.umc_connection import UMCConnection
+		from univention.management.console.config import ucr
+		UMCClient = None
+		RUNNING_ON_UCS = True
+	except ImportError:
+		RUNNING_ON_UCS = False
 
 import curses
 
@@ -153,32 +169,6 @@ def usage():
 	print((u"  -r, --raw-output     " + _(u"Raw output")).encode(outEncoding))
 	print((u"  --exit-zero          " + _(u"Always exit with exit code 0.")).encode(outEncoding))
 	print((u"").encode(outEncoding))
-
-
-@contextmanager
-def workInTemporaryDirectory():
-	"Creates a temporary folder to work in. Deletes the folder afterwards."
-
-	@contextmanager
-	def cd(path):
-		'Change the current directory to `path` as long as the context exists.'
-
-		oldDir = os.getcwd()
-		os.chdir(path)
-		try:
-			yield
-		finally:
-			os.chdir(oldDir)
-
-	temporaryFolder = tempfile.mkdtemp()
-	with cd(temporaryFolder):
-		try:
-			yield temporaryFolder
-		finally:
-			try:
-				shutil.rmtree(temporaryFolder)
-			except OSError:
-				pass
 
 
 def main(argv):
@@ -1649,56 +1639,69 @@ class CommandTask(Command):
 			except KeyError:
 				oldPassword = None
 
+			if oldPassword:
+				logger.addConfidentialString(oldPassword)
+
 			backend.user_setCredentials(username='pcpatch', password=password)
 
-			try:
-				univentionAdmin = which('univention-admin')
-			except CommandNotFoundException:
-				univentionAdmin = None
+			if RUNNING_ON_UCS:
+				if not oldPassword:
+					raise BackendMissingDataError(
+						"Old password missing! "
+						"Please set the current password first with "
+						"'opsi-admin -d method user_setCredentials "
+						"pcpatch <password>'."
+					)
 
-			if univentionAdmin:  # We are running on Univention
-				dn = None
 				with closing(os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % univentionAdmin, 'r')) as process:
 					for line in process.readlines():
 						if line.startswith('DN'):
 							dn = line.strip().split(' ')[1]
 							break
+					else:
+						dn = None
 
 				if not dn:
 					raise RuntimeError(u"Failed to get DN for user pcpatch")
 
-				with workInTemporaryDirectory() as tempDir:
-
-					if oldPassword:
-						pwFilePath = os.path.join(tempDir, 'pcpatch.secret')
-						with open(pwFilePath, 'w') as pwFile:
-							pwFile.write(oldPassword)
-
-						cmd = u"{udm} users/user modify --binddn '{dn}' --bindpwfile {pwfile} --dn {dn} --set password='{pw}' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null".format(
-							udm=univentionAdmin,
-							dn=dn,
-							pw=password,
-							pwfile=pwFilePath
+				try:
+					if UMCClient is not None:  # UCS 4.2
+						client = Client()
+						client.authenticate(username, oldPassword)
+						client.umc_set(
+							{'password': {
+								'password': oldPassword,
+								'new_password': password}
+							}
 						)
+					elif UMCConnection and ucr: # UCS 4.1 and older
+						client = UMCConnection(ucr.get('ldap/master'))
+						client.auth('pcpatch', oldPassword)
+						client.request('',
+							{'password': {
+								'password': oldPassword,
+								'new_password': password}
+							},
+						    command='set'
+					    )
 					else:
-						cmd = None
-
-					try:
-						if not cmd:
-							raise RuntimeError("Old credentials missing.")
-
-						logger.debug("Trying to set password through machine account.")
-						os.system(cmd.encode(outEncoding))
-					except Exception as err:
-						logger.debug("Setting the password with the credentials of pcpatch failed: {0}", err)
-
-						logger.debug("Trying to use machine account...")
-						cmd = u"{udm} users/user modify --dn {dn} --set password='{pw}' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null".format(
-							udm=univentionAdmin,
-							dn=dn,
-							pw=password
+						raise RuntimeError(
+							"Invalid import setup encountered! "
+							"Maybe unsupported UCS version."
 						)
-						os.system(cmd.encode(outEncoding))
+
+				except Exception as err:
+					logger.debug("Setting the password with the credentials of pcpatch failed: {0}", err)
+
+					univentionAdmin = which('univention-admin')
+
+					logger.debug("Trying to use machine account...")
+					cmd = u"{udm} users/user modify --dn {dn} --set password='{pw}' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null".format(
+						udm=univentionAdmin,
+						dn=dn,
+						pw=password
+					)
+					os.system(cmd.encode(outEncoding))
 
 				return  # UCS processing done.
 
