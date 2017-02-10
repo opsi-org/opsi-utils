@@ -1,6 +1,6 @@
 opsi-utils (4.0.7.10-1) experimental; urgency=medium
 
-  * opsi-admin: setting the pcpatch password on UCS triest to change
+  * opsi-admin: setting the pcpatch password on UCS tries to change
     the password using the old credentials of the user first to allow
     better working with member role.
 
