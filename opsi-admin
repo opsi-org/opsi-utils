@@ -171,32 +171,6 @@ def usage():
 	print((u"").encode(outEncoding))
 
 
-@contextmanager
-def workInTemporaryDirectory():
-	"Creates a temporary folder to work in. Deletes the folder afterwards."
-
-	@contextmanager
-	def cd(path):
-		'Change the current directory to `path` as long as the context exists.'
-
-		oldDir = os.getcwd()
-		os.chdir(path)
-		try:
-			yield
-		finally:
-			os.chdir(oldDir)
-
-	temporaryFolder = tempfile.mkdtemp()
-	with cd(temporaryFolder):
-		try:
-			yield temporaryFolder
-		finally:
-			try:
-				shutil.rmtree(temporaryFolder)
-			except OSError:
-				pass
-
-
 def main(argv):
 	os.umask(077)
 	global interactive
