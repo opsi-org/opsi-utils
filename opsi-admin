@@ -1666,30 +1666,34 @@ class CommandTask(Command):
 
 				try:
 					if UMCClient is not None:  # UCS 4.2
-						client = Client()
-						client.authenticate(username, oldPassword)
+						client = UMCClient()
+						client.authenticate('pcpatch', oldPassword)
 						client.umc_set(
-							{'password': {
-								'password': oldPassword,
-								'new_password': password}
+							{
+								'password': {
+									'password': oldPassword,
+									'new_password': password
+								}
 							}
 						)
-					elif UMCConnection and ucr: # UCS 4.1 and older
+					elif UMCConnection and ucr:  # UCS 4.1 and older
 						client = UMCConnection(ucr.get('ldap/master'))
 						client.auth('pcpatch', oldPassword)
-						client.request('',
-							{'password': {
-								'password': oldPassword,
-								'new_password': password}
+						client.request(
+							'',
+							{
+								'password': {
+									'password': oldPassword,
+									'new_password': password
+								}
 							},
-						    command='set'
-					    )
+							command='set'
+						)
 					else:
 						raise RuntimeError(
 							"Invalid import setup encountered! "
 							"Maybe unsupported UCS version."
 						)
-
 				except Exception as err:
 					logger.debug("Setting the password with the credentials of pcpatch failed: {0}", err)
 
