@@ -73,7 +73,7 @@ except ImportError:
 
 import curses
 
-__version__ = '4.0.7.6'
+__version__ = '4.0.7.12'
 
 backend = None
 exitZero = False
@@ -1636,7 +1636,7 @@ class CommandTask(Command):
 
 			try:
 				oldPassword = backend.user_getCredentials(username='pcpatch')['password']
-			except KeyError:
+			except (KeyError, BackendMissingDataError):
 				oldPassword = None
 
 			if oldPassword:
