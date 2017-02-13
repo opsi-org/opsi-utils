@@ -1636,7 +1636,7 @@ class CommandTask(Command):
 
 			try:
 				oldPassword = backend.user_getCredentials(username='pcpatch')['password']
-			except KeyError:
+			except (KeyError, BackendMissingDataError):
 				oldPassword = None
 
 			if oldPassword:
