@@ -52,6 +52,7 @@ from OPSI.System import which
 from OPSI.Types import OpsiRpcError, BackendMissingDataError
 from OPSI.Types import (forceBool, forceFilename, forceInt, forceUnicode,
 	forceUnicodeLower)
+from OPSI.Util import BlowfishError
 from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 
@@ -73,7 +74,7 @@ except ImportError:
 
 import curses
 
-__version__ = '4.0.7.12'
+__version__ = '4.0.7.14'
 
 backend = None
 exitZero = False
@@ -1634,15 +1635,14 @@ class CommandTask(Command):
 				raise ValueError("Can not use empty password!")
 			logger.addConfidentialString(password)
 
-			if RUNNING_ON_UCS:
-				# We need the old password before replacing it
-				try:
-					oldPassword = backend.user_getCredentials(username='pcpatch')['password']
-				except (KeyError, BackendMissingDataError):
-					oldPassword = None
+			# We need the old password before replacing it
+			try:
+				oldPassword = backend.user_getCredentials(username='pcpatch')['password']
+			except (BlowfishError, BackendMissingDataError, KeyError):
+				oldPassword = None
 
-				if oldPassword:
-					logger.addConfidentialString(oldPassword)
+			if oldPassword:
+				logger.addConfidentialString(oldPassword)
 
 			backend.user_setCredentials(username='pcpatch', password=password)
 
