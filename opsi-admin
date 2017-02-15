@@ -1634,13 +1634,15 @@ class CommandTask(Command):
 				raise ValueError("Can not use empty password!")
 			logger.addConfidentialString(password)
 
-			try:
-				oldPassword = backend.user_getCredentials(username='pcpatch')['password']
-			except (KeyError, BackendMissingDataError):
-				oldPassword = None
+			if RUNNING_ON_UCS:
+				# We need the old password before replacing it
+				try:
+					oldPassword = backend.user_getCredentials(username='pcpatch')['password']
+				except (KeyError, BackendMissingDataError):
+					oldPassword = None
 
-			if oldPassword:
-				logger.addConfidentialString(oldPassword)
+				if oldPassword:
+					logger.addConfidentialString(oldPassword)
 
 			backend.user_setCredentials(username='pcpatch', password=password)
 
