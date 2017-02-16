@@ -1,3 +1,9 @@
+opsi-utils (4.0.7.14-1) stable; urgency=medium
+
+  * opsi-admin: Avoid breakage on UCS if no old password is set.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 16 Feb 2017 15:47:00 +0100
+
 opsi-utils (4.0.7.13-1) stable; urgency=medium
 
   * opsi-admin: Reading the old password is only done on UCS.
