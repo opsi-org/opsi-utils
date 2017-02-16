@@ -1647,14 +1647,6 @@ class CommandTask(Command):
 			backend.user_setCredentials(username='pcpatch', password=password)
 
 			if RUNNING_ON_UCS:
-				if not oldPassword:
-					raise BackendMissingDataError(
-						"Old password missing! "
-						"Please set the current password first with "
-						"'opsi-admin -d method user_setCredentials "
-						"pcpatch <password>'."
-					)
-
 				univentionAdmin = which('univention-admin')
 
 				with closing(os.popen(u'{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=univentionAdmin), 'r')) as process:
@@ -1669,6 +1661,23 @@ class CommandTask(Command):
 					raise RuntimeError(u"Failed to get DN for user pcpatch")
 
 				try:
+					if not oldPassword:
+						# This may happen during the first run when we are
+						# initializinig for the first time. Therefore we
+						# must not exit here but instead use udm for
+						# setting the password.
+						logger.notice("Old password missing! Unable to change password.")
+						logger.notice(
+							"If this message persists please set the "
+							"password manually with: "
+							"'opsi-admin -d method user_setCredentials "
+							"pcpatch <password>'."
+						)
+						raise RuntimeError("Missing old password.")
+
+					# Since we have an old password set we want to
+					# change the password of pcpatch by authenticating
+					# as it and then simply change our password.
 					if UMCClient is not None:  # UCS 4.2
 						client = UMCClient()
 						client.authenticate('pcpatch', oldPassword)
