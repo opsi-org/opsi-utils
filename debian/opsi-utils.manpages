@@ -1,7 +1,7 @@
-doc/compiled/opsi-admin.1.gz
-doc/compiled/opsi-backup.1.gz
-doc/compiled/opsi-convert.1.gz
-doc/compiled/opsi-makeproductfile.1.gz
-doc/compiled/opsi-newprod.1.gz
-doc/compiled/opsi-package-manager.1.gz
-doc/compiled/opsi-product-updater.1.gz
+manpages/compiled/opsi-admin.1.gz
+manpages/compiled/opsi-backup.1.gz
+manpages/compiled/opsi-convert.1.gz
+manpages/compiled/opsi-makeproductfile.1.gz
+manpages/compiled/opsi-newprod.1.gz
+manpages/compiled/opsi-package-manager.1.gz
+manpages/compiled/opsi-product-updater.1.gz
