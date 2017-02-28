@@ -1,3 +1,9 @@
+opsi-utils (4.0.7.14-3) stable; urgency=medium
+
+  * Change folder for manpages in packaging script.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 28 Feb 2017 17:59:20 +0100
+
 opsi-utils (4.0.7.14-2) stable; urgency=medium
 
   * Debian-based systems: Fix distribution of manpages.
