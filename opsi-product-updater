@@ -1282,7 +1282,7 @@ def main():
 							help='Lists the repositories and the products they provide.')
 	repoparser.add_argument('--list-product-diffs',
 							action="store_true", dest="listProductDiffs",
-							help='Lists the repositories, the products they provide and information about the installation status.')
+							help='Lists the repositories, the products they provide and information about the local installation status.')
 
 	# Setting a default to not stumble over possibly not present args.
 	repoparser.set_defaults(processProductIds=[])
