@@ -581,7 +581,8 @@ class OpsiPackageUpdater(object):
 			try:
 				installedProducts = self.getInstalledProducts()
 				localPackages = self.getLocalPackages()
-				downloadablePackages = self.onlyNewestPackages(self.getDownloadablePackages())
+				downloadablePackages = self.getDownloadablePackages()
+				downloadablePackages = self.onlyNewestPackages(downloadablePackages)
 				if self.config["processProductIds"]:
 					# Checking if given productIds are available and
 					# process only these products
@@ -873,6 +874,9 @@ class OpsiPackageUpdater(object):
 		finally:
 			if notifier and notifier.hasMessage():
 				notifier.notify()
+
+	def listUpgradeableProducts(self):
+		raise NotImplementedError("Still work in progress.")
 
 	def zsyncPackage(self, availablePackage, notifier=None):
 		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
@@ -1289,6 +1293,9 @@ def main():
 	repoparser.add_argument('--list-product-and-installationstatus',
 							action="store_true", dest="listProductsWithInstallationStatus",
 							help='Lists the repositories, the products they provide and information about the local installation status.')
+	repoparser.add_argument('--list-upgradeable',
+							action="store_true", dest="listUpgradeableProducts",
+							help='Lists the repositories and the updates to installed products they provide.')
 
 	# Setting a default to not stumble over possibly not present args.
 	repoparser.set_defaults(processProductIds=[])
@@ -1337,6 +1344,8 @@ def main():
 				opu.listProductsInRepositories()
 			elif args.listProductsWithInstallationStatus:
 				opu.listProductsInRepositories(withLocalInstallationStatus=True)
+			elif args.listUpgradeableProducts:
+				opu.listUpgradeableProducts()
 
 
 if __name__ == "__main__":
