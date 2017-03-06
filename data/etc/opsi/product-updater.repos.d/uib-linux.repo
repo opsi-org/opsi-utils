@@ -2,7 +2,7 @@
 ; clients with opsi.
 
 [repository_uib_linux]
-name = opsi Linux Support
+description = opsi Linux Support
 active = true
 baseUrl = http://download.uib.de
 dirs = opsi4.0/products/opsi-linux
