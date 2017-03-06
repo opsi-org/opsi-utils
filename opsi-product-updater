@@ -519,15 +519,15 @@ class OpsiPackageUpdater(object):
 
 			logger.notice("{name}: {url} {description}", name=repository.name, url=repository.baseUrl, description=descr)
 
-	def listProductsInRepositories(self, withDiff=False):
+	def listProductsInRepositories(self, withLocalInstallationStatus=False):
 		"""
 		Lists the products available at the actives repositories.
 
-		If `withDiff` is `True` it will also compare the version on the
+		If `withLocalInstallationStatus` is `True` it will also compare the version on the
 		repository to the one locally installed and show if there is a
 		difference.
 		"""
-		if withDiff:
+		if withLocalInstallationStatus:
 			localProducts = self.getInstalledProducts()
 			localProducts = {product['productId']: product for product in localProducts}
 
@@ -538,7 +538,7 @@ class OpsiPackageUpdater(object):
 				key=operator.itemgetter('productId')
 			)
 			for package in packages:
-				if withDiff:
+				if withLocalInstallationStatus:
 					try:
 						localProduct = localProducts[package['productId']]
 					except KeyError as kerr:
@@ -1285,9 +1285,9 @@ def main():
 	repoparser.add_argument('--list-products',
 							action="store_true", dest="listAvailableProducts",
 							help='Lists the repositories and the products they provide.')
-	repoparser.add_argument('--list-product-diffs',
-							action="store_true", dest="listProductDiffs",
-							help='Lists the repositories, the products they provide and information about the installation status.')
+	repoparser.add_argument('--list-product-and-installationstatus',
+							action="store_true", dest="listProductsWithInstallationStatus",
+							help='Lists the repositories, the products they provide and information about the local installation status.')
 
 	# Setting a default to not stumble over possibly not present args.
 	repoparser.set_defaults(processProductIds=[])
@@ -1334,8 +1334,8 @@ def main():
 				opu.listActiveRepos()
 			elif args.listAvailableProducts:
 				opu.listProductsInRepositories()
-			elif args.listProductDiffs:
-				opu.listProductsInRepositories(withDiff=True)
+			elif args.listProductsWithInstallationStatus:
+				opu.listProductsInRepositories(withLocalInstallationStatus=True)
 
 
 if __name__ == "__main__":
