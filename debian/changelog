@@ -1,3 +1,21 @@
+opsi-utils (4.1.1.4-1) testing; urgency=medium
+
+  * opsi-backup: removed unsupported parameter --mode.
+  * opsi-product-updater: repositories will be identified by the name of the
+    section minus the preceding 'repository_'.
+  * opsi-product-updater: If a repository-section defines an attribut
+    'description' this will be shown when listing repositories.
+  * opsi-product-updater: renamed repo parameter --list-product-diffs
+    to --list-product-and-installationstatus.
+  * opsi-product-updater: to limit the actions 'update' and 'install' to
+    specific products the option '--product-ids' must not be given anymore.
+    Just specify the IDs of the product, ie:
+    opsi-product-updater install opsi-winst opsi-client-agent
+  * The applications now all acceppt --log-level to have an constant way of
+    defining the desired log level.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 06 Mar 2017 15:47:19 +0100
+
 opsi-utils (4.1.1.3-1) testing; urgency=medium
 
   * opsi-backup: Work without removed OPSI.Util.Collections.

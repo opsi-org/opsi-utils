@@ -60,7 +60,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.1.1.2'
+__version__ = '4.1.1.4'
 
 logger = Logger()
 
@@ -113,6 +113,7 @@ class ProductRepositoryInfo(object):
 		self.opsiDepotId = opsiDepotId
 		self.onlyDownload = None
 		self.inheritProductProperties = None
+		self.description = ''
 
 		self.proxy = None
 		if proxy:
@@ -479,8 +480,8 @@ class OpsiPackageUpdater(object):
 				repository.includes = []
 				for include in splitAndStrip(value, ','):
 					repository.includes.append(re.compile(include))
-			elif option.lower() == 'name':
-				repository.name = forceUnicode(value)
+			elif option.lower() == 'description':
+				repository.description = forceUnicode(value)
 
 		if self.config.get('installAllAvailable'):
 			repository.autoInstall = True
@@ -512,17 +513,21 @@ class OpsiPackageUpdater(object):
 	def listActiveRepos(self):
 		logger.notice("Active repositories:")
 		for repository in self.getActiveRepositories():
-			logger.notice("{name}: {url}", name=repository.name, url=repository.baseUrl)
+			descr = ''
+			if repository.description:
+				descr = "- {description}".format(description=repository.description)
 
-	def listProductsInRepositories(self, withDiff=False):
+			logger.notice("{name}: {url} {description}", name=repository.name, url=repository.baseUrl, description=descr)
+
+	def listProductsInRepositories(self, withLocalInstallationStatus=False):
 		"""
 		Lists the products available at the actives repositories.
 
-		If `withDiff` is `True` it will also compare the version on the
+		If `withLocalInstallationStatus` is `True` it will also compare the version on the
 		repository to the one locally installed and show if there is a
 		difference.
 		"""
-		if withDiff:
+		if withLocalInstallationStatus:
 			localProducts = self.getInstalledProducts()
 			localProducts = {product['productId']: product for product in localProducts}
 
@@ -533,7 +538,7 @@ class OpsiPackageUpdater(object):
 				key=operator.itemgetter('productId')
 			)
 			for package in packages:
-				if withDiff:
+				if withLocalInstallationStatus:
 					try:
 						localProduct = localProducts[package['productId']]
 					except KeyError as kerr:
@@ -1266,23 +1271,23 @@ def main():
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
 	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
-	installparser.add_argument('--product-ids', '-p', nargs='+',
-								dest="processProductIds", metavar="productID",
-								help="ProductIds that will be processed.")
+	installparser.add_argument('processProductIds', nargs='*',
+								metavar="productID",
+								help="Limit installation to products with the given IDs.")
 
 	updateparser = modeparsers.add_parser('update', help='Update existing packages from repositories.')
-	updateparser.add_argument('--product-ids', '-p', nargs='+',
-								dest="processProductIds", metavar="productID",
-								help="ProductIds that will be processed.")
+	updateparser.add_argument('processProductIds', nargs='*',
+								metavar="productID",
+								help="Limit updates to products with the given IDs.")
 
 	repoparser = modeparsers.add_parser('repo', help='Repository management.')
 	repoparser.add_argument('--list-active', dest="listActiveRepos", action="store_true", help='Lists all active repositories')
 	repoparser.add_argument('--list-products',
 							action="store_true", dest="listAvailableProducts",
 							help='Lists the repositories and the products they provide.')
-	repoparser.add_argument('--list-product-diffs',
-							action="store_true", dest="listProductDiffs",
-							help='Lists the repositories, the products they provide and information about the installation status.')
+	repoparser.add_argument('--list-product-and-installationstatus',
+							action="store_true", dest="listProductsWithInstallationStatus",
+							help='Lists the repositories, the products they provide and information about the local installation status.')
 
 	# Setting a default to not stumble over possibly not present args.
 	repoparser.set_defaults(processProductIds=[])
@@ -1329,8 +1334,8 @@ def main():
 				opu.listActiveRepos()
 			elif args.listAvailableProducts:
 				opu.listProductsInRepositories()
-			elif args.listProductDiffs:
-				opu.listProductsInRepositories(withDiff=True)
+			elif args.listProductsWithInstallationStatus:
+				opu.listProductsInRepositories(withLocalInstallationStatus=True)
 
 
 if __name__ == "__main__":

@@ -36,10 +36,10 @@ import locale
 import os
 import sys
 
-from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO
+from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 
-__version__ = "4.1.1.3"
+__version__ = "4.1.1.4"
 
 logger = Logger()
 
@@ -61,7 +61,6 @@ Commands:
    verify     <backup-archive>         Verify integrity of <backup-archive>.
 
    restore    <backup-archive>         Restore data from <backup-archive>.
-      --mode        {raw|data}         Select a mode that should be used for restoration (default: raw).
       --backends    <backend>          Select a backend to restore or 'all' for all backends.
                                           Can be given multiple times.
       --configuration                  Restore opsi configuration.
@@ -73,7 +72,6 @@ Commands:
                                           directory, the backup archive will be created in that directory.
                                           If [destination] does not exist or is a file, [destination]
                                           will be used as backup archive destination file.
-      --mode        {raw|data}         Select a mode that should be used for creation (default: raw).
       --flush-logs                        Causes mysql to flush table logs to disk before the backup (recommended).
       --backends    <backend>          Select a backend to create a backup for. Use 'auto' for automatic detection
                                           of used backends or 'all' for all backends.
@@ -96,7 +94,8 @@ def main():
 	parser = argparse.ArgumentParser(prog="opsi-backup", add_help=False, usage=USAGE, formatter_class=HelpFormatter)
 	parser.add_argument("-h", "--help", action="help")
 	parser.add_argument("-v", "--verbose", action="store_true", default=False)
-	parser.add_argument("-l", "--log-level", action="store", default=5, type=int)
+	parser.add_argument("-l", "--log-level", default=LOG_NOTICE,
+                        choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 	parser.add_argument("--log-file", metavar='FILE', default="/var/log/opsi/opsi-backup.log")
 
 	subs = parser.add_subparsers(title="commands", dest="command")
@@ -106,14 +105,12 @@ def main():
 
 	parser_restore = subs.add_parser("restore")
 	parser_restore.add_argument("file", nargs=1)
-	parser_restore.add_argument("--mode", nargs=1, choices=['raw', 'data'], default="raw")
 	parser_restore.add_argument("--backends", action="append")
 	parser_restore.add_argument("--configuration", action="store_true", default=False)
 	parser_restore.add_argument("-f", "--force", action="store_true", default=False)
 
 	parser_create = subs.add_parser("create")
 	parser_create.add_argument("destination", nargs="?")
-	parser_create.add_argument("--mode", nargs=1, choices=['raw', 'data'], default="raw")
 	parser_create.add_argument("--flush-logs", action="store_true", default=False)
 	parser_create.add_argument("--backends", action="append")
 	parser_create.add_argument("--no-configuration", action="store_true", default=False)
@@ -140,7 +137,7 @@ def main():
 			logger.warning("No backend given!")
 
 		result = backup.restore(
-			file=args.file, mode=args.mode, backends=args.backends,
+			file=args.file, backends=args.backends,
 			configuration=args.configuration, force=args.force
 		)
 	elif args.command == 'verify':
@@ -155,7 +152,7 @@ def main():
 			args.backends = ['auto']
 
 		result = backup.create(
-			destination=args.destination, mode=args.mode,
+			destination=args.destination,
 			backends=args.backends, noConfiguration=args.no_configuration,
 			compression=args.compression, flushLogs=args.flush_logs
 		)
