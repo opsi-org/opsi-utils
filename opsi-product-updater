@@ -513,7 +513,11 @@ class OpsiPackageUpdater(object):
 	def listActiveRepos(self):
 		logger.notice("Active repositories:")
 		for repository in self.getActiveRepositories():
-			logger.notice("{name}: {url}", name=repository.name, url=repository.baseUrl)
+			descr = ''
+			if repository.description:
+				descr = "- {description}".format(description=repository.description)
+
+			logger.notice("{name}: {url} {description}", name=repository.name, url=repository.baseUrl, description=descr)
 
 	def listProductsInRepositories(self, withDiff=False):
 		"""
