@@ -557,7 +557,7 @@ class OpsiPackageUpdater(object):
 	def processUpdates(self):
 		notifier = None
 		if self.config["notification"]:
-			logger.notice(u"Notification is activated")
+			logger.info(u"Notification is activated")
 			notifier = EmailNotifier(
 				smtphost=self.config["smtphost"],
 				smtpport=self.config["smtpport"],
@@ -648,13 +648,13 @@ class OpsiPackageUpdater(object):
 									downloadNeeded = False
 									break
 					if not downloadNeeded:
-						logger.notice(u"%s - download of package is not required: found local package %s with matching md5sum" \
+						logger.info(u"%s - download of package is not required: found local package %s with matching md5sum" \
 									% (availablePackage["filename"], localPackageFound['filename']))
 					elif localPackageFound:
-						logger.notice(u"%s - download of package is required: found local package %s which differs from available" \
+						logger.info(u"%s - download of package is required: found local package %s which differs from available" \
 									% (availablePackage["filename"], localPackageFound['filename']))
 					else:
-						logger.notice(u"%s - download of package is required: local package not found" % availablePackage["filename"])
+						logger.info(u"%s - download of package is required: local package not found" % availablePackage["filename"])
 
 					packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 					zsynced = False
@@ -710,7 +710,7 @@ class OpsiPackageUpdater(object):
 
 				insideInstallWindow = True
 				if not self.config['installationWindowStartTime'] or not self.config['installationWindowEndTime']:
-					logger.notice(u"Installation time window not defined, installing products and setting actions")
+					logger.info(u"Installation time window not defined, installing products and setting actions")
 				elif tdiff(self.config['installationWindowStartTime'], self.config['installationWindowEndTime']) >= tdiff(self.config['installationWindowStartTime'], now):
 					logger.notice(u"We are inside the installation time window, installing products and setting actions")
 				else:
@@ -811,14 +811,14 @@ class OpsiPackageUpdater(object):
 						continue
 					if package['repository'].autoSetup:
 						if isinstance(package['product'], NetbootProduct):
-							logger.notice(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not allowed for netboot products" \
+							logger.info(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not allowed for netboot products" \
 									% (package['productId']))
 							continue
 
 						logger.notice(u"Setting action 'setup' for product '%s' where installation status 'installed' because auto setup is set for repository '%s'" \
 							% (package['productId'], package['repository'].baseUrl))
 					else:
-						logger.notice(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not set for repository '%s'" \
+						logger.info(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not set for repository '%s'" \
 							% (package['productId'], package['repository'].baseUrl))
 						continue
 
@@ -914,7 +914,7 @@ class OpsiPackageUpdater(object):
 				logger.debug(u'Zsyncing %s: %d%% (%d kbit/s)' % (availablePackage["packageFile"], percent, speed))
 			if notifier:
 				notifier.appendLine(u"Zsync of '%s' completed" % availablePackage["packageFile"])
-			logger.notice(u"Zsync of '%s' completed" % availablePackage["packageFile"])
+			logger.info(u"Zsync of '%s' completed" % availablePackage["packageFile"])
 		finally:
 			os.chdir(curdir)
 
@@ -975,7 +975,7 @@ class OpsiPackageUpdater(object):
 				notifier.appendLine(u"Download of '%s' completed (~ %s MB)" % (url, round(size / (1024.0 * 1024.0), 2)))
 			else:
 				notifier.appendLine(u"Download of '%s' completed" % url)
-		logger.notice(u"Download of '%s' completed" % url)
+		logger.info(u"Download of '%s' completed" % url)
 
 	def cleanupPackages(self, newPackage):
 		logger.info(u"Cleaning up in %s" % self.config["packageDir"])
