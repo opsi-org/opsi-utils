@@ -47,7 +47,7 @@ import time
 import urllib
 import urllib2
 
-from OPSI.Logger import LOG_ERROR, LOG_INFO, LOG_NOTICE, Logger
+from OPSI.Logger import LOG_INFO, LOG_NOTICE, LOG_WARNING, Logger
 from OPSI.Object import NetbootProduct, ProductOnClient
 from OPSI.Types import (forceBool, forceEmailAddress, forceFilename,
 	forceHostAddress, forceHostId, forceInt, forceProductId, forceUnicode,
@@ -1252,7 +1252,7 @@ def main():
 
 	logGroup = parser.add_mutually_exclusive_group()
 	logGroup.add_argument('--verbose', '-v',
-		dest="logLevel", default=LOG_ERROR, action="count",
+		dest="logLevel", default=LOG_WARNING, action="count",
 		help="increase verbosity (can be used multiple times)")
 	logGroup.add_argument('--log-level', '-l',
 		dest="logLevel", choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
