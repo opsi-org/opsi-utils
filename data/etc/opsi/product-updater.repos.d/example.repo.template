@@ -1,6 +1,6 @@
 [repository_example]
-; A human readable name for the repository
-name = My opsi repository
+; A description for the repository
+description = My opsi repository
 ; Activate/deactivate the repository
 active = true
 ; If the repository is an opsi depot, opsiDepotId should be set
