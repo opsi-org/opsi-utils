@@ -1268,12 +1268,12 @@ def main():
 	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
 	installparser.add_argument('processProductIds', nargs='*',
 								metavar="productID",
-								help="Limit processing to products with the given IDs.")
+								help="Limit installation to products with the given IDs.")
 
 	updateparser = modeparsers.add_parser('update', help='Update existing packages from repositories.')
 	updateparser.add_argument('processProductIds', nargs='*',
 								metavar="productID",
-								help="Limit processing to products with the given IDs.")
+								help="Limit updates to products with the given IDs.")
 
 	repoparser = modeparsers.add_parser('repo', help='Repository management.')
 	repoparser.add_argument('--list-active', dest="listActiveRepos", action="store_true", help='Lists all active repositories')
