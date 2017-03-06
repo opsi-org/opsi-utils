@@ -575,7 +575,7 @@ class OpsiPackageUpdater(object):
 
 		try:
 			try:
-				if not self.config["repositories"]:
+				if not any(self.getActiveRepositories()):
 					logger.notice(u"No repositories configured, nothing to do")
 					return
 
