@@ -875,7 +875,7 @@ class OpsiPackageUpdater(object):
 			if notifier and notifier.hasMessage():
 				notifier.notify()
 
-	def listUpgradeableProducts(self):
+	def listUpgradableProducts(self):
 		raise NotImplementedError("Still work in progress.")
 
 	def zsyncPackage(self, availablePackage, notifier=None):
@@ -1293,7 +1293,7 @@ def main():
 	repoparser.add_argument('--list-product-and-installationstatus',
 							action="store_true", dest="listProductsWithInstallationStatus",
 							help='Lists the repositories, the products they provide and information about the local installation status.')
-	repoparser.add_argument('--list-upgradeable',
+	repoparser.add_argument('--list-upgradable',
 							action="store_true", dest="listUpgradeableProducts",
 							help='Lists the repositories and the updates to installed products they provide.')
 
@@ -1344,8 +1344,8 @@ def main():
 				opu.listProductsInRepositories()
 			elif args.listProductsWithInstallationStatus:
 				opu.listProductsInRepositories(withLocalInstallationStatus=True)
-			elif args.listUpgradeableProducts:
-				opu.listUpgradeableProducts()
+			elif args.listUpgradableProducts:
+				opu.listUpgradableProducts()
 
 
 if __name__ == "__main__":
