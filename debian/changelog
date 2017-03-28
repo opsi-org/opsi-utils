@@ -1,3 +1,14 @@
+opsi-utils (4.0.7.15-1) testing; urgency=medium
+
+  * opsi-admin: task setPcpatchPassword: set the new password in opsi
+    only after setting it on system level was a success.
+  * opsi-admin: task setPcpatchPassword: do not report invalid import
+    situation if running on UCS 4.1.
+  * opsi-admin: task setPcpatchPassword: notify the user if setting the
+    password on UCS does fail.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 28 Mar 2017 16:45:27 +0200
+
 opsi-utils (4.0.7.14-3) stable; urgency=medium
 
   * Change folder for manpages in packaging script.
