@@ -1689,7 +1689,7 @@ class CommandTask(Command):
 								}
 							}
 						)
-					elif UMCConnection and ucr:  # UCS 4.1 and older
+					elif UMCConnection and ucr is not None:  # UCS 4.1 and older
 						client = UMCConnection(ucr.get('ldap/master'))
 						client.auth('pcpatch', oldPassword)
 						client.request(
