@@ -74,7 +74,7 @@ except ImportError:
 
 import curses
 
-__version__ = '4.0.7.14'
+__version__ = '4.0.7.15'
 
 backend = None
 exitZero = False
@@ -1644,8 +1644,6 @@ class CommandTask(Command):
 			if oldPassword:
 				logger.addConfidentialString(oldPassword)
 
-			backend.user_setCredentials(username='pcpatch', password=password)
-
 			if RUNNING_ON_UCS:
 				univentionAdmin = which('univention-admin')
 
@@ -1689,7 +1687,7 @@ class CommandTask(Command):
 								}
 							}
 						)
-					elif UMCConnection and ucr:  # UCS 4.1 and older
+					elif UMCConnection and ucr is not None:  # UCS 4.1 and older
 						client = UMCConnection(ucr.get('ldap/master'))
 						client.auth('pcpatch', oldPassword)
 						client.request(
@@ -1708,7 +1706,8 @@ class CommandTask(Command):
 							"Maybe unsupported UCS version."
 						)
 				except Exception as err:
-					logger.debug("Setting the password with the credentials of pcpatch failed: {0}", err)
+					logger.warning("Setting the password with the credentials of pcpatch failed: {0}", err)
+					logger.info("Trying fallback mechanism...")
 
 					logger.debug("Trying to use machine account...")
 					cmd = u"{udm} users/user modify --dn {dn} --set password='{pw}' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null".format(
@@ -1716,7 +1715,14 @@ class CommandTask(Command):
 						dn=dn,
 						pw=password
 					)
-					os.system(cmd.encode(outEncoding))
+					returnCode = os.system(cmd.encode(outEncoding))
+					logger.debug("Command returned {0}", returnCode)
+					if returnCode != 0:
+						raise RuntimeError("Setting the password for the pcpatch user failed!")
+
+				# If we got here the password has been changed on the
+				# system and we can safely set it for opsi.
+				backend.user_setCredentials(username='pcpatch', password=password)
 
 				return  # UCS processing done.
 
@@ -1734,6 +1740,11 @@ class CommandTask(Command):
 				process = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
 				process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
 				process.close()
+
+			# If we got here the password has been changed on the
+			# system and we can safely set it for opsi.
+			backend.user_setCredentials(username='pcpatch', password=password)
+
 
 if __name__ == "__main__":
 	@contextmanager
