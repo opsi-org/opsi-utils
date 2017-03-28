@@ -1708,7 +1708,8 @@ class CommandTask(Command):
 							"Maybe unsupported UCS version."
 						)
 				except Exception as err:
-					logger.debug("Setting the password with the credentials of pcpatch failed: {0}", err)
+					logger.warning("Setting the password with the credentials of pcpatch failed: {0}", err)
+					logger.info("Trying fallback mechanism...")
 
 					logger.debug("Trying to use machine account...")
 					cmd = u"{udm} users/user modify --dn {dn} --set password='{pw}' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null".format(
