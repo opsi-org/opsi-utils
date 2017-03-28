@@ -1644,8 +1644,6 @@ class CommandTask(Command):
 			if oldPassword:
 				logger.addConfidentialString(oldPassword)
 
-			backend.user_setCredentials(username='pcpatch', password=password)
-
 			if RUNNING_ON_UCS:
 				univentionAdmin = which('univention-admin')
 
@@ -1718,6 +1716,10 @@ class CommandTask(Command):
 					)
 					os.system(cmd.encode(outEncoding))
 
+				# If we got here the password has been changed on the
+				# system and we can safely set it for opsi.
+				backend.user_setCredentials(username='pcpatch', password=password)
+
 				return  # UCS processing done.
 
 			try:
@@ -1734,6 +1736,11 @@ class CommandTask(Command):
 				process = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
 				process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
 				process.close()
+
+			# If we got here the password has been changed on the
+			# system and we can safely set it for opsi.
+			backend.user_setCredentials(username='pcpatch', password=password)
+
 
 if __name__ == "__main__":
 	@contextmanager
