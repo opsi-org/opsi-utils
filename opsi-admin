@@ -1717,7 +1717,10 @@ class CommandTask(Command):
 						dn=dn,
 						pw=password
 					)
-					os.system(cmd.encode(outEncoding))
+					returnCode = os.system(cmd.encode(outEncoding))
+					logger.debug("Command returned {0}", returnCode)
+					if returnCode != 0:
+						raise RuntimeError("Setting the password for the pcpatch user failed!")
 
 				return  # UCS processing done.
 
