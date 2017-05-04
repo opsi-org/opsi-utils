@@ -1,3 +1,22 @@
+opsi-utils (4.1.1.5-1) testing; urgency=medium
+
+  * opsi-product-updater: Messages regarding zsync and md5 now include
+    the productId to make it easier to find affected products.
+  * opsi-product-updater: now able to show the updates that are present
+    through the repo parameter --list-updatable.
+  * opsi-product-updater: changed the default loglevel to WARNING.
+  * opsi-product-updater: Re-classified the level of some logmessages
+    to make the output more helpful.
+  * opsi-product-updater: The notifier now also informs when packages
+    get set to setup on clients or when clients are to be woken up
+    through Wake-on-LAN.
+  * opsi-makeproductfile: --zsync and --md5 are now the defaults.
+    Added parameter ---no-zsync and --no-md5 to suppress creation.
+  * opsi-newprod: Any file mentioned as a script for an action gets
+    automatically created during the creation of the directories.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 04 May 2017 18:01:38 +0200
+
 opsi-utils (4.1.1.4-1) testing; urgency=medium
 
   * opsi-backup: removed unsupported parameter --mode.
