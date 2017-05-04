@@ -583,25 +583,9 @@ class OpsiPackageUpdater(object):
 				localPackages = self.getLocalPackages()
 				downloadablePackages = self.getDownloadablePackages()
 				downloadablePackages = self.onlyNewestPackages(downloadablePackages)
-				if self.config["processProductIds"]:
-					# Checking if given productIds are available and
-					# process only these products
-					newProductList = []
-					for product in self.config["processProductIds"]:
-						for pac in downloadablePackages:
-							if product == pac["productId"]:
-								newProductList.append(pac)
-								break
-						else:
-							logger.error("Product '{productId}' not found in repository!", productId=product)
-							possibleProductIDs = sorted(set(pac["productId"] for pac in downloadablePackages))
-							logger.notice("Possible products are: {0}", ', '.join(possibleProductIDs))
-							raise ValueError(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
+				downloadablePackages = self._filterProducts(downloadablePackages)
 
-					if newProductList:
-						downloadablePackages = newProductList
 				newPackages = []
-
 				for availablePackage in downloadablePackages:
 					logger.info(u"Testing if download/installation of package '%s' is needed" % availablePackage["filename"])
 					productInstalled = False
@@ -875,29 +859,34 @@ class OpsiPackageUpdater(object):
 			if notifier and notifier.hasMessage():
 				notifier.notify()
 
+	def _filterProducts(self, products):
+		if self.config["processProductIds"]:
+			# Checking if given productIds are available and
+			# process only these products
+			newProductList = []
+			for product in self.config["processProductIds"]:
+				for pac in products:
+					if product == pac["productId"]:
+						newProductList.append(pac)
+						break
+				else:
+					logger.error("Product '{productId}' not found in repository!", productId=product)
+					possibleProductIDs = sorted(set(pac["productId"] for pac in products))
+					logger.notice("Possible products are: {0}", ', '.join(possibleProductIDs))
+					raise ValueError(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
+
+			if newProductList:
+				return newProductList
+
+		return products
+
 	def listUpgradableProducts(self):
 		updates = {}
 		try:
 			installedProducts = self.getInstalledProducts()
 			downloadablePackages = self.getDownloadablePackages()
 			downloadablePackages = self.onlyNewestPackages(downloadablePackages)
-			if self.config["processProductIds"]:
-				# Checking if given productIds are available and
-				# process only these products
-				newProductList = []
-				for product in self.config["processProductIds"]:
-					for pac in downloadablePackages:
-						if product == pac["productId"]:
-							newProductList.append(pac)
-							break
-					else:
-						logger.error("Product '{productId}' not found in repository!", productId=product)
-						possibleProductIDs = sorted(set(pac["productId"] for pac in downloadablePackages))
-						logger.notice("Possible products are: {0}", ', '.join(possibleProductIDs))
-						raise ValueError(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
-
-				if newProductList:
-					downloadablePackages = newProductList
+			downloadablePackages = self._filterProducts(downloadablePackages)
 
 			for availablePackage in downloadablePackages:
 				productId = availablePackage['productId']
