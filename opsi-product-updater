@@ -556,7 +556,7 @@ class OpsiPackageUpdater(object):
 
 	def processUpdates(self):
 		if not any(self.getActiveRepositories()):
-			logger.notice(u"No repositories configured, nothing to do")
+			logger.warning(u"No repositories configured, nothing to do")
 			return
 
 		notifier = None
@@ -881,6 +881,10 @@ class OpsiPackageUpdater(object):
 		return products
 
 	def listUpdatableProducts(self):
+		if not any(self.getActiveRepositories()):
+			logger.warning(u"No repositories configured, nothing to do")
+			return
+
 		updates = {}
 		try:
 			installedProducts = self.getInstalledProducts()
