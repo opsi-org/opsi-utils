@@ -876,7 +876,53 @@ class OpsiPackageUpdater(object):
 				notifier.notify()
 
 	def listUpgradableProducts(self):
-		raise NotImplementedError("Still work in progress.")
+		updates = {}
+		try:
+			installedProducts = self.getInstalledProducts()
+			downloadablePackages = self.getDownloadablePackages()
+			downloadablePackages = self.onlyNewestPackages(downloadablePackages)
+			if self.config["processProductIds"]:
+				# Checking if given productIds are available and
+				# process only these products
+				newProductList = []
+				for product in self.config["processProductIds"]:
+					for pac in downloadablePackages:
+						if product == pac["productId"]:
+							newProductList.append(pac)
+							break
+					else:
+						logger.error("Product '{productId}' not found in repository!", productId=product)
+						possibleProductIDs = sorted(set(pac["productId"] for pac in downloadablePackages))
+						logger.notice("Possible products are: {0}", ', '.join(possibleProductIDs))
+						raise ValueError(u"You have searched for a product, which was not found in configured repository: '%s'" % product)
+
+				if newProductList:
+					downloadablePackages = newProductList
+
+			for availablePackage in downloadablePackages:
+				productId = availablePackage['productId']
+				for product in installedProducts:
+					if product['productId'] == productId:
+						logger.debug(u"Product '%s' is installed" % productId)
+						logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" % (availablePackage['version'], product['productVersion'], product['packageVersion']))
+						updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
+
+						if updateAvailable:
+							updates[productId] = {
+								"productId": productId,
+								"newVersion": "{version}".format(**availablePackage),
+								"oldVersion": "{productVersion}-{packageVersion}".format(**product),
+								"repository": availablePackage['repository'].name
+							}
+						break
+		except Exception as error:
+			raise error
+
+		if updates:
+			for productId in sorted(updates.keys()):
+				logger.notice("{productId}: {newVersion} in {repository} (upgradable from: {oldVersion})", **updates[productId])
+		else:
+			logger.notice("No updates found.")
 
 	def zsyncPackage(self, availablePackage, notifier=None):
 		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
@@ -1294,8 +1340,8 @@ def main():
 							action="store_true", dest="listProductsWithInstallationStatus",
 							help='Lists the repositories, the products they provide and information about the local installation status.')
 	repoparser.add_argument('--list-upgradable',
-							action="store_true", dest="listUpgradeableProducts",
-							help='Lists the repositories and the updates to installed products they provide.')
+							action="store_true", dest="listUpgradableProducts",
+							help='Lists the packages that have updates in the remote repositories.')
 
 	# Setting a default to not stumble over possibly not present args.
 	repoparser.set_defaults(processProductIds=[])
