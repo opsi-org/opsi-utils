@@ -842,9 +842,13 @@ class OpsiPackageUpdater(object):
 									if self.config['wolAction'] and not package['productId'] in self.config['wolActionExcludeProductIds']:
 										wakeOnLanClients.add(poc.clientId)
 								self.getConfigBackend().productOnClient_updateObjects(productOnClients)
+								if notifier:
+									notifier.appendLine(u"Product {0} set to 'setup' on clients: {1}".format(package['productId'], ', '.join(sorted(poc.clientId for poc in productOnClients))))
 
 				if wakeOnLanClients:
 					logger.notice(u"Powering on clients %s" % wakeOnLanClients)
+					if notifier:
+						notifier.appendLine(u"Powering on clients: {0}".format(', '.join(sorted(wakeOnLanClients))))
 					for clientId in wakeOnLanClients:
 						try:
 							logger.info(u"Powering on client '%s'" % clientId)
