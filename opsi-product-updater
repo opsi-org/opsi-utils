@@ -880,7 +880,7 @@ class OpsiPackageUpdater(object):
 
 		return products
 
-	def listUpgradableProducts(self):
+	def listUpdatableProducts(self):
 		updates = {}
 		try:
 			installedProducts = self.getInstalledProducts()
@@ -909,7 +909,7 @@ class OpsiPackageUpdater(object):
 
 		if updates:
 			for productId in sorted(updates.keys()):
-				logger.notice("{productId}: {newVersion} in {repository} (upgradable from: {oldVersion})", **updates[productId])
+				logger.notice("{productId}: {newVersion} in {repository} (updatable from: {oldVersion})", **updates[productId])
 		else:
 			logger.notice("No updates found.")
 
@@ -1328,8 +1328,8 @@ def main():
 	repoparser.add_argument('--list-product-and-installationstatus',
 							action="store_true", dest="listProductsWithInstallationStatus",
 							help='Lists the repositories, the products they provide and information about the local installation status.')
-	repoparser.add_argument('--list-upgradable',
-							action="store_true", dest="listUpgradableProducts",
+	repoparser.add_argument('--list-updatable',
+							action="store_true", dest="listUpdatableProducts",
 							help='Lists the packages that have updates in the remote repositories.')
 
 	# Setting a default to not stumble over possibly not present args.
@@ -1379,8 +1379,8 @@ def main():
 				opu.listProductsInRepositories()
 			elif args.listProductsWithInstallationStatus:
 				opu.listProductsInRepositories(withLocalInstallationStatus=True)
-			elif args.listUpgradableProducts:
-				opu.listUpgradableProducts()
+			elif args.listUpdatableProducts:
+				opu.listUpdatableProducts()
 
 
 if __name__ == "__main__":
