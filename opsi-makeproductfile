@@ -46,7 +46,7 @@ from OPSI.Util.File import ZsyncFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.Util import md5sum
 
-__version__ = '4.1.1.4'
+__version__ = '4.1.1.5'
 
 logger = Logger()
 
@@ -132,11 +132,22 @@ def main(argv):
 	parser.add_argument('--temp-directory', '-t',
 						dest="tempDir", help="temp dir", default=u'/tmp',
 						metavar='directory')
-	parser.add_argument('--with-md5', '-m', dest="createMd5SumFile",
-						help="create md5sum file",
-						default=False, action='store_true')
-	parser.add_argument('--with-zsync', '-z', dest="createZsyncFile", help="create zsync file",
-						default=False, action='store_true')
+	hashSumGroup = parser.add_mutually_exclusive_group()
+	hashSumGroup.add_argument(
+		'--md5', '-m',
+		dest="createMd5SumFile", default=True, action='store_true',
+		help="Create file with md5 checksum.")
+	hashSumGroup.add_argument(
+		'--no-md5', dest="createMd5SumFile", action='store_false',
+		help="Do not create file with md5 checksum.")
+	zsyncGroup = parser.add_mutually_exclusive_group()
+	zsyncGroup.add_argument(
+		'--zsync', '-z', dest="createZsyncFile",
+		default=True, action='store_true',
+		help="Create zsync file.")
+	zsyncGroup.add_argument(
+		'--no-zsync', dest="createZsyncFile", action='store_false',
+		help="Do not create zsync file.")
 	parser.add_argument('--no-pigz', dest="disablePigz",
 						default=False, action='store_true',
 						help="Disable the usage of pigz")

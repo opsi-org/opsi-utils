@@ -48,7 +48,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-__version__ = '4.1.1.1'
+__version__ = '4.1.1.5'
 
 logger = Logger()
 
@@ -102,10 +102,13 @@ def main():
 				raise CancelledByUserError(_(u'Cancelled'))
 			shutil.rmtree(productSourceDir)
 
-		os.mkdir(productSourceDir, 02770)
-		os.mkdir(os.path.join(productSourceDir, 'OPSI'), 02770)
-		os.mkdir(os.path.join(productSourceDir, 'CLIENT_DATA'), 02770)
-		os.mkdir(os.path.join(productSourceDir, 'SERVER_DATA'), 02770)
+		os.mkdir(productSourceDir, 0o2770)
+		os.mkdir(os.path.join(productSourceDir, 'OPSI'), 0o2770)
+		clientDataDirectory = os.path.join(productSourceDir, 'CLIENT_DATA')
+		os.mkdir(clientDataDirectory, 0o2770)
+		os.mkdir(os.path.join(productSourceDir, 'SERVER_DATA'), 0o2770)
+
+		createActionScripts(product, clientDataDirectory)
 
 		try:
 			productDependencies = collectProductDependencies(ui, product)
@@ -325,6 +328,37 @@ PXE config template: path to a custom pxelinux config template.''')
 		break
 
 	return product
+
+
+def createActionScripts(product, clientDataDirectory):
+	"""
+	Create a file for all the scripts set at `product` in `clientDataDirectory`.
+
+	:param product: The product for which the scripts should be created.
+	:type product: OPSI.Object.Product
+	:param clientDataDirectory: The path in which the scripts should be \
+created. Usually the `CLIENT_DATA` directory of a product.
+	:type clientDataDirectory: str
+	"""
+	scriptAttributes = [
+		'setupScript', 'uninstallScript', 'updateScript',
+		'alwaysScript', 'onceScript', 'customScript',
+		'userLoginScript'
+	]
+
+	for attribute in scriptAttributes:
+		script = getattr(product, attribute, None)
+		if not script:
+			logger.debug("No {0} set, skipping.", attribute)
+			continue
+
+		scriptPath = os.path.join(clientDataDirectory, script)
+		with codecs.open(scriptPath, 'a', 'utf-8'):
+			# Opening the file in append mode to not destroy anything
+			# they may be already existing.
+			# Remember that multiple actions may refer the same script.
+			pass
+		logger.info('Created script {0}.', scriptPath)
 
 
 def collectProductDependencies(ui, product):
