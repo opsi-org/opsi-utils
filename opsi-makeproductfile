@@ -464,9 +464,7 @@ def unlockPackage(tempDir, packageControlFile):
 		os.unlink(lockFile)
 
 
-if (__name__ == "__main__"):
-	exception = None
-
+if __name__ == "__main__":
 	try:
 		main(sys.argv[1:])
 	except SystemExit:
