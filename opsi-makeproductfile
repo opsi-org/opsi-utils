@@ -245,11 +245,7 @@ def main(argv):
 				print u"----------------------------------------------------------------------------"
 				print u"   %-20s : %s" % (u'version', product.packageVersion)
 				print u"   %-20s : %s" % (u'custom package name', customName)
-
-				dependencies = []
-				for dep in pcf.getPackageDependencies():
-					dependencies.append(u'%s(%s%s)' % (dep['package'], dep['condition'], dep['version']))
-				print u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
+				print u"   %-20s : %s" % (u'package dependencies', u', '.join(u'{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies()))
 
 				print ""
 				print _(u"Product info")
