@@ -82,31 +82,31 @@ install -m 644 doc/compiled/opsi-convert.1.gz $RPM_BUILD_ROOT/usr/share/man/man1
 install -m 644 doc/compiled/opsi-makeproductfile.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 install -m 644 doc/compiled/opsi-newprod.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 install -m 644 doc/compiled/opsi-package-manager.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-product-updater.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-package-updater.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 install -m 0755 opsi-admin $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-newprod $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-makeproductfile $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-package-manager $RPM_BUILD_ROOT/usr/bin/
-install -m 0755 opsi-product-updater $RPM_BUILD_ROOT/usr/bin/
+install -m 0755 opsi-package-updater $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-convert $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-backup $RPM_BUILD_ROOT/usr/bin/
 
 mkdir -p $RPM_BUILD_ROOT/etc/opsi
-install -m 0644 data/opsi-product-updater.conf $RPM_BUILD_ROOT/etc/opsi/
+install -m 0644 data/opsi-package-updater.conf $RPM_BUILD_ROOT/etc/opsi/
 
-mkdir -p $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
-install -m 0644 data/etc/opsi/product-updater.repos.d/example.repo.template $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
-install -m 0644 data/etc/opsi/product-updater.repos.d/master-depot.repo $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
-install -m 0644 data/etc/opsi/product-updater.repos.d/uib-linux.repo $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
-install -m 0644 data/etc/opsi/product-updater.repos.d/uib-local_image.repo $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
-install -m 0644 data/etc/opsi/product-updater.repos.d/uib-windows.repo $RPM_BUILD_ROOT/etc/opsi/product-updater.repos.d
+mkdir -p $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
+install -m 0644 data/etc/opsi/package-updater.repos.d/example.repo.template $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
+install -m 0644 data/etc/opsi/package-updater.repos.d/master-depot.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
+install -m 0644 data/etc/opsi/package-updater.repos.d/uib-linux.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
+install -m 0644 data/etc/opsi/package-updater.repos.d/uib-local_image.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
+install -m 0644 data/etc/opsi/package-updater.repos.d/uib-windows.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
 
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-package-manager $RPM_BUILD_ROOT/etc/logrotate.d/
-install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
+install -m 0644 data/etc/logrotate.d/opsi-package-updater $RPM_BUILD_ROOT/etc/logrotate.d/
 
 %if 0%{?suse_version} > 1110
 echo "Detected openSuse / SLES"
@@ -123,8 +123,8 @@ if [ "$(zypper --terse versioncmp $LOGROTATE_VERSION 3.8)" == "-1" ]; then
 	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 
-	LOGROTATE_TEMP=data/etc/logrotate.d/opsi-product-updater.temp
-	LOGROTATE_CONFIG=data/etc/logrotate.d/opsi-product-updater
+	LOGROTATE_TEMP=data/etc/logrotate.d/opsi-package-updater.temp
+	LOGROTATE_CONFIG=data/etc/logrotate.d/opsi-package-updater
 	grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 	mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 else
@@ -145,8 +145,8 @@ fi
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 
-			LOGROTATE_TEMP=data/etc/logrotate.d/opsi-product-updater.temp
-			LOGROTATE_CONFIG=data/etc/logrotate.d/opsi-product-updater
+			LOGROTATE_TEMP=data/etc/logrotate.d/opsi-package-updater.temp
+			LOGROTATE_CONFIG=data/etc/logrotate.d/opsi-package-updater
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 		%endif
@@ -154,7 +154,7 @@ fi
 %endif
 install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-package-manager $RPM_BUILD_ROOT/etc/logrotate.d/
-install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
+install -m 0644 data/etc/logrotate.d/opsi-package-updater $RPM_BUILD_ROOT/etc/logrotate.d/
 
 # ===[ clean ]======================================
 %clean
@@ -179,27 +179,27 @@ rm -rf $RPM_BUILD_ROOT
 %doc /usr/share/man/man1/opsi-makeproductfile.1.gz
 %doc /usr/share/man/man1/opsi-newprod.1.gz
 %doc /usr/share/man/man1/opsi-package-manager.1.gz
-%doc /usr/share/man/man1/opsi-product-updater.1.gz
+%doc /usr/share/man/man1/opsi-package-updater.1.gz
 
 # configfiles
-%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-product-updater.conf
-%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/example.repo.template
-%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/master-depot.repo
-%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/uib-linux.repo
-%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/uib-local_image.repo
-%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/product-updater.repos.d/uib-windows.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-package-updater.conf
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/example.repo.template
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/master-depot.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-linux.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-local_image.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-windows.repo
 %config /etc/logrotate.d/opsi-backup
 %config /etc/logrotate.d/opsi-package-manager
-%config /etc/logrotate.d/opsi-product-updater
+%config /etc/logrotate.d/opsi-package-updater
 
 # other files
 /usr/bin/opsi-admin
-/usr/bin/opsi-newprod
-/usr/bin/opsi-makeproductfile
-/usr/bin/opsi-package-manager
-/usr/bin/opsi-convert
-/usr/bin/opsi-product-updater
 /usr/bin/opsi-backup
+/usr/bin/opsi-convert
+/usr/bin/opsi-makeproductfile
+/usr/bin/opsi-newprod
+/usr/bin/opsi-package-manager
+/usr/bin/opsi-package-updater
 
 %attr(644,root,root) /usr/share/locale/da/LC_MESSAGES/opsi-utils.mo
 %attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
@@ -211,7 +211,7 @@ rm -rf $RPM_BUILD_ROOT
 %if 0%{?suse_version}
 %dir /etc/opsi
 %endif
-%dir /etc/opsi/product-updater.repos.d
+%dir /etc/opsi/package-updater.repos.d
 
 # ===[ changelog ]==================================
 %changelog

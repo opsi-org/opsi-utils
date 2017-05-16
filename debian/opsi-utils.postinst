@@ -4,21 +4,21 @@
 
 case "$1" in
 	configure)
-		chown root:opsiadmin /etc/opsi/opsi-product-updater.conf
-		chmod 660 /etc/opsi/opsi-product-updater.conf
-		chown root:opsiadmin /etc/opsi/product-updater.repos.d
-		chmod 770 /etc/opsi/product-updater.repos.d
+		chown root:opsiadmin /etc/opsi/opsi-package-updater.conf
+		chmod 660 /etc/opsi/opsi-package-updater.conf
+		chown root:opsiadmin /etc/opsi/package-updater.repos.d
+		chmod 770 /etc/opsi/package-updater.repos.d
 
-		chown root:opsiadmin /etc/opsi/product-updater.repos.d/example.repo.template
-		chmod 660 /etc/opsi/product-updater.repos.d/example.repo.template
-		chown root:opsiadmin /etc/opsi/product-updater.repos.d/master-depot.repo
-		chmod 660 /etc/opsi/product-updater.repos.d/master-depot.repo
-		chown root:opsiadmin /etc/opsi/product-updater.repos.d/uib-linux.repo
-		chmod 660 /etc/opsi/product-updater.repos.d/uib-linux.repo
-		chown root:opsiadmin /etc/opsi/product-updater.repos.d/uib-local_image.repo
-		chmod 660 /etc/opsi/product-updater.repos.d/uib-local_image.repo
-		chown root:opsiadmin /etc/opsi/product-updater.repos.d/uib-windows.repo
-		chmod 660 /etc/opsi/product-updater.repos.d/uib-windows.repo
+		chown root:opsiadmin /etc/opsi/package-updater.repos.d/example.repo.template
+		chmod 660 /etc/opsi/package-updater.repos.d/example.repo.template
+		chown root:opsiadmin /etc/opsi/package-updater.repos.d/master-depot.repo
+		chmod 660 /etc/opsi/package-updater.repos.d/master-depot.repo
+		chown root:opsiadmin /etc/opsi/package-updater.repos.d/uib-linux.repo
+		chmod 660 /etc/opsi/package-updater.repos.d/uib-linux.repo
+		chown root:opsiadmin /etc/opsi/package-updater.repos.d/uib-local_image.repo
+		chmod 660 /etc/opsi/package-updater.repos.d/uib-local_image.repo
+		chown root:opsiadmin /etc/opsi/package-updater.repos.d/uib-windows.repo
+		chmod 660 /etc/opsi/package-updater.repos.d/uib-windows.repo
 
 		# Making logrotate config backwards-compatible
 		LOGROTATE_VERSION="$(dpkg --list | grep logrotate | grep "^ii" | awk '{ print $3 }' | cut -d '-' -f 1)"
@@ -34,7 +34,7 @@ case "$1" in
 			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 
 			LOGROTATE_TEMP=$(tempfile)
-			LOGROTATE_CONFIG=/etc/logrotate.d/opsi-product-updater
+			LOGROTATE_CONFIG=/etc/logrotate.d/opsi-package-updater
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
 		fi

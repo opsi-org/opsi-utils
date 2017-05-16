@@ -1,4 +1,4 @@
-/var/log/opsi/opsi-product-updater.log {
+/var/log/opsi/opsi-package-updater.log {
     weekly
     missingok
     rotate 5
