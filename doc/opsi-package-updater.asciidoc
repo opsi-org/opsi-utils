@@ -1,21 +1,21 @@
-OPSI-PRODUCT-UPDATER(1)
+OPSI-PACKAGE-UPDATER(1)
 =======================
 :doctype: manpage
 
 
 NAME
 ----
-opsi-product-updater - commandline interface for updating OPSI packages.
+opsi-package-updater - commandline interface for updating OPSI packages.
 
 
 SYNOPSIS
 --------
-*opsi-product-updater* 'OPTIONS' 'MODE'
+*opsi-package-updater* 'OPTIONS' 'MODE'
 
 
 DESCRIPTION
 -----------
-opsi-product-updater allows updating of OPSI packages from remote repositories
+opsi-package-updater allows updating of OPSI packages from remote repositories
 or depots via an commandline interface.
 
 
@@ -33,10 +33,10 @@ Show version and exit.
 
 *-c* 'CONFIG_FILE'::
 Specify a config file to use.
-Defaults to "/etc/opsi/opsi-product-updater.conf".
+Defaults to "/etc/opsi/opsi-package-updater.conf".
 
 *-p*::
-Process only the given product identifiers. To give multiple product IDs seperate
+Process only the given package identifiers. To give multiple package IDs seperate
 them with a comma, like this: opsi-winst,opsi-client-agent
 
 MODE
@@ -50,7 +50,7 @@ Update the existing packages with newer versions from the configured repositorie
 
 AUTHOR
 ------
-opsi-product-updater was created by Jan Schneider and modifed by Erol Ueluekmen.
+opsi-package-updater was created by Jan Schneider and modifed by Erol Ueluekmen.
 This manpage was written by Niko Wenselowski.
 
 
