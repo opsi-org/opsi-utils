@@ -1,16 +1,16 @@
-OPSI-MAKEPRODUCTFILE(1)
+OPSI-MAKEPACKAGE(1)
 =======================
 :doctype: manpage
 
 
 NAME
 ----
-opsi-makeproductfile - commandline interface for OPSI
+opsi-makepackage - commandline interface for opsi package creation.
 
 
 SYNOPSIS
 --------
-*opsi-makeproductfile* ['OPTIONS'] ['SOURCE_DIRECTORY']
+*opsi-makepackage* ['OPTIONS'] ['SOURCE_DIRECTORY']
 
 Provides an opsi package from a package source directory.
 If no source directory is supplied, the current directory will be used.
@@ -18,7 +18,7 @@ If no source directory is supplied, the current directory will be used.
 
 DESCRIPTION
 -----------
-opsi-makeproductfile provides an opsi package from a package source directory.
+opsi-makepackage provides an opsi package from a package source directory.
 
 
 OPTIONS
@@ -67,7 +67,7 @@ Create zsync file.
 
 AUTHOR
 ------
-opsi-makeproductfile was created by Jan Schneider.
+opsi-makepackage was created by Jan Schneider.
 This manpage was written by Niko Wenselowski.
 
 

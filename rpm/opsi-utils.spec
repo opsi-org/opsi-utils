@@ -79,7 +79,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/man/man1/
 install -m 644 doc/compiled/opsi-admin.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 install -m 644 doc/compiled/opsi-backup.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 install -m 644 doc/compiled/opsi-convert.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-makeproductfile.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 doc/compiled/opsi-makepackage.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 install -m 644 doc/compiled/opsi-newprod.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 install -m 644 doc/compiled/opsi-package-manager.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 install -m 644 doc/compiled/opsi-product-updater.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
@@ -87,7 +87,7 @@ install -m 644 doc/compiled/opsi-product-updater.1.gz $RPM_BUILD_ROOT/usr/share/
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 install -m 0755 opsi-admin $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-newprod $RPM_BUILD_ROOT/usr/bin/
-install -m 0755 opsi-makeproductfile $RPM_BUILD_ROOT/usr/bin/
+install -m 0755 opsi-makepackage $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-package-manager $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-product-updater $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-convert $RPM_BUILD_ROOT/usr/bin/
@@ -176,7 +176,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc /usr/share/man/man1/opsi-admin.1.gz
 %doc /usr/share/man/man1/opsi-backup.1.gz
 %doc /usr/share/man/man1/opsi-convert.1.gz
-%doc /usr/share/man/man1/opsi-makeproductfile.1.gz
+%doc /usr/share/man/man1/opsi-makepackage.1.gz
 %doc /usr/share/man/man1/opsi-newprod.1.gz
 %doc /usr/share/man/man1/opsi-package-manager.1.gz
 %doc /usr/share/man/man1/opsi-product-updater.1.gz
@@ -195,7 +195,7 @@ rm -rf $RPM_BUILD_ROOT
 # other files
 /usr/bin/opsi-admin
 /usr/bin/opsi-newprod
-/usr/bin/opsi-makeproductfile
+/usr/bin/opsi-makepackage
 /usr/bin/opsi-package-manager
 /usr/bin/opsi-convert
 /usr/bin/opsi-product-updater

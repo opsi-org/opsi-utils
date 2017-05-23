@@ -1,7 +1,7 @@
 opsi-admin usr/bin/
 opsi-backup usr/bin/
 opsi-convert usr/bin/
-opsi-makeproductfile usr/bin/
+opsi-makepackage usr/bin/
 opsi-newprod usr/bin/
 opsi-package-manager usr/bin/
 opsi-product-updater usr/bin/

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# opsi-makeproductfile is part of the desktop management solution opsi
+# opsi-makepackage is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 # Copyright (C) 2010-2017 uib GmbH <info@uib.de>
 
@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-opsi-makeproductfile - create opsi-packages for deployment.
+opsi-makepackage - create opsi-packages for deployment.
 
 :copyright:	uib GmbH <info@uib.de>
 :author: Niko Wenselowski <n.wenselowski@uib.de>
@@ -429,7 +429,7 @@ def main(argv):
 
 
 def lockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	lockFile = os.path.join(tempDir, u'.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
 	# Test if other processes are accessing same product
 	try:
 		with open(lockFile, 'r') as lf:
@@ -455,7 +455,7 @@ def lockPackage(tempDir, packageControlFile):
 
 
 def unlockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	lockFile = os.path.join(tempDir, u'.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
 	if os.path.isfile(lockFile):
 		os.unlink(lockFile)
 
