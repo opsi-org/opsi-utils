@@ -1,3 +1,14 @@
+opsi-utils (4.1.1.6-1) testing; urgency=medium
+
+  * opsi-product-updater has been renamed to opsi-package-updater to
+    reflect that the syntax is very different.
+    The configuration file is now opsi-package-updater.conf.
+    The repository config files are now to be placed unter
+    /etc/opsi/package-updater.repos.d/.
+  * opsi-makeproductfile has been renamed to opsi-makepackage.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 23 May 2017 17:20:53 +0200
+
 opsi-utils (4.1.1.5-1) testing; urgency=medium
 
   * opsi-product-updater: Messages regarding zsync and md5 now include
