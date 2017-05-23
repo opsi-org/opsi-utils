@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-opsi-product-updater
+opsi-package-updater
 
-opsi-product-updater is part of the desktop management solution opsi
+opsi-package-updater is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
 Copyright (C) 2013-2017 uib GmbH
@@ -1261,16 +1261,16 @@ class OpsiPackageUpdater(object):
 
 def main():
 	config = {
-		"userAgent": 'opsi product updater %s' % __version__,
+		"userAgent": 'opsi package updater %s' % __version__,
 		"packageDir": '/var/lib/opsi/products',
-		"configFile": '/etc/opsi/opsi-product-updater.conf',
-		"repositoryConfigDir": '/etc/opsi/product-updater.repos.d',
+		"configFile": '/etc/opsi/opsi-package-updater.conf',
+		"repositoryConfigDir": '/etc/opsi/package-updater.repos.d',
 		"notification": False,
 		"smtphost": u'localhost',
 		"smtpport": 25,
 		"smtpuser": None,
 		"smtppassword": None,
-		"subject": u'opsi-product-updater',
+		"subject": u'opsi-package-updater',
 		"use_starttls": False,
 		"sender": u'opsi@localhost',
 		"receivers": [],
@@ -1296,7 +1296,7 @@ def main():
 	parser.add_argument('--version', '-V', action='version', version=__version__)
 	parser.add_argument('--config', '-c', help="Location of config file",
 						dest="configFile",
-						default='/etc/opsi/opsi-product-updater.conf')
+						default='/etc/opsi/opsi-package-updater.conf')
 
 	logGroup = parser.add_mutually_exclusive_group()
 	logGroup.add_argument('--verbose', '-v',
