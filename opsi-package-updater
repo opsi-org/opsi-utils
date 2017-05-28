@@ -577,7 +577,6 @@ class OpsiPackageUpdater(object):
 					logger.info(u"Testing if download/installation of package '%s' is needed" % availablePackage["filename"])
 					productInstalled = False
 					updateAvailable = False
-					installationRequired = False
 					for product in installedProducts:
 						if product['productId'] == availablePackage['productId']:
 							logger.debug(u"Product '%s' is installed" % availablePackage['productId'])
@@ -587,6 +586,7 @@ class OpsiPackageUpdater(object):
 							updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
 							break
 
+					installationRequired = False
 					if not productInstalled:
 						if availablePackage['repository'].autoInstall:
 							logger.notice(u"%s - installation required: product '%s' is not installed and auto install is set for repository '%s'" \
