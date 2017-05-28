@@ -934,16 +934,16 @@ class OpsiPackageUpdater(object):
 								break
 
 				if forceDownload:
-					logger.info(u"{filename} - download of package is forced.", **availablePackage)
+					logger.notice(u"{filename} - download of package is forced.", **availablePackage)
 					downloadNeeded = True
 				elif not downloadNeeded:
-					logger.info(u"%s - download of package is not required: found local package %s with matching md5sum" \
+					logger.notice(u"%s - download of package is not required: found local package %s with matching md5sum" \
 								% (availablePackage["filename"], localPackageFound['filename']))
 				elif localPackageFound:
-					logger.info(u"%s - download of package is required: found local package %s which differs from available" \
+					logger.notice(u"%s - download of package is required: found local package %s which differs from available" \
 								% (availablePackage["filename"], localPackageFound['filename']))
 				else:
-					logger.info(u"%s - download of package is required: local package not found" % availablePackage["filename"])
+					logger.notice(u"%s - download of package is required: local package not found" % availablePackage["filename"])
 
 				packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 				zsynced = False
@@ -978,14 +978,14 @@ class OpsiPackageUpdater(object):
 						else:
 							raise RuntimeError(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
 					else:
-						logger.info(u"{productId}: md5sum mismatch and no zsync. Doing nothing.", productId=availablePackage['productId'])
+						logger.warning(u"{productId}: md5sum mismatch and no zsync. Doing nothing.", productId=availablePackage['productId'])
 				else:
 					logger.warning(u"{productId}: Cannot verify download of package: missing md5sum file", productId=availablePackage['productId'])
 
 				newPackages.append(availablePackage)
 
 			if not newPackages:
-				logger.info(u"No new packages downloaded")
+				logger.notice(u"No new packages downloaded")
 				return
 		except Exception as error:
 			if notifier:
