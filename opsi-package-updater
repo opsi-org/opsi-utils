@@ -900,117 +900,92 @@ class OpsiPackageUpdater(object):
 			notifier = self._getNotifier()
 
 		try:
-			try:
-				installedProducts = self.getInstalledProducts()
-				localPackages = self.getLocalPackages()
-				downloadablePackages = self.getDownloadablePackages()
-				downloadablePackages = self.onlyNewestPackages(downloadablePackages)
-				downloadablePackages = self._filterProducts(downloadablePackages)
+			installedProducts = self.getInstalledProducts()
+			localPackages = self.getLocalPackages()
+			downloadablePackages = self.getDownloadablePackages()
+			downloadablePackages = self.onlyNewestPackages(downloadablePackages)
+			downloadablePackages = self._filterProducts(downloadablePackages)
 
-				newPackages = []
-				for availablePackage in downloadablePackages:
-					logger.info(u"Testing if download/installation of package '%s' is needed" % availablePackage["filename"])
-					productInstalled = False
-					updateAvailable = False
-					installationRequired = False
-					for product in installedProducts:
-						if product['productId'] == availablePackage['productId']:
-							logger.debug(u"Product '%s' is installed" % availablePackage['productId'])
-							productInstalled = True
-							logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" \
-								% (availablePackage['version'], product['productVersion'], product['packageVersion']))
-							updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
-							break
+			newPackages = []
+			for availablePackage in downloadablePackages:
+				logger.info(u"Testing if download/installation of package '%s' is needed" % availablePackage["filename"])
+				productInstalled = False
+				updateAvailable = False
+				for product in installedProducts:
+					if product['productId'] == availablePackage['productId']:
+						logger.debug(u"Product '%s' is installed" % availablePackage['productId'])
+						productInstalled = True
+						logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" \
+							% (availablePackage['version'], product['productVersion'], product['packageVersion']))
+						updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
+						break
 
-					if not productInstalled:
-						if availablePackage['repository'].autoInstall:
-							logger.notice(u"%s - installation required: product '%s' is not installed and auto install is set for repository '%s'" \
-								% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
-							installationRequired = True
-						else:
-							logger.notice(u"%s - installation not required: product '%s' is not installed but auto install is not set for repository '%s'" \
-								% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
-					elif updateAvailable:
-						if availablePackage['repository'].autoUpdate:
-							logger.notice(u"%s - installation required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) and auto update is set for repository '%s'" \
-									% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
-							installationRequired = True
-						else:
-							logger.notice(u"%s - installation not required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) but auto update is not set for repository '%s'" \
-									% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
-					else:
-						logger.notice(u"%s - installation not required: installed version '%s-%s' of product '%s' is up to date" \
-									% (availablePackage["filename"], product['productVersion'], product['packageVersion'], availablePackage['productId']))
+				downloadNeeded = True
+				localPackageFound = None
+				for localPackage in localPackages:
+					if localPackage['productId'] == availablePackage['productId']:
+						logger.debug(u"Found local package file '%s'" % localPackage['filename'])
+						localPackageFound = localPackage
+						if localPackage['filename'] == availablePackage['filename']:
+							if localPackage['md5sum'] == availablePackage['md5sum']:
+								downloadNeeded = False
+								break
 
-					if not installationRequired:
-						continue
+				if not downloadNeeded:
+					logger.info(u"%s - download of package is not required: found local package %s with matching md5sum" \
+								% (availablePackage["filename"], localPackageFound['filename']))
+				elif localPackageFound:
+					logger.info(u"%s - download of package is required: found local package %s which differs from available" \
+								% (availablePackage["filename"], localPackageFound['filename']))
+				else:
+					logger.info(u"%s - download of package is required: local package not found" % availablePackage["filename"])
 
-					downloadNeeded = True
-					localPackageFound = None
-					for localPackage in localPackages:
-						if localPackage['productId'] == availablePackage['productId']:
-							logger.debug(u"Found local package file '%s'" % localPackage['filename'])
-							localPackageFound = localPackage
-							if localPackage['filename'] == availablePackage['filename']:
-								if localPackage['md5sum'] == availablePackage['md5sum']:
-									downloadNeeded = False
-									break
-					if not downloadNeeded:
-						logger.info(u"%s - download of package is not required: found local package %s with matching md5sum" \
-									% (availablePackage["filename"], localPackageFound['filename']))
-					elif localPackageFound:
-						logger.info(u"%s - download of package is required: found local package %s which differs from available" \
-									% (availablePackage["filename"], localPackageFound['filename']))
-					else:
-						logger.info(u"%s - download of package is required: local package not found" % availablePackage["filename"])
-
-					packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
-					zsynced = False
-					if downloadNeeded:
-						if self.config["zsyncCommand"] and availablePackage['zsyncFile'] and localPackageFound:
-							if availablePackage['repository'].baseUrl.split(':')[0].lower().endswith('s'):
-								logger.warning(u"Cannot use zsync, because zsync does not support https")
-								self.downloadPackage(availablePackage, notifier=notifier)
-							else:
-								if localPackageFound['filename'] != availablePackage['filename']:
-									os.rename(os.path.join(self.config["packageDir"], localPackageFound["filename"]), packageFile)
-									localPackageFound["filename"] = availablePackage['filename']
-								self.zsyncPackage(availablePackage, notifier=notifier)
-								zsynced = True
-						else:
+				packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
+				zsynced = False
+				if downloadNeeded:
+					if self.config["zsyncCommand"] and availablePackage['zsyncFile'] and localPackageFound:
+						if availablePackage['repository'].baseUrl.split(':')[0].lower().endswith('s'):
+							logger.warning(u"Cannot use zsync, because zsync does not support https")
 							self.downloadPackage(availablePackage, notifier=notifier)
+						else:
+							if localPackageFound['filename'] != availablePackage['filename']:
+								os.rename(os.path.join(self.config["packageDir"], localPackageFound["filename"]), packageFile)
+								localPackageFound["filename"] = availablePackage['filename']
+							self.zsyncPackage(availablePackage, notifier=notifier)
+							zsynced = True
+					else:
+						self.downloadPackage(availablePackage, notifier=notifier)
+					self.cleanupPackages(availablePackage)
+
+				if availablePackage['md5sum']:
+					logger.info(u"Verifying download of package '%s'" % packageFile)
+					md5 = md5sum(packageFile)
+					if md5 == availablePackage["md5sum"]:
+						logger.info(u"{productId}: md5sum match, package download verified", productId=availablePackage['productId'])
+					elif md5 != availablePackage["md5sum"] and zsynced:
+						logger.warning(u"{productId}: zsynced Download has failed, try once to load full package", productId=availablePackage['productId'])
+						self.downloadPackage(availablePackage, notifier=notifier)
 						self.cleanupPackages(availablePackage)
 
-					if availablePackage['md5sum']:
-						logger.info(u"Verifying download of package '%s'" % packageFile)
 						md5 = md5sum(packageFile)
 						if md5 == availablePackage["md5sum"]:
 							logger.info(u"{productId}: md5sum match, package download verified", productId=availablePackage['productId'])
-						elif md5 != availablePackage["md5sum"] and zsynced:
-							logger.warning(u"{productId}: zsynced Download has failed, try once to load full package", productId=availablePackage['productId'])
-							self.downloadPackage(availablePackage, notifier=notifier)
-							self.cleanupPackages(availablePackage)
-
-							md5 = md5sum(packageFile)
-							if md5 == availablePackage["md5sum"]:
-								logger.info(u"{productId}: md5sum match, package download verified", productId=availablePackage['productId'])
-							else:
-								raise RuntimeError(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
 						else:
-							logger.info(u"{productId}: md5sum mismatch and no zsync. Doing nothing.", productId=availablePackage['productId'])
+							raise RuntimeError(u"Failed to download package '%s', md5sum mismatch" % availablePackage['packageFile'])
 					else:
-						logger.warning(u"{productId}: Cannot verify download of package: missing md5sum file", productId=availablePackage['productId'])
+						logger.info(u"{productId}: md5sum mismatch and no zsync. Doing nothing.", productId=availablePackage['productId'])
+				else:
+					logger.warning(u"{productId}: Cannot verify download of package: missing md5sum file", productId=availablePackage['productId'])
 
-					newPackages.append(availablePackage)
+				newPackages.append(availablePackage)
 
-				if not newPackages:
-					logger.info(u"No new packages downloaded")
-					return
-
-			except Exception as error:
-				if notifier:
-					notifier.appendLine(u"Error occurred: %s" % error)
-				raise
+			if not newPackages:
+				logger.info(u"No new packages downloaded")
+				return
+		except Exception as error:
+			if notifier:
+				notifier.appendLine(u"Error occurred: %s" % error)
+			raise
 		finally:
 			if notifier and notifier.hasMessage():
 				notifier.notify()
