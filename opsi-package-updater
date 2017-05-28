@@ -562,20 +562,7 @@ class OpsiPackageUpdater(object):
 		notifier = None
 		if self.config["notification"]:
 			logger.info(u"Notification is activated")
-			notifier = EmailNotifier(
-				smtphost=self.config["smtphost"],
-				smtpport=self.config["smtpport"],
-				sender=self.config["sender"],
-				receivers=self.config["receivers"],
-				subject=self.config["subject"],
-			)
-
-			if self.config["use_starttls"]:
-				notifier.useStarttls = self.config["use_starttls"]
-
-			if self.config["smtpuser"] and self.config["smtppassword"] is not None:
-				notifier.username = self.config["smtpuser"]
-				notifier.password = self.config["smtppassword"]
+			notifier = self._getNotifier()
 
 		try:
 			try:
@@ -863,6 +850,24 @@ class OpsiPackageUpdater(object):
 			if notifier and notifier.hasMessage():
 				notifier.notify()
 
+	def _getNotifier(self):
+		notifier = EmailNotifier(
+				smtphost=self.config["smtphost"],
+				smtpport=self.config["smtpport"],
+				sender=self.config["sender"],
+				receivers=self.config["receivers"],
+				subject=self.config["subject"],
+			)
+
+		if self.config["use_starttls"]:
+			notifier.useStarttls = self.config["use_starttls"]
+
+		if self.config["smtpuser"] and self.config["smtppassword"] is not None:
+			notifier.username = self.config["smtpuser"]
+			notifier.password = self.config["smtppassword"]
+
+		return notifier
+
 	def _filterProducts(self, products):
 		if self.config["processProductIds"]:
 			# Checking if given productIds are available and
@@ -892,20 +897,7 @@ class OpsiPackageUpdater(object):
 		notifier = None
 		if self.config["notification"]:
 			logger.info(u"Notification is activated")
-			notifier = EmailNotifier(
-				smtphost=self.config["smtphost"],
-				smtpport=self.config["smtpport"],
-				sender=self.config["sender"],
-				receivers=self.config["receivers"],
-				subject=self.config["subject"],
-			)
-
-			if self.config["use_starttls"]:
-				notifier.useStarttls = self.config["use_starttls"]
-
-			if self.config["smtpuser"] and self.config["smtppassword"] is not None:
-				notifier.username = self.config["smtpuser"]
-				notifier.password = self.config["smtppassword"]
+			notifier = self._getNotifier()
 
 		try:
 			try:
