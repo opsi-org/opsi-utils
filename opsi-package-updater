@@ -1167,9 +1167,9 @@ class OpsiPackageUpdater(object):
 
 		setRights(md5sumFile)
 
+		zsyncFile = u'{package}.zsync'.format(package=packageFile)
+		logger.info(u"Creating zsync file '%s'" % zsyncFile)
 		try:
-			zsyncFile = u'{package}.zsync'.format(package=packageFile)
-			logger.info(u"Creating zsync file '%s'" % zsyncFile)
 			zsyncFile = ZsyncFile(zsyncFile)
 			zsyncFile.generate(packageFile)
 		except Exception as error:
