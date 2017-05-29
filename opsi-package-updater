@@ -934,16 +934,25 @@ class OpsiPackageUpdater(object):
 								break
 
 				if forceDownload:
-					logger.notice(u"{filename} - download of package is forced.", **availablePackage)
 					downloadNeeded = True
+
+					message = u"{filename} - download of package is forced.".format(**availablePackage)
+					logger.notice(message)
+					if notifier:
+						notifier.appendLine(message)
 				elif not downloadNeeded:
 					logger.notice(u"%s - download of package is not required: found local package %s with matching md5sum" \
 								% (availablePackage["filename"], localPackageFound['filename']))
 				elif localPackageFound:
-					logger.notice(u"%s - download of package is required: found local package %s which differs from available" \
-								% (availablePackage["filename"], localPackageFound['filename']))
+					message = u"{filename} - download of package is required: found local package {0} which differs from available".format(localPackageFound['filename'], **availablePackage)
+					logger.notice(message)
+					if notifier:
+						notifier.appendLine(message)
 				else:
-					logger.notice(u"%s - download of package is required: local package not found" % availablePackage["filename"])
+					message = u"{filename} - download of package is required: local package not found".format(**availablePackage)
+					logger.notice(message)
+					if notifier:
+						notifier.appendLine(message)
 
 				packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 				zsynced = False
