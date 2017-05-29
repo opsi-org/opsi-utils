@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.7-1) testing; urgency=medium
+
+  * opsi-package-updater now has a download-only mode accessible
+    from the commandline.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 29 May 2017 15:15:08 +0200
+
 opsi-utils (4.1.1.6-1) testing; urgency=medium
 
   * opsi-product-updater has been renamed to opsi-package-updater to
