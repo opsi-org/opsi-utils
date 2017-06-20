@@ -593,7 +593,7 @@ class OpsiPackageUpdater(object):
 								% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
 							installationRequired = True
 						else:
-							logger.notice(u"%s - installation not required: product '%s' is not installed but auto install is not set for repository '%s'" \
+							logger.info(u"%s - installation not required: product '%s' is not installed but auto install is not set for repository '%s'" \
 								% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
 					elif updateAvailable:
 						if availablePackage['repository'].autoUpdate:
@@ -601,10 +601,10 @@ class OpsiPackageUpdater(object):
 									% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
 							installationRequired = True
 						else:
-							logger.notice(u"%s - installation not required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) but auto update is not set for repository '%s'" \
+							logger.info(u"%s - installation not required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) but auto update is not set for repository '%s'" \
 									% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
 					else:
-						logger.notice(u"%s - installation not required: installed version '%s-%s' of product '%s' is up to date" \
+						logger.info(u"%s - installation not required: installed version '%s-%s' of product '%s' is up to date" \
 									% (availablePackage["filename"], product['productVersion'], product['packageVersion'], availablePackage['productId']))
 
 					if not installationRequired:
@@ -749,7 +749,7 @@ class OpsiPackageUpdater(object):
 					except Exception as error:
 						logger.warning(u"Failed to get product property defaults: %s" % error)
 
-					logger.notice(u"Installing package '%s'" % packageFile)
+					logger.info(u"Installing package '%s'" % packageFile)
 					self.getConfigBackend().depot_installPackage(filename=packageFile, force=True, propertyDefaultValues=propertyDefaultValues, tempDir=self.config.get('tempdir', '/tmp'))
 					productOnDepots = self.getConfigBackend().productOnDepot_getObjects(depotId=self.depotId, productId=package['productId'])
 					if not productOnDepots:
@@ -941,7 +941,7 @@ class OpsiPackageUpdater(object):
 					if notifier:
 						notifier.appendLine(message)
 				elif not downloadNeeded:
-					logger.notice(u"%s - download of package is not required: found local package %s with matching md5sum" \
+					logger.info(u"%s - download of package is not required: found local package %s with matching md5sum" \
 								% (availablePackage["filename"], localPackageFound['filename']))
 				elif localPackageFound:
 					message = u"{filename} - download of package is required: found local package {0} which differs from available".format(localPackageFound['filename'], **availablePackage)
@@ -1046,7 +1046,7 @@ class OpsiPackageUpdater(object):
 		curdir = os.getcwd()
 		os.chdir(os.path.dirname(outFile))
 		try:
-			logger.notice(u"Zsyncing %s to %s" % (availablePackage["packageFile"], outFile))
+			logger.info(u"Zsyncing %s to %s" % (availablePackage["packageFile"], outFile))
 
 			cmd = u"%s -A %s='%s:%s' -o '%s' %s 2>&1" % (
 				self.config["zsyncCommand"],
@@ -1105,9 +1105,9 @@ class OpsiPackageUpdater(object):
 		con = opener.open(req)
 		size = int(con.info().get('Content-length', 0))
 		if size:
-			logger.notice(u"Downloading %s (%s MB) to %s" % (url, round(size / (1024.0 * 1024.0), 2), outFile))
+			logger.info(u"Downloading %s (%s MB) to %s" % (url, round(size / (1024.0 * 1024.0), 2), outFile))
 		else:
-			logger.notice(u"Downloading %s to %s" % (url, outFile))
+			logger.info(u"Downloading %s to %s" % (url, outFile))
 
 		completed = 0.0
 		percent = 0.0
@@ -1207,7 +1207,7 @@ class OpsiPackageUpdater(object):
 		return newestPackages
 
 	def getLocalPackages(self):
-		logger.notice(u"Getting info for local packages in '%s'" % self.config["packageDir"])
+		logger.info(u"Getting info for local packages in '%s'" % self.config["packageDir"])
 		packages = []
 		for f in os.listdir(self.config["packageDir"]):
 			if not f.endswith('.opsi'):
@@ -1240,7 +1240,7 @@ class OpsiPackageUpdater(object):
 		return packages
 
 	def getInstalledProducts(self):
-		logger.notice(u"Getting installed products")
+		logger.info(u"Getting installed products")
 		products = []
 		configBackend = self.getConfigBackend()
 		for product in configBackend.productOnDepot_getHashes(depotId=self.depotId):
@@ -1251,7 +1251,7 @@ class OpsiPackageUpdater(object):
 	def getDownloadablePackages(self):
 		downloadablePackages = []
 		for repository in self.getActiveRepositories():
-			logger.notice(u"Getting package infos from repository '%s'" % repository.name)
+			logger.info(u"Getting package infos from repository '%s'" % repository.name)
 			for package in self.getDownloadablePackagesFromRepository(repository):
 				downloadablePackages.append(package)
 		return downloadablePackages
