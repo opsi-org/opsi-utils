@@ -1479,8 +1479,6 @@ class OpsiPackageManagerControl(object):
 			self.usage()
 			sys.exit(1)
 
-		self.setDefaultConfig()
-
 		if self.opts.help:
 			self.usage()
 			sys.exit(0)
@@ -1489,6 +1487,7 @@ class OpsiPackageManagerControl(object):
 			print u"opsi-package-manager version %s" % __version__
 			sys.exit(0)
 
+		self.setDefaultConfig()
 		self.setCommandlineConfig()
 
 		logger.setLogFormat(u'[%l] [%D] %M (%F|%N)')
