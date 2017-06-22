@@ -76,13 +76,13 @@ msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo gettext/
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo
 
 mkdir -p $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-admin.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-backup.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-convert.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-makepackage.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-newprod.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-package-manager.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
-install -m 644 doc/compiled/opsi-package-updater.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 manpages/compiled/opsi-admin.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 manpages/compiled/opsi-backup.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 manpages/compiled/opsi-convert.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 manpages/compiled/opsi-makepackage.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 manpages/compiled/opsi-newprod.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 manpages/compiled/opsi-package-manager.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
+install -m 644 manpages/compiled/opsi-package-updater.1.gz $RPM_BUILD_ROOT/usr/share/man/man1/
 
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 install -m 0755 opsi-admin $RPM_BUILD_ROOT/usr/bin/

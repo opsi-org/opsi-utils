@@ -41,22 +41,40 @@ import select
 import subprocess
 import sys
 import time
+from contextlib import closing
 from contextlib import contextmanager
 
 from OPSI.Backend.BackendManager import BackendManager
-from OPSI.Exceptions import OpsiRpcError
+from OPSI.Exceptions import BackendMissingDataError, OpsiRpcError
 from OPSI.Logger import (COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
 	COLOR_NORMAL, COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
 	LOG_NONE, LOG_ERROR, Logger)
 from OPSI.System import which
 from OPSI.Types import (forceBool, forceFilename, forceInt, forceUnicode,
 	forceUnicodeLower)
+from OPSI.Util import BlowfishError
 from OPSI.Util import (blowfishDecrypt, deserialize, fromJson, getfqdn,
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 
+try:
+	# UCS 4.2
+	from univention.lib.umc import Client as UMCClient
+	RUNNING_ON_UCS = True
+	UMCConnection = None
+	ucr = None
+except ImportError:
+	try:
+		# UCS 4.1
+		from univention.lib.umc_connection import UMCConnection
+		from univention.management.console.config import ucr
+		UMCClient = None
+		RUNNING_ON_UCS = True
+	except ImportError:
+		RUNNING_ON_UCS = False
+
 import curses
 
-__version__ = '4.1.1.8'
+__version__ = '4.1.1.8.1'
 
 backend = None
 exitZero = False
@@ -1617,37 +1635,116 @@ class CommandTask(Command):
 				raise ValueError("Can not use empty password!")
 			logger.addConfidentialString(password)
 
-			backend.user_setCredentials(username='pcpatch', password=password)
-
+			# We need the old password before replacing it
 			try:
-				# Univention
-				dn = None
-				process = os.popen(u'%s users/user list --filter "(uid=pcpatch)"' % which('univention-admin'), 'r')
-				for line in process.readlines():
-					if line.startswith('DN'):
-						dn = line.strip().split(' ')[1]
-						break
-				process.close()
+				oldPassword = backend.user_getCredentials(username='pcpatch')['password']
+			except (BlowfishError, BackendMissingDataError, KeyError):
+				oldPassword = None
+
+			if oldPassword:
+				logger.addConfidentialString(oldPassword)
+
+			if RUNNING_ON_UCS:
+				univentionAdmin = which('univention-admin')
+
+				with closing(os.popen(u'{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=univentionAdmin), 'r')) as process:
+					for line in process.readlines():
+						if line.startswith('DN'):
+							dn = line.strip().split(' ')[1]
+							break
+					else:
+						dn = None
+
 				if not dn:
 					raise RuntimeError(u"Failed to get DN for user pcpatch")
-				cmd = u"%s users/user modify --dn %s --set password='%s' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null" \
-						% (which('univention-admin'), dn, password)
-				os.system(cmd.encode(outEncoding))
-			except Exception:
-				try:
-					# smbldap
-					process = os.popen(u'%s pcpatch 1>/dev/null 2>/dev/null' % which('smbldap-passwd'), 'w')
-					process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
-					process.close()
-				except Exception:
-					# unix
-					process = os.popen(u'%s 1>/dev/null 2>/dev/null' % which(u'chpasswd'), 'w')
-					process.write((u"pcpatch:%s\n" % password).encode(outEncoding))
-					process.close()
 
-					process = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
-					process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
-					process.close()
+				try:
+					if not oldPassword:
+						# This may happen during the first run when we are
+						# initializinig for the first time. Therefore we
+						# must not exit here but instead use udm for
+						# setting the password.
+						logger.notice("Old password missing! Unable to change password.")
+						logger.notice(
+							"If this message persists please set the "
+							"password manually with: "
+							"'opsi-admin -d method user_setCredentials "
+							"pcpatch <password>'."
+						)
+						raise RuntimeError("Missing old password.")
+
+					# Since we have an old password set we want to
+					# change the password of pcpatch by authenticating
+					# as it and then simply change our password.
+					if UMCClient is not None:  # UCS 4.2
+						client = UMCClient()
+						client.authenticate('pcpatch', oldPassword)
+						client.umc_set(
+							{
+								'password': {
+									'password': oldPassword,
+									'new_password': password
+								}
+							}
+						)
+					elif UMCConnection and ucr is not None:  # UCS 4.1 and older
+						client = UMCConnection(ucr.get('ldap/master'))
+						client.auth('pcpatch', oldPassword)
+						client.request(
+							'',
+							{
+								'password': {
+									'password': oldPassword,
+									'new_password': password
+								}
+							},
+							command='set'
+						)
+					else:
+						raise RuntimeError(
+							"Invalid import setup encountered! "
+							"Maybe unsupported UCS version."
+						)
+				except Exception as err:
+					logger.warning("Setting the password with the credentials of pcpatch failed: {0}", err)
+					logger.info("Trying fallback mechanism...")
+
+					logger.debug("Trying to use machine account...")
+					cmd = u"{udm} users/user modify --dn {dn} --set password='{pw}' --set overridePWLength=1 --set overridePWHistory=1 1>/dev/null 2>/dev/null".format(
+						udm=univentionAdmin,
+						dn=dn,
+						pw=password
+					)
+					returnCode = os.system(cmd.encode(outEncoding))
+					logger.debug("Command returned {0}", returnCode)
+					if returnCode != 0:
+						raise RuntimeError("Setting the password for the pcpatch user failed!")
+
+				# If we got here the password has been changed on the
+				# system and we can safely set it for opsi.
+				backend.user_setCredentials(username='pcpatch', password=password)
+
+				return  # UCS processing done.
+
+			try:
+				# smbldap
+				process = os.popen(u'%s pcpatch 1>/dev/null 2>/dev/null' % which('smbldap-passwd'), 'w')
+				process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
+				process.close()
+			except Exception:
+				# unix
+				process = os.popen(u'%s 1>/dev/null 2>/dev/null' % which(u'chpasswd'), 'w')
+				process.write((u"pcpatch:%s\n" % password).encode(outEncoding))
+				process.close()
+
+				process = os.popen(u'%s -a -s pcpatch 1>/dev/null 2>/dev/null' % which('smbpasswd'), 'w')
+				process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
+				process.close()
+
+			# If we got here the password has been changed on the
+			# system and we can safely set it for opsi.
+			backend.user_setCredentials(username='pcpatch', password=password)
+
 
 if __name__ == "__main__":
 	@contextmanager

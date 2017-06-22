@@ -60,7 +60,8 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.1.1.8'
+__version__ = '4.1.1.8.1'
+
 
 logger = Logger()
 
@@ -1299,6 +1300,10 @@ class OpsiPackageUpdater(object):
 				for link in htmlParser.getLinks():
 					if not link.endswith('.opsi'):
 						continue
+
+					if link.startswith('/'):
+						# Fix for IIS repos
+						link = link[1:]
 
 					excluded = False
 					included = True
