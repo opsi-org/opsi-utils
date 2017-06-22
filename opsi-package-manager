@@ -826,11 +826,12 @@ class OpsiPackageManager(object):
 				return
 
 			if dependency:
-				logger.notice(u"Setting action '%s' with Dependencies for product '%s' on client(s): %s" % (
-				actionRequest, productId, ', '.join(clientIds)))
-				subject.setMessage(_(u"Setting action %s with Dependencies for product %s on client(s): %s") % (
-				actionRequest, productId, ', '.join(clientIds)))
-				self.backend.setActionRequestWithDependencies(clientId=clientIds, productId=productId, actionRequest=actionRequest)
+				for client in [x.clientId for x in productOnClients]:
+					logger.notice(u"Setting action '%s' with Dependencies for product '%s' on client: %s" % (
+					actionRequest, productId, client))
+					subject.setMessage(_(u"Setting action %s with Dependencies for product %s on client: %s") % (
+					actionRequest, productId, client))
+					self.backend.setProductActionRequestWithDependencies(clientId=client, productId=productId, actionRequest=actionRequest)
 				return
 
 			clientIds = []
@@ -1517,6 +1518,7 @@ class OpsiPackageManagerControl(object):
 		self.backend = BackendManager(
 			backendConfigDir=self.config['backendConfigDir'],
 			dispatchConfigFile=self.config['dispatchConfigFile'],
+			extensionConfigDir=self.config['extendConfigDir'],
 			extend=True
 		)
 		try:
@@ -1818,6 +1820,7 @@ class OpsiPackageManagerControl(object):
 			'tempDir': u'/tmp',
 			'backendConfigDir': u'/etc/opsi/backends',
 			'dispatchConfigFile': u'/etc/opsi/backendManager/dispatch.conf',
+			'extendConfigDir': u"/etc/opsi/backendManager/extend.d",
 			'command': None,
 			'packageFiles': [],
 			'productIds': [],
@@ -1965,6 +1968,7 @@ class OpsiPackageManagerControl(object):
 		print u"  -f, --force                             force install/uninstall (use with extreme caution)"
 		print u"  -U, --update                            set action \"update\" on hosts where installation status is \"installed\""
 		print u"  -S, --setup                             set action \"setup\" on hosts where installation status is \"installed\""
+		print u"  -s, --setup-with-dependencies           set action \"setup\" on hosts where installation status is \"installed\" with dependencies"
 		print u"  -o, --overwrite                         overwrite existing package on upload even if size matches"
 		print u"  -n, --no-delta                          full package transfers on uploads (do not use librsync)"
 		print u"  -k, --keep-files                        do not delete client data dir on uninstall"
