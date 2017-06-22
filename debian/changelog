@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.9-1) testing; urgency=medium
+
+  * opsi-package-manager: option -s added to set setup with dependencies
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Thu, 22 Jun 2017 14:19:44 +0200
+
 opsi-utils (4.1.1.8.1-4) testing; urgency=medium
 
   * .deb: Deploy correct manpages.
