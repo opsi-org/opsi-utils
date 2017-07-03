@@ -739,9 +739,12 @@ class Shell:
 		else:
 			self.currentParam = u''
 
-		logger.debug(u"cmdline: %s" % cmdline)
-		logger.debug2(u"paramPos: %s, currentParam: %s, params: %s" \
-				% (self.paramPos, self.currentParam, self.params))
+		logger.debug(u"cmdline: {0}", cmdline)
+		logger.debug2(
+			u"paramPos: {0}, currentParam: {1}, params: {2}",
+			self.paramPos, self.currentParam, self.params
+		)
+
 		if self.paramPos >= len(self.params):
 			logger.error(
 				u"Assertion 'self.paramPos < len(self.params)' failed: "
