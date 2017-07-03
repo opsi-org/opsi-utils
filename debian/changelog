@@ -1,3 +1,9 @@
+opsi-utils (4.0.7.16-2) testing; urgency=medium
+
+  * create_source.sh now calls the correct script to create the manpages.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 03 Jul 2017 16:29:50 +0200
+
 opsi-utils (4.0.7.16-1) testing; urgency=medium
 
   * opsi-admin: Removed password changes methods not working to our
