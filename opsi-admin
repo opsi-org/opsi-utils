@@ -936,9 +936,11 @@ class Shell:
 						completions.append(command.getName())
 
 				if len(completions) == 1:
-					self.setCmdline(self.cmdline[:self.pos] + \
-							completions[0][len(params[self.paramPos]):] + \
-							self.cmdline[self.pos:])
+					self.setCmdline(
+						self.cmdline[:self.pos] +
+						completions[0][len(params[self.paramPos]):] +
+						self.cmdline[self.pos:]
+					)
 					self.pos += len(completions[0][len(params[self.paramPos]):])
 
 					if self.pos == len(self.cmdline):
