@@ -59,7 +59,7 @@ from OPSI.Util import (
 	objectToBash, serialize, toJson)
 
 
-__version__ = '4.0.7.15'
+__version__ = '4.0.7.16'
 
 backend = None
 exitZero = False
