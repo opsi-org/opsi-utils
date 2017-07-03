@@ -12,7 +12,7 @@ tmpdir=/tmp/${packagename}-${version}
 
 
 cd $dir
-sh recreate_manpages.sh
+sh build_manpages.sh
 rm ${destdir}/${packagename}*.tar.gz  2>/dev/null || true
 rm ${destdir}/${packagename}*.dsc     2>/dev/null || true
 rm ${destdir}/${packagename}*.spec    2>/dev/null || true
