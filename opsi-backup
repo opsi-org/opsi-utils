@@ -39,7 +39,7 @@ import sys
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 
-__version__ = "4.1.1.4"
+__version__ = "4.1.1.10"
 
 logger = Logger()
 
@@ -96,7 +96,7 @@ def main():
 	parser.add_argument("-h", "--help", action="help")
 	parser.add_argument("-v", "--verbose", action="store_true", default=False)
 	parser.add_argument("-l", "--log-level", default=LOG_NOTICE, type=int,
-                        choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 	parser.add_argument("--log-file", metavar='FILE', default="/var/log/opsi/opsi-backup.log")
 
 	subs = parser.add_subparsers(title="commands", dest="command")
