@@ -51,11 +51,12 @@ Version %s.
 
 Common options:
    -h, --help                          Show this help message and exit
-   -l, --log-level    <log-level>      Set log level to <log-level> (default: 5)
+   -v, --verbose                       Log to standard error.
+   -l, --log-level    <log-level>      Set log level to <log-level> (default: 4)
                                           0=nothing, 1=essential, 2=critical, 3=error, 4=warning
                                           5=notice, 6=info, 7=debug, 8=debug2, 9=confidential
-   -v, --verbose                       Log to standard error
-   --log-file         <log-file>       Log to <log-file>
+   --log-file         <log-file>       Log to <log-file>.
+                                       Default is /var/log/opsi/opsi-backup.log.
 
 Commands:
    verify     <backup-archive>         Verify integrity of <backup-archive>.
