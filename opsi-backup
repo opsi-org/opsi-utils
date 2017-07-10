@@ -39,7 +39,7 @@ import sys
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 
-__version__ = "4.1.1.4"
+__version__ = "4.1.1.10"
 
 logger = Logger()
 
@@ -51,11 +51,12 @@ Version %s.
 
 Common options:
    -h, --help                          Show this help message and exit
-   -l, --log-level    <log-level>      Set log level to <log-level> (default: 5)
+   -v, --verbose                       Log to standard error.
+   -l, --log-level    <log-level>      Set log level to <log-level> (default: 4)
                                           0=nothing, 1=essential, 2=critical, 3=error, 4=warning
                                           5=notice, 6=info, 7=debug, 8=debug2, 9=confidential
-   -v, --verbose                       Log to standard error
-   --log-file         <log-file>       Log to <log-file>
+   --log-file         <log-file>       Log to <log-file>.
+                                       Default is /var/log/opsi/opsi-backup.log.
 
 Commands:
    verify     <backup-archive>         Verify integrity of <backup-archive>.
@@ -94,8 +95,8 @@ def main():
 	parser = argparse.ArgumentParser(prog="opsi-backup", add_help=False, usage=USAGE, formatter_class=HelpFormatter)
 	parser.add_argument("-h", "--help", action="help")
 	parser.add_argument("-v", "--verbose", action="store_true", default=False)
-	parser.add_argument("-l", "--log-level", default=LOG_NOTICE,
-                        choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	parser.add_argument("-l", "--log-level", default=LOG_NOTICE, type=int,
+						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 	parser.add_argument("--log-file", metavar='FILE', default="/var/log/opsi/opsi-backup.log")
 
 	subs = parser.add_subparsers(title="commands", dest="command")
