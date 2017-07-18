@@ -98,7 +98,7 @@ install -m 0644 data/opsi-package-updater.conf $RPM_BUILD_ROOT/etc/opsi/
 
 mkdir -p $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
 install -m 0644 data/etc/opsi/package-updater.repos.d/example.repo.template $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
-install -m 0644 data/etc/opsi/package-updater.repos.d/master-depot.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
+install -m 0644 data/etc/opsi/package-updater.repos.d/primary.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
 install -m 0644 data/etc/opsi/package-updater.repos.d/uib-linux.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
 install -m 0644 data/etc/opsi/package-updater.repos.d/uib-local_image.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
 install -m 0644 data/etc/opsi/package-updater.repos.d/uib-windows.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
@@ -184,7 +184,7 @@ rm -rf $RPM_BUILD_ROOT
 # configfiles
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-package-updater.conf
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/example.repo.template
-%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/master-depot.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/primary.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-linux.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-local_image.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-windows.repo
