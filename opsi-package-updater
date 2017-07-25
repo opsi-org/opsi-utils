@@ -258,6 +258,14 @@ class OpsiPackageUpdater(object):
 			pass
 
 	def getActiveRepositories(self):
+		"""
+		Iterates over the found repositories and yields the active ones
+		one by one.
+		If a repository name filter is given only repositories matching
+		the name will be returned.
+
+		:rtype: ProductRepositoryInfo
+		"""
 		name = self.config.get("repositoryName", None)
 
 		for repo in self.config.get('repositories', []):
