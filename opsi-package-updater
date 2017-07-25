@@ -47,7 +47,7 @@ import time
 import urllib
 import urllib2
 
-from OPSI.Logger import LOG_INFO, LOG_NOTICE, LOG_WARNING, Logger
+from OPSI.Logger import LOG_DEBUG, LOG_NOTICE, LOG_WARNING, Logger
 from OPSI.Object import NetbootProduct, ProductOnClient
 from OPSI.Types import (forceBool, forceEmailAddress, forceFilename,
 	forceHostAddress, forceHostId, forceInt, forceProductId, forceUnicode,
@@ -1258,8 +1258,6 @@ class OpsiPackageUpdater(object):
 		return downloadablePackages
 
 	def getDownloadablePackagesFromRepository(self, repository):
-		packages = []
-
 		depotConnection = None
 		depotRepositoryPath = None
 		if repository.opsiDepotId:
@@ -1285,6 +1283,9 @@ class OpsiPackageUpdater(object):
 		else:
 			opener = urllib2.build_opener(handler)
 		urllib2.install_opener(opener)
+
+		packages = []
+		errors = set()
 
 		for url in repository.getDownloadUrls():
 			try:
@@ -1325,6 +1326,7 @@ class OpsiPackageUpdater(object):
 					if excluded:
 						logger.info(u"Package '%s' excluded by regular expression" % link)
 						continue
+
 					try:
 						productId = '_'.join(link.split('_')[:-1])
 						version = link[:-5].split('_')[-1]
@@ -1379,8 +1381,12 @@ class OpsiPackageUpdater(object):
 						except Exception as error:
 							logger.error(u"Failed to process link '%s': %s" % (link, error))
 			except Exception as error:
-				logger.logException(error, LOG_INFO)
-				raise RuntimeError(u"Failed to process url '%s': %s" % (url, error))
+				logger.logException(error, LOG_DEBUG)
+				errors.add(forceUnicode(error))
+
+		if errors:
+			logger.warning("Problems processing repository {name}: {errors}", name=repository.name, errors='; '.join(str(e) for e in errors))
+
 		return packages
 
 
