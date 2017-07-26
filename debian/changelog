@@ -1,4 +1,4 @@
-opsi-utils (4.1.1.11-1) UNRELEASED; urgency=medium
+opsi-utils (4.1.1.11-1) testing; urgency=medium
 
   * opsi-package-updater: Added option to search for product.
   * opsi-package-updater: If listing the packages in a repository fails
@@ -10,8 +10,12 @@ opsi-utils (4.1.1.11-1) UNRELEASED; urgency=medium
   * opsi-package-updater: repo 'master' has been renamed to 'primary'.
   * opsi-package-updater: Messages will show the repo name instead of
     base url for easier identification.
+  * opsi-package-updater: Renamed the mode 'repo' to 'list' and also
+    changed the name of some arguments.
+  * opsi-package-updater: Added 'list --product-differences' to show
+    differences between local and remote product versions.
 
- -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 26 Jul 2017 12:02:31 +0200
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 26 Jul 2017 12:35:08 +0200
 
 opsi-utils (4.1.1.10-1) testing; urgency=medium
 
