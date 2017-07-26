@@ -47,7 +47,7 @@ import time
 import urllib
 import urllib2
 
-from OPSI.Logger import LOG_INFO, LOG_NOTICE, LOG_WARNING, Logger
+from OPSI.Logger import LOG_DEBUG, LOG_NOTICE, LOG_WARNING, Logger
 from OPSI.Object import NetbootProduct, ProductOnClient
 from OPSI.Types import (forceBool, forceEmailAddress, forceFilename,
 	forceHostAddress, forceHostId, forceInt, forceProductId, forceUnicode,
@@ -229,6 +229,7 @@ class OpsiPackageUpdater(object):
 		self.configBackend = None
 		self.depotConnections = {}
 		self.depotId = forceHostId(getfqdn(conf='/etc/opsi/global.conf').lower())
+		self.errors = []
 
 		depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=self.depotId)
 		try:
@@ -528,13 +529,17 @@ class OpsiPackageUpdater(object):
 
 			logger.notice("{name}: {url} {description}", name=repository.name, url=repository.baseUrl, description=descr)
 
-	def listProductsInRepositories(self, withLocalInstallationStatus=False):
+	def listProductsInRepositories(self, withLocalInstallationStatus=False, productId=None):
 		"""
 		Lists the products available at the actives repositories.
 
 		If `withLocalInstallationStatus` is `True` it will also compare the version on the
 		repository to the one locally installed and show if there is a
 		difference.
+
+		:type withLocalInstallationStatus: bool
+		:param productId: Limit the output to products matching this
+		:type productId: str
 		"""
 		if withLocalInstallationStatus:
 			localProducts = self.getInstalledProducts()
@@ -546,6 +551,15 @@ class OpsiPackageUpdater(object):
 				self.getDownloadablePackagesFromRepository(repository),
 				key=operator.itemgetter('productId')
 			)
+
+			if productId:
+				logger.debug("Filtering for product IDs matching {0}...", productId)
+				productId = productId.strip().lower()
+				packages = [
+					package for package in packages
+					if productId in package['productId'].lower()
+				]
+
 			for package in packages:
 				if withLocalInstallationStatus:
 					try:
@@ -1266,8 +1280,6 @@ class OpsiPackageUpdater(object):
 		return downloadablePackages
 
 	def getDownloadablePackagesFromRepository(self, repository):
-		packages = []
-
 		depotConnection = None
 		depotRepositoryPath = None
 		if repository.opsiDepotId:
@@ -1293,6 +1305,9 @@ class OpsiPackageUpdater(object):
 		else:
 			opener = urllib2.build_opener(handler)
 		urllib2.install_opener(opener)
+
+		packages = []
+		errors = set()
 
 		for url in repository.getDownloadUrls():
 			try:
@@ -1333,6 +1348,7 @@ class OpsiPackageUpdater(object):
 					if excluded:
 						logger.info(u"Package '%s' excluded by regular expression" % link)
 						continue
+
 					try:
 						productId = '_'.join(link.split('_')[:-1])
 						version = link[:-5].split('_')[-1]
@@ -1387,8 +1403,13 @@ class OpsiPackageUpdater(object):
 						except Exception as error:
 							logger.error(u"Failed to process link '%s': %s" % (link, error))
 			except Exception as error:
-				logger.logException(error, LOG_INFO)
-				raise RuntimeError(u"Failed to process url '%s': %s" % (url, error))
+				logger.logException(error, LOG_DEBUG)
+				self.errors.append(error)
+				errors.add(forceUnicode(error))
+
+		if errors:
+			logger.warning("Problems processing repository {name}: {errors}", name=repository.name, errors='; '.join(str(e) for e in errors))
+
 		return packages
 
 
@@ -1440,13 +1461,14 @@ def main():
 		dest="logLevel", type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 		help="Set the desired loglevel.")
 
-	checksumGroup = parser.add_mutually_exclusive_group()
-	checksumGroup.add_argument('--force-checksum-calculation',
+	parser.add_argument('--force-checksum-calculation',
 		dest='forceChecksumCalculation', action="store_true", default=False,
-		help="Force calculation of a checksum (MD5) for every package.")
-	checksumGroup.add_argument('--use-existing-checksum',
-		dest='forceChecksumCalculation', action="store_false",
-		help="Use existing checksums from the .md5-file of a package if possible. (Default)")
+		help=(
+			"Force calculation of a checksum (MD5) for every package. "
+			"Default is to use existing checksums from the .md5-file "
+			"of a package if possible."
+		)
+	)
 
 	parser.add_argument('--repo', metavar="repository_name", dest="repository",
 						default=None, help="Limit the actions the given repository.")
@@ -1482,6 +1504,9 @@ def main():
 	repoparser.add_argument('--list-updatable',
 							action="store_true", dest="listUpdatableProducts",
 							help='Lists packages that have updates in the remote repositories.')
+	repoparser.add_argument('--search-product', metavar='text',
+							dest="searchForProduct",
+							help='Search for a product with the given name.')
 
 	# Setting a default to not stumble over possibly not present args.
 	repoparser.set_defaults(processProductIds=[])
@@ -1537,16 +1562,26 @@ def main():
 				opu.listProductsInRepositories(withLocalInstallationStatus=True)
 			elif args.listUpdatableProducts:
 				opu.listUpdatableProducts()
+			elif args.searchForProduct:
+				opu.listProductsInRepositories(productId=args.searchForProduct)
+
+		if opu.errors:
+			return 2  # things went wrong
+
+	return 0  # no errors encountered
 
 
 if __name__ == "__main__":
 	logger.setConsoleColor(True)
 
 	try:
-		main()
+		exitCode = main()
 	except KeyboardInterrupt:
-		sys.exit(1)
+		exitCode = 1
 	except Exception as e:
 		logger.logException(e)
 		print(u"ERROR: {0}".format(forceUnicode(e).encode('utf-8')), file=sys.stderr)
-		sys.exit(1)
+		exitCode = 1
+
+	if exitCode:
+		sys.exit(exitCode)
