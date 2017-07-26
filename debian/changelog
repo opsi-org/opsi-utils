@@ -8,6 +8,8 @@ opsi-utils (4.1.1.11-1) UNRELEASED; urgency=medium
   * opsi-package-updater: Removed --use-existing-checksum as this is
     the default setting.
   * opsi-package-updater: repo 'master' has been renamed to 'primary'.
+  * opsi-package-updater: Messages will show the repo name instead of
+    base url for easier identification.
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 26 Jul 2017 12:02:31 +0200
 
