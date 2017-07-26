@@ -1,3 +1,16 @@
+opsi-utils (4.1.1.11-1) UNRELEASED; urgency=medium
+
+  * opsi-package-updater: Added option to search for product.
+  * opsi-package-updater: If listing the packages in a repository fails
+    this repository will be skipped.
+  * opsi-package-updater: Encountering an error during the processing
+    will lead to a non-zero exit code.
+  * opsi-package-updater: Removed --use-existing-checksum as this is
+    the default setting.
+  * opsi-package-updater: repo 'master' has been renamed to 'primary'.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 26 Jul 2017 12:02:31 +0200
+
 opsi-utils (4.1.1.10-1) testing; urgency=medium
 
   * opsi-backup, opsi-convert, opsi-makepackage, opsi-package-updater:
