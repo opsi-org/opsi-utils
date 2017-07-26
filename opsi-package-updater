@@ -1086,6 +1086,37 @@ class OpsiPackageUpdater(object):
 		else:
 			logger.notice("No updates found.")
 
+	def listProductsWithVersionDifference(self):
+		"""
+		Lists the products available at the actives repositories.
+
+		If `withLocalInstallationStatus` is `True` it will also compare the version on the
+		repository to the one locally installed and show if there is a
+		difference.
+		"""
+		localProducts = self.getInstalledProducts()
+		localProducts = {product['productId']: product for product in localProducts}
+
+		for repository in self.getActiveRepositories():
+			repoMessageShown = False
+			packages = sorted(
+				self.getDownloadablePackagesFromRepository(repository),
+				key=operator.itemgetter('productId')
+			)
+			for package in packages:
+				try:
+					localProduct = localProducts[package['productId']]
+				except KeyError:
+					continue  # Not installed locally
+
+				localVersion = '{productVersion}-{packageVersion}'.format(**localProduct)
+				if not compareVersions(package['version'], '==', localVersion):
+					if not repoMessageShown:
+						logger.notice("Packages in {name}:", name=repository.name)
+						repoMessageShown = True
+
+					logger.notice('\t{productId} (Version {version}, installed {localVersion})', localVersion=localVersion, **package)
+
 	def zsyncPackage(self, availablePackage, notifier=None):
 		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 		curdir = os.getcwd()
@@ -1523,6 +1554,9 @@ def main():
 	repoparser.add_argument('--list-product-and-installationstatus',
 							action="store_true", dest="listProductsWithInstallationStatus",
 							help='Lists the repositories, the products they provide and information about the local installation status.')
+	repoparser.add_argument('--list-differences',
+							action="store_true", dest="listProductsWithDiffernce",
+							help='Lists packages where local and remote version are different.')
 	repoparser.add_argument('--list-updatable',
 							action="store_true", dest="listUpdatableProducts",
 							help='Lists packages that have updates in the remote repositories.')
@@ -1584,6 +1618,8 @@ def main():
 				opu.listProductsInRepositories(withLocalInstallationStatus=True)
 			elif args.listUpdatableProducts:
 				opu.listUpdatableProducts()
+			elif args.listProductsWithDiffernce:
+				opu.listProductsWithVersionDifference()
 			elif args.searchForProduct:
 				opu.listProductsInRepositories(productId=args.searchForProduct)
 
