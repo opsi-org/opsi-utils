@@ -1557,7 +1557,7 @@ def main():
 							action="store_true", dest="listProductsWithInstallationStatus",
 							help='Lists the repositories, the products they provide and information about the local installation status.')
 	listparser.add_argument('--list-differences',
-							action="store_true", dest="listProductsWithDiffernce",
+							action="store_true", dest="listProductsWithDifference",
 							help='Lists packages where local and remote version are different.')
 	listparser.add_argument('--updatable-products',
 							action="store_true", dest="listUpdatableProducts",
@@ -1620,7 +1620,7 @@ def main():
 				opu.listProductsInRepositories(withLocalInstallationStatus=True)
 			elif args.listUpdatableProducts:
 				opu.listUpdatableProducts()
-			elif args.listProductsWithDiffernce:
+			elif args.listProductsWithDifference:
 				opu.listProductsWithVersionDifference()
 			elif args.searchForProduct:
 				opu.listProductsInRepositories(productId=args.searchForProduct)
