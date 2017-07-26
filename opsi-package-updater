@@ -528,13 +528,17 @@ class OpsiPackageUpdater(object):
 
 			logger.notice("{name}: {url} {description}", name=repository.name, url=repository.baseUrl, description=descr)
 
-	def listProductsInRepositories(self, withLocalInstallationStatus=False):
+	def listProductsInRepositories(self, withLocalInstallationStatus=False, productId=None):
 		"""
 		Lists the products available at the actives repositories.
 
 		If `withLocalInstallationStatus` is `True` it will also compare the version on the
 		repository to the one locally installed and show if there is a
 		difference.
+
+		:type withLocalInstallationStatus: bool
+		:param productId: Limit the output to products matching this
+		:type productId: str
 		"""
 		if withLocalInstallationStatus:
 			localProducts = self.getInstalledProducts()
@@ -546,6 +550,15 @@ class OpsiPackageUpdater(object):
 				self.getDownloadablePackagesFromRepository(repository),
 				key=operator.itemgetter('productId')
 			)
+
+			if productId:
+				logger.debug("Filtering for product IDs matching {0}...", productId)
+				productId = productId.strip().lower()
+				packages = [
+					package for package in packages
+					if productId in package['productId']
+				]
+
 			for package in packages:
 				if withLocalInstallationStatus:
 					try:
@@ -1482,6 +1495,9 @@ def main():
 	repoparser.add_argument('--list-updatable',
 							action="store_true", dest="listUpdatableProducts",
 							help='Lists packages that have updates in the remote repositories.')
+	repoparser.add_argument('--search-product', metavar='text',
+							dest="searchForProduct",
+							help='Search for a product with the given name.')
 
 	# Setting a default to not stumble over possibly not present args.
 	repoparser.set_defaults(processProductIds=[])
@@ -1537,6 +1553,8 @@ def main():
 				opu.listProductsInRepositories(withLocalInstallationStatus=True)
 			elif args.listUpdatableProducts:
 				opu.listUpdatableProducts()
+			elif args.searchForProduct:
+				opu.listProductsInRepositories(productId=args.searchForProduct)
 
 
 if __name__ == "__main__":
