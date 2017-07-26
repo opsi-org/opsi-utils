@@ -456,7 +456,8 @@ class OpsiPackageUpdater(object):
 			self.depotConnections[depotId] = JSONRPCBackend(
 				address=depotId,
 				username=username,
-				password=password
+				password=password,
+				application=self.httpHeaders['User-Agent'] + ' (depot connection)',
 			)
 		return self.depotConnections[depotId]
 
@@ -1051,6 +1052,7 @@ class OpsiPackageUpdater(object):
 					if excluded:
 						logger.info(u"Package '%s' excluded by regular expression" % link)
 						continue
+
 					try:
 						productId = '_'.join(link.split('_')[:-1])
 						version = link[:-5].split('_')[-1]
