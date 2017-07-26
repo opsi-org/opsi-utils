@@ -600,20 +600,28 @@ class OpsiPackageUpdater(object):
 					installationRequired = False
 					if not productInstalled:
 						if availablePackage['repository'].autoInstall:
-							logger.notice(u"%s - installation required: product '%s' is not installed and auto install is set for repository '%s'" \
-								% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
+							logger.notice(
+								u"{0} - installation required: product '{1}' is not installed and auto install is set for repository '{2}'",
+								availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].name
+							)
 							installationRequired = True
 						else:
-							logger.info(u"%s - installation not required: product '%s' is not installed but auto install is not set for repository '%s'" \
-								% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
+							logger.info(
+								u"{0} - installation not required: product '{1}' is not installed but auto install is not set for repository '{2}'",
+								availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].name
+							)
 					elif updateAvailable:
 						if availablePackage['repository'].autoUpdate:
-							logger.notice(u"%s - installation required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) and auto update is set for repository '%s'" \
-									% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
+							logger.notice(
+								u"{0} - installation required: a more recent version of product '{1}' was found (installed: {2}-{3}, available: {4}) and auto update is set for repository '{5}'",
+								availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].name
+							)
 							installationRequired = True
 						else:
-							logger.info(u"%s - installation not required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) but auto update is not set for repository '%s'" \
-									% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
+							logger.info(
+								u"{0} - installation not required: a more recent version of product '{1}' was found (installed: {2}-{3}, available: {4}) but auto update is not set for repository '{5}'",
+								availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].name
+							)
 					else:
 						logger.info(
 							u"{0} - installation not required: installed version '{1}-{2}' of product '{3}' is up to date",
@@ -807,11 +815,15 @@ class OpsiPackageUpdater(object):
 							)
 							continue
 
-						logger.notice(u"Setting action 'setup' for product '%s' where installation status 'installed' because auto setup is set for repository '%s'" \
-							% (package['productId'], package['repository'].baseUrl))
+						logger.notice(
+							u"Setting action 'setup' for product '{0}' where installation status 'installed' because auto setup is set for repository '{1}'",
+							package['productId'], package['repository'].name
+						)
 					else:
-						logger.info(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not set for repository '%s'" \
-							% (package['productId'], package['repository'].baseUrl))
+						logger.info(
+							u"Not setting action 'setup' for product '{0}' where installation status 'installed' because auto setup is not set for repository '{1}'",
+							package['productId'], package['repository'].name
+						)
 						continue
 
 					clientToDepotserver = self.getConfigBackend().configState_getClientToDepotserver(depotIds=[self.depotId])
