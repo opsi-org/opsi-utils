@@ -597,38 +597,50 @@ class OpsiPackageUpdater(object):
 
 				newPackages = []
 				for availablePackage in downloadablePackages:
-					logger.info(u"Testing if download/installation of package '%s' is needed" % availablePackage["filename"])
+					logger.info(u"Testing if download/installation of package '{0}' is needed", availablePackage["filename"])
 					productInstalled = False
 					updateAvailable = False
 					for product in installedProducts:
 						if product['productId'] == availablePackage['productId']:
-							logger.debug(u"Product '%s' is installed" % availablePackage['productId'])
+							logger.debug(u"Product '{0}' is installed", availablePackage['productId'])
 							productInstalled = True
-							logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" \
-								% (availablePackage['version'], product['productVersion'], product['packageVersion']))
+							logger.debug(
+								u"Available product version is '{0}', installed product version is '{1}-{2}'",
+								availablePackage['version'], product['productVersion'], product['packageVersion']
+							)
 							updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
 							break
 
 					installationRequired = False
 					if not productInstalled:
 						if availablePackage['repository'].autoInstall:
-							logger.notice(u"%s - installation required: product '%s' is not installed and auto install is set for repository '%s'" \
-								% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
+							logger.notice(
+								u"{0} - installation required: product '{1}' is not installed and auto install is set for repository '{2}'",
+								availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].name
+							)
 							installationRequired = True
 						else:
-							logger.info(u"%s - installation not required: product '%s' is not installed but auto install is not set for repository '%s'" \
-								% (availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].baseUrl))
+							logger.info(
+								u"{0} - installation not required: product '{1}' is not installed but auto install is not set for repository '{2}'",
+								availablePackage["filename"], availablePackage['productId'], availablePackage['repository'].name
+							)
 					elif updateAvailable:
 						if availablePackage['repository'].autoUpdate:
-							logger.notice(u"%s - installation required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) and auto update is set for repository '%s'" \
-									% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
+							logger.notice(
+								u"{0} - installation required: a more recent version of product '{1}' was found (installed: {2}-{3}, available: {4}) and auto update is set for repository '{5}'",
+								availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].name
+							)
 							installationRequired = True
 						else:
-							logger.info(u"%s - installation not required: a more recent version of product '%s' was found (installed: %s-%s, available: %s) but auto update is not set for repository '%s'" \
-									% (availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].baseUrl))
+							logger.info(
+								u"{0} - installation not required: a more recent version of product '{1}' was found (installed: {2}-{3}, available: {4}) but auto update is not set for repository '{5}'",
+								availablePackage["filename"], availablePackage['productId'], product['productVersion'], product['packageVersion'], availablePackage['version'], availablePackage['repository'].name
+							)
 					else:
-						logger.info(u"%s - installation not required: installed version '%s-%s' of product '%s' is up to date" \
-									% (availablePackage["filename"], product['productVersion'], product['packageVersion'], availablePackage['productId']))
+						logger.info(
+							u"{0} - installation not required: installed version '{1}-{2}' of product '{3}' is up to date",
+							availablePackage["filename"], product['productVersion'], product['packageVersion'], availablePackage['productId']
+						)
 
 					if not installationRequired:
 						continue
@@ -644,13 +656,17 @@ class OpsiPackageUpdater(object):
 									downloadNeeded = False
 									break
 					if not downloadNeeded:
-						logger.info(u"%s - download of package is not required: found local package %s with matching md5sum" \
-									% (availablePackage["filename"], localPackageFound['filename']))
+						logger.info(
+							u"{0} - download of package is not required: found local package {1} with matching md5sum",
+							availablePackage["filename"], localPackageFound['filename']
+						)
 					elif localPackageFound:
-						logger.info(u"%s - download of package is required: found local package %s which differs from available" \
-									% (availablePackage["filename"], localPackageFound['filename']))
+						logger.info(
+							u"{0} - download of package is required: found local package {1} which differs from available",
+							availablePackage["filename"], localPackageFound['filename']
+						)
 					else:
-						logger.info(u"%s - download of package is required: local package not found" % availablePackage["filename"])
+						logger.info(u"{0} - download of package is required: local package not found", availablePackage["filename"])
 
 					packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 					zsynced = False
@@ -807,15 +823,21 @@ class OpsiPackageUpdater(object):
 						continue
 					if package['repository'].autoSetup:
 						if isinstance(package['product'], NetbootProduct):
-							logger.info(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not allowed for netboot products" \
-									% (package['productId']))
+							logger.info(
+								u"Not setting action 'setup' for product '{0}' where installation status 'installed' because auto setup is not allowed for netboot products",
+								package['productId']
+							)
 							continue
 
-						logger.notice(u"Setting action 'setup' for product '%s' where installation status 'installed' because auto setup is set for repository '%s'" \
-							% (package['productId'], package['repository'].baseUrl))
+						logger.notice(
+							u"Setting action 'setup' for product '{0}' where installation status 'installed' because auto setup is set for repository '{1}'",
+							package['productId'], package['repository'].name
+						)
 					else:
-						logger.info(u"Not setting action 'setup' for product '%s' where installation status 'installed' because auto setup is not set for repository '%s'" \
-							% (package['productId'], package['repository'].baseUrl))
+						logger.info(
+							u"Not setting action 'setup' for product '{0}' where installation status 'installed' because auto setup is not set for repository '{1}'",
+							package['productId'], package['repository'].name
+						)
 						continue
 
 					clientToDepotserver = self.getConfigBackend().configState_getClientToDepotserver(depotIds=[self.depotId])
