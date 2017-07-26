@@ -49,9 +49,10 @@ import urllib2
 
 from OPSI.Logger import LOG_DEBUG, LOG_NOTICE, LOG_WARNING, Logger
 from OPSI.Object import NetbootProduct, ProductOnClient
-from OPSI.Types import (forceBool, forceEmailAddress, forceFilename,
-	forceHostAddress, forceHostId, forceInt, forceProductId, forceUnicode,
-	forceUnicodeList, forceUrl)
+from OPSI.Types import (
+	forceBool, forceEmailAddress, forceFilename, forceHostAddress,
+	forceHostId, forceInt, forceProductId, forceUnicode, forceUnicodeList,
+	forceUrl)
 from OPSI.Util import compareVersions, md5sum, getfqdn
 from OPSI.Util.File import IniFile, ZsyncFile
 from OPSI.Util.Product import ProductPackageFile
