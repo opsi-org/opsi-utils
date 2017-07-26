@@ -1546,18 +1546,20 @@ def main():
 	downloadParser.add_argument('processProductIds', nargs='*', metavar="productID",
 								help="Limit downloads to products with the given IDs.")
 
-	repoparser = modeparsers.add_parser('repo', help='Repository management.')
-	repoparser.add_argument('--list-active', dest="listActiveRepos", action="store_true", help='Lists all active repositories')
-	repoparser.add_argument('--list-products',
+	listparser = modeparsers.add_parser('list', help='Listing information')
+	listparser.add_argument('--active-repos',
+							action="store_true", dest="listActiveRepos",
+							help='Lists all active repositories')
+	listparser.add_argument('--products',
 							action="store_true", dest="listAvailableProducts",
 							help='Lists the repositories and the products they provide.')
-	repoparser.add_argument('--list-product-and-installationstatus',
+	listparser.add_argument('--products-and-installationstatus',
 							action="store_true", dest="listProductsWithInstallationStatus",
 							help='Lists the repositories, the products they provide and information about the local installation status.')
-	repoparser.add_argument('--list-differences',
+	listparser.add_argument('--list-differences',
 							action="store_true", dest="listProductsWithDiffernce",
 							help='Lists packages where local and remote version are different.')
-	repoparser.add_argument('--list-updatable',
+	listparser.add_argument('--updatable-products',
 							action="store_true", dest="listUpdatableProducts",
 							help='Lists packages that have updates in the remote repositories.')
 	repoparser.add_argument('--search-product', metavar='text',
@@ -1565,12 +1567,12 @@ def main():
 							help='Search for a product with the given name.')
 
 	# Setting a default to not stumble over possibly not present args.
-	repoparser.set_defaults(processProductIds=[])
+	listparser.set_defaults(processProductIds=[])
 
 	args = parser.parse_args()
 
 	logger.setConsoleLevel(args.logLevel)
-	if args.mode == 'repo' and args.logLevel < LOG_NOTICE:
+	if args.mode == 'list' and args.logLevel < LOG_NOTICE:
 		logger.setConsoleLevel(LOG_NOTICE)
 
 	config["configFile"] = args.configFile
@@ -1609,7 +1611,7 @@ def main():
 			opu.processUpdates()
 		elif args.mode == 'download':
 			opu.downloadPackages()
-		elif args.mode == 'repo':
+		elif args.mode == 'list':
 			if args.listActiveRepos:
 				opu.listActiveRepos()
 			elif args.listAvailableProducts:
