@@ -229,6 +229,7 @@ class OpsiPackageUpdater(object):
 		self.configBackend = None
 		self.depotConnections = {}
 		self.depotId = forceHostId(getfqdn(conf='/etc/opsi/global.conf').lower())
+		self.errors = []
 
 		depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=self.depotId)
 		try:
@@ -1382,6 +1383,7 @@ class OpsiPackageUpdater(object):
 							logger.error(u"Failed to process link '%s': %s" % (link, error))
 			except Exception as error:
 				logger.logException(error, LOG_DEBUG)
+				self.errors.append(error)
 				errors.add(forceUnicode(error))
 
 		if errors:
@@ -1536,15 +1538,23 @@ def main():
 			elif args.listUpdatableProducts:
 				opu.listUpdatableProducts()
 
+		if opu.errors:
+			return 2  # things went wrong
+
+	return 0  # no errors encountered
+
 
 if __name__ == "__main__":
 	logger.setConsoleColor(True)
 
 	try:
-		main()
+		exitCode = main()
 	except KeyboardInterrupt:
-		sys.exit(1)
+		exitCode = 1
 	except Exception as e:
 		logger.logException(e)
 		print(u"ERROR: {0}".format(forceUnicode(e).encode('utf-8')), file=sys.stderr)
-		sys.exit(1)
+		exitCode = 1
+
+	if exitCode:
+		sys.exit(exitCode)
