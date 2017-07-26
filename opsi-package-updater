@@ -52,7 +52,7 @@ from OPSI.Object import NetbootProduct, ProductOnClient
 from OPSI.Types import (forceBool, forceEmailAddress, forceFilename,
 	forceHostAddress, forceHostId, forceInt, forceProductId, forceUnicode,
 	forceUnicodeList, forceUrl)
-from OPSI.Util import compareVersions, md5sum, getfqdn
+from OPSI.Util import compareVersions, formatFileSize, getfqdn, md5sum
 from OPSI.Util.File import IniFile, ZsyncFile
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Util.Task.Rights import setRights
@@ -1149,7 +1149,7 @@ class OpsiPackageUpdater(object):
 
 		if notifier:
 			if size:
-				notifier.appendLine(u"Download of '%s' completed (~ %s MB)" % (url, round(size / (1024.0 * 1024.0), 2)))
+				notifier.appendLine(u"Download of '%s' completed (~%s)" % (url, formatFileSize(size)))
 			else:
 				notifier.appendLine(u"Download of '%s' completed" % url)
 		logger.info(u"Download of '%s' completed" % url)
