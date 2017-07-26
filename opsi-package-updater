@@ -1461,13 +1461,14 @@ def main():
 		dest="logLevel", type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 		help="Set the desired loglevel.")
 
-	checksumGroup = parser.add_mutually_exclusive_group()
-	checksumGroup.add_argument('--force-checksum-calculation',
+	parser.add_argument('--force-checksum-calculation',
 		dest='forceChecksumCalculation', action="store_true", default=False,
-		help="Force calculation of a checksum (MD5) for every package.")
-	checksumGroup.add_argument('--use-existing-checksum',
-		dest='forceChecksumCalculation', action="store_false",
-		help="Use existing checksums from the .md5-file of a package if possible. (Default)")
+		help=(
+			"Force calculation of a checksum (MD5) for every package. "
+			"Default is to use existing checksums from the .md5-file "
+			"of a package if possible."
+		)
+	)
 
 	parser.add_argument('--repo', metavar="repository_name", dest="repository",
 						default=None, help="Limit the actions the given repository.")
