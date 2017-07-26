@@ -556,7 +556,7 @@ class OpsiPackageUpdater(object):
 				productId = productId.strip().lower()
 				packages = [
 					package for package in packages
-					if productId in package['productId']
+					if productId in package['productId'].lower()
 				]
 
 			for package in packages:
