@@ -47,7 +47,7 @@ import time
 import urllib
 import urllib2
 
-from OPSI.Logger import LOG_INFO, LOG_NOTICE, LOG_WARNING, Logger
+from OPSI.Logger import LOG_DEBUG, LOG_NOTICE, LOG_WARNING, Logger
 from OPSI.Object import NetbootProduct, ProductOnClient
 from OPSI.Types import (forceBool, forceEmailAddress, forceFilename,
 	forceHostAddress, forceHostId, forceInt, forceProductId, forceUnicode,
@@ -229,6 +229,7 @@ class OpsiPackageUpdater(object):
 		self.configBackend = None
 		self.depotConnections = {}
 		self.depotId = forceHostId(getfqdn(conf='/etc/opsi/global.conf').lower())
+		self.errors = []
 
 		depots = self.getConfigBackend().host_getObjects(type='OpsiDepotserver', id=self.depotId)
 		try:
@@ -1279,8 +1280,6 @@ class OpsiPackageUpdater(object):
 		return downloadablePackages
 
 	def getDownloadablePackagesFromRepository(self, repository):
-		packages = []
-
 		depotConnection = None
 		depotRepositoryPath = None
 		if repository.opsiDepotId:
@@ -1306,6 +1305,9 @@ class OpsiPackageUpdater(object):
 		else:
 			opener = urllib2.build_opener(handler)
 		urllib2.install_opener(opener)
+
+		packages = []
+		errors = set()
 
 		for url in repository.getDownloadUrls():
 			try:
@@ -1346,6 +1348,7 @@ class OpsiPackageUpdater(object):
 					if excluded:
 						logger.info(u"Package '%s' excluded by regular expression" % link)
 						continue
+
 					try:
 						productId = '_'.join(link.split('_')[:-1])
 						version = link[:-5].split('_')[-1]
@@ -1400,8 +1403,13 @@ class OpsiPackageUpdater(object):
 						except Exception as error:
 							logger.error(u"Failed to process link '%s': %s" % (link, error))
 			except Exception as error:
-				logger.logException(error, LOG_INFO)
-				raise RuntimeError(u"Failed to process url '%s': %s" % (url, error))
+				logger.logException(error, LOG_DEBUG)
+				self.errors.append(error)
+				errors.add(forceUnicode(error))
+
+		if errors:
+			logger.warning("Problems processing repository {name}: {errors}", name=repository.name, errors='; '.join(str(e) for e in errors))
+
 		return packages
 
 
@@ -1556,15 +1564,23 @@ def main():
 			elif args.searchForProduct:
 				opu.listProductsInRepositories(productId=args.searchForProduct)
 
+		if opu.errors:
+			return 2  # things went wrong
+
+	return 0  # no errors encountered
+
 
 if __name__ == "__main__":
 	logger.setConsoleColor(True)
 
 	try:
-		main()
+		exitCode = main()
 	except KeyboardInterrupt:
-		sys.exit(1)
+		exitCode = 1
 	except Exception as e:
 		logger.logException(e)
 		print(u"ERROR: {0}".format(forceUnicode(e).encode('utf-8')), file=sys.stderr)
-		sys.exit(1)
+		exitCode = 1
+
+	if exitCode:
+		sys.exit(exitCode)
