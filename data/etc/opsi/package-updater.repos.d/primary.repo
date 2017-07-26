@@ -2,7 +2,7 @@
 ; Usually this will be your configserver but it is also possible to
 ; work with depotservers.
 
-[repository_master]
+[repository_primary]
 active = false
 opsiDepotId =
 autoInstall = true
