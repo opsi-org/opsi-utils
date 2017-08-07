@@ -2,13 +2,13 @@
 # Copyright (C) YEAR ORGANIZATION
 # 
 # Translators:
-# Martin Scalese <m.scalese@uib.de>, 2016
+# Martin Scalese <m.scalese@uib.de>, 2016-2017
 msgid ""
 msgstr ""
 "Project-Id-Version: opsi.org\n"
 "POT-Creation-Date: 2016-10-11 16:40+CEST\n"
-"PO-Revision-Date: 2016-10-11 14:42+0000\n"
-"Last-Translator: Niko Wenselowski\n"
+"PO-Revision-Date: 2017-08-07 11:20+0000\n"
+"Last-Translator: Martin Scalese <m.scalese@uib.de>\n"
 "Language-Team: Spanish (http://www.transifex.com/opsi-org/opsiorg/language/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -323,11 +323,11 @@ msgstr "Directorio fuente para el paquete '%s' creado"
 
 #: ../opsi-newprod:124
 msgid "Product creation failed. Removing directory {0}"
-msgstr ""
+msgstr "Creación de producto fallida. Removiendo directorio {0}"
 
 #: ../opsi-newprod:127
 msgid "Product creation failed"
-msgstr ""
+msgstr "Creación de producto fallida"
 
 #: ../opsi-newprod:147
 msgid "Please select product type"
@@ -343,7 +343,7 @@ msgid ""
 "Package version:  Opsi package version of the product.\n"
 "License required: Is a license required (0|1)?\n"
 "Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral)."
-msgstr ""
+msgstr "ID de Producto: Un identificador único de producto.\nNombre de Producto: Nombre íntegro del producto.\nDescripción: Una descripción (usar \\n para line breaks).\nTip: Sugerencia adicional importante.\nVersión de producto: Versión definida por el productor del software.\nVersión de paquete: Versión de paquete de opsi.\nLicencia requerida: Se requiere una licencia (0|1)?\nPrioridad: La prioridad de instalación de este producto (valor entre -100 y 100, 0 = neutral)."
 
 #: ../opsi-newprod:174
 msgid "Product id"
@@ -432,7 +432,7 @@ msgid ""
 "Custom script:       Relative path to script for action \"custom\".\n"
 "User login script:   Relative path to script for user login.\n"
 "PXE config template: path to a custom pxelinux config template."
-msgstr ""
+msgstr "Script de setup: Ruta relativa al script para la acción \"setup\". \nScript de desinstalación: Ruta relativa al script para la acción \"desinstalar\".\nScript de actualización: Ruta relativa al script para la acción \"update\". Script always: Ruta relativa al script para la acción \"always\" (siempre). Once script: Ruta relativa al script para la acción \"once\" (única vez).\nScript custom: Ruta relativa al script para acción \"custom\" (customizada). Script de login de usuario: Ruta relativa al script para user login (logeo de usuario).\nTemplate para PXE config: Ruta relativa a una config de template customizado de pxelinux. "
 
 #: ../opsi-newprod:259
 msgid "Setup script"
@@ -506,7 +506,7 @@ msgid ""
 "Possible actions are: %s\n"
 "Possible installation status are: %s\n"
 "Possible requirement types are: %s"
-msgstr ""
+msgstr "Tiene que especificar un id de producto requerido.\nTiene que especificar ó un estado de instalación requerido o una acción requerida.\nEl tipo de requerimiento puede ser utilizado para especificar la posición de uno de ellos. Esto es opcional.\nAcciones posibles son: %s\nEstados de instalación posibles son: %s\nTipos de requerimientos posibles son: %s"
 
 #: ../opsi-newprod:349
 msgid "Create product dependency?"
@@ -571,7 +571,7 @@ msgid ""
 "Property description: Usage description.\n"
 "Possible values: Comma separated list of possible values for the property. If no possible values are given any values are allowed.\n"
 "Editable: Is it allowed to specify a value which is not in the list of possible values?"
-msgstr ""
+msgstr "Nombre de propiedad: Nombre de la propiedad.\nDescripción de propiedad: Descripción de uso.\nValores posibles: Lista de valores separados por comas para la propiedad. Si ningún valor es determinado, cualquier valor es permitido.\nEditable: Es permitido especificar un valor que no está en la lista de valores posibles?"
 
 #: ../opsi-newprod:435
 msgid "Create product property?"
@@ -631,7 +631,7 @@ msgstr "Por favor especifique un valores válidos por defecto: %s"
 
 #: ../opsi-newprod:558
 msgid "Maintainer of this opsi package."
-msgstr ""
+msgstr "Encargado de este paquete opsi."
 
 #: ../opsi-newprod:561
 msgid "Maintainer name"
@@ -781,7 +781,7 @@ msgstr "<other value>"
 
 #: ../opsi-package-manager:1303
 msgid "Installing package {filename} as {forcedProductId}"
-msgstr ""
+msgstr "Instalando paquete {filename} como {forcedProductId} exitosa"
 
 #: ../opsi-package-manager:1306
 msgid "Installing package %s"
@@ -789,7 +789,7 @@ msgstr "Instalando paquete %s"
 
 #: ../opsi-package-manager:1345
 msgid "Installation of package {packageFile} as {forcedProductId} successful"
-msgstr ""
+msgstr "Instalación de paquete {packageFile} como {forcedProductId} exitosa"
 
 #: ../opsi-package-manager:1348
 msgid "Installation of package %s successful"
