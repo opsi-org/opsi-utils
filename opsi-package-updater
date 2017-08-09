@@ -842,27 +842,32 @@ class OpsiPackageUpdater(object):
 						continue
 
 					clientToDepotserver = self.getConfigBackend().configState_getClientToDepotserver(depotIds=[self.depotId])
-					if clientToDepotserver:
-						clientIds = []
-						for ctd in clientToDepotserver:
-							if ctd['clientId'] and not ctd['clientId'] in clientIds:
-								clientIds.append(ctd['clientId'])
-						if clientIds:
-							productOnClients = self.getConfigBackend().productOnClient_getObjects(
-								attributes=['installationStatus'],
-								productId=[package['productId']],
-								productType=['LocalbootProduct'],
-								clientId=clientIds,
-								installationStatus=['installed'],
-							)
-							if productOnClients:
-								for i, poc in enumerate(productOnClients):
-									productOnClients[i].setActionRequest('setup')
-									if self.config['wolAction'] and not package['productId'] in self.config['wolActionExcludeProductIds']:
-										wakeOnLanClients.add(poc.clientId)
-								self.getConfigBackend().productOnClient_updateObjects(productOnClients)
-								if notifier:
-									notifier.appendLine(u"Product {0} set to 'setup' on clients: {1}".format(package['productId'], ', '.join(sorted(poc.clientId for poc in productOnClients))))
+					clientIds = set(
+						ctd['clientId']
+						for ctd in clientToDepotserver
+						if ctd['clientId']
+					)
+
+					if clientIds:
+						productOnClients = self.getConfigBackend().productOnClient_getObjects(
+							attributes=['installationStatus'],
+							productId=package['productId'],
+							productType='LocalbootProduct',
+							clientId=clientIds,
+							installationStatus=['installed'],
+						)
+						if productOnClients:
+							wolEnabled = self.config['wolAction']
+							excludedWolProducts = set(self.config['wolActionExcludeProductIds'])
+
+							for poc in productOnClients:
+								poc.setActionRequest('setup')
+								if wolEnabled and package['productId'] not in excludedWolProducts:
+									wakeOnLanClients.add(poc.clientId)
+
+							self.getConfigBackend().productOnClient_updateObjects(productOnClients)
+							if notifier:
+								notifier.appendLine(u"Product {0} set to 'setup' on clients: {1}".format(package['productId'], ', '.join(sorted(poc.clientId for poc in productOnClients))))
 
 				if wakeOnLanClients:
 					logger.notice(u"Powering on clients %s" % wakeOnLanClients)
