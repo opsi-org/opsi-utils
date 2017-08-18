@@ -1,3 +1,13 @@
+opsi-utils (4.0.7.18-1) stable; urgency=medium
+
+  * opsi-package-manager, opsi-product-updater: Parsing filenames for
+    productId and version uses a shared function.
+    This fixes a bug with accidental remote package deletion if the name
+    of the name of the new product was contained in the filename of a
+    different package.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 18 Aug 2017 17:22:09 +0200
+
 opsi-utils (4.0.7.17-2) stable; urgency=medium
 
   * Updated Spanish and Russian translations.
