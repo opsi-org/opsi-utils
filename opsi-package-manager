@@ -56,7 +56,7 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.0.7.18'
+__version__ = '4.1.1.12'
 
 logger = Logger()
 

@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.12-1) stable; urgency=medium
+
+  * opsi-package-updater repositories: Configured repositories for 4.1.
+    Added repo configs for testing and experimental - disabled by default.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 06 Sep 2017 12:04:59 +0200
+
 opsi-utils (4.1.1.11-1) testing; urgency=medium
 
   * opsi-package-updater: Added option to search for product.
