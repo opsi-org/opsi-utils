@@ -55,13 +55,14 @@ from OPSI.Types import (
 	forceUrl)
 from OPSI.Util import compareVersions, md5sum, getfqdn
 from OPSI.Util.File import IniFile, ZsyncFile
+from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.1.1.11'
+__version__ = '4.1.1.12'
 
 logger = Logger()
 
@@ -555,10 +556,10 @@ class OpsiPackageUpdater(object):
 
 			if productId:
 				logger.debug("Filtering for product IDs matching {0}...", productId)
-				productId = productId.strip().lower()
+				productId = forceProductId(productId)
 				packages = [
 					package for package in packages
-					if productId in package['productId'].lower()
+					if productId in package['productId']
 				]
 
 			for package in packages:
@@ -1239,9 +1240,9 @@ class OpsiPackageUpdater(object):
 				continue
 
 			try:
-				productId = '_'.join(f.split('_')[:-1])
-				version = f[:-5].split('_')[-1]
-			except Exception:
+				productId, version = parseFilename(f)
+			except Exception as error:
+				logger.debug("Parsing {0!r} failed: {1!r}", f, error)
 				continue
 
 			if productId == newPackage["productId"] and version != newPackage["version"]:
@@ -1289,11 +1290,11 @@ class OpsiPackageUpdater(object):
 		for f in os.listdir(self.config["packageDir"]):
 			if not f.endswith('.opsi'):
 				continue
+
 			packageFile = os.path.join(self.config["packageDir"], f)
 			logger.info(u"Found local package '%s'" % packageFile)
 			try:
-				productId = '_'.join(f.split('_')[:-1])
-				version = f[:-5].split('_')[-1]
+				productId, version = parseFilename(f)
 				checkSumFile = f + '.md5'
 				if not self.config['forceChecksumCalculation'] and os.path.exists(checkSumFile):
 					logger.debug("Reading existing checksum from {0}", checkSumFile)
@@ -1304,7 +1305,7 @@ class OpsiPackageUpdater(object):
 					packageMd5 = md5sum(packageFile)
 
 				packageInfo = {
-					"productId": productId.lower(),
+					"productId": forceProductId(productId),
 					"version": version,
 					"packageFile": packageFile,
 					"filename": f,
@@ -1404,13 +1405,12 @@ class OpsiPackageUpdater(object):
 						continue
 
 					try:
-						productId = '_'.join(link.split('_')[:-1])
-						version = link[:-5].split('_')[-1]
+						productId, version = parseFilename(link)
 						packageFile = url + '/' + link
 						logger.info(u"Found opsi package: %s" % packageFile)
 						packageInfo = {
 							"repository": repository,
-							"productId": productId.lower(),
+							"productId": forceProductId(productId),
 							"version": version,
 							"packageFile": packageFile,
 							"filename": link,

@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.12-1) stable; urgency=medium
+
+  * opsi-package-updater repositories: Configured repositories for 4.1.
+    Added repo configs for testing and experimental - disabled by default.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 06 Sep 2017 12:04:59 +0200
+
 opsi-utils (4.1.1.11-1) testing; urgency=medium
 
   * opsi-package-updater: Added option to search for product.
@@ -158,6 +165,23 @@ opsi-utils (4.1.1.1-1) experimental; urgency=medium
     "--repo name_of_repo".
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 29 Nov 2016 13:57:13 +0100
+
+opsi-utils (4.0.7.18-1) stable; urgency=medium
+
+  * opsi-package-manager, opsi-product-updater: Parsing filenames for
+    productId and version uses a shared function.
+    This fixes a bug with accidental remote package deletion if the name
+    of the name of the new product was contained in the filename of a
+    different package.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 18 Aug 2017 17:22:09 +0200
+
+opsi-utils (4.0.7.17-2) stable; urgency=medium
+
+  * Updated Spanish and Russian translations.
+  * Added Dutch translation.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 07 Aug 2017 13:50:25 +0200
 
 opsi-utils (4.0.7.17-1) stable; urgency=medium
 

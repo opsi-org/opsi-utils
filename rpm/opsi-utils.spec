@@ -71,6 +71,9 @@ chmod 644 $RPM_BUILD_ROOT/usr/share/locale/es/LC_MESSAGES/opsi-utils.mo
 mkdir -p $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
+mkdir -p $RPM_BUILD_ROOT/usr/share/locale/nl/LC_MESSAGES
+msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/nl/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_nl.po
+chmod 644 $RPM_BUILD_ROOT/usr/share/locale/nl/LC_MESSAGES/opsi-utils.mo
 mkdir -p $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_ru.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo
@@ -98,7 +101,9 @@ install -m 0644 data/opsi-package-updater.conf $RPM_BUILD_ROOT/etc/opsi/
 
 mkdir -p $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
 install -m 0644 data/etc/opsi/package-updater.repos.d/example.repo.template $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
-install -m 0644 data/etc/opsi/package-updater.repos.d/primary.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
+install -m 0644 data/etc/opsi/package-updater.repos.d/experimental.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
+install -m 0644 data/etc/opsi/package-updater.repos.d/opsi-server.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
+install -m 0644 data/etc/opsi/package-updater.repos.d/testing.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
 install -m 0644 data/etc/opsi/package-updater.repos.d/uib-linux.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
 install -m 0644 data/etc/opsi/package-updater.repos.d/uib-local_image.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
 install -m 0644 data/etc/opsi/package-updater.repos.d/uib-windows.repo $RPM_BUILD_ROOT/etc/opsi/package-updater.repos.d
@@ -184,7 +189,9 @@ rm -rf $RPM_BUILD_ROOT
 # configfiles
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/opsi-package-updater.conf
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/example.repo.template
-%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/primary.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/experimental.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/opsi-server.repo
+%attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/testing.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-linux.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-local_image.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-windows.repo
@@ -205,6 +212,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
 %attr(644,root,root) /usr/share/locale/es/LC_MESSAGES/opsi-utils.mo
 %attr(644,root,root) /usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
+%attr(644,root,root) /usr/share/locale/nl/LC_MESSAGES/opsi-utils.mo
 %attr(644,root,root) /usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo
 
 # directories
