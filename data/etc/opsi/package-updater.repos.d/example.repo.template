@@ -31,12 +31,12 @@ autoUpdate = true
 ; If autoSetup is set to true, the action request "setup" will be set for every updated product
 ; on all clients of the local depot where the installation status of the product is "installed"
 autoSetup = false
-; Set True if you want only Download packages without installation
+; Set True if you want only download packages without installation
 onlyDownload = false
 ; Proxy to use for the connection.
 ; Set Proxy handler like: http://10.10.10.1:8080
 proxy =
-; Inherit ProductProperty defaults from master repository
+; Inherit ProductProperty defaults from given repository
 ; This feature only works when updating from another opsi-depot.
 ; To use it you have to set opsiDepotId
 inheritProductProperties = false

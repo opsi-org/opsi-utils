@@ -5,7 +5,7 @@
 description = opsi Linux Support
 active = true
 baseUrl = http://download.uib.de
-dirs = opsi4.0/products/opsi-linux
+dirs = opsi4.1/stable/packages/linux/localboot/, opsi4.1/stable/packages/linux/netboot/
 autoInstall = false
 autoUpdate = true
 autoSetup = false

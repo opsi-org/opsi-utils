@@ -2,11 +2,11 @@
 ; Usually this will be your configserver but it is also possible to
 ; work with depotservers.
 
-[repository_primary]
+[repository_opsi_server]
 active = false
 opsiDepotId =
 autoInstall = true
 autoUpdate = true
 autoSetup = true
-; Inherit ProductProperty defaults from master repository
+; Inherit ProductProperty defaults from given repository
 inheritProductProperties = false
