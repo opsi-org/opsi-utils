@@ -556,10 +556,10 @@ class OpsiPackageUpdater(object):
 
 			if productId:
 				logger.debug("Filtering for product IDs matching {0}...", productId)
-				productId = productId.strip().lower()
+				productId = forceProductId(productId)
 				packages = [
 					package for package in packages
-					if productId in package['productId'].lower()
+					if productId in package['productId']
 				]
 
 			for package in packages:
@@ -1290,6 +1290,7 @@ class OpsiPackageUpdater(object):
 		for f in os.listdir(self.config["packageDir"]):
 			if not f.endswith('.opsi'):
 				continue
+
 			packageFile = os.path.join(self.config["packageDir"], f)
 			logger.info(u"Found local package '%s'" % packageFile)
 			try:
@@ -1304,7 +1305,7 @@ class OpsiPackageUpdater(object):
 					packageMd5 = md5sum(packageFile)
 
 				packageInfo = {
-					"productId": productId.lower(),
+					"productId": forceProductId(productId),
 					"version": version,
 					"packageFile": packageFile,
 					"filename": f,
@@ -1409,7 +1410,7 @@ class OpsiPackageUpdater(object):
 						logger.info(u"Found opsi package: %s" % packageFile)
 						packageInfo = {
 							"repository": repository,
-							"productId": productId.lower(),
+							"productId": forceProductId(productId),
 							"version": version,
 							"packageFile": packageFile,
 							"filename": link,
