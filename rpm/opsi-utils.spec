@@ -71,6 +71,9 @@ chmod 644 $RPM_BUILD_ROOT/usr/share/locale/es/LC_MESSAGES/opsi-utils.mo
 mkdir -p $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_fr.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
+mkdir -p $RPM_BUILD_ROOT/usr/share/locale/nl/LC_MESSAGES
+msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/nl/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_nl.po
+chmod 644 $RPM_BUILD_ROOT/usr/share/locale/nl/LC_MESSAGES/opsi-utils.mo
 mkdir -p $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES
 msgfmt -o $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo gettext/opsi-utils_ru.po
 chmod 644 $RPM_BUILD_ROOT/usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo
@@ -205,6 +208,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) /usr/share/locale/de/LC_MESSAGES/opsi-utils.mo
 %attr(644,root,root) /usr/share/locale/es/LC_MESSAGES/opsi-utils.mo
 %attr(644,root,root) /usr/share/locale/fr/LC_MESSAGES/opsi-utils.mo
+%attr(644,root,root) /usr/share/locale/nl/LC_MESSAGES/opsi-utils.mo
 %attr(644,root,root) /usr/share/locale/ru/LC_MESSAGES/opsi-utils.mo
 
 # directories
