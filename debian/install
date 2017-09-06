@@ -10,7 +10,7 @@ data/etc/logrotate.d/opsi-package-manager etc/logrotate.d/
 data/etc/logrotate.d/opsi-package-updater etc/logrotate.d/
 data/opsi-package-updater.conf etc/opsi/
 data/etc/opsi/package-updater.repos.d/example.repo.template etc/opsi/package-updater.repos.d
-data/etc/opsi/package-updater.repos.d/primary.repo etc/opsi/package-updater.repos.d
+data/etc/opsi/package-updater.repos.d/opsi-server.repo etc/opsi/package-updater.repos.d
 data/etc/opsi/package-updater.repos.d/uib-linux.repo etc/opsi/package-updater.repos.d
 data/etc/opsi/package-updater.repos.d/uib-local_image.repo etc/opsi/package-updater.repos.d
 data/etc/opsi/package-updater.repos.d/uib-windows.repo etc/opsi/package-updater.repos.d
