@@ -152,6 +152,8 @@ install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d
 install -m 0644 data/etc/logrotate.d/opsi-package-manager $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
 
+mkdir -p $RPM_BUILD_ROOT/var/lib/opsi/repository
+
 # ===[ clean ]======================================
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -203,6 +205,7 @@ rm -rf $RPM_BUILD_ROOT
 #%dir /usr/share/locale/de/LC_MESSAGES
 %if 0%{?suse_version}
 %dir /etc/opsi
+%dir /var/lib/opsi/repository
 %endif
 
 # ===[ changelog ]==================================

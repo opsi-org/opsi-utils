@@ -1,3 +1,9 @@
+opsi-utils (4.0.7.18-2) stable; urgency=medium
+
+  * Added directory /var/lib/opsi/repository.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 07 Sep 2017 17:19:04 +0200
+
 opsi-utils (4.0.7.18-1) stable; urgency=medium
 
   * opsi-package-manager, opsi-product-updater: Parsing filenames for
