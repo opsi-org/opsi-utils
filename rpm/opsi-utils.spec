@@ -152,6 +152,13 @@ install -m 0644 data/etc/logrotate.d/opsi-backup $RPM_BUILD_ROOT/etc/logrotate.d
 install -m 0644 data/etc/logrotate.d/opsi-package-manager $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
 
+mkdir -p $RPM_BUILD_ROOT/var/lib/opsi/repository
+fileadmingroup=$(grep "fileadmingroup" /etc/opsi/opsi.conf | cut -d "=" -f 2 | sed 's/\s*//g')
+if [ -z "$fileadmingroup" ]; then
+	fileadmingroup=pcpatch
+fi
+chown opsiconfd:$fileadmingroup $RPM_BUILD_ROOT/var/lib/opsi/repository
+
 # ===[ clean ]======================================
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -203,6 +210,8 @@ rm -rf $RPM_BUILD_ROOT
 #%dir /usr/share/locale/de/LC_MESSAGES
 %if 0%{?suse_version}
 %dir /etc/opsi
+%dir /var/lib/opsi
+%dir /var/lib/opsi/repository
 %endif
 
 # ===[ changelog ]==================================
