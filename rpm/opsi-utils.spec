@@ -205,6 +205,7 @@ rm -rf $RPM_BUILD_ROOT
 #%dir /usr/share/locale/de/LC_MESSAGES
 %if 0%{?suse_version}
 %dir /etc/opsi
+%dir /var/lib/opsi
 %dir /var/lib/opsi/repository
 %endif
 
