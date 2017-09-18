@@ -1,3 +1,9 @@
+opsi-utils (4.0.7.18-4) stable; urgency=medium
+
+  * Setting the ownership of /var/lib/opsi/repository in postinst.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 18 Sep 2017 14:38:10 +0200
+
 opsi-utils (4.0.7.18-3) stable; urgency=medium
 
   * RPM: Package now owns /var/lib/opsi.
