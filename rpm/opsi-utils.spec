@@ -207,7 +207,7 @@ rm -rf $RPM_BUILD_ROOT
 %if 0%{?suse_version}
 %dir /etc/opsi
 %dir /var/lib/opsi
-%dir %attr(775, -, pcpatch) /var/lib/opsi/repository
+%dir %attr(775, root, pcpatch) /var/lib/opsi/repository
 %endif
 
 # ===[ changelog ]==================================
