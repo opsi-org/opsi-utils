@@ -27,6 +27,7 @@ Requires:       python-curses
 BuildRequires:  gettext
 %else
 BuildRequires:  gettext-runtime
+BuildRequires:  zypper
 %endif
 
 %if 0%{?suse_version} == 1110 || 0%{?suse_version} == 1315
