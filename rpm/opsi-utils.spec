@@ -8,7 +8,6 @@
 
 Name:           opsi-utils
 BuildRequires:  python >= 2.6
-BuildRequires:  python-opsi >= 4.0.7
 Requires:       python-opsi >= 4.0.7.36 zsync python >= 2.6
 Url:            http://www.opsi.org
 License:        GPLv2+
@@ -154,11 +153,6 @@ install -m 0644 data/etc/logrotate.d/opsi-package-manager $RPM_BUILD_ROOT/etc/lo
 install -m 0644 data/etc/logrotate.d/opsi-product-updater $RPM_BUILD_ROOT/etc/logrotate.d/
 
 mkdir -p $RPM_BUILD_ROOT/var/lib/opsi/repository
-fileadmingroup=$(grep "fileadmingroup" /etc/opsi/opsi.conf | cut -d "=" -f 2 | sed 's/\s*//g')
-if [ -z "$fileadmingroup" ]; then
-	fileadmingroup=pcpatch
-fi
-chown opsiconfd:$fileadmingroup $RPM_BUILD_ROOT/var/lib/opsi/repository
 
 # ===[ clean ]======================================
 %clean
@@ -212,7 +206,7 @@ rm -rf $RPM_BUILD_ROOT
 %if 0%{?suse_version}
 %dir /etc/opsi
 %dir /var/lib/opsi
-%dir /var/lib/opsi/repository
+%dir %attr(775, -, pcpatch) /var/lib/opsi/repository
 %endif
 
 # ===[ changelog ]==================================
