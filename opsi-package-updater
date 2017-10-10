@@ -1638,9 +1638,9 @@ if __name__ == "__main__":
 		exitCode = main()
 	except KeyboardInterrupt:
 		exitCode = 1
-	except Exception as e:
-		logger.logException(e)
-		print(u"ERROR: {0}".format(forceUnicode(e).encode('utf-8')), file=sys.stderr)
+	except Exception as exc:
+		logger.logException(exc)
+		print(u"ERROR: {0}".format(forceUnicode(exc).encode('utf-8')), file=sys.stderr)
 		exitCode = 1
 
 	if exitCode:
