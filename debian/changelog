@@ -1,3 +1,12 @@
+opsi-utils (4.1.1.12-1ubuntu1) UNRELEASED; urgency=medium
+
+  * opsi-package-updater: Moved fix for handling IIS repos
+    for easier re-usability.
+  * opsi-package-updater: Error messages about incomplete repository
+    configurations will now contain the path to the corresponding .repo file.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 10 Oct 2017 15:41:11 +0200
+
 opsi-utils (4.1.1.12-1) stable; urgency=medium
 
   * opsi-package-updater repositories: Configured repositories for 4.1.
