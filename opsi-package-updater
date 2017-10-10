@@ -964,15 +964,11 @@ class OpsiPackageUpdater(object):
 			newPackages = []
 			for availablePackage in downloadablePackages:
 				logger.info(u"Testing if download/installation of package '%s' is needed" % availablePackage["filename"])
-				productInstalled = False
-				updateAvailable = False
 				for product in installedProducts:
 					if product['productId'] == availablePackage['productId']:
 						logger.debug(u"Product '%s' is installed" % availablePackage['productId'])
-						productInstalled = True
 						logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" \
 							% (availablePackage['version'], product['productVersion'], product['packageVersion']))
-						updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
 						break
 
 				downloadNeeded = True
