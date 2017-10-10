@@ -83,7 +83,7 @@ def _(string):
 	return string
 
 
-def listRepoConfigs(repoDir):
+def getRepoConfigs(repoDir):
 	try:
 		for entry in os.listdir(repoDir):
 			filePath = os.path.join(repoDir, entry)
@@ -386,7 +386,7 @@ class OpsiPackageUpdater(object):
 		except Exception as exclude:
 			raise RuntimeError(u"Failed to read config file '%s': %s" % (self.config["configFile"], exclude))
 
-		for configFile in listRepoConfigs(self.config['repositoryConfigDir']):
+		for configFile in getRepoConfigs(self.config['repositoryConfigDir']):
 			iniFile = IniFile(filename=configFile, raw=True)
 
 			try:
