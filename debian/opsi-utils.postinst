@@ -24,6 +24,12 @@ case "$1" in
 		chown root:opsiadmin /etc/opsi/package-updater.repos.d/uib-windows.repo
 		chmod 660 /etc/opsi/package-updater.repos.d/uib-windows.repo
 
+		fileadmingroup=$(grep "fileadmingroup" /etc/opsi/opsi.conf | cut -d "=" -f 2 | sed 's/\s*//g')
+		if [ -z "$fileadmingroup" ]; then
+			fileadmingroup=pcpatch
+		fi
+		chown opsiconfd:$fileadmingroup /var/lib/opsi/repository
+
 		# Making logrotate config backwards-compatible
 		LOGROTATE_VERSION="$(dpkg --list | grep logrotate | grep "^ii" | awk '{ print $3 }' | cut -d '-' -f 1)"
 		if dpkg --compare-versions "$LOGROTATE_VERSION" lt "3.8"; then
