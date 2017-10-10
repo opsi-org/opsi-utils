@@ -67,10 +67,6 @@ __version__ = '4.1.1.12'
 logger = Logger()
 
 
-class RepositoryDisabledError(Exception):
-	pass
-
-
 class ConfigurationError(ValueError):
 	pass
 
@@ -382,8 +378,6 @@ class OpsiPackageUpdater(object):
 					try:
 						repository = self._getRepository(config, section)
 						self.config['repositories'].append(repository)
-					except RepositoryDisabledError:
-						logger.info(u"Repository {0} deactivated", section)
 					except MissingConfigurationValueError as mcverr:
 						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
 					except ConfigurationError as cerr:
@@ -407,8 +401,6 @@ class OpsiPackageUpdater(object):
 					try:
 						repository = self._getRepository(config, section)
 						self.config['repositories'].append(repository)
-					except RepositoryDisabledError:
-						logger.info(u"Repository {0} deactivated", section)
 					except MissingConfigurationValueError as mcverr:
 						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
 					except ConfigurationError as cerr:
