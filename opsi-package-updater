@@ -101,7 +101,7 @@ def splitAndStrip(string, sep):
 
 
 class ProductRepositoryInfo(object):
-	def __init__(self, name, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[]):
+	def __init__(self, name, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[], active=False):
 		self.name = forceUnicode(name)
 		self.baseUrl = forceUnicode(baseUrl)
 		self.dirs = forceUnicodeList(dirs)
@@ -116,6 +116,7 @@ class ProductRepositoryInfo(object):
 		self.onlyDownload = None
 		self.inheritProductProperties = None
 		self.description = ''
+		self.active = forceBool(active)
 
 		self.proxy = None
 		if proxy:
@@ -443,7 +444,8 @@ class OpsiPackageUpdater(object):
 				dirs=['/'],
 				username=self.depotId,
 				password=self.depotKey,
-				opsiDepotId=opsiDepotId
+				opsiDepotId=opsiDepotId,
+				active=active
 			)
 
 		elif baseUrl:
@@ -453,7 +455,8 @@ class OpsiPackageUpdater(object):
 			repository = ProductRepositoryInfo(
 				name=repoName,
 				baseUrl=baseUrl,
-				proxy=proxy
+				proxy=proxy,
+				active=active
 			)
 		else:
 			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set" % section)
