@@ -456,7 +456,7 @@ class OpsiPackageUpdater(object):
 				proxy=proxy
 			)
 		else:
-			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set" % section)
+			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set".format(section))
 
 		for (option, value) in config.items(section):
 			if option.lower() == 'username':
