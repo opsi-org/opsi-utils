@@ -67,10 +67,6 @@ __version__ = '4.1.1.12'
 logger = Logger()
 
 
-class RepositoryDisabledError(Exception):
-	pass
-
-
 class ConfigurationError(ValueError):
 	pass
 
@@ -101,7 +97,7 @@ def splitAndStrip(string, sep):
 
 
 class ProductRepositoryInfo(object):
-	def __init__(self, name, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[]):
+	def __init__(self, name, baseUrl, dirs=[], username=u"", password=u"", opsiDepotId=None, autoInstall=False, autoUpdate=True, autoSetup=False, proxy=None, excludes=[], includes=[], active=False):
 		self.name = forceUnicode(name)
 		self.baseUrl = forceUnicode(baseUrl)
 		self.dirs = forceUnicodeList(dirs)
@@ -116,6 +112,7 @@ class ProductRepositoryInfo(object):
 		self.onlyDownload = None
 		self.inheritProductProperties = None
 		self.description = ''
+		self.active = forceBool(active)
 
 		self.proxy = None
 		if proxy:
@@ -274,6 +271,20 @@ class OpsiPackageUpdater(object):
 
 		:rtype: ProductRepositoryInfo
 		"""
+		for repo in self.getRepositories():
+			if not repo.active:
+				continue
+
+			yield repo
+
+	def getRepositories(self):
+		"""
+		Iterates over all found repositories and yields them.
+		If a repository name filter is given only repositories matching
+		the name will be returned.
+
+		:rtype: ProductRepositoryInfo
+		"""
 		name = self.config.get("repositoryName", None)
 
 		for repo in self.config.get('repositories', []):
@@ -373,8 +384,6 @@ class OpsiPackageUpdater(object):
 					try:
 						repository = self._getRepository(config, section)
 						self.config['repositories'].append(repository)
-					except RepositoryDisabledError:
-						logger.info(u"Repository {0} deactivated", section)
 					except MissingConfigurationValueError as mcverr:
 						logger.debug(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
 					except ConfigurationError as cerr:
@@ -398,8 +407,6 @@ class OpsiPackageUpdater(object):
 					try:
 						repository = self._getRepository(config, section)
 						self.config['repositories'].append(repository)
-					except RepositoryDisabledError:
-						logger.info(u"Repository {0} deactivated", section)
 					except MissingConfigurationValueError as mcverr:
 						logger.debug(u"Configuration for {section} in {filename} incomplete: {error}", error=mcverr, section=section, filename=configFile)
 					except ConfigurationError as cerr:
@@ -410,30 +417,33 @@ class OpsiPackageUpdater(object):
 				logger.error("Unable to load repositories from {filename}: {error}", filename=configFile, error=error)
 
 	def _getRepository(self, config, section):
-		try:
-			if not forceBool(config.get(section, 'active')):
-				raise RepositoryDisabledError(section)
-		except Exception:
-			pass
-		active = True
+		active = False
 		baseUrl = None
 		opsiDepotId = None
 		proxy = None
 		for (option, value) in config.items(section):
-			if option.lower() == 'active':
+			option = option.lower()
+			value = value.strip()
+			if option == 'active':
 				active = forceBool(value)
-			elif option.lower() == 'baseurl':
-				if value.strip():
-					baseUrl = forceUrl(value.strip())
-			elif option.lower() == 'opsidepotid':
-				if value.strip():
-					opsiDepotId = forceHostId(value.strip())
-			elif option.lower() == 'proxy':
-				if value.strip():
-					proxy = forceUrl(value.strip())
+			elif option == 'baseurl':
+				if value:
+					baseUrl = forceUrl(value)
+			elif option == 'opsidepotid':
+				if value:
+					opsiDepotId = forceHostId(value)
+			elif option == 'proxy':
+				if value:
+					proxy = forceUrl(value)
 
-		if not active:
-			raise RepositoryDisabledError(section)
+		repoName = section.replace('repository_', '', 1)
+
+		if self.config['forceRepositoryActivation']:
+			if repoName == self.config['repositoryName']:
+				logger.debug("Activation for repository {0} forced.", repoName)
+				active = True
+			else:
+				active = False
 
 		repository = None
 		if opsiDepotId:
@@ -449,17 +459,19 @@ class OpsiPackageUpdater(object):
 				dirs=['/'],
 				username=self.depotId,
 				password=self.depotKey,
-				opsiDepotId=opsiDepotId
+				opsiDepotId=opsiDepotId,
+				active=active
 			)
 
 		elif baseUrl:
 			if proxy:
 				logger.notice(u"Using Proxy: %s" % proxy)
-			repoName = section.replace('repository_', '', 1)
+
 			repository = ProductRepositoryInfo(
 				name=repoName,
 				baseUrl=baseUrl,
-				proxy=proxy
+				proxy=proxy,
+				active=active
 			)
 		else:
 			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set".format(section))
@@ -530,12 +542,27 @@ class OpsiPackageUpdater(object):
 
 	def listActiveRepos(self):
 		logger.notice("Active repositories:")
-		for repository in self.getActiveRepositories():
+		for repository in sorted(self.getActiveRepositories(), key=lambda repo: repo.name.lower()):
 			descr = ''
 			if repository.description:
 				descr = "- {description}".format(description=repository.description)
 
 			logger.notice("{name}: {url} {description}", name=repository.name, url=repository.baseUrl, description=descr)
+
+	def listRepos(self):
+		logger.notice("All repositories:")
+		for repository in sorted(self.getRepositories(), key=lambda repo: repo.name.lower()):
+			descr = ''
+			if repository.description:
+				descr = "- {description}".format(description=repository.description)
+
+			logger.notice(
+				"{name} ({status}): {url} {description}",
+				name=repository.name,
+				status='active' if repository.active else 'inactive',
+				url=repository.baseUrl,
+				description=descr
+			)
 
 	def listProductsInRepositories(self, withLocalInstallationStatus=False, productId=None):
 		"""
@@ -1489,6 +1516,7 @@ def main():
 		"installationWindowExceptions": None,
 		"repositories": [],
 		"repositoryName": None,
+		"forceRepositoryActivation": False,
 		"installAllAvailable": False,
 		"zsyncCommand": None,
 		"processProductIds": None,
@@ -1524,6 +1552,13 @@ def main():
 
 	parser.add_argument('--repo', metavar="repository_name", dest="repository",
 						default=None, help="Limit the actions the given repository.")
+	parser.add_argument('--use-inactive-repository', action="store_true",
+						dest="forceRepositoryActivation", help=(
+							"Force the activation of an otherwise disabled "
+							"repository. The repository must be given through "
+							"--repo."
+						)
+	)
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
 	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
@@ -1547,6 +1582,9 @@ def main():
 
 	listparser = modeparsers.add_parser('list', help='Listing information')
 	listmgroup = listparser.add_mutually_exclusive_group()
+	listmgroup.add_argument('--repos',
+							action="store_true", dest="listRepositories",
+							help='Lists all repositories')
 	listmgroup.add_argument('--active-repos',
 							action="store_true", dest="listActiveRepos",
 							help='Lists all active repositories')
@@ -1581,6 +1619,17 @@ def main():
 		config["processProductIds"] = set(args.processProductIds)
 
 	config["forceChecksumCalculation"] = args.forceChecksumCalculation
+
+	if args.forceRepositoryActivation:
+		if not args.repository:
+			raise RuntimeError("No repository given.")
+
+		logger.warning("ATTENTION: Using an inactive repository!")
+		logger.warning("If this is by accident abort now!")
+		logger.warning("Waiting 30 seconds before continuing.")
+		time.sleep(30)
+
+	config['forceRepositoryActivation'] = args.forceRepositoryActivation
 	config["repositoryName"] = args.repository
 
 	if args.mode == 'download':
@@ -1614,6 +1663,8 @@ def main():
 		elif args.mode == 'list':
 			if args.listActiveRepos:
 				opu.listActiveRepos()
+			elif args.listRepositories:
+				opu.listRepos()
 			elif args.listAvailableProducts:
 				opu.listProductsInRepositories()
 			elif args.listProductsWithInstallationStatus:
