@@ -1621,6 +1621,7 @@ def main():
 		config["processProductIds"] = set(args.processProductIds)
 
 	config["forceChecksumCalculation"] = args.forceChecksumCalculation
+
 	if args.forceRepositoryActivation:
 		if not args.repository:
 			raise RuntimeError("No repository given.")
