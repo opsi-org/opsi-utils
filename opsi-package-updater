@@ -1316,15 +1316,15 @@ class OpsiPackageUpdater(object):
 	def getLocalPackages(self):
 		logger.info(u"Getting info for local packages in '%s'" % self.config["packageDir"])
 		packages = []
-		for f in os.listdir(self.config["packageDir"]):
-			if not f.endswith('.opsi'):
+		for filename in os.listdir(self.config["packageDir"]):
+			if not filename.endswith('.opsi'):
 				continue
 
-			packageFile = os.path.join(self.config["packageDir"], f)
+			packageFile = os.path.join(self.config["packageDir"], filename)
 			logger.info(u"Found local package '%s'" % packageFile)
 			try:
-				productId, version = parseFilename(f)
-				checkSumFile = f + '.md5'
+				productId, version = parseFilename(filename)
+				checkSumFile = filename + '.md5'
 				if not self.config['forceChecksumCalculation'] and os.path.exists(checkSumFile):
 					logger.debug("Reading existing checksum from {0}", checkSumFile)
 					with open(checkSumFile) as hashFile:
@@ -1337,13 +1337,13 @@ class OpsiPackageUpdater(object):
 					"productId": forceProductId(productId),
 					"version": version,
 					"packageFile": packageFile,
-					"filename": f,
+					"filename": filename,
 					"md5sum": packageMd5
 				}
 				logger.debug(u"Local package info: %s" % packageInfo)
 				packages.append(packageInfo)
-			except Exception as e:
-				logger.error("Failed to process file '%s': %s" % (f, e))
+			except Exception as exc:
+				logger.error("Failed to process file '%s': %s" % (filename, exc))
 		return packages
 
 	def getInstalledProducts(self):
