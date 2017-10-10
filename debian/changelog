@@ -1,3 +1,11 @@
+opsi-utils (4.1.1.14-1) stable; urgency=medium
+
+  * opsi-package-updater: Improve working with repositories that have their
+    listings generated through Apache autoindex by making sure each link is
+    only collected once.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 10 Oct 2017 17:54:34 +0200
+
 opsi-utils (4.1.1.13-1) stable; urgency=medium
 
   * opsi-package-updater: Moved fix for handling IIS repos

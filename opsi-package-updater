@@ -62,7 +62,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.1.1.13'
+__version__ = '4.1.1.14'
 
 logger = Logger()
 
@@ -136,7 +136,7 @@ class ProductRepositoryInfo(object):
 class LinksExtractor(htmllib.HTMLParser):
 	def __init__(self, formatter):
 		htmllib.HTMLParser.__init__(self, formatter)
-		self.links = []
+		self.links = set()
 
 	def start_a(self, attrs):
 		if len(attrs) > 0:
@@ -149,7 +149,7 @@ class LinksExtractor(htmllib.HTMLParser):
 					# Fix for IIS repos
 					link = link[1:]
 
-				self.links.append(link)
+				self.links.add(link)
 
 	def getLinks(self):
 		return self.links
