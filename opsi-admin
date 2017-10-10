@@ -59,7 +59,7 @@ from OPSI.Util import (
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 
 
-__version__ = '4.1.1.11'
+__version__ = '4.1.1.13'
 
 backend = None
 exitZero = False
@@ -1037,7 +1037,6 @@ class Shell:
 					self.setCmdline(newCmdline)
 				except Exception as error:
 					self.setInfoline(forceUnicode(error))
-					pass
 
 			if not textInput:
 				if self.reverseSearch is not None:
