@@ -269,6 +269,20 @@ class OpsiPackageUpdater(object):
 
 		:rtype: ProductRepositoryInfo
 		"""
+		for repo in self.getRepositories():
+			if not repo.active:
+				continue
+
+			yield repo
+
+	def getRepositories(self):
+		"""
+		Iterates over all found repositories and yields them.
+		If a repository name filter is given only repositories matching
+		the name will be returned.
+
+		:rtype: ProductRepositoryInfo
+		"""
 		name = self.config.get("repositoryName", None)
 
 		for repo in self.config.get('repositories', []):
@@ -536,6 +550,21 @@ class OpsiPackageUpdater(object):
 				descr = "- {description}".format(description=repository.description)
 
 			logger.notice("{name}: {url} {description}", name=repository.name, url=repository.baseUrl, description=descr)
+
+	def listRepos(self):
+		logger.notice("All repositories:")
+		for repository in sorted(self.getRepositories(), key=lambda repo: repo.name.lower()):
+			descr = ''
+			if repository.description:
+				descr = "- {description}".format(description=repository.description)
+
+			logger.notice(
+				"{name} ({status}): {url} {description}",
+				name=repository.name,
+				status='active' if repository.active else 'inactive',
+				url=repository.baseUrl,
+				description=descr
+			)
 
 	def listProductsInRepositories(self, withLocalInstallationStatus=False, productId=None):
 		"""
@@ -1563,6 +1592,9 @@ def main():
 
 	listparser = modeparsers.add_parser('list', help='Listing information')
 	listmgroup = listparser.add_mutually_exclusive_group()
+	listmgroup.add_argument('--repos',
+							action="store_true", dest="listRepositories",
+							help='Lists all repositories')
 	listmgroup.add_argument('--active-repos',
 							action="store_true", dest="listActiveRepos",
 							help='Lists all active repositories')
@@ -1636,6 +1668,8 @@ def main():
 		elif args.mode == 'list':
 			if args.listActiveRepos:
 				opu.listActiveRepos()
+			elif args.listRepositories:
+				opu.listRepos()
 			elif args.listAvailableProducts:
 				opu.listProductsInRepositories()
 			elif args.listProductsWithInstallationStatus:
