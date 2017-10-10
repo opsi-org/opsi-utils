@@ -146,7 +146,13 @@ class LinksExtractor(htmllib.HTMLParser):
 			for attr in attrs:
 				if attr[0] != "href":
 					continue
-				self.links.append(attr[1])
+
+				link = attr[1]
+				if link.startswith('/'):
+					# Fix for IIS repos
+					link = link[1:]
+
+				self.links.append(link)
 
 	def getLinks(self):
 		return self.links
@@ -1378,10 +1384,6 @@ class OpsiPackageUpdater(object):
 				for link in htmlParser.getLinks():
 					if not link.endswith('.opsi'):
 						continue
-
-					if link.startswith('/'):
-						# Fix for IIS repos
-						link = link[1:]
 
 					excluded = False
 					included = True
