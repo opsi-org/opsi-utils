@@ -544,7 +544,7 @@ class OpsiPackageUpdater(object):
 
 	def listActiveRepos(self):
 		logger.notice("Active repositories:")
-		for repository in self.getActiveRepositories():
+		for repository in sorted(self.getActiveRepositories(), key=lambda repo: repo.name.lower()):
 			descr = ''
 			if repository.description:
 				descr = "- {description}".format(description=repository.description)
