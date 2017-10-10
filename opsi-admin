@@ -1248,11 +1248,9 @@ class CommandMethod(Command):
 				flags = fcntl.fcntl(proc.stderr, fcntl.F_GETFL)
 				fcntl.fcntl(proc.stderr, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
-				encoding = proc.stdout.encoding
-				if not encoding:
-					encoding = inEncoding
-				exitCode = None
+				encoding = proc.stdout.encoding or inEncoding
 
+				exitCode = None
 				buf = ''
 				err = ''
 
