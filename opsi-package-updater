@@ -1626,7 +1626,11 @@ def main():
 		if not args.repository:
 			raise RuntimeError("No repository given.")
 
-		logger.warning("Forced activation of repository!")
+		logger.warning("ATTENTION: Using an inactive repository!")
+		logger.warning("If this is by accident abort now!")
+		logger.warning("Waiting 30 seconds before continuing.")
+		time.sleep(30)
+
 	config['forceRepositoryActivation'] = args.forceRepositoryActivation
 	config["repositoryName"] = args.repository
 
