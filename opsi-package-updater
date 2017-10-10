@@ -370,7 +370,7 @@ class OpsiPackageUpdater(object):
 					except RepositoryDisabledError:
 						logger.info(u"Repository {0} deactivated", section)
 					except MissingConfigurationValueError as mcverr:
-						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
+						logger.debug(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
 					except ConfigurationError as cerr:
 						logger.error(u"Configuration problem in {section}: {error}", error=cerr, section=section)
 					except Exception as err:
@@ -395,11 +395,11 @@ class OpsiPackageUpdater(object):
 					except RepositoryDisabledError:
 						logger.info(u"Repository {0} deactivated", section)
 					except MissingConfigurationValueError as mcverr:
-						logger.error(u"Configuration for {section} incomplete: {error}", error=mcverr, section=section)
+						logger.debug(u"Configuration for {section} in {filename} incomplete: {error}", error=mcverr, section=section, filename=configFile)
 					except ConfigurationError as cerr:
-						logger.error(u"Configuration problem in {section}: {error}", error=cerr, section=section)
+						logger.error(u"Configuration problem in {section} in {filename}: {error}", error=cerr, section=section, filename=configFile)
 					except Exception as err:
-						logger.error(u"Can't load repository from {section}: {error}", error=err, section=configFile)
+						logger.error(u"Can't load repository from {section} in {filename}: {error}", error=err, section=section, filename=configFile)
 			except Exception as error:
 				logger.error("Unable to load repositories from {filename}: {error}", filename=configFile, error=error)
 
@@ -456,7 +456,7 @@ class OpsiPackageUpdater(object):
 				proxy=proxy
 			)
 		else:
-			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set" % section)
+			raise MissingConfigurationValueError(u"Repository section '{0}': neither baseUrl nor opsiDepotId set".format(section))
 
 		for (option, value) in config.items(section):
 			if option.lower() == 'username':
