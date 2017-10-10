@@ -1233,8 +1233,8 @@ class OpsiPackageUpdater(object):
 		except Exception as error:
 			logger.warning(u"Failed to set rights on directory '{0}': {1}".format(self.config["packageDir"], error))
 
-		for f in os.listdir(self.config["packageDir"]):
-			path = os.path.join(self.config["packageDir"], f)
+		for filename in os.listdir(self.config["packageDir"]):
+			path = os.path.join(self.config["packageDir"], filename)
 			if not os.path.isfile(path):
 				continue
 			if path.endswith('.zs-old'):
@@ -1242,9 +1242,9 @@ class OpsiPackageUpdater(object):
 				continue
 
 			try:
-				productId, version = parseFilename(f)
+				productId, version = parseFilename(filename)
 			except Exception as error:
-				logger.debug("Parsing {0!r} failed: {1!r}", f, error)
+				logger.debug("Parsing {0!r} failed: {1!r}", filename, error)
 				continue
 
 			if productId == newPackage["productId"] and version != newPackage["version"]:
@@ -1256,8 +1256,8 @@ class OpsiPackageUpdater(object):
 		md5sumFile = u'{package}.md5'.format(package=packageFile)
 		logger.info(u"Creating md5sum file '%s'" % md5sumFile)
 
-		with open(md5sumFile, 'w') as f:
-			f.write(md5sum(packageFile))
+		with open(md5sumFile, 'w') as hashFile:
+			hashFile.write(md5sum(packageFile))
 
 		setRights(md5sumFile)
 
