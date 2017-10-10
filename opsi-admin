@@ -1037,7 +1037,6 @@ class Shell:
 					self.setCmdline(newCmdline)
 				except Exception as error:
 					self.setInfoline(forceUnicode(error))
-					pass
 
 			if not textInput:
 				if self.reverseSearch is not None:
