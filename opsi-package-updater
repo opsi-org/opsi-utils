@@ -405,30 +405,33 @@ class OpsiPackageUpdater(object):
 				logger.error("Unable to load repositories from {filename}: {error}", filename=configFile, error=error)
 
 	def _getRepository(self, config, section):
-		try:
-			if not forceBool(config.get(section, 'active')):
-				raise RepositoryDisabledError(section)
-		except Exception:
-			pass
-		active = True
+		active = False
 		baseUrl = None
 		opsiDepotId = None
 		proxy = None
 		for (option, value) in config.items(section):
-			if option.lower() == 'active':
+			option = option.lower()
+			value = value.strip()
+			if option == 'active':
 				active = forceBool(value)
-			elif option.lower() == 'baseurl':
-				if value.strip():
-					baseUrl = forceUrl(value.strip())
-			elif option.lower() == 'opsidepotid':
-				if value.strip():
-					opsiDepotId = forceHostId(value.strip())
-			elif option.lower() == 'proxy':
-				if value.strip():
-					proxy = forceUrl(value.strip())
+			elif option == 'baseurl':
+				if value:
+					baseUrl = forceUrl(value)
+			elif option == 'opsidepotid':
+				if value:
+					opsiDepotId = forceHostId(value)
+			elif option == 'proxy':
+				if value:
+					proxy = forceUrl(value)
 
-		if not active:
-			raise RepositoryDisabledError(section)
+		repoName = section.replace('repository_', '', 1)
+
+		if self.config['forceRepositoryActivation']:
+			if repoName == self.config['repositoryName']:
+				logger.debug("Activation for repository {0} forced.", repoName)
+				active = True
+			else:
+				active = False
 
 		repository = None
 		if opsiDepotId:
@@ -451,7 +454,7 @@ class OpsiPackageUpdater(object):
 		elif baseUrl:
 			if proxy:
 				logger.notice(u"Using Proxy: %s" % proxy)
-			repoName = section.replace('repository_', '', 1)
+
 			repository = ProductRepositoryInfo(
 				name=repoName,
 				baseUrl=baseUrl,
@@ -1494,6 +1497,7 @@ def main():
 		"installationWindowExceptions": None,
 		"repositories": [],
 		"repositoryName": None,
+		"forceRepositoryActivation": False,
 		"installAllAvailable": False,
 		"zsyncCommand": None,
 		"processProductIds": None,
@@ -1529,6 +1533,13 @@ def main():
 
 	parser.add_argument('--repo', metavar="repository_name", dest="repository",
 						default=None, help="Limit the actions the given repository.")
+	parser.add_argument('--use-inactive-repository', action="store_true",
+						dest="forceRepositoryActivation", help=(
+							"Force the activation of an otherwise disabled "
+							"repository. The repository must be given through "
+							"--repo."
+						)
+	)
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
 	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
@@ -1586,6 +1597,12 @@ def main():
 		config["processProductIds"] = set(args.processProductIds)
 
 	config["forceChecksumCalculation"] = args.forceChecksumCalculation
+	if args.forceRepositoryActivation:
+		if not args.repository:
+			raise RuntimeError("No repository given.")
+
+		logger.warning("Forced activation of repository!")
+	config['forceRepositoryActivation'] = args.forceRepositoryActivation
 	config["repositoryName"] = args.repository
 
 	if args.mode == 'download':
