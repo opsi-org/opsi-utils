@@ -939,7 +939,7 @@ class OpsiPackageManager(object):
 			if not maxBandwidth and self.config['maxBandwidth']:
 				maxBandwidth = self.config['maxBandwidth']
 			if maxBandwidth:
-				logger.info(u"Setting max bandwith for depot '%s' to %d kBytes/s" % (depotId, maxBandwidth))
+				logger.info(u"Setting max bandwidth for depot '%s' to %d kBytes/s" % (depotId, maxBandwidth))
 
 			repository = getRepository(
 				url=depot.repositoryRemoteUrl,
