@@ -662,6 +662,9 @@ copied to ``productDirectory``
 	def getEnvVariableLines():
 		yield u'# The following environment variables can be used to obtain information about the current installation:\n'
 		yield u'#   PRODUCT_ID: id of the current product\n'
+		yield u'#   PRODUCT_TYPE: type of the current product\n'
+		yield u'#   PRODUCT_VERSION: product version\n'
+		yield u'#   PACKAGE_VERSION: package version\n'
 		yield u'#   CLIENT_DATA_DIR: directory where client data will be installed\n'
 
 	# Create preinst template
