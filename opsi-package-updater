@@ -1612,6 +1612,7 @@ def main():
 	logger.setConsoleLevel(args.logLevel)
 	if args.mode == 'list' and args.logLevel < LOG_NOTICE:
 		logger.setConsoleLevel(LOG_NOTICE)
+	logger.debug("Running in {0} mode", args.mode)
 
 	config["configFile"] = args.configFile
 	config["installAllAvailable"] = args.mode == 'install'
