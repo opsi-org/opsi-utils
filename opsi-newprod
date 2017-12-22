@@ -48,7 +48,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-__version__ = '4.1.1.5'
+__version__ = '4.1.1.15'
 
 logger = Logger()
 
@@ -659,6 +659,14 @@ def createTemplates(productDirectory, templateDirectory=None):
 	:param templateDirectory: The content of the directory will be \
 copied to ``productDirectory``
 	"""
+	def getEnvVariableLines():
+		yield u'# The following environment variables can be used to obtain information about the current installation:\n'
+		yield u'#   PRODUCT_ID: id of the current product\n'
+		yield u'#   PRODUCT_TYPE: type of the current product\n'
+		yield u'#   PRODUCT_VERSION: product version\n'
+		yield u'#   PACKAGE_VERSION: package version\n'
+		yield u'#   CLIENT_DATA_DIR: directory where client data will be installed\n'
+
 	# Create preinst template
 	preinstFilePath = os.path.join(productDirectory, 'OPSI', 'preinst')
 	with codecs.open(preinstFilePath, 'w', 'utf-8') as preinst:
@@ -667,9 +675,8 @@ copied to ``productDirectory``
 		preinst.write(u'# preinst script\n')
 		preinst.write(u'# This script executes before that package will be unpacked from its archive file.\n')
 		preinst.write(u'#\n')
-		preinst.write(u'# The following environment variables can be used to obtain information about the current installation:\n')
-		preinst.write(u'#   PRODUCT_ID: id of the current product\n')
-		preinst.write(u'#   CLIENT_DATA_DIR: directory where client data will be installed\n')
+		for line in getEnvVariableLines():
+			preinst.write(line)
 		preinst.write(u'#\n')
 
 	# Create postinst template
@@ -680,9 +687,8 @@ copied to ``productDirectory``
 		postinst.write(u'# postinst script\n')
 		postinst.write(u'# This script executes after unpacking files from that archive and registering the product at the depot.\n')
 		postinst.write(u'#\n')
-		postinst.write(u'# The following environment variables can be used to obtain information about the current installation:\n')
-		postinst.write(u'#   PRODUCT_ID: id of the current product\n')
-		postinst.write(u'#   CLIENT_DATA_DIR: directory which contains the installed client data\n')
+		for line in getEnvVariableLines():
+			preinst.write(line)
 		postinst.write(u'#\n')
 
 	if templateDirectory:
