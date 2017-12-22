@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.15.1-1) stable; urgency=medium
+
+  * opsi-newprod: Fix bug where the correct file was referenced.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 22 Dec 2017 13:48:06 +0100
+
 opsi-utils (4.1.1.15-1) stable; urgency=medium
 
   * opsi-newprod: preinst / postinst now include more preset variables.

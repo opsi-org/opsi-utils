@@ -48,7 +48,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-__version__ = '4.1.1.15'
+__version__ = '4.1.1.15.1'
 
 logger = Logger()
 
@@ -688,7 +688,7 @@ copied to ``productDirectory``
 		postinst.write(u'# This script executes after unpacking files from that archive and registering the product at the depot.\n')
 		postinst.write(u'#\n')
 		for line in getEnvVariableLines():
-			preinst.write(line)
+			postinst.write(line)
 		postinst.write(u'#\n')
 
 	if templateDirectory:
