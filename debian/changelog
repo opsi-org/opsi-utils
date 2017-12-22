@@ -1,3 +1,14 @@
+opsi-utils (4.1.1.15-1) stable; urgency=medium
+
+  * opsi-newprod: preinst / postinst now include more preset variables.
+  * opsi-package-updater: Small refactoring of download code.
+  * opsi-package-updater: Refactored retrieval of clients that will be
+    triggered with Wake-On-LAN.
+  * opsi-package-updater: Repositories that use another opsi-server will now
+    also be addressed through the section name instead of the ID of the server.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 22 Dec 2017 12:27:01 +0100
+
 opsi-utils (4.1.1.14-1) stable; urgency=medium
 
   * opsi-package-updater: Improve working with repositories that have their
