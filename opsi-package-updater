@@ -454,7 +454,7 @@ class OpsiPackageUpdater(object):
 				raise ConfigurationError(u"Repository remote url for depot '%s' not found in backend" % opsiDepotId)
 
 			repository = ProductRepositoryInfo(
-				name=opsiDepotId,
+				name=repoName,
 				baseUrl=depots[0].repositoryRemoteUrl,
 				dirs=['/'],
 				username=self.depotId,
