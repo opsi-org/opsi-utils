@@ -50,12 +50,13 @@ from OPSI.Types import (forceActionRequest, forceBool, forceHostId, forceInt,
 	forceList, forceProductId, forceUnicode, forceUnicodeList)
 from OPSI.UI import SnackUI
 from OPSI.Util import md5sum, getfqdn
+from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 	ProgressSubject, SubjectsObserver)
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.0.7.8'
+__version__ = '4.1.1.12'
 
 logger = Logger()
 
@@ -938,7 +939,7 @@ class OpsiPackageManager(object):
 			if not maxBandwidth and self.config['maxBandwidth']:
 				maxBandwidth = self.config['maxBandwidth']
 			if maxBandwidth:
-				logger.info(u"Setting max bandwith for depot '%s' to %d kBytes/s" % (depotId, maxBandwidth))
+				logger.info(u"Setting max bandwidth for depot '%s' to %d kBytes/s" % (depotId, maxBandwidth))
 
 			repository = getRepository(
 				url=depot.repositoryRemoteUrl,
@@ -987,7 +988,11 @@ class OpsiPackageManager(object):
 
 			oldPackages = []
 			for dest in repository.content():
-				if dest['name'].startswith(productId + '_') and not dest['name'] == destination:
+				fileInfo = parseFilename(dest['name'])
+				if not fileInfo:
+					continue
+
+				if fileInfo.productId == productId and dest['name'] != destination:
 					# same product, other version
 					oldPackages.append(dest['name'])
 
@@ -1429,8 +1434,13 @@ class OpsiPackageManager(object):
 			logger.info(u"Using {0!r} as repository url".format(depot.getRepositoryRemoteUrl()))
 			repository = getRepository(url=depot.getRepositoryRemoteUrl(), username=depotId, password=depot.getOpsiHostKey())
 			for destination in repository.listdir():
-				if not destination.startswith(u'{0}_'.format(productId)):
+				fileInfo = parseFilename(destination)
+				if not fileInfo:
 					continue
+
+				if not fileInfo.productId == productId:
+					continue
+
 				logger.info(u"Deleting destination {0!r} on depot {1!r}".format(destination, depotId))
 				repository.delete(destination)
 
@@ -1495,8 +1505,6 @@ class OpsiPackageManagerControl(object):
 			self.usage()
 			sys.exit(1)
 
-		self.setDefaultConfig()
-
 		if self.opts.help:
 			self.usage()
 			sys.exit(0)
@@ -1505,6 +1513,7 @@ class OpsiPackageManagerControl(object):
 			print u"opsi-package-manager version %s" % __version__
 			sys.exit(0)
 
+		self.setDefaultConfig()
 		self.setCommandlineConfig()
 
 		logger.setLogFormat(u'[%l] [%D] %M (%F|%N)')
