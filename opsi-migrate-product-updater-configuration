@@ -32,6 +32,7 @@ Migrating opsi-product-updater.conf to the recommended 4.1 formats.
 from __future__ import print_function
 
 import argparse
+import glob
 import os
 
 from ConfigParser import SafeConfigParser
@@ -83,6 +84,12 @@ def main():
         print("Creating missing directory {0!r}".format(options.destination))
         os.makedirs(options.destination)
 
+    if options.clean_destination:
+        print("Removing all .repo files from {!r}".format(options.destination))
+        for filename in glob.glob(os.path.join(options.destination, '*.repo')):
+            print("Removing {!r}".format(filename))
+            os.unlink(filename)
+
     migrate(options.configfile, options.destination, options.new_config_file)
 
 
@@ -100,6 +107,9 @@ def parse_cli():
     parser.add_argument('--repo-destination', dest='destination',
                         default='/etc/opsi/package-updater.repos.d',
                         help="The folder where the .repo files will be created.")
+    parser.add_argument('--clean-destination', dest='clean_destination',
+                        action='store_true',
+                        help="Remove all .repo files from the destination.")
     parser.add_argument('--new-config-file',
                         default='/etc/opsi/opsi-package-updater.conf',
                         help='Where will the new configuration file will be written.')
