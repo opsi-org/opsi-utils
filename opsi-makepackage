@@ -3,7 +3,7 @@
 
 # opsi-makepackage is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2017 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2018 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -46,7 +46,7 @@ from OPSI.Util.File import ZsyncFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.Util import md5sum
 
-__version__ = '4.1.1.10'
+__version__ = '4.1.1.16'
 
 logger = Logger()
 
@@ -126,10 +126,10 @@ def main(argv):
 	customGroup = parser.add_mutually_exclusive_group()
 	customGroup.add_argument('--custom-name', '-i', metavar='custom name',
 							dest="customName", default=u'',
-							help="custom name (add custom files)")
+							help="Add custom files and add custom name to the base package.")
 	customGroup.add_argument('--custom-only', '-c', metavar='custom name',
 							dest="customOnly", default=False,
-							help="custom name (custom only)")
+							help="Only package custom files and add custom name to base package.")
 	parser.add_argument('--temp-directory', '-t',
 						dest="tempDir", help="temp dir", default=u'/tmp',
 						metavar='directory')
