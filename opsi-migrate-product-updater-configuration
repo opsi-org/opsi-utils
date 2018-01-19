@@ -135,6 +135,13 @@ def migrate(configfile, destination, new_configfile):
             filename = section[len('repository_'):]
             filename += '.repo'
             filename = os.path.join(destination, filename)
+            if 'active' not in settings:
+                print("Unable to determine repository status of {!r} - skipping".format(section))
+                continue
+
+            if settings['active'].lower() not in ('true', 'on'):
+                print("Skipping inactive repository section {!r}".format(section))
+                continue
 
             try:
                 if 'download.uib.de' in settings['baseurl']:
