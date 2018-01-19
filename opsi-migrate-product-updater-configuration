@@ -90,6 +90,8 @@ def parse_cli():
     parser = argparse.ArgumentParser(
         description=('Migrating opsi-product-updater.conf for '
                      'opsi-package-updater in opsi 4.1.'),
+        epilog=('In the default configuration this will override an '
+                'existing /etc/opsi/opsi-package-updater.conf.'),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--version", "-V", action='version', version=__version__)
     parser.add_argument('--configfile',
