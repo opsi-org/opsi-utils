@@ -4,7 +4,7 @@
 # opsi-product-updater is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 
-# Copyright (C) 2013-2017 uib GmbH
+# Copyright (C) 2013-2018 uib GmbH
 
 # http://www.uib.de/
 
@@ -22,7 +22,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-opsi-product-updater
+opsi-package-updater
+
+This tool can be used to update the packages on an opsi server
+through a remote repository.
 
 @copyright:	uib GmbH <info@uib.de>
 @author: Jan Schneider <j.schneider@uib.de>
@@ -62,7 +65,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.1.1.15'
+__version__ = '4.1.1.16'
 
 logger = Logger()
 
