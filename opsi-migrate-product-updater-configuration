@@ -84,7 +84,7 @@ def main():
         raise OSError("No file {!r} found!".format(options.configfile))
 
     if not os.path.exists(options.destination):
-        print("Creating missing directory {0!r}".format(options.destination))
+        print("Creating missing directory {!r}".format(options.destination))
         os.makedirs(options.destination)
 
     if options.clean_destination:
