@@ -139,6 +139,7 @@ def migrate(configfile, destination, new_configfile):
                 print("Skipping inactive repository section {!r}".format(section))
                 continue
 
+            print("Processing section {!r}".format(section))
             try:
                 if 'download.uib.de' in settings['baseurl']:
                     paths = [path.strip() for path in settings['dirs'].split(',') if path.strip()]
