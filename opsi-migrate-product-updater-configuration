@@ -165,6 +165,10 @@ def migrate(configfile, destination, new_configfile):
     # Adding path to .repo files
     globalConfig['general']['repositoryConfigDir'] = os.path.abspath(destination)
 
+    # Changing path of logfile if this is the old default
+    if globalConfig['general']['logfile'].strip() == '/var/log/opsi/opsi-product-updater.log':
+        globalConfig['general']['logfile'] = '/var/log/opsi/opsi-package-updater.log'
+
     new_global_config = SafeConfigParser()
     for section in sorted(globalConfig):
         new_global_config.add_section(section)
