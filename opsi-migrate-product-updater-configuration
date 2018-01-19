@@ -80,6 +80,9 @@ for key, values in TRANSFORMATION.items():
 def main():
     options = parse_cli()
 
+    if not os.path.exists(options.configfile):
+        raise OSError("No file {!r} found!".format(options.configfile))
+
     if not os.path.exists(options.destination):
         print("Creating missing directory {0!r}".format(options.destination))
         os.makedirs(options.destination)
