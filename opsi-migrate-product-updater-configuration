@@ -131,10 +131,6 @@ def migrate(configfile, destination, new_configfile):
             settings[key] = value
 
         if section.startswith('repository_'):
-            # Handle repo
-            filename = section[len('repository_'):]
-            filename += '.repo'
-            filename = os.path.join(destination, filename)
             if 'active' not in settings:
                 print("Unable to determine repository status of {!r} - skipping".format(section))
                 continue
@@ -154,6 +150,10 @@ def migrate(configfile, destination, new_configfile):
             new_config.add_section(section)
             for key, value in settings.items():
                 new_config.set(section, key, value)
+
+            filename = section[len('repository_'):]
+            filename += '.repo'
+            filename = os.path.join(destination, filename)
 
             print("Migrating section {!r} to file {!r}".format(section, filename))
             with open(filename, 'w') as repoFile:
