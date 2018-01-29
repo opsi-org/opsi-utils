@@ -32,6 +32,7 @@ Migrating opsi-product-updater.conf to the recommended 4.1 formats.
 from __future__ import print_function
 
 import argparse
+import codecs
 import glob
 import os
 
@@ -87,7 +88,10 @@ def main():
         print("Creating missing directory {!r}".format(options.destination))
         os.makedirs(options.destination)
 
-    if options.clean_destination:
+    if options.disable_destination:
+        print("Disabling repos at {!r}".format(options.destination))
+        disable_repos_in_directory(options.destination)
+    elif options.clean_destination:
         print("Removing all .repo files from {!r}".format(options.destination))
         for filename in glob.glob(os.path.join(options.destination, '*.repo')):
             print("Removing {!r}".format(filename))
@@ -110,14 +114,44 @@ def parse_cli():
     parser.add_argument('--repo-destination', dest='destination',
                         default='/etc/opsi/package-updater.repos.d',
                         help="The folder where the .repo files will be created.")
-    parser.add_argument('--clean-destination', dest='clean_destination',
-                        action='store_true',
-                        help="Remove all .repo files from the destination.")
     parser.add_argument('--new-config-file',
                         default='/etc/opsi/opsi-package-updater.conf',
                         help='Where will the new configuration file will be written.')
+    dest_handling = parser.add_mutually_exclusive_group()
+    dest_handling.add_argument('--clean-destination', dest='clean_destination',
+                               action='store_true',
+                               help="Remove all .repo files from the destination.")
+    dest_handling.add_argument('--disable-repos', dest='disable_destination',
+                               action='store_true',
+                               help="Disable all repos in .repo files at the destination.")
 
     return parser.parse_args()
+
+
+def disable_repos_in_directory(directory):
+    for filename in glob.glob(os.path.join(directory, '*.repo')):
+        is_active = False
+        content = []
+        with codecs.open(filename, 'r', 'utf-8') as f:
+            for line in f:
+                if line.startswith('active'):
+                    try:
+                        key, value = line.split('=', 1)
+
+                        if value.lower().strip() in ('true', 'on'):
+                            is_active = True
+                            content.append('active = false\n')
+                            continue
+                    except IndexError:
+                        pass
+
+                content.append(line)
+
+        if is_active:
+            with codecs.open(filename, 'w', 'utf-8') as f:
+                f.writelines(content)
+
+            print("Disabled repos in {!r}".format(filename))
 
 
 def migrate(configfile, destination, new_configfile):
