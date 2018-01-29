@@ -32,6 +32,7 @@ Migrating opsi-product-updater.conf to the recommended 4.1 formats.
 from __future__ import print_function
 
 import argparse
+import codecs
 import glob
 import os
 
@@ -157,7 +158,7 @@ def migrate(configfile, destination, new_configfile):
             filename = os.path.join(destination, filename)
 
             print("Migrating section {!r} to file {!r}".format(section, filename))
-            with open(filename, 'w') as repoFile:
+            with codecs.open(filename, 'w', 'utf-8') as repoFile:
                 new_config.write(repoFile)
         else:
             globalConfig[section] = settings
@@ -176,7 +177,7 @@ def migrate(configfile, destination, new_configfile):
             new_global_config.set(section, key, value)
 
     print("Writing new configuration to {!r}".format(new_configfile))
-    with open(new_configfile, 'w') as repoFile:
+    with codecs.open(new_configfile, 'w', 'utf-8') as repoFile:
         new_global_config.write(repoFile)
 
     print("Configuration file migrated.")
