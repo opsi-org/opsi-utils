@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.17-2) stable; urgency=medium
+
+  * .deb postinst: Setting ownership and access rights against all files
+    in /etc/opsi/package-updater.repos.d/
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 30 Jan 2018 13:04:15 +0100
+
 opsi-utils (4.1.1.17-1) stable; urgency=medium
 
   * opsi-migrate-product-updater-configuration: new option --disable-repos
