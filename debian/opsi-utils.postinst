@@ -9,20 +9,8 @@ case "$1" in
 		chown root:opsiadmin /etc/opsi/package-updater.repos.d
 		chmod 770 /etc/opsi/package-updater.repos.d
 
-		chown root:opsiadmin /etc/opsi/package-updater.repos.d/example.repo.template
-		chmod 660 /etc/opsi/package-updater.repos.d/example.repo.template
-		chown root:opsiadmin /etc/opsi/package-updater.repos.d/experimental.repo
-		chmod 660 /etc/opsi/package-updater.repos.d/experimental.repo
-		chown root:opsiadmin /etc/opsi/package-updater.repos.d/opsi-server.repo
-		chmod 660 /etc/opsi/package-updater.repos.d/opsi-server.repo
-		chown root:opsiadmin /etc/opsi/package-updater.repos.d/testing.repo
-		chmod 660 /etc/opsi/package-updater.repos.d/testing.repo
-		chown root:opsiadmin /etc/opsi/package-updater.repos.d/uib-linux.repo
-		chmod 660 /etc/opsi/package-updater.repos.d/uib-linux.repo
-		chown root:opsiadmin /etc/opsi/package-updater.repos.d/uib-local_image.repo
-		chmod 660 /etc/opsi/package-updater.repos.d/uib-local_image.repo
-		chown root:opsiadmin /etc/opsi/package-updater.repos.d/uib-windows.repo
-		chmod 660 /etc/opsi/package-updater.repos.d/uib-windows.repo
+		chown root:opsiadmin /etc/opsi/package-updater.repos.d/*
+		chmod 660 /etc/opsi/package-updater.repos.d/*
 
 		fileadmingroup=$(grep "fileadmingroup" /etc/opsi/opsi.conf | cut -d "=" -f 2 | sed 's/\s*//g')
 		if [ -z "$fileadmingroup" ]; then
