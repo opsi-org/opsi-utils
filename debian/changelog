@@ -1,3 +1,229 @@
+opsi-utils (4.1.1.17-2) stable; urgency=medium
+
+  * .deb postinst: Setting ownership and access rights against all files
+    in /etc/opsi/package-updater.repos.d/
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 30 Jan 2018 13:04:15 +0100
+
+opsi-utils (4.1.1.17-1) stable; urgency=medium
+
+  * opsi-migrate-product-updater-configuration: new option --disable-repos
+  * opsi-migrate-product-updater-configuration: Writing files in utf-8.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 29 Jan 2018 18:23:48 +0100
+
+opsi-utils (4.1.1.16-1) stable; urgency=medium
+
+  * opsi-makepackage: Extended help for --custom options.
+  * New tool: opsi-migrate-product-updater-configuration.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 19 Jan 2018 15:43:50 +0100
+
+opsi-utils (4.1.1.15.1-1) stable; urgency=medium
+
+  * opsi-newprod: Fix bug where the wrong file was referenced.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 22 Dec 2017 13:48:06 +0100
+
+opsi-utils (4.1.1.15-1) stable; urgency=medium
+
+  * opsi-newprod: preinst / postinst now include more preset variables.
+  * opsi-package-updater: Small refactoring of download code.
+  * opsi-package-updater: Refactored retrieval of clients that will be
+    triggered with Wake-On-LAN.
+  * opsi-package-updater: Repositories that use another opsi-server will now
+    also be addressed through the section name instead of the ID of the server.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 22 Dec 2017 12:27:01 +0100
+
+opsi-utils (4.1.1.14-1) stable; urgency=medium
+
+  * opsi-package-updater: Improve working with repositories that have their
+    listings generated through Apache autoindex by making sure each link is
+    only collected once.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 10 Oct 2017 17:54:34 +0200
+
+opsi-utils (4.1.1.13-1) stable; urgency=medium
+
+  * opsi-package-updater: Moved fix for handling IIS repos
+    for easier re-usability.
+  * opsi-package-updater: Error messages about incomplete repository
+    configurations will now contain the path to the corresponding .repo file.
+  * opsi-package-updater: Added switch --use-inactive-repository that allows
+    to temporarily use a disabled repository.
+  * opsi-admin: Remove unnecessary statement.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 10 Oct 2017 17:13:40 +0200
+
+opsi-utils (4.1.1.12-1) stable; urgency=medium
+
+  * opsi-package-updater repositories: Configured repositories for 4.1.
+    Added repo configs for testing and experimental - disabled by default.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 06 Sep 2017 12:04:59 +0200
+
+opsi-utils (4.1.1.11-1) testing; urgency=medium
+
+  * opsi-package-updater: Added option to search for product.
+  * opsi-package-updater: If listing the packages in a repository fails
+    this repository will be skipped.
+  * opsi-package-updater: Encountering an error during the processing
+    will lead to a non-zero exit code.
+  * opsi-package-updater: Removed --use-existing-checksum as this is
+    the default setting.
+  * opsi-package-updater: repo 'master' has been renamed to 'primary'.
+  * opsi-package-updater: Messages will show the repo name instead of
+    base url for easier identification.
+  * opsi-package-updater: Renamed the mode 'repo' to 'list' and also
+    changed the name of some arguments.
+  * opsi-package-updater: Added 'list --product-differences' to show
+    differences between local and remote product versions.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 26 Jul 2017 12:35:08 +0200
+
+opsi-utils (4.1.1.10-1) testing; urgency=medium
+
+  * opsi-backup, opsi-convert, opsi-makepackage, opsi-package-updater:
+    Fix bug where giving the log-level was impossible.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 10 Jul 2017 14:03:48 +0200
+
+opsi-utils (4.1.1.9-1) testing; urgency=medium
+
+  * opsi-package-manager: option -s added to set setup with dependencies
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Thu, 22 Jun 2017 14:19:44 +0200
+
+opsi-utils (4.1.1.8.1-4) testing; urgency=medium
+
+  * .deb: Deploy correct manpages.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 22 Jun 2017 12:41:12 +0200
+
+opsi-utils (4.1.1.8.1-3) testing; urgency=medium
+
+  * Fix syntax in manpage of opsi-makepackage.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 22 Jun 2017 12:36:20 +0200
+
+opsi-utils (4.1.1.8.1-2) testing; urgency=medium
+
+  * Fixed creation of manpages.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 22 Jun 2017 12:20:31 +0200
+
+opsi-utils (4.1.1.8.1-1) testing; urgency=medium
+
+  * Merged opsi-utils 4.0.7.15-1.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 22 Jun 2017 12:12:53 +0200
+
+opsi-utils (4.1.1.8-1) testing; urgency=medium
+
+  * Adjusted import path for exceptions.
+  * opsi-package-updater: Being less noisy if running with only -v.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 21 Jun 2017 16:47:12 +0200
+
+opsi-utils (4.1.1.7-1) testing; urgency=medium
+
+  * opsi-package-updater now has a download-only mode accessible
+    from the commandline.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 29 May 2017 15:15:08 +0200
+
+opsi-utils (4.1.1.6-1) testing; urgency=medium
+
+  * opsi-product-updater has been renamed to opsi-package-updater to
+    reflect that the syntax is very different.
+    The configuration file is now opsi-package-updater.conf.
+    The repository config files are now to be placed unter
+    /etc/opsi/package-updater.repos.d/.
+  * opsi-makeproductfile has been renamed to opsi-makepackage.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 23 May 2017 17:20:53 +0200
+
+opsi-utils (4.1.1.5-1) testing; urgency=medium
+
+  * opsi-product-updater: Messages regarding zsync and md5 now include
+    the productId to make it easier to find affected products.
+  * opsi-product-updater: now able to show the updates that are present
+    through the repo parameter --list-updatable.
+  * opsi-product-updater: changed the default loglevel to WARNING.
+  * opsi-product-updater: Re-classified the level of some logmessages
+    to make the output more helpful.
+  * opsi-product-updater: The notifier now also informs when packages
+    get set to setup on clients or when clients are to be woken up
+    through Wake-on-LAN.
+  * opsi-makeproductfile: --zsync and --md5 are now the defaults.
+    Added parameter ---no-zsync and --no-md5 to suppress creation.
+  * opsi-newprod: Any file mentioned as a script for an action gets
+    automatically created during the creation of the directories.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 04 May 2017 18:01:38 +0200
+
+opsi-utils (4.1.1.4-1) testing; urgency=medium
+
+  * opsi-backup: removed unsupported parameter --mode.
+  * opsi-product-updater: repositories will be identified by the name of the
+    section minus the preceding 'repository_'.
+  * opsi-product-updater: If a repository-section defines an attribut
+    'description' this will be shown when listing repositories.
+  * opsi-product-updater: renamed repo parameter --list-product-diffs
+    to --list-product-and-installationstatus.
+  * opsi-product-updater: to limit the actions 'update' and 'install' to
+    specific products the option '--product-ids' must not be given anymore.
+    Just specify the IDs of the product, ie:
+    opsi-product-updater install opsi-winst opsi-client-agent
+  * The applications now all acceppt --log-level to have an constant way of
+    defining the desired log level.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 06 Mar 2017 15:47:19 +0100
+
+opsi-utils (4.1.1.3-1) testing; urgency=medium
+
+  * opsi-backup: Work without removed OPSI.Util.Collections.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 01 Feb 2017 11:30:25 +0100
+
+opsi-utils (4.1.1.2-1) testing; urgency=medium
+
+  * opsi-makeproductfile now supports long options.
+  * opsi-product-updater: new option --list-product-diffs to show differences
+    in versions between repository and local depot.
+  * opsi-makeproductfile: removed support for opsi 3 compatible packages.
+  * Removed support for python 2.6.
+  * opsi-product-updater: 'repo' mode commands will always show output.
+  * opsi-product-updater: Check for repo name is now case-insensitive.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 27 Jan 2017 14:58:33 +0100
+
+opsi-utils (4.1.1.1-2) experimental; urgency=medium
+
+  * RPM: create product-updater.repos.d in install.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 02 Dec 2016 11:34:14 +0100
+
+opsi-utils (4.1.1.1-1) experimental; urgency=medium
+
+  * opsi-product-updater: changed parsing of commandline options.
+    "-i" has been replaced by "install". For the default behaviour please
+    supply "update".
+  * opsi-product-updater will load additional repository configs from
+    /etc/opsi/product-updater.repos.d.
+  * opsi-product-updater learned to list repositories and their products
+    via "repo --list-active" and "repo --list-products".
+  * opsi-backup uses the new methods introduced in python-opsi 4.1.
+  * opsi-product-updater: the -p option now takes a list of items separated
+    by space and not by comma (old behaviour).
+  * opsi-product-updater: Repositories now can have a "name" set in
+    configuration files.
+  * opsi-product-updater: limit actions to a repository by specifying
+    "--repo name_of_repo".
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 29 Nov 2016 13:57:13 +0100
+
 opsi-utils (4.0.7.18-7) stable; urgency=medium
 
   * RPM: Suse: Install zypper for build.

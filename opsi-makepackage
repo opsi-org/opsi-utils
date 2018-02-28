@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# opsi-makeproductfile is part of the desktop management solution opsi
+# opsi-makepackage is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2017 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2018 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-opsi-makeproductfile - create opsi-packages for deployment.
+opsi-makepackage - create opsi-packages for deployment.
 
 :copyright:	uib GmbH <info@uib.de>
 :author: Niko Wenselowski <n.wenselowski@uib.de>
@@ -26,10 +26,10 @@ opsi-makeproductfile - create opsi-packages for deployment.
 :license: GNU Affero General Public License version 3
 """
 
+import argparse
 import fcntl
 import gettext
 import os
-import re
 import struct
 import sys
 import termios
@@ -46,12 +46,7 @@ from OPSI.Util.File import ZsyncFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.Util import md5sum
 
-try:
-	import argparse
-except ImportError:
-	from OPSI.Util import argparse
-
-__version__ = '4.0.7.9'
+__version__ = '4.1.1.16'
 
 logger = Logger()
 
@@ -109,42 +104,56 @@ def main(argv):
 				"If no source directory is supplied, the current directory will be used.")
 	)
 	parser.add_argument('--help', action='store_true', default=False,
-				help="Show help.")  # Manual implementation because of -h
+						help="Show help.")  # Manual implementation because of -h
 	parser.add_argument('--version', '-V', action='version', version=__version__)
 	parser.add_argument('--quiet', '-q', action='store_true', default=False,
-				help="do not show progress")
+						help="do not show progress")
 	parser.add_argument('--verbose', '-v', default=False, action="store_true",
-				help="verbose")
-	parser.add_argument('--log-level', '-l', dest="logLevel", type=int,
-				default=LOG_WARNING, help="Log-level 0..9")
-	parser.add_argument('-n', dest="compression", help="Do not compress",
-				default='gzip', action='store_const', const=None)
-	parser.add_argument('-F', dest="format", default='cpio', choices=['cpio', 'tar'],
+						help="verbose")
+	parser.add_argument('--log-level', '-l', dest="logLevel",
+						default=LOG_WARNING,
+						type=int,
+						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+						help="Set log-level (0..9)")
+	parser.add_argument('--no-compression', '-n', dest="compression",
+						default='gzip', action='store_const', const=None,
+						help="Do not compress")
+	parser.add_argument('--archive-format', '-F', dest="format", default='cpio', choices=['cpio', 'tar'],
 						help="Archive format to use. Default: cpio")
-	parser.add_argument('-h', dest="dereference", help="follow symlinks",
-				default=False, action='store_true')
-	parser.add_argument('-I', dest="incremental", help="incremental package",
-				metavar='required version', default=0)
+	parser.add_argument('--follow-symlinks', '-h',
+						dest="dereference", help="follow symlinks",
+						default=False, action='store_true')
 	customGroup = parser.add_mutually_exclusive_group()
-	customGroup.add_argument('-i', dest="customName", default=u'',
-					metavar='custom name',
-					help="custom name (add custom files)")
-	customGroup.add_argument('-c', dest="customOnly", default=False,
-					metavar='custom name',
-					help="custom name (custom only)")
-	parser.add_argument('-C', dest="compatibilityMode", default=False,
-				action="store_true", help="compatibility mode (opsi 3)")
-	parser.add_argument('-t', dest="tempDir", help="temp dir", default=u'/tmp',
-				metavar='directory')
-	parser.add_argument('-m', dest="createMd5SumFile", help="create md5sum file",
-				default=False, action='store_true')
-	parser.add_argument('-z', dest="createZsyncFile", help="create zsync file",
-				default=False, action='store_true')
+	customGroup.add_argument('--custom-name', '-i', metavar='custom name',
+							dest="customName", default=u'',
+							help="Add custom files and add custom name to the base package.")
+	customGroup.add_argument('--custom-only', '-c', metavar='custom name',
+							dest="customOnly", default=False,
+							help="Only package custom files and add custom name to base package.")
+	parser.add_argument('--temp-directory', '-t',
+						dest="tempDir", help="temp dir", default=u'/tmp',
+						metavar='directory')
+	hashSumGroup = parser.add_mutually_exclusive_group()
+	hashSumGroup.add_argument(
+		'--md5', '-m',
+		dest="createMd5SumFile", default=True, action='store_true',
+		help="Create file with md5 checksum.")
+	hashSumGroup.add_argument(
+		'--no-md5', dest="createMd5SumFile", action='store_false',
+		help="Do not create file with md5 checksum.")
+	zsyncGroup = parser.add_mutually_exclusive_group()
+	zsyncGroup.add_argument(
+		'--zsync', '-z', dest="createZsyncFile",
+		default=True, action='store_true',
+		help="Create zsync file.")
+	zsyncGroup.add_argument(
+		'--no-zsync', dest="createZsyncFile", action='store_false',
+		help="Do not create zsync file.")
 	parser.add_argument('--no-pigz', dest="disablePigz",
-				default=False, action='store_true',
-				help="Disable the usage of pigz")
+						default=False, action='store_true',
+						help="Disable the usage of pigz")
 	parser.add_argument('packageSourceDir', metavar="source directory",
-				nargs='?', default=os.getcwd())
+						nargs='?', default=os.getcwd())
 
 	vgroup = parser.add_argument_group('Versions',
 		'Set versions for package. Combinations are possible.')
@@ -180,14 +189,12 @@ def main(argv):
 	customOnly = bool(args.customOnly)
 	if customOnly:
 		customName = args.customOnly
-	requiredVersion = args.incremental
 	dereference = args.dereference
 	logLevel = args.logLevel
 	compression = args.compression
 	quiet = args.quiet
 	tempDir = forceFilename(args.tempDir)
 	format = forceUnicode(args.format)
-	compatibilityMode = args.compatibilityMode
 	createMd5SumFile = args.createMd5SumFile
 	createZsyncFile = args.createZsyncFile
 	packageSourceDir = args.packageSourceDir
@@ -225,24 +232,13 @@ def main(argv):
 	if not quiet:
 		print ""
 		print _(u"Locking package")
-	pcf = PackageControlFile(packageControlFilePath, opsi3compatible=compatibilityMode)
+	pcf = PackageControlFile(packageControlFilePath)
 
 	lockPackage(tempDir, pcf)
 	pps = None
 	try:
 		while True:
 			product = pcf.getProduct()
-			if requiredVersion:
-				match = re.search('^\s*([<>]?=?)(^[<>=]+)\s*$', requiredVersion)
-				if not match:
-					raise ValueError(u"Bad version string '%s' in dependency" % requiredVersion)
-				packageDependency = {
-					'package': product.id,
-					'condition': match.group(1),
-					'version': match.group(2)
-				}
-				pcf.setPackageDependencies([packageDependency])
-				pcf.setIncrementalPackage(True)
 
 			if not quiet:
 				print u""
@@ -250,12 +246,7 @@ def main(argv):
 				print u"----------------------------------------------------------------------------"
 				print u"   %-20s : %s" % (u'version', product.packageVersion)
 				print u"   %-20s : %s" % (u'custom package name', customName)
-				print u"   %-20s : %s" % (u'incremental package', bool(requiredVersion))
-
-				dependencies = []
-				for dep in pcf.getPackageDependencies():
-					dependencies.append(u'%s(%s%s)' % (dep['package'], dep['condition'], dep['version']))
-				print u"   %-20s : %s" % (u'package dependencies', u', '.join(dependencies))
+				print u"   %-20s : %s" % (u'package dependencies', u', '.join(u'{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies()))
 
 				print ""
 				print _(u"Product info")
@@ -439,7 +430,7 @@ def main(argv):
 
 
 def lockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	lockFile = os.path.join(tempDir, u'.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
 	# Test if other processes are accessing same product
 	try:
 		with open(lockFile, 'r') as lf:
@@ -465,14 +456,12 @@ def lockPackage(tempDir, packageControlFile):
 
 
 def unlockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, u'.opsi-makeproductfile.lock.%s' % packageControlFile.getProduct().id)
+	lockFile = os.path.join(tempDir, u'.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
 	if os.path.isfile(lockFile):
 		os.unlink(lockFile)
 
 
-if (__name__ == "__main__"):
-	exception = None
-
+if __name__ == "__main__":
 	try:
 		main(sys.argv[1:])
 	except SystemExit:
@@ -482,5 +471,3 @@ if (__name__ == "__main__"):
 		logger.logException(exception)
 		print >> sys.stderr, u"ERROR: %s" % exception
 		sys.exit(1)
-
-	sys.exit(0)

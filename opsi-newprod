@@ -4,7 +4,7 @@
 # opsi-newprod is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 
-# Copyright (C) 2010-2016 uib GmbH - http://www.uib.de/
+# Copyright (C) 2010-2017 uib GmbH - http://www.uib.de/
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -29,6 +29,7 @@ Creating opsi product source folders.
 
 from __future__ import print_function
 
+import argparse
 import codecs
 import gettext
 import os
@@ -47,12 +48,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-try:
-	import argparse
-except ImportError:
-	from OPSI.Util import argparse
-
-__version__ = '4.0.7.6'
+__version__ = '4.1.1.15.1'
 
 logger = Logger()
 
@@ -106,10 +102,13 @@ def main():
 				raise CancelledByUserError(_(u'Cancelled'))
 			shutil.rmtree(productSourceDir)
 
-		os.mkdir(productSourceDir, 02770)
-		os.mkdir(os.path.join(productSourceDir, 'OPSI'), 02770)
-		os.mkdir(os.path.join(productSourceDir, 'CLIENT_DATA'), 02770)
-		os.mkdir(os.path.join(productSourceDir, 'SERVER_DATA'), 02770)
+		os.mkdir(productSourceDir, 0o2770)
+		os.mkdir(os.path.join(productSourceDir, 'OPSI'), 0o2770)
+		clientDataDirectory = os.path.join(productSourceDir, 'CLIENT_DATA')
+		os.mkdir(clientDataDirectory, 0o2770)
+		os.mkdir(os.path.join(productSourceDir, 'SERVER_DATA'), 0o2770)
+
+		createActionScripts(product, clientDataDirectory)
 
 		try:
 			productDependencies = collectProductDependencies(ui, product)
@@ -329,6 +328,37 @@ PXE config template: path to a custom pxelinux config template.''')
 		break
 
 	return product
+
+
+def createActionScripts(product, clientDataDirectory):
+	"""
+	Create a file for all the scripts set at `product` in `clientDataDirectory`.
+
+	:param product: The product for which the scripts should be created.
+	:type product: OPSI.Object.Product
+	:param clientDataDirectory: The path in which the scripts should be \
+created. Usually the `CLIENT_DATA` directory of a product.
+	:type clientDataDirectory: str
+	"""
+	scriptAttributes = [
+		'setupScript', 'uninstallScript', 'updateScript',
+		'alwaysScript', 'onceScript', 'customScript',
+		'userLoginScript'
+	]
+
+	for attribute in scriptAttributes:
+		script = getattr(product, attribute, None)
+		if not script:
+			logger.debug("No {0} set, skipping.", attribute)
+			continue
+
+		scriptPath = os.path.join(clientDataDirectory, script)
+		with codecs.open(scriptPath, 'a', 'utf-8'):
+			# Opening the file in append mode to not destroy anything
+			# they may be already existing.
+			# Remember that multiple actions may refer the same script.
+			pass
+		logger.info('Created script {0}.', scriptPath)
 
 
 def collectProductDependencies(ui, product):
@@ -629,6 +659,14 @@ def createTemplates(productDirectory, templateDirectory=None):
 	:param templateDirectory: The content of the directory will be \
 copied to ``productDirectory``
 	"""
+	def getEnvVariableLines():
+		yield u'# The following environment variables can be used to obtain information about the current installation:\n'
+		yield u'#   PRODUCT_ID: id of the current product\n'
+		yield u'#   PRODUCT_TYPE: type of the current product\n'
+		yield u'#   PRODUCT_VERSION: product version\n'
+		yield u'#   PACKAGE_VERSION: package version\n'
+		yield u'#   CLIENT_DATA_DIR: directory where client data will be installed\n'
+
 	# Create preinst template
 	preinstFilePath = os.path.join(productDirectory, 'OPSI', 'preinst')
 	with codecs.open(preinstFilePath, 'w', 'utf-8') as preinst:
@@ -637,9 +675,8 @@ copied to ``productDirectory``
 		preinst.write(u'# preinst script\n')
 		preinst.write(u'# This script executes before that package will be unpacked from its archive file.\n')
 		preinst.write(u'#\n')
-		preinst.write(u'# The following environment variables can be used to obtain information about the current installation:\n')
-		preinst.write(u'#   PRODUCT_ID: id of the current product\n')
-		preinst.write(u'#   CLIENT_DATA_DIR: directory where client data will be installed\n')
+		for line in getEnvVariableLines():
+			preinst.write(line)
 		preinst.write(u'#\n')
 
 	# Create postinst template
@@ -650,9 +687,8 @@ copied to ``productDirectory``
 		postinst.write(u'# postinst script\n')
 		postinst.write(u'# This script executes after unpacking files from that archive and registering the product at the depot.\n')
 		postinst.write(u'#\n')
-		postinst.write(u'# The following environment variables can be used to obtain information about the current installation:\n')
-		postinst.write(u'#   PRODUCT_ID: id of the current product\n')
-		postinst.write(u'#   CLIENT_DATA_DIR: directory which contains the installed client data\n')
+		for line in getEnvVariableLines():
+			postinst.write(line)
 		postinst.write(u'#\n')
 
 	if templateDirectory:
