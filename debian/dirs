@@ -1,5 +1,6 @@
 usr/bin
 etc/opsi
+etc/opsi/package-updater.repos.d
 usr/share/locale/da/LC_MESSAGES
 usr/share/locale/de/LC_MESSAGES
 usr/share/locale/es/LC_MESSAGES

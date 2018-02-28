@@ -56,7 +56,7 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.0.7.18'
+__version__ = '4.1.1.12'
 
 logger = Logger()
 
@@ -810,7 +810,7 @@ class OpsiPackageManager(object):
 			errors[tq.name] = tq.errors
 		return errors
 
-	def setActionRequestWhereInstalled(self, productId, depotId, actionRequest=u'setup'):
+	def setActionRequestWhereInstalled(self, productId, depotId, actionRequest=u'setup', dependency=False):
 		try:
 			subject = self.getDepotSubject(depotId)
 			subject.setMessage(_(u"Setting action setup for product %s where installed") % productId)
@@ -824,6 +824,15 @@ class OpsiPackageManager(object):
 
 			productOnClients = self.backend.productOnClient_getObjects(clientId=clientIds, productId=productId, installationStatus=u'installed')
 			if not productOnClients:
+				return
+
+			if dependency:
+				for client in [x.clientId for x in productOnClients]:
+					logger.notice(u"Setting action '%s' with Dependencies for product '%s' on client: %s" % (
+					actionRequest, productId, client))
+					subject.setMessage(_(u"Setting action %s with Dependencies for product %s on client: %s") % (
+					actionRequest, productId, client))
+					self.backend.setProductActionRequestWithDependencies(clientId=client, productId=productId, actionRequest=actionRequest)
 				return
 
 			clientIds = []
@@ -930,7 +939,7 @@ class OpsiPackageManager(object):
 			if not maxBandwidth and self.config['maxBandwidth']:
 				maxBandwidth = self.config['maxBandwidth']
 			if maxBandwidth:
-				logger.info(u"Setting max bandwith for depot '%s' to %d kBytes/s" % (depotId, maxBandwidth))
+				logger.info(u"Setting max bandwidth for depot '%s' to %d kBytes/s" % (depotId, maxBandwidth))
 
 			repository = getRepository(
 				url=depot.repositoryRemoteUrl,
@@ -1361,6 +1370,12 @@ class OpsiPackageManager(object):
 				else:
 					logger.warning(u"Cannot set action 'setup' for product '%s': setupScript not defined" % productId)
 
+			if self.config['setupWhereInstalledWithDependencies']:
+				if product.getSetupScript():
+					self.setActionRequestWhereInstalled(productId=productId, depotId=depotId, actionRequest=u'setup', dependency=True)
+				else:
+					logger.warning(u"Cannot set action 'setup' for product '%s': setupScript not defined" % productId)
+
 			if self.config['purgeClientProperties']:
 				self.purgeProductPropertyStates(productId=productId, depotId=depotId)
 
@@ -1476,6 +1491,7 @@ class OpsiPackageManagerControl(object):
 		parser.add_option("-o", "--overwrite", action="store_true", dest="overwriteAlways")
 		parser.add_option("-n", "--no-delta", action="store_true", dest="noDelta")
 		parser.add_option("-S", "--setup", action="store_true", dest="setupWhereInstalled")
+		parser.add_option("-s", "--setup-with-dependencies", action="store_true", dest="setupWhereInstalledWithDependencies")
 		parser.add_option("-U", "--update", action="store_true", dest="updateWhereInstalled")
 		parser.add_option("--log-file", action="store", dest="logFile")
 		parser.add_option("--log-file-level", action="store", dest="fileLogLevel")
@@ -1511,6 +1527,7 @@ class OpsiPackageManagerControl(object):
 		self.backend = BackendManager(
 			backendConfigDir=self.config['backendConfigDir'],
 			dispatchConfigFile=self.config['dispatchConfigFile'],
+			extensionConfigDir=self.config['extendConfigDir'],
 			extend=True
 		)
 		try:
@@ -1812,6 +1829,7 @@ class OpsiPackageManagerControl(object):
 			'tempDir': u'/tmp',
 			'backendConfigDir': u'/etc/opsi/backends',
 			'dispatchConfigFile': u'/etc/opsi/backendManager/dispatch.conf',
+			'extendConfigDir': u"/etc/opsi/backendManager/extend.d",
 			'command': None,
 			'packageFiles': [],
 			'productIds': [],
@@ -1828,6 +1846,7 @@ class OpsiPackageManagerControl(object):
 			'deleteFilesOnUninstall': True,
 			'overwriteAlways': False,
 			'setupWhereInstalled': False,
+			'setupWhereInstalledWithDependencies': False,
 			'updateWhereInstalled': False,
 			'purgeClientProperties': False,
 			'suppressPackageContentFileGeneration': False,
@@ -1870,6 +1889,8 @@ class OpsiPackageManagerControl(object):
 			self.config['forceInstall'] = self.config['forceUninstall'] = True
 		if self.opts.setupWhereInstalled:
 			self.config['setupWhereInstalled'] = True
+		if self.opts.setupWhereInstalledWithDependencies:
+			self.config['setupWhereInstalledWithDependencies'] = True
 		if self.opts.updateWhereInstalled:
 			self.config['updateWhereInstalled'] = True
 		if self.opts.purgeClientProperties:
@@ -1956,6 +1977,7 @@ class OpsiPackageManagerControl(object):
 		print u"  -f, --force                             force install/uninstall (use with extreme caution)"
 		print u"  -U, --update                            set action \"update\" on hosts where installation status is \"installed\""
 		print u"  -S, --setup                             set action \"setup\" on hosts where installation status is \"installed\""
+		print u"  -s, --setup-with-dependencies           set action \"setup\" on hosts where installation status is \"installed\" with dependencies"
 		print u"  -o, --overwrite                         overwrite existing package on upload even if size matches"
 		print u"  -n, --no-delta                          full package transfers on uploads (do not use librsync)"
 		print u"  -k, --keep-files                        do not delete client data dir on uninstall"
