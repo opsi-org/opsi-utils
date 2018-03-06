@@ -746,7 +746,7 @@ class OpsiPackageUpdater(object):
 					newPackages.append(availablePackage)
 
 				if not newPackages:
-					logger.info(u"No new packages downloaded")
+					logger.notice(u"No new packages downloaded")
 					return
 
 				now = time.localtime()
@@ -843,7 +843,7 @@ class OpsiPackageUpdater(object):
 					installedPackages.append(package)
 
 				if not installedPackages:
-					logger.info(u"No new packages installed")
+					logger.notice(u"No new packages installed")
 					return
 
 				wakeOnLanClients = set()
