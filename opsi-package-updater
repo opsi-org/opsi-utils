@@ -1566,12 +1566,12 @@ def main():
 	)
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
-	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
+	installparser = modeparsers.add_parser('install', help='Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)')
 	installparser.add_argument('processProductIds', nargs='*',
 								metavar="productID",
 								help="Limit installation to products with the given IDs.")
 
-	updateparser = modeparsers.add_parser('update', help='Update existing packages from repositories.')
+	updateparser = modeparsers.add_parser('update', help='Update already installed packages from repositories.')
 	updateparser.add_argument('processProductIds', nargs='*',
 								metavar="productID",
 								help="Limit updates to products with the given IDs.")
