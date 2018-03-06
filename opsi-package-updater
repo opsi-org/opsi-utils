@@ -1593,21 +1593,21 @@ def main():
 	listmgroup.add_argument('--active-repos',
 							action="store_true", dest="listActiveRepos",
 							help='Lists all active repositories')
-	listmgroup.add_argument('--products',
+	listmgroup.add_argument('--packages', '--products',
 							action="store_true", dest="listAvailableProducts",
-							help='Lists the repositories and the products they provide.')
-	listmgroup.add_argument('--products-and-installationstatus',
+							help='Lists the repositories and the packages they provide.')
+	listmgroup.add_argument('--packages-and-installationstatus', '--products-and-installationstatus',
 							action="store_true", dest="listProductsWithInstallationStatus",
-							help='Lists the repositories, the products they provide and information about the local installation status.')
-	listmgroup.add_argument('--product-differences',
+							help='Lists the repositories with their provided packages and information about the local installation status.')
+	listmgroup.add_argument('--package-differences', '--product-differences',
 							action="store_true", dest="listProductsWithDifference",
 							help='Lists packages where local and remote version are different.')
-	listmgroup.add_argument('--updatable-products',
+	listmgroup.add_argument('--updatable-packages', '--updatable-products',
 							action="store_true", dest="listUpdatableProducts",
 							help='Lists packages that have updates in the remote repositories.')
-	listmgroup.add_argument('--search-product', metavar='text',
+	listmgroup.add_argument('--search-package', '--search-product', metavar='text',
 							dest="searchForProduct",
-							help='Search for a product with the given name.')
+							help='Search for a package with the given name.')
 
 	# Setting a default to not stumble over possibly not present args.
 	listparser.set_defaults(processProductIds=[])
