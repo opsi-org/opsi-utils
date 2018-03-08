@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# opsi-product-updater is part of the desktop management solution opsi
+# opsi-package-updater is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 
 # Copyright (C) 2013-2018 uib GmbH
@@ -65,7 +65,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.1.1.16'
+__version__ = '4.1.1.18'
 
 logger = Logger()
 
@@ -746,7 +746,7 @@ class OpsiPackageUpdater(object):
 					newPackages.append(availablePackage)
 
 				if not newPackages:
-					logger.info(u"No new packages downloaded")
+					logger.notice(u"No new packages downloaded")
 					return
 
 				now = time.localtime()
@@ -843,7 +843,7 @@ class OpsiPackageUpdater(object):
 					installedPackages.append(package)
 
 				if not installedPackages:
-					logger.info(u"No new packages installed")
+					logger.notice(u"No new packages installed")
 					return
 
 				wakeOnLanClients = set()
@@ -1566,12 +1566,12 @@ def main():
 	)
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
-	installparser = modeparsers.add_parser('install', help='Install all downloadable packages from configured repositories (ignores excludes)')
+	installparser = modeparsers.add_parser('install', help='Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)')
 	installparser.add_argument('processProductIds', nargs='*',
 								metavar="productID",
 								help="Limit installation to products with the given IDs.")
 
-	updateparser = modeparsers.add_parser('update', help='Update existing packages from repositories.')
+	updateparser = modeparsers.add_parser('update', help='Update already installed packages from repositories.')
 	updateparser.add_argument('processProductIds', nargs='*',
 								metavar="productID",
 								help="Limit updates to products with the given IDs.")
@@ -1593,21 +1593,21 @@ def main():
 	listmgroup.add_argument('--active-repos',
 							action="store_true", dest="listActiveRepos",
 							help='Lists all active repositories')
-	listmgroup.add_argument('--products',
+	listmgroup.add_argument('--packages', '--products',
 							action="store_true", dest="listAvailableProducts",
-							help='Lists the repositories and the products they provide.')
-	listmgroup.add_argument('--products-and-installationstatus',
+							help='Lists the repositories and the packages they provide.')
+	listmgroup.add_argument('--packages-and-installationstatus', '--products-and-installationstatus',
 							action="store_true", dest="listProductsWithInstallationStatus",
-							help='Lists the repositories, the products they provide and information about the local installation status.')
-	listmgroup.add_argument('--product-differences',
+							help='Lists the repositories with their provided packages and information about the local installation status.')
+	listmgroup.add_argument('--package-differences', '--product-differences',
 							action="store_true", dest="listProductsWithDifference",
 							help='Lists packages where local and remote version are different.')
-	listmgroup.add_argument('--updatable-products',
+	listmgroup.add_argument('--updatable-packages', '--updatable-products',
 							action="store_true", dest="listUpdatableProducts",
 							help='Lists packages that have updates in the remote repositories.')
-	listmgroup.add_argument('--search-product', metavar='text',
+	listmgroup.add_argument('--search-package', '--search-product', metavar='text',
 							dest="searchForProduct",
-							help='Search for a product with the given name.')
+							help='Search for a package with the given name.')
 
 	# Setting a default to not stumble over possibly not present args.
 	listparser.set_defaults(processProductIds=[])
@@ -1632,8 +1632,8 @@ def main():
 
 		logger.warning("ATTENTION: Using an inactive repository!")
 		logger.warning("If this is by accident abort now!")
-		logger.warning("Waiting 30 seconds before continuing.")
-		time.sleep(30)
+		logger.warning("Waiting 10 seconds before continuing.")
+		time.sleep(10)
 
 	config['forceRepositoryActivation'] = args.forceRepositoryActivation
 	config["repositoryName"] = args.repository

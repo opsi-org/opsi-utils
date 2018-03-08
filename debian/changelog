@@ -1,3 +1,11 @@
+opsi-utils (4.1.1.18-1) stable; urgency=medium
+
+  * example.repo.template: dirs point to opsi 4.1.
+  * Provide longopts also with "packages" (and not only "products").
+  * Update the descriptions of functions.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 08 Mar 2018 11:10:47 +0100
+
 opsi-utils (4.1.1.17-2) stable; urgency=medium
 
   * .deb postinst: Setting ownership and access rights against all files
