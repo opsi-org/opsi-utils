@@ -1775,8 +1775,7 @@ class OpsiPackageManagerControl(object):
 
 		for productId in productIds:
 			differs = False
-			lines = []
-			lines.append(productId)
+			lines = [productId]
 			productVersion = None
 			packageVersion = None
 			for depotId in self.config['depotIds']:
