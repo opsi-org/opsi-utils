@@ -1767,6 +1767,7 @@ class OpsiPackageManagerControl(object):
 
 		maxWidth = max(len(depotId) for depotId in depotIds)
 
+		depotsInSync = True
 		for productId in sorted(productIds):
 			differs = False
 			lines = [productId]
@@ -1804,9 +1805,13 @@ class OpsiPackageManagerControl(object):
 				)
 
 			if differs:
+				depotsInSync = False
 				for line in lines:
 					print line.encode(self.encoding, 'replace')
 				print ""
+
+		if depotsInSync:
+			print "There are no differences between the depots"
 
 	def processUploadCommand(self):
 		self._opm = OpsiPackageManager(self.config, self.backend)
