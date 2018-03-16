@@ -1750,6 +1750,9 @@ class OpsiPackageManagerControl(object):
 			print ""
 
 	def processDifferencesCommand(self):
+		if self.config['quiet']:
+			return
+
 		productOnDepots = self.backend.productOnDepot_getObjects(
 			depotId=self.config['depotIds'],
 			productId=self.config['productIds']
@@ -1769,8 +1772,6 @@ class OpsiPackageManagerControl(object):
 			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
 		productIds.sort()
 
-		if self.config['quiet']:
-			return
 
 		for productId in productIds:
 			differs = False
