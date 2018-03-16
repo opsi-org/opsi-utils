@@ -1753,32 +1753,26 @@ class OpsiPackageManagerControl(object):
 		if self.config['quiet']:
 			return
 
+		depotIds = self.config['depotIds']
 		productOnDepots = self.backend.productOnDepot_getObjects(
-			depotId=self.config['depotIds'],
+			depotId=depotIds,
 			productId=self.config['productIds']
 		)
 
-		productOnDepotInfo = {}
-		productIds = []
-		maxWidth = 0
-		for depotId in self.config['depotIds']:
-			if len(depotId) > maxWidth:
-				maxWidth = len(depotId)
-			productOnDepotInfo[depotId] = {}
-
+		productIds = set()
+		productOnDepotInfo = {depotId: {} for depotId in depotIds}
 		for productOnDepot in productOnDepots:
-			if productOnDepot.productId not in productIds:
-				productIds.append(productOnDepot.productId)
+			productIds.add(productOnDepot.productId)
 			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
-		productIds.sort()
 
+		maxWidth = max(len(depotId) for depotId in depotIds)
 
-		for productId in productIds:
+		for productId in sorted(productIds):
 			differs = False
 			lines = [productId]
 			productVersion = None
 			packageVersion = None
-			for depotId in self.config['depotIds']:
+			for depotId in depotIds:
 				lines.append(u"    %*s: " % (-1 * maxWidth, depotId))
 				productOnDepot = productOnDepotInfo[depotId].get(productId)
 				if not productOnDepot:
