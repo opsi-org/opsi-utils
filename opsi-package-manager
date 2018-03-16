@@ -1768,6 +1768,7 @@ class OpsiPackageManagerControl(object):
 		maxWidth = max(len(depotId) for depotId in depotIds)
 
 		depotsInSync = True
+		notInstalledText = _("not installed")
 		for productId in sorted(productIds):
 			differs = False
 			lines = [productId]
@@ -1778,9 +1779,10 @@ class OpsiPackageManagerControl(object):
 					productOnDepot = productOnDepotInfo[depotId][productId]
 				except KeyError:
 					lines.append(
-						u"    {depotId:<{width}}: not installed".format(
+						u"    {depotId:<{width}}: {text}".format(
 							depotId=depotId,
-							width=maxWidth
+							width=maxWidth,
+							text=notInstalledText
 						)
 					)
 					differs = True
@@ -1811,7 +1813,8 @@ class OpsiPackageManagerControl(object):
 				print ""
 
 		if depotsInSync:
-			print "There are no differences between the depots"
+			syncMessage = _("There are no differences between the depots")
+			print syncMessage.encode(self.encoding, 'replace')
 
 	def processUploadCommand(self):
 		self._opm = OpsiPackageManager(self.config, self.backend)
