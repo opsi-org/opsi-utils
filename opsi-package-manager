@@ -1773,10 +1773,10 @@ class OpsiPackageManagerControl(object):
 			productVersion = None
 			packageVersion = None
 			for depotId in depotIds:
-				lines.append(u"    %*s: " % (-1 * maxWidth, depotId))
-				productOnDepot = productOnDepotInfo[depotId].get(productId)
-				if not productOnDepot:
-					lines[-1] += u" not installed"
+				try:
+					productOnDepot = productOnDepotInfo[depotId][productId]
+				except KeyError:
+					lines.append(u"    {depotId:<{width}}: not installed".format(depotId=depotId, width=maxWidth))
 					differs = True
 					continue
 
@@ -1790,7 +1790,7 @@ class OpsiPackageManagerControl(object):
 				elif packageVersion != productOnDepot.packageVersion:
 					differs = True
 
-				lines[-1] += u" %s-%s" % (productOnDepot.productVersion, productOnDepot.packageVersion)
+				lines.append(u"    {depotId:<{width}}: {product.productVersion}-{product.packageVersion}".format(depotId=depotId, width=maxWidth, product=productOnDepot))
 
 			if differs:
 				for line in lines:
