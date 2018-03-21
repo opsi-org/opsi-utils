@@ -3,7 +3,7 @@
 
 # opsi-package-manager is part of the client management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2017 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2018 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -56,7 +56,7 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.1.1.12'
+__version__ = '4.1.1.19'
 
 logger = Logger()
 
@@ -1750,35 +1750,41 @@ class OpsiPackageManagerControl(object):
 			print ""
 
 	def processDifferencesCommand(self):
-		productOnDepots = self.backend.productOnDepot_getObjects(depotId=self.config['depotIds'], productId=self.config['productIds'])
-		productOnDepotInfo = {}
-		productIds = []
-		maxWidth = 0
-		for depotId in self.config['depotIds']:
-			if len(depotId) > maxWidth:
-				maxWidth = len(depotId)
-			productOnDepotInfo[depotId] = {}
-
-		for productOnDepot in productOnDepots:
-			if productOnDepot.productId not in productIds:
-				productIds.append(productOnDepot.productId)
-			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
-		productIds.sort()
-
 		if self.config['quiet']:
 			return
 
-		for productId in productIds:
+		depotIds = self.config['depotIds']
+		productOnDepots = self.backend.productOnDepot_getObjects(
+			depotId=depotIds,
+			productId=self.config['productIds']
+		)
+
+		productIds = set()
+		productOnDepotInfo = {depotId: {} for depotId in depotIds}
+		for productOnDepot in productOnDepots:
+			productIds.add(productOnDepot.productId)
+			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
+
+		maxWidth = max(len(depotId) for depotId in depotIds)
+
+		depotsInSync = True
+		notInstalledText = _("not installed")
+		for productId in sorted(productIds):
 			differs = False
-			lines = []
-			lines.append(productId)
-			productVersion = u''
-			packageVersion = u''
-			for depotId in self.config['depotIds']:
-				lines.append(u"    %*s: " % (-1 * maxWidth, depotId))
-				productOnDepot = productOnDepotInfo[depotId].get(productId)
-				if not productOnDepot:
-					lines[-1] += u" not installed"
+			lines = [productId]
+			productVersion = None
+			packageVersion = None
+			for depotId in depotIds:
+				try:
+					productOnDepot = productOnDepotInfo[depotId][productId]
+				except KeyError:
+					lines.append(
+						u"    {depotId:<{width}}: {text}".format(
+							depotId=depotId,
+							width=maxWidth,
+							text=notInstalledText
+						)
+					)
 					differs = True
 					continue
 
@@ -1792,12 +1798,23 @@ class OpsiPackageManagerControl(object):
 				elif packageVersion != productOnDepot.packageVersion:
 					differs = True
 
-				lines[-1] += u" %s-%s" % (productOnDepot.productVersion, productOnDepot.packageVersion)
+				lines.append(
+					u"    {depotId:<{width}}: {product.productVersion}-{product.packageVersion}".format(
+						depotId=depotId,
+						width=maxWidth,
+						product=productOnDepot
+					)
+				)
 
 			if differs:
+				depotsInSync = False
 				for line in lines:
 					print line.encode(self.encoding, 'replace')
 				print ""
+
+		if depotsInSync:
+			syncMessage = _("There are no differences between the depots")
+			print syncMessage.encode(self.encoding, 'replace')
 
 	def processUploadCommand(self):
 		self._opm = OpsiPackageManager(self.config, self.backend)
