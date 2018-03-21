@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.19-1) stable; urgency=medium
+
+  * opsi-package-manager: --differences will show a message if the depots
+    have no differences.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 21 Mar 2018 11:48:02 +0100
+
 opsi-utils (4.1.1.18-1) stable; urgency=medium
 
   * example.repo.template: dirs point to opsi 4.1.
