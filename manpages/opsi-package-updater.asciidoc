@@ -22,31 +22,115 @@ or depots via an commandline interface.
 OPTIONS
 -------
 
-*-h*::
+These are general options.
+Modes bring along their own options which are described later.
+
+*--help*, *-h*::
 Display a help text.
 
-*-v*::
-Increase verbosity. Can be used multiple times.
-
-*-V, --version*::
+*--version*, *-V*::
 Show version and exit.
 
-*-c* 'CONFIG_FILE'::
+*--config* 'CONFIG_FILE', *-c* 'CONFIG_FILE'::
 Specify a config file to use.
 Defaults to "/etc/opsi/opsi-package-updater.conf".
 
-*-p*::
-Process only the given package identifiers. To give multiple package IDs seperate
-them with a comma, like this: opsi-winst,opsi-client-agent
+*--verbose*, *-v*::
+Increase verbosity. Can be used multiple times.
 
-MODE
-----
+*--force-checksum-calculation*::
+Force calculation of a checksum (MD5) for every package.
+Default is to use existing checksums from the .md5-file of a package if possible.
+
+*--repo* 'REPOSITORY_NAME'::
+Limit the actions the given repository.
+
+*--use-inactive-repository*::
+Force the activation of an otherwise disabled repository.
+The repository must be given through '--repo'.
+
+
+MODE OVERVIEW
+-------------
+
+The modes control what actions should be done.
+
 
 *install*::
 Install all downloadable packages from configured repositories (ignores excludes).
 
 *update*::
 Update the existing packages with newer versions from the configured repositories.
+
+*download*::
+Download packages from repositories. This will not install packages.
+
+*list*::
+Listing information.
+
+
+INSTALL MODE
+------------
+
+Download and install packages.
+This will process packages that are currently not installed.
+
+This will process all packages in the repository unless one or multiple product
+ids are specified.
+
+
+UPDATE MODE
+-----------
+
+Download and install new versions of packages that are already installed.
+
+This will process all installed packages for which newer versions are available
+unless one or multiple product ids are specified.
+
+
+DOWNLOAD MODE
+-----------
+
+Download packages.
+This will not install packages.
+
+This will download packages for which newer versions are available unless
+one or multiple product ids are specified.
+
+*--force*::
+Force the download of a product even though it would otherwise not be required.
+
+
+LIST MODE
+-----------
+
+List various informations.
+
+This will process all installed packages for which newer versions are available
+unless one or multiple product ids are specified.
+
+*--repos*::
+Lists all repositories. Includes disabled repositories.
+
+*--active-repos*::
+Lists all active repositories.
+
+*--packages*::
+Lists the repositories and the packages they provide.
+
+*--packages-and-installationstatus*::
+Lists the repositories with their provided packages and information about
+the local installation status.
+
+*--package-differences*::
+Lists packages where local and remote version are different.
+
+*--updatable-packages*::
+Lists packages that have updates in the remote repositories.
+
+*--search-package* 'TEXT'::
+Search for a package with 'TEXT' in the filename.
+
 
 AUTHOR
 ------
@@ -61,5 +145,5 @@ See <http://www.opsi.org/> for more information.
 
 COPYING
 -------
-Copyright \(C) 2013-2016 uib GmbH.
+Copyright \(C) 2013-2018 uib GmbH.
 This software is released under the GNU Affero GPL version 3.
