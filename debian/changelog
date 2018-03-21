@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.19-2) stable; urgency=medium
+
+  * Updated manpages for opsi-makepackage and opsi-package-updater.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 21 Mar 2018 13:45:54 +0100
+
 opsi-utils (4.1.1.19-1) stable; urgency=medium
 
   * opsi-package-manager: --differences will show a message if the depots
