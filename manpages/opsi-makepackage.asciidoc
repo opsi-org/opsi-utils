@@ -24,45 +24,63 @@ opsi-makepackage provides an opsi package from a package source directory.
 OPTIONS
 -------
 
-*-q*::
-Quiet.
+*--quiet*, *-q*::
+Do not show progress.
 
-*-v*::
+*--verbose*, *-v*::
 Verbose output.
 
-*-l* 'LEVEL'::
+*--log-level* 'LEVEL', *-l* 'LEVEL'::
 Set log level to 'LEVEL'.
 Possible levels are: 0=nothing, 1=essential, 2=critical, 3=error, 4=warning, 5=notice, 6=info, 7=debug, 8=debug2, 9=confidential
 
-*-n*::
+*--no-compression*, *-n*::
 Do not compress.
 
-*-F* [tar|cpio]::
-The archive format. Defaults to "cpio".
+*--archive-format* [tar|cpio], *-F* [tar|cpio]::
+Archive format to use. Defaults to "cpio".
 
-*-h*::
+*--follow-symlinks*, *-h*::
 Follow symlinks.
 
-*-I*::
-Incremental package.
+*--custom-name* 'custom name', *-i* 'custom name'::
+Add custom files and add custom name to the base package.
 
-*-i*::
-Custom name (add custom files).
+*--custom-only* 'custom name', *-c* 'custom name'::
+Only package custom files and add custom name to base package.
 
-*-c*::
-Custom name (custom only).
-
-*-C*::
-Enable compatibility with Opsi 3.
-
-*-t* 'DIRECTORY'::
+*--temp-directory* 'DIRECTORY', *-t* 'DIRECTORY'::
 Use 'DIRECTORY' as temp directory.
 
-*-m*::
-Create md5sum file.
+*--md5*, *-m*::
+Create md5sum file. Default behaviour.
 
-*-z*::
-Create zsync file.
+*--no-md5*::
+Do not create file with md5 checksum.
+
+*--zsync*, *-z*::
+Create zsync file. Default behaviour.
+
+*--no-zsync*::
+Do not create zsync file.
+
+*--no-pigz*::
+Disable the usage of pigz for compression.
+
+
+OPTIONS FOR PACKAGE VERSIONS
+----------------------------
+
+Set versions for package. Combinations are possible.
+
+*--keep-versions*, *-k*::
+Keep versions and overwrite package
+
+*--package-version* 'PACKAGEVERSION'::
+Set new package version
+
+*--product-version* 'PRODUCTVERSION'::
+Set new product version for package
 
 
 AUTHOR
@@ -78,5 +96,5 @@ See <http://www.opsi.org/> for more information.
 
 COPYING
 -------
-Copyright \(C) 2013-2015 uib GmbH.
+Copyright \(C) 2013-2018 uib GmbH.
 This software is released under the GNU General Public License version 2.
