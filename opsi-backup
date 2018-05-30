@@ -6,7 +6,7 @@ opsi-backup
 opsi-backup is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010-2016 uib GmbH
+Copyright (C) 2010-2018 uib GmbH
 
 http://www.uib.de/
 
@@ -107,7 +107,7 @@ def main():
 	parser_restore = subs.add_parser("restore")
 	parser_restore.add_argument("file", nargs=1)
 	parser_restore.add_argument("--mode", nargs=1, choices=['raw', 'data'], default="raw")
-	parser_restore.add_argument("--backends", action="append")
+	parser_restore.add_argument("--backends", action="append", default=DefaultList(["auto"]))
 	parser_restore.add_argument("--configuration", action="store_true", default=False)
 	parser_restore.add_argument("-f", "--force", action="store_true", default=False)
 
