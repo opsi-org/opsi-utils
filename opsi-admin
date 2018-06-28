@@ -65,7 +65,6 @@ backend = None
 exitZero = False
 shell = None
 logFile = None
-logLevel = LOG_NONE
 logger = Logger()
 interactive = False
 logger.setLogFormat(u"[%l] %M (%F|%N)")
@@ -161,7 +160,6 @@ def main(argv):
 	os.umask(077)
 	global interactive
 	global exitZero
-	global logLevel
 
 	try:
 		import pwd
@@ -175,6 +173,7 @@ def main(argv):
 	color = False
 	direct = False
 	depotBackend = True
+	logLevel = LOG_NONE
 
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV",
@@ -225,7 +224,7 @@ def main(argv):
 			exitZero = True
 
 	if logFile:
-		startLogFile(logFile)
+		startLogFile(logFile, logLevel)
 
 	logger.setConsoleLevel(logLevel)
 	logger.setColor(color)
@@ -376,7 +375,7 @@ To exit opsi-admin please type 'exit'."""
 				pass
 
 
-def startLogFile(logFile):
+def startLogFile(logFile, logLevel):
 	with codecs.open(logFile, 'w', 'utf-8') as log:
 		log.write(u"Starting log at: %s" % forceUnicode(time.strftime(u"%a, %d %b %Y %H:%M:%S")))
 
