@@ -1319,7 +1319,6 @@ class CommandSet(Command):
 
 	def execute(self, shell, params):
 		global logFile
-		global logLevel
 
 		if len(params) <= 0:
 			raise ValueError(_(u'Missing option'))
