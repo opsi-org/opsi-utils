@@ -1,3 +1,9 @@
+opsi-utils (4.0.7.19-1) testing; urgency=medium
+
+  * opsi-backup: restore uses 'auto' as default backend when restoring.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 24 Jul 2018 15:28:56 +0200
+
 opsi-utils (4.0.7.18-7) stable; urgency=medium
 
   * RPM: Suse: Install zypper for build.
