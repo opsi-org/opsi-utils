@@ -65,7 +65,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.1.1.18'
+__version__ = '4.1.1.20'
 
 logger = Logger()
 
@@ -172,9 +172,9 @@ class EmailNotifier(object):
 		self.password = None
 		self.useStarttls = False
 
-	def appendLine(self, line):
+	def appendLine(self, line, pre=''):
 		now = unicode(time.strftime(u"%b %d %H:%M:%S", time.localtime()), 'utf-8', 'replace')
-		self.message += u'%s %s\n' % (now, forceUnicode(line))
+		self.message += u'%s%s %s\n' % (pre, now, forceUnicode(line))
 
 	def hasMessage(self):
 		return bool(self.message)
@@ -838,7 +838,7 @@ class OpsiPackageUpdater(object):
 					)[0]
 
 					if notifier:
-						notifier.appendLine(u"Package '%s' successfully installed" % packageFile)
+						notifier.appendLine(u"Package '%s' successfully installed" % packageFile, pre='\n')
 					logger.notice(u"Package '%s' successfully installed" % packageFile)
 					installedPackages.append(package)
 
@@ -910,6 +910,7 @@ class OpsiPackageUpdater(object):
 					logger.notice(u"Powering on clients %s" % wakeOnLanClients)
 					if notifier:
 						notifier.appendLine(u"Powering on clients: {0}".format(', '.join(sorted(wakeOnLanClients))))
+
 					for clientId in wakeOnLanClients:
 						try:
 							logger.info(u"Powering on client '%s'" % clientId)
@@ -940,12 +941,12 @@ class OpsiPackageUpdater(object):
 
 	def _getNotifier(self):
 		notifier = EmailNotifier(
-				smtphost=self.config["smtphost"],
-				smtpport=self.config["smtpport"],
-				sender=self.config["sender"],
-				receivers=self.config["receivers"],
-				subject=self.config["subject"],
-			)
+			smtphost=self.config["smtphost"],
+			smtpport=self.config["smtpport"],
+			sender=self.config["sender"],
+			receivers=self.config["receivers"],
+			subject=self.config["subject"],
+		)
 
 		if self.config["use_starttls"]:
 			notifier.useStarttls = self.config["use_starttls"]

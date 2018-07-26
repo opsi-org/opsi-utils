@@ -6,7 +6,7 @@ opsi-backup
 opsi-backup is part of the desktop management solution opsi
 (open pc server integration) http://www.opsi.org
 
-Copyright (C) 2010-2017 uib GmbH
+Copyright (C) 2010-2018 uib GmbH
 
 http://www.uib.de/
 
@@ -39,7 +39,7 @@ import sys
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 
-__version__ = "4.1.1.10"
+__version__ = "4.1.1.20"
 
 logger = Logger()
 
@@ -135,7 +135,8 @@ def main():
 	result = 0
 	if args.command == 'restore':
 		if not args.backends:
-			logger.warning("No backend given!")
+			logger.debug("No backend given, assuming 'auto'")
+			args.backends = ['auto']
 
 		result = backup.restore(
 			file=args.file, backends=args.backends,

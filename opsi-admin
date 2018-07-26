@@ -3,7 +3,7 @@
 
 # opsi-admin is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2017 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2018 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -59,13 +59,12 @@ from OPSI.Util import (
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 
 
-__version__ = '4.1.1.13'
+__version__ = '4.1.1.20'
 
 backend = None
 exitZero = False
 shell = None
 logFile = None
-logLevel = LOG_NONE
 logger = Logger()
 interactive = False
 logger.setLogFormat(u"[%l] %M (%F|%N)")
@@ -162,7 +161,6 @@ def main(argv):
 	global interactive
 	global exitZero
 
-	logLevel = LOG_NONE
 	try:
 		import pwd
 		username = forceUnicode(pwd.getpwuid(os.getuid())[0])
@@ -175,6 +173,7 @@ def main(argv):
 	color = False
 	direct = False
 	depotBackend = True
+	logLevel = LOG_NONE
 
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV",
@@ -225,7 +224,7 @@ def main(argv):
 			exitZero = True
 
 	if logFile:
-		startLogFile(logFile)
+		startLogFile(logFile, logLevel)
 
 	logger.setConsoleLevel(logLevel)
 	logger.setColor(color)
@@ -376,7 +375,7 @@ To exit opsi-admin please type 'exit'."""
 				pass
 
 
-def startLogFile(logFile):
+def startLogFile(logFile, logLevel):
 	with codecs.open(logFile, 'w', 'utf-8') as log:
 		log.write(u"Starting log at: %s" % forceUnicode(time.strftime(u"%a, %d %b %Y %H:%M:%S")))
 
@@ -1319,7 +1318,6 @@ class CommandSet(Command):
 
 	def execute(self, shell, params):
 		global logFile
-		global logLevel
 
 		if len(params) <= 0:
 			raise ValueError(_(u'Missing option'))
