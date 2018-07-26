@@ -910,6 +910,7 @@ class OpsiPackageUpdater(object):
 					logger.notice(u"Powering on clients %s" % wakeOnLanClients)
 					if notifier:
 						notifier.appendLine(u"Powering on clients: {0}".format(', '.join(sorted(wakeOnLanClients))))
+
 					for clientId in wakeOnLanClients:
 						try:
 							logger.info(u"Powering on client '%s'" % clientId)
