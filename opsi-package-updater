@@ -838,7 +838,7 @@ class OpsiPackageUpdater(object):
 					)[0]
 
 					if notifier:
-						notifier.appendLine(u"Package '%s' successfully installed" % packageFile)
+						notifier.appendLine(u"Package '%s' successfully installed" % packageFile, pre='\n')
 					logger.notice(u"Package '%s' successfully installed" % packageFile)
 					installedPackages.append(package)
 
