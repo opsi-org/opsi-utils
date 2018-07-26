@@ -49,7 +49,7 @@ from OPSI.Util.Task.UpdatePackages.Config import DEFAULT_CONFIG
 from OPSI.Util.Task.UpdatePackages.Updater import OpsiPackageUpdater
 from OPSI import System
 
-__version__ = '4.1.1.20'
+__version__ = '4.1.1.21'
 
 logger = Logger()
 
