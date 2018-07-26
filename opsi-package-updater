@@ -941,12 +941,12 @@ class OpsiPackageUpdater(object):
 
 	def _getNotifier(self):
 		notifier = EmailNotifier(
-				smtphost=self.config["smtphost"],
-				smtpport=self.config["smtpport"],
-				sender=self.config["sender"],
-				receivers=self.config["receivers"],
-				subject=self.config["subject"],
-			)
+			smtphost=self.config["smtphost"],
+			smtpport=self.config["smtpport"],
+			sender=self.config["sender"],
+			receivers=self.config["receivers"],
+			subject=self.config["subject"],
+		)
 
 		if self.config["use_starttls"]:
 			notifier.useStarttls = self.config["use_starttls"]
