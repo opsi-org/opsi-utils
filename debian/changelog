@@ -1,3 +1,11 @@
+opsi-utils (4.1.1.20-1) stable; urgency=medium
+
+  * opsi-package-updater: Small change in opsi-package-updater notification
+    mails so that multiple actions belonging to one package can easier be
+    distinguished.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 26 Jul 2018 09:37:55 +0200
+
 opsi-utils (4.1.1.19-2) stable; urgency=medium
 
   * Updated manpages for opsi-makepackage and opsi-package-updater.
