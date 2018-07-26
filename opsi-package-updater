@@ -61,6 +61,7 @@ from OPSI.Util.File import IniFile, ZsyncFile
 from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Util.Task.Rights import setRights
+from OPSI.Util.Task.UpdatePackages.Exceptions import ConfigurationError, MissingConfigurationValueError
 from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -70,12 +71,6 @@ __version__ = '4.1.1.20'
 logger = Logger()
 
 
-class ConfigurationError(ValueError):
-	pass
-
-
-class MissingConfigurationValueError(ConfigurationError):
-	pass
 
 
 def _(string):
