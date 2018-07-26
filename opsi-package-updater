@@ -45,6 +45,7 @@ import time
 from OPSI.Logger import LOG_NOTICE, LOG_WARNING, Logger
 from OPSI.Types import forceProductId, forceUnicode
 from OPSI.Util import compareVersions
+from OPSI.Util.Task.UpdatePackages.Config import DEFAULT_CONFIG
 from OPSI.Util.Task.UpdatePackages.Updater import OpsiPackageUpdater
 from OPSI import System
 
@@ -197,36 +198,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
 
 def main():
-	config = {
-		"userAgent": 'opsi package updater %s' % __version__,
-		"packageDir": '/var/lib/opsi/products',
-		"configFile": '/etc/opsi/opsi-package-updater.conf',
-		"repositoryConfigDir": '/etc/opsi/package-updater.repos.d',
-		"notification": False,
-		"smtphost": u'localhost',
-		"smtpport": 25,
-		"smtpuser": None,
-		"smtppassword": None,
-		"subject": u'opsi-package-updater',
-		"use_starttls": False,
-		"sender": u'opsi@localhost',
-		"receivers": [],
-		"wolAction": False,
-		"wolActionExcludeProductIds": [],
-		"wolShutdownWanted": False,
-		"wolStartGap": 0,
-		"installationWindowStartTime": None,
-		"installationWindowEndTime": None,
-		"installationWindowExceptions": None,
-		"repositories": [],
-		"repositoryName": None,
-		"forceRepositoryActivation": False,
-		"installAllAvailable": False,
-		"zsyncCommand": None,
-		"processProductIds": None,
-		"forceChecksumCalculation": False,
-		"forceDownload": False,
-	}
+	config = DEFAULT_CONFIG.copy()
 
 	parser = argparse.ArgumentParser(
 		description="Updater for local opsi products.",
