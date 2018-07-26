@@ -172,9 +172,9 @@ class EmailNotifier(object):
 		self.password = None
 		self.useStarttls = False
 
-	def appendLine(self, line):
+	def appendLine(self, line, pre=''):
 		now = unicode(time.strftime(u"%b %d %H:%M:%S", time.localtime()), 'utf-8', 'replace')
-		self.message += u'%s %s\n' % (now, forceUnicode(line))
+		self.message += u'%s%s %s\n' % (pre, now, forceUnicode(line))
 
 	def hasMessage(self):
 		return bool(self.message)
