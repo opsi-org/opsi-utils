@@ -391,78 +391,6 @@ class OpsiPackageUpdater(object):
 			)
 		return self.depotConnections[depotId]
 
-	def listActiveRepos(self):
-		logger.notice("Active repositories:")
-		for repository in sorted(self.getActiveRepositories(), key=lambda repo: repo.name.lower()):
-			descr = ''
-			if repository.description:
-				descr = "- {description}".format(description=repository.description)
-
-			logger.notice("{name}: {url} {description}", name=repository.name, url=repository.baseUrl, description=descr)
-
-	def listRepos(self):
-		logger.notice("All repositories:")
-		for repository in sorted(self.getRepositories(), key=lambda repo: repo.name.lower()):
-			descr = ''
-			if repository.description:
-				descr = "- {description}".format(description=repository.description)
-
-			logger.notice(
-				"{name} ({status}): {url} {description}",
-				name=repository.name,
-				status='active' if repository.active else 'inactive',
-				url=repository.baseUrl,
-				description=descr
-			)
-
-	def listProductsInRepositories(self, withLocalInstallationStatus=False, productId=None):
-		"""
-		Lists the products available at the actives repositories.
-
-		If `withLocalInstallationStatus` is `True` it will also compare the version on the
-		repository to the one locally installed and show if there is a
-		difference.
-
-		:type withLocalInstallationStatus: bool
-		:param productId: Limit the output to products matching this
-		:type productId: str
-		"""
-		if withLocalInstallationStatus:
-			localProducts = self.getInstalledProducts()
-			localProducts = {product['productId']: product for product in localProducts}
-
-		for repository in self.getActiveRepositories():
-			logger.notice("Packages in {name}:", name=repository.name)
-			packages = sorted(
-				self.getDownloadablePackagesFromRepository(repository),
-				key=operator.itemgetter('productId')
-			)
-
-			if productId:
-				logger.debug("Filtering for product IDs matching {0}...", productId)
-				productId = forceProductId(productId)
-				packages = [
-					package for package in packages
-					if productId in package['productId']
-				]
-
-			for package in packages:
-				if withLocalInstallationStatus:
-					try:
-						localProduct = localProducts[package['productId']]
-					except KeyError as kerr:
-						logger.debug(kerr)
-						logger.notice('\t{productId} (Version {version}, not installed)', **package)
-						continue
-
-					localVersion = '{productVersion}-{packageVersion}'.format(**localProduct)
-					if compareVersions(package['version'], '==', localVersion):
-						logger.notice('\t{productId} (Version {version}, installed)', **package)
-					else:
-						logger.notice('\t{productId} (Version {version}, installed {localVersion})', localVersion=localVersion, **package)
-				else:
-					logger.notice('\t{productId} (Version {version})', **package)
-
 	def processUpdates(self):
 		if not any(self.getActiveRepositories()):
 			logger.warning(u"No repositories configured, nothing to do")
@@ -937,74 +865,6 @@ class OpsiPackageUpdater(object):
 			if notifier and notifier.hasMessage():
 				notifier.notify()
 
-	def listUpdatableProducts(self):
-		if not any(self.getActiveRepositories()):
-			logger.warning(u"No repositories configured, nothing to do")
-			return
-
-		updates = {}
-		try:
-			installedProducts = self.getInstalledProducts()
-			downloadablePackages = self.getDownloadablePackages()
-			downloadablePackages = self.onlyNewestPackages(downloadablePackages)
-			downloadablePackages = self._filterProducts(downloadablePackages)
-
-			for availablePackage in downloadablePackages:
-				productId = availablePackage['productId']
-				for product in installedProducts:
-					if product['productId'] == productId:
-						logger.debug(u"Product '%s' is installed" % productId)
-						logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" % (availablePackage['version'], product['productVersion'], product['packageVersion']))
-						updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
-
-						if updateAvailable:
-							updates[productId] = {
-								"productId": productId,
-								"newVersion": "{version}".format(**availablePackage),
-								"oldVersion": "{productVersion}-{packageVersion}".format(**product),
-								"repository": availablePackage['repository'].name
-							}
-						break
-		except Exception as error:
-			raise error
-
-		if updates:
-			for productId in sorted(updates.keys()):
-				logger.notice("{productId}: {newVersion} in {repository} (updatable from: {oldVersion})", **updates[productId])
-		else:
-			logger.notice("No updates found.")
-
-	def listProductsWithVersionDifference(self):
-		"""
-		Lists the products available at the actives repositories.
-
-		If `withLocalInstallationStatus` is `True` it will also compare the version on the
-		repository to the one locally installed and show if there is a
-		difference.
-		"""
-		localProducts = self.getInstalledProducts()
-		localProducts = {product['productId']: product for product in localProducts}
-
-		for repository in self.getActiveRepositories():
-			repoMessageShown = False
-			packages = sorted(
-				self.getDownloadablePackagesFromRepository(repository),
-				key=operator.itemgetter('productId')
-			)
-			for package in packages:
-				try:
-					localProduct = localProducts[package['productId']]
-				except KeyError:
-					continue  # Not installed locally
-
-				localVersion = '{productVersion}-{packageVersion}'.format(**localProduct)
-				if not compareVersions(package['version'], '==', localVersion):
-					if not repoMessageShown:
-						logger.notice("Packages in {name}:", name=repository.name)
-						repoMessageShown = True
-
-					logger.notice('\t{productId} (Version {version}, installed {localVersion})', localVersion=localVersion, **package)
-
 	def zsyncPackage(self, availablePackage, notifier=None):
 		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 		curdir = os.getcwd()
@@ -1347,7 +1207,146 @@ class OpsiPackageUpdater(object):
 
 
 class OpsiPackageUpdaterClient(OpsiPackageUpdater):
-	pass
+
+	def listActiveRepos(self):
+		logger.notice("Active repositories:")
+		for repository in sorted(self.getActiveRepositories(), key=lambda repo: repo.name.lower()):
+			descr = ''
+			if repository.description:
+				descr = "- {description}".format(description=repository.description)
+
+			logger.notice("{name}: {url} {description}", name=repository.name, url=repository.baseUrl, description=descr)
+
+	def listRepos(self):
+		logger.notice("All repositories:")
+		for repository in sorted(self.getRepositories(), key=lambda repo: repo.name.lower()):
+			descr = ''
+			if repository.description:
+				descr = "- {description}".format(description=repository.description)
+
+			logger.notice(
+				"{name} ({status}): {url} {description}",
+				name=repository.name,
+				status='active' if repository.active else 'inactive',
+				url=repository.baseUrl,
+				description=descr
+			)
+
+	def listProductsInRepositories(self, withLocalInstallationStatus=False, productId=None):
+		"""
+		Lists the products available at the actives repositories.
+
+		If `withLocalInstallationStatus` is `True` it will also compare the version on the
+		repository to the one locally installed and show if there is a
+		difference.
+
+		:type withLocalInstallationStatus: bool
+		:param productId: Limit the output to products matching this
+		:type productId: str
+		"""
+		if withLocalInstallationStatus:
+			localProducts = self.getInstalledProducts()
+			localProducts = {product['productId']: product for product in localProducts}
+
+		for repository in self.getActiveRepositories():
+			logger.notice("Packages in {name}:", name=repository.name)
+			packages = sorted(
+				self.getDownloadablePackagesFromRepository(repository),
+				key=operator.itemgetter('productId')
+			)
+
+			if productId:
+				logger.debug("Filtering for product IDs matching {0}...", productId)
+				productId = forceProductId(productId)
+				packages = [
+					package for package in packages
+					if productId in package['productId']
+				]
+
+			for package in packages:
+				if withLocalInstallationStatus:
+					try:
+						localProduct = localProducts[package['productId']]
+					except KeyError as kerr:
+						logger.debug(kerr)
+						logger.notice('\t{productId} (Version {version}, not installed)', **package)
+						continue
+
+					localVersion = '{productVersion}-{packageVersion}'.format(**localProduct)
+					if compareVersions(package['version'], '==', localVersion):
+						logger.notice('\t{productId} (Version {version}, installed)', **package)
+					else:
+						logger.notice('\t{productId} (Version {version}, installed {localVersion})', localVersion=localVersion, **package)
+				else:
+					logger.notice('\t{productId} (Version {version})', **package)
+
+	def listProductsWithVersionDifference(self):
+		"""
+		Lists the products available at the actives repositories.
+
+		If `withLocalInstallationStatus` is `True` it will also compare the version on the
+		repository to the one locally installed and show if there is a
+		difference.
+		"""
+		localProducts = self.getInstalledProducts()
+		localProducts = {product['productId']: product for product in localProducts}
+
+		for repository in self.getActiveRepositories():
+			repoMessageShown = False
+			packages = sorted(
+				self.getDownloadablePackagesFromRepository(repository),
+				key=operator.itemgetter('productId')
+			)
+			for package in packages:
+				try:
+					localProduct = localProducts[package['productId']]
+				except KeyError:
+					continue  # Not installed locally
+
+				localVersion = '{productVersion}-{packageVersion}'.format(**localProduct)
+				if not compareVersions(package['version'], '==', localVersion):
+					if not repoMessageShown:
+						logger.notice("Packages in {name}:", name=repository.name)
+						repoMessageShown = True
+
+					logger.notice('\t{productId} (Version {version}, installed {localVersion})', localVersion=localVersion, **package)
+
+	def listUpdatableProducts(self):
+		if not any(self.getActiveRepositories()):
+			logger.warning(u"No repositories configured, nothing to do")
+			return
+
+		updates = {}
+		try:
+			installedProducts = self.getInstalledProducts()
+			downloadablePackages = self.getDownloadablePackages()
+			downloadablePackages = self.onlyNewestPackages(downloadablePackages)
+			downloadablePackages = self._filterProducts(downloadablePackages)
+
+			for availablePackage in downloadablePackages:
+				productId = availablePackage['productId']
+				for product in installedProducts:
+					if product['productId'] == productId:
+						logger.debug(u"Product '%s' is installed" % productId)
+						logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" % (availablePackage['version'], product['productVersion'], product['packageVersion']))
+						updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
+
+						if updateAvailable:
+							updates[productId] = {
+								"productId": productId,
+								"newVersion": "{version}".format(**availablePackage),
+								"oldVersion": "{productVersion}-{packageVersion}".format(**product),
+								"repository": availablePackage['repository'].name
+							}
+						break
+		except Exception as error:
+			raise error
+
+		if updates:
+			for productId in sorted(updates.keys()):
+				logger.notice("{productId}: {newVersion} in {repository} (updatable from: {oldVersion})", **updates[productId])
+		else:
+			logger.notice("No updates found.")
 
 
 def main():
