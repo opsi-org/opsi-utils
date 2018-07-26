@@ -1,3 +1,11 @@
+opsi-utils (4.1.1.20-1) stable; urgency=medium
+
+  * opsi-package-updater: Small change in opsi-package-updater notification
+    mails so that multiple actions belonging to one package can easier be
+    distinguished.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 26 Jul 2018 09:37:55 +0200
+
 opsi-utils (4.1.1.19-2) stable; urgency=medium
 
   * Updated manpages for opsi-makepackage and opsi-package-updater.
@@ -244,6 +252,12 @@ opsi-utils (4.1.1.1-1) experimental; urgency=medium
     "--repo name_of_repo".
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 29 Nov 2016 13:57:13 +0100
+
+opsi-utils (4.0.7.19-1) testing; urgency=medium
+
+  * opsi-backup: restore uses 'auto' as default backend when restoring.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 24 Jul 2018 15:28:56 +0200
 
 opsi-utils (4.0.7.18-7) stable; urgency=medium
 

@@ -120,6 +120,9 @@ def main(argv):
 						help="Do not compress")
 	parser.add_argument('--archive-format', '-F', dest="format", default='cpio', choices=['cpio', 'tar'],
 						help="Archive format to use. Default: cpio")
+	parser.add_argument('--no-pigz', dest="disablePigz",
+					default=False, action='store_true',
+					help="Disable the usage of pigz")
 	parser.add_argument('--follow-symlinks', '-h',
 						dest="dereference", help="follow symlinks",
 						default=False, action='store_true')
@@ -149,9 +152,6 @@ def main(argv):
 	zsyncGroup.add_argument(
 		'--no-zsync', dest="createZsyncFile", action='store_false',
 		help="Do not create zsync file.")
-	parser.add_argument('--no-pigz', dest="disablePigz",
-						default=False, action='store_true',
-						help="Disable the usage of pigz")
 	parser.add_argument('packageSourceDir', metavar="source directory",
 						nargs='?', default=os.getcwd())
 
