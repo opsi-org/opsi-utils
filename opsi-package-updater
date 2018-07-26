@@ -70,10 +70,6 @@ __version__ = '4.1.1.20'
 logger = Logger()
 
 
-def _(string):
-	return string
-
-
 def splitAndStrip(string, sep):
 	for singleValue in string.split(sep):
 		singleValue = singleValue.strip()
