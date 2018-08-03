@@ -61,6 +61,8 @@ Common options:
 Commands:
    verify     <backup-archive>         Verify integrity of <backup-archive>.
 
+   list       <backup-archive>         List contents of <backup-archive>.
+
    restore    <backup-archive>         Restore data from <backup-archive>.
       --backends    <backend>          Select a backend to restore or 'all' for all backends.
                                           Can be given multiple times.
