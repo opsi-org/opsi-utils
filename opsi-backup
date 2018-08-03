@@ -152,6 +152,8 @@ def main():
 		else:
 			print("Verification failed")
 	elif args.command == 'list':
+		if not args.verbose:
+			logger.setConsoleLevel(LOG_NOTICE)
 		backup.list(args.file)
 	elif args.command == 'create':
 		if not args.backends:
