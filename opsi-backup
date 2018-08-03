@@ -104,6 +104,9 @@ def main():
 	parser_verify = subs.add_parser("verify")
 	parser_verify.add_argument("file", nargs="+")
 
+	parser_verify = subs.add_parser("list")
+	parser_verify.add_argument("file", nargs="+")
+
 	parser_restore = subs.add_parser("restore")
 	parser_restore.add_argument("file", nargs=1)
 	parser_restore.add_argument("--backends", action="append")
@@ -148,6 +151,8 @@ def main():
 			print("Verified")
 		else:
 			print("Verification failed")
+	elif args.command == 'list':
+		backup.list(args.file)
 	elif args.command == 'create':
 		if not args.backends:
 			logger.debug("No backends given, assuming 'auto'")
