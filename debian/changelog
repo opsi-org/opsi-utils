@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.22-1) stable; urgency=medium
+
+  * opsi-package-updater: Removed waiting period of --use-inactive-repository
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 07 Aug 2018 14:03:49 +0200
+
 opsi-utils (4.1.1.21-1) stable; urgency=medium
 
   * opsi-backup: Added 'list' command to show contents of an backup.
