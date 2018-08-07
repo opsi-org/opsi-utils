@@ -39,7 +39,7 @@ import sys
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 
-__version__ = "4.1.1.20"
+__version__ = "4.1.1.21"
 
 logger = Logger()
 
