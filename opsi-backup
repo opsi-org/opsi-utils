@@ -61,6 +61,8 @@ Common options:
 Commands:
    verify     <backup-archive>         Verify integrity of <backup-archive>.
 
+   list       <backup-archive>         List contents of <backup-archive>.
+
    restore    <backup-archive>         Restore data from <backup-archive>.
       --backends    <backend>          Select a backend to restore or 'all' for all backends.
                                           Can be given multiple times.
@@ -102,6 +104,9 @@ def main():
 	subs = parser.add_subparsers(title="commands", dest="command")
 
 	parser_verify = subs.add_parser("verify")
+	parser_verify.add_argument("file", nargs="+")
+
+	parser_verify = subs.add_parser("list")
 	parser_verify.add_argument("file", nargs="+")
 
 	parser_restore = subs.add_parser("restore")
@@ -148,6 +153,10 @@ def main():
 			print("Verified")
 		else:
 			print("Verification failed")
+	elif args.command == 'list':
+		if not args.verbose:
+			logger.setConsoleLevel(LOG_NOTICE)
+		backup.list(args.file)
 	elif args.command == 'create':
 		if not args.backends:
 			logger.debug("No backends given, assuming 'auto'")
