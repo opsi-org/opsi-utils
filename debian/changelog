@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.21-1) stable; urgency=medium
+
+  * opsi-backup: Added 'list' command to show contents of an backup.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 07 Aug 2018 09:41:52 +0200
+
 opsi-utils (4.1.1.20-1) stable; urgency=medium
 
   * opsi-package-updater: Small change in opsi-package-updater notification
