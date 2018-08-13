@@ -1158,7 +1158,7 @@ class CommandMethod(Command):
 			try:
 				return fromJson(obj)
 			except Exception as error:
-				logger.debug(u"Not a json string {0!r}: {1}".format(obj, forceUnicode(error)))
+				logger.debug(u"Not a json string {0!r}: {1}", obj, forceUnicode(error))
 				return forceUnicode(obj)
 
 		params = [createObjectOrString(item) for item in params]
@@ -1171,7 +1171,7 @@ class CommandMethod(Command):
 
 		result = None
 
-		logger.info(u"Executing:  %s(%s)" % (methodName, pString))
+		logger.info(u"Executing:  {}({})", methodName, pString)
 		shell.setInfoline(u"Executing:  %s(%s)" % (methodName, pString))
 		start = time.time()
 
@@ -1185,7 +1185,7 @@ class CommandMethod(Command):
 		logger.debug(u'Took %0.3f seconds to process: %s(%s)' % (duration, methodName, pString))
 		shell.setInfoline(_(u'Took %0.3f seconds to process: %s(%s)') % (duration, methodName, pString))
 		result = serialize(result)
-		logger.debug2(u"Serialized result: {0!r}".format(result))
+		logger.debug2(u"Serialized result: {0!r}", result)
 
 		if result is not None:
 			lines = []
