@@ -1121,22 +1121,20 @@ class CommandMethod(Command):
 			shell.appendLine(_(u'No method defined'))
 			return
 
-		method = params[0]
+		methodName = params[0]
 
-		if method == u'list':
+		if methodName == u'list':
 			for m in self.interface:
 				shell.appendLine(u"%s%s" % (m.get('name'), tuple(m.get('params'))), refresh=False)
 			shell.display()
 			return
 
-		methodInterface = None
 		for m in self.interface:
-			if method == m['name']:
+			if methodName == m['name']:
 				methodInterface = m
 				break
-
-		if not methodInterface:
-			raise OpsiRpcError(u"Method '%s' is not valid" % method)
+		else:
+			raise OpsiRpcError(u"Method '%s' is not valid" % methodName)
 
 		params = params[1:]
 		keywords = {}
@@ -1173,18 +1171,19 @@ class CommandMethod(Command):
 
 		result = None
 
-		logger.info(u"Executing:  %s(%s)" % (method, pString))
-		shell.setInfoline(u"Executing:  %s(%s)" % (method, pString))
+		logger.info(u"Executing:  %s(%s)" % (methodName, pString))
+		shell.setInfoline(u"Executing:  %s(%s)" % (methodName, pString))
 		start = time.time()
 
+		method = getattr(backend, methodName)
 		if keywords:
-			result = eval("backend.%s(*params, **keywords)" % method)
+			result = method(*params, **keywords)
 		else:
-			result = eval("backend.%s(*params)" % method)
+			result = method(*params)
 
 		duration = time.time() - start
-		logger.debug(u'Took %0.3f seconds to process: %s(%s)' % (duration, method, pString))
-		shell.setInfoline(_(u'Took %0.3f seconds to process: %s(%s)') % (duration, method, pString))
+		logger.debug(u'Took %0.3f seconds to process: %s(%s)' % (duration, methodName, pString))
+		shell.setInfoline(_(u'Took %0.3f seconds to process: %s(%s)') % (duration, methodName, pString))
 		result = serialize(result)
 		logger.debug2(u"Serialized result: {0!r}".format(result))
 
