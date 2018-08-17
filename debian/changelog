@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.23-1) stable; urgency=medium
+
+  * opsi-admin: Internatl refactoring to avoid usage of eval.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 17 Aug 2018 12:33:40 +0200
+
 opsi-utils (4.1.1.22-1) stable; urgency=medium
 
   * opsi-package-updater: Removed waiting period of --use-inactive-repository
