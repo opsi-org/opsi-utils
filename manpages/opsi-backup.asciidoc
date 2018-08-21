@@ -40,9 +40,6 @@ Write log to 'LOG_FILE'.
 COMMANDS
 --------
 
-*verify* 'BACKUP_ARCHIVE'::
-Verify the integrity of 'BACKUP_ARCHIVE'.
-
 *create* 'BACKUP_ARCHIVE'::
 Creates a new backup. If 'BACKUP_ARCHIVE' is omitted, a backup archive
 will be created in the current directory. If 'BACKUP_ARCHIVE' is an
@@ -50,6 +47,9 @@ existing directory, the backup archive will be created in that directory.
 If 'BACKUP_ARCHIVE' does not exist or is a file, 'BACKUP_ARCHIVE'
 will be used as backup archive destination file.
 See <<CREATE_OPTIONS,*CREATE OPTIONS*>> for more options.
+
+*verify* 'BACKUP_ARCHIVE'::
+Verify the integrity of 'BACKUP_ARCHIVE'.
 
 *restore* 'BACKUP_ARCHIVE'::
 Restores data from 'BACKUP_ARCHIVE'.
