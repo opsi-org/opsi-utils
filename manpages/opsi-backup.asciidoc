@@ -48,6 +48,9 @@ If 'BACKUP_ARCHIVE' does not exist or is a file, 'BACKUP_ARCHIVE'
 will be used as backup archive destination file.
 See <<CREATE_OPTIONS,*CREATE OPTIONS*>> for more options.
 
+*list* 'BACKUP_ARCHIVE'::
+List the data contained in 'BACKUP_ARCHIVE'.
+
 *verify* 'BACKUP_ARCHIVE'::
 Verify the integrity of 'BACKUP_ARCHIVE'.
 
