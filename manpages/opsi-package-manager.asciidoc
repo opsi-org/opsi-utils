@@ -126,5 +126,5 @@ See <http://www.opsi.org/> for more information.
 
 COPYING
 -------
-Copyright \(C) 2013-2017 uib GmbH.
+Copyright \(C) 2013-2018 uib GmbH.
 This software is released under the GNU General Public License version 2.
