@@ -81,10 +81,6 @@ RESTORE_OPTIONS
 Select a backend to restore. Use "auto" for automatic detection of used
 backends or "all" for all backends. Can be given multiple times.
 
-*--backends*='BACKEND'::
-Select a backend to restore or 'all' for all backends.
-Can be given multiple times.
-
 *--configuration*::
 Restore opsi configuration.
 
