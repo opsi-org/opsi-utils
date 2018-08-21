@@ -63,9 +63,6 @@ CREATE OPTIONS
 --------------
 The create command accepts the following options.
 
-*--mode*=[raw|data]::
-Select a mode that should be used for creation. Default is _raw_.
-
 *--flush-logs*::
 Causes mysql to flush table logs to disk before the backup (recommended).
 
@@ -79,9 +76,6 @@ Sets the compression format for the archive. Default is "bz2".
 [[RESTORE_OPTIONS]]
 RESTORE_OPTIONS
 ---------------
-
-*--mode*=[raw|data]::
-Select a mode that should be used for restoration (default: raw).
 
 *--backends*='BACKEND'::
 Select a backend to restore. Use "auto" for automatic detection of used
@@ -111,5 +105,5 @@ See <http://www.opsi.org/> for more information.
 
 COPYING
 -------
-Copyright \(C) 2013-2015 uib GmbH.
+Copyright \(C) 2013-2018 uib GmbH.
 This software is released under the GNU General Public License version 2.
