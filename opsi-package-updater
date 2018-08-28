@@ -65,7 +65,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.1.1.22'
+__version__ = '4.1.1.24'
 
 logger = Logger()
 
@@ -827,7 +827,7 @@ class OpsiPackageUpdater(object):
 						logger.warning(u"Failed to get product property defaults: %s" % error)
 
 					logger.info(u"Installing package '%s'" % packageFile)
-					self.getConfigBackend().depot_installPackage(filename=packageFile, force=True, propertyDefaultValues=propertyDefaultValues, tempDir=self.config.get('tempdir', '/tmp'))
+					self.getConfigBackend().depot_installPackage(filename=packageFile, propertyDefaultValues=propertyDefaultValues, tempDir=self.config.get('tempdir', '/tmp'))
 					productOnDepots = self.getConfigBackend().productOnDepot_getObjects(depotId=self.depotId, productId=package['productId'])
 					if not productOnDepots:
 						raise ValueError(u"Product '%s' not found on depot '%s' after installation" % (package['productId'], self.depotId))
