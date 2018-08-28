@@ -65,7 +65,7 @@ from OPSI import System
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 
-__version__ = '4.1.1.22'
+__version__ = '4.1.1.24'
 
 logger = Logger()
 

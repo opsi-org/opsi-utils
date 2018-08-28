@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.24-1) stable; urgency=medium
+
+  * opsi-package-updater: Do not install packages with "force" parameter.
+    This will lead to installations not being made if a product is locked.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 28 Aug 2018 16:42:05 +0200
+
 opsi-utils (4.1.1.23-2) stable; urgency=medium
 
   * Updated manpage for opsi-backup.
