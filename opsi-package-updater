@@ -42,12 +42,15 @@ import os
 import sys
 import time
 
+from OPSI import System
 from OPSI.Logger import LOG_NOTICE, LOG_WARNING, Logger
 from OPSI.Types import forceProductId, forceUnicode
 from OPSI.Util import compareVersions
 from OPSI.Util.Task.UpdatePackages.Config import DEFAULT_CONFIG
+from OPSI.Util.Task.UpdatePackages.Exceptions import NoActiveRepositoryError
 from OPSI.Util.Task.UpdatePackages.Updater import OpsiPackageUpdater
-from OPSI import System
+from OPSI.Util.Task.UpdatePackages.Util import getUpdatablePackages
+
 
 __version__ = '4.1.1.21'
 
@@ -160,35 +163,11 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 					logger.notice('\t{productId} (Version {version}, installed {localVersion})', localVersion=localVersion, **package)
 
 	def listUpdatableProducts(self):
-		if not any(self.getActiveRepositories()):
+		try:
+			updates = getUpdatablePackages(self)
+		except NoActiveRepositoryError:
 			logger.warning(u"No repositories configured, nothing to do")
 			return
-
-		updates = {}
-		try:
-			installedProducts = self.getInstalledProducts()
-			downloadablePackages = self.getDownloadablePackages()
-			downloadablePackages = self.onlyNewestPackages(downloadablePackages)
-			downloadablePackages = self._filterProducts(downloadablePackages)
-
-			for availablePackage in downloadablePackages:
-				productId = availablePackage['productId']
-				for product in installedProducts:
-					if product['productId'] == productId:
-						logger.debug(u"Product '%s' is installed" % productId)
-						logger.debug(u"Available product version is '%s', installed product version is '%s-%s'" % (availablePackage['version'], product['productVersion'], product['packageVersion']))
-						updateAvailable = compareVersions(availablePackage['version'], '>', '%s-%s' % (product['productVersion'], product['packageVersion']))
-
-						if updateAvailable:
-							updates[productId] = {
-								"productId": productId,
-								"newVersion": "{version}".format(**availablePackage),
-								"oldVersion": "{productVersion}-{packageVersion}".format(**product),
-								"repository": availablePackage['repository'].name
-							}
-						break
-		except Exception as error:
-			raise error
 
 		if updates:
 			for productId in sorted(updates.keys()):
