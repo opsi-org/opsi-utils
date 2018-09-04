@@ -13,7 +13,7 @@ opsi-utils (4.1.1.23-2) stable; urgency=medium
 
 opsi-utils (4.1.1.23-1) stable; urgency=medium
 
-  * opsi-admin: Internatl refactoring to avoid usage of eval.
+  * opsi-admin: Internal refactoring to avoid usage of eval.
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 17 Aug 2018 12:33:40 +0200
 
