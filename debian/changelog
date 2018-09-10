@@ -284,6 +284,12 @@ opsi-utils (4.1.1.1-1) experimental; urgency=medium
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 29 Nov 2016 13:57:13 +0100
 
+opsi-utils (4.0.7.20-1) stable; urgency=medium
+
+  * opsi-product-updater: Fix detection of running opsi-product-updater.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 10 Sep 2018 16:33:47 +0200
+
 opsi-utils (4.0.7.19-1) testing; urgency=medium
 
   * opsi-backup: restore uses 'auto' as default backend when restoring.
