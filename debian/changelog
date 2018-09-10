@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.25-1) stable; urgency=medium
+
+  * Based on opsi-utils 4.0.7.20.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 10 Sep 2018 17:01:48 +0200
+
 opsi-utils (4.1.1.24-1) stable; urgency=medium
 
   * opsi-package-updater: Do not install packages with "force" parameter.
