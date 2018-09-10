@@ -64,7 +64,7 @@ try:
 except ImportError:
 	from OPSI.Util import argparse  # Only on Python 2.6...
 
-__version__ = '4.0.7.18'
+__version__ = '4.0.7.20'
 
 logger = Logger()
 
