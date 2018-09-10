@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.25-1) stable; urgency=medium
+
+  * Based on opsi-utils 4.0.7.20.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 10 Sep 2018 17:01:48 +0200
+
 opsi-utils (4.1.1.24-1) stable; urgency=medium
 
   * opsi-package-updater: Do not install packages with "force" parameter.
@@ -283,6 +289,12 @@ opsi-utils (4.1.1.1-1) experimental; urgency=medium
     "--repo name_of_repo".
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 29 Nov 2016 13:57:13 +0100
+
+opsi-utils (4.0.7.20-1) stable; urgency=medium
+
+  * opsi-product-updater: Fix detection of running opsi-product-updater.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 10 Sep 2018 16:33:47 +0200
 
 opsi-utils (4.0.7.19-1) testing; urgency=medium
 
