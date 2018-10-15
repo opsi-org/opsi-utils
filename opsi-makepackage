@@ -94,7 +94,7 @@ class ProgressNotifier(ProgressObserver):
 
 
 def main(argv):
-	os.umask(022)
+	os.umask(0o22)
 
 	logger.setConsoleLevel(LOG_WARNING)
 	logger.setConsoleColor(True)
