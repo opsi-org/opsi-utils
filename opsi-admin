@@ -157,7 +157,7 @@ def usage():
 
 
 def main(argv):
-	os.umask(077)
+	os.umask(0o077)
 	global interactive
 	global exitZero
 
