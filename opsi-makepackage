@@ -69,11 +69,11 @@ class ProgressNotifier(ProgressObserver):
 		self.usedWidth = 60
 		try:
 			tty = os.popen('tty').readline().strip()
-			fd = open(tty)
-			terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
-			if (self.usedWidth > terminalWidth):
+			with open(tty) as fd:
+				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+
+			if self.usedWidth > terminalWidth:
 				self.usedWidth = terminalWidth
-			fd.close()
 		except Exception:
 			pass
 
