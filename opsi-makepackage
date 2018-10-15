@@ -78,8 +78,9 @@ class ProgressNotifier(ProgressObserver):
 			pass
 
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
-		if (subject.getEnd() <= 0):
+		if subject.getEnd() <= 0:
 			return
+
 		barlen = self.usedWidth - 10
 		filledlen = int("%0.0f" % (barlen * percent / 100))
 		bar = u'='*filledlen + u' ' * (barlen - filledlen)
