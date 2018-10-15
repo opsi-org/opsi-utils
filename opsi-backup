@@ -31,6 +31,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 @license: GNU General Public License version 2
 """
 
+from __future__ import print_function
+
 import argparse
 import locale
 import os
@@ -181,7 +183,7 @@ if __name__ == "__main__":
 		ret = main()
 	except Exception as exception:
 		logger.logException(exception, LOG_INFO)
-		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace')
+		print((u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace'), file=sys.stderr)
 		ret = 1
 
 	sys.exit(ret)
