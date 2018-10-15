@@ -1461,7 +1461,7 @@ class OpsiPackageManagerControl(object):
 	def __init__(self):
 		logger.debug(u"OpsiPackageManagerControl")
 		# Set umask
-		os.umask(0077)
+		os.umask(0o077)
 		self._pid = 0
 		self._opm = None
 		self.encoding = locale.getpreferredencoding()
