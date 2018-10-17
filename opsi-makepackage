@@ -69,17 +69,18 @@ class ProgressNotifier(ProgressObserver):
 		self.usedWidth = 60
 		try:
 			tty = os.popen('tty').readline().strip()
-			fd = open(tty)
-			terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
-			if (self.usedWidth > terminalWidth):
+			with open(tty) as fd:
+				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+
+			if self.usedWidth > terminalWidth:
 				self.usedWidth = terminalWidth
-			fd.close()
 		except Exception:
 			pass
 
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
-		if (subject.getEnd() <= 0):
+		if subject.getEnd() <= 0:
 			return
+
 		barlen = self.usedWidth - 10
 		filledlen = int("%0.0f" % (barlen * percent / 100))
 		bar = u'='*filledlen + u' ' * (barlen - filledlen)
@@ -93,7 +94,7 @@ class ProgressNotifier(ProgressObserver):
 
 
 def main(argv):
-	os.umask(022)
+	os.umask(0o022)
 
 	logger.setConsoleLevel(LOG_WARNING)
 	logger.setConsoleColor(True)
