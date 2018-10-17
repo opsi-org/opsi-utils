@@ -40,7 +40,6 @@ import argparse
 import operator
 import os
 import sys
-import time
 
 from OPSI import System
 from OPSI.Logger import LOG_NOTICE, LOG_WARNING, Logger
