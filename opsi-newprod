@@ -649,7 +649,7 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 
 	pcf.setProduct(product)
 	pcf.generate()
-	pcf.chmod(0600)
+	pcf.chmod(0o600)
 
 
 def createTemplates(productDirectory, templateDirectory=None):
