@@ -46,7 +46,7 @@ from OPSI.Util.File import ZsyncFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.Util import md5sum
 
-__version__ = '4.1.1.16'
+__version__ = '4.1.1.26'
 
 logger = Logger()
 
