@@ -59,7 +59,7 @@ from OPSI.Util import (
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 
 
-__version__ = '4.1.1.23'
+__version__ = '4.1.1.26'
 
 backend = None
 exitZero = False
@@ -157,7 +157,7 @@ def usage():
 
 
 def main(argv):
-	os.umask(077)
+	os.umask(0o077)
 	global interactive
 	global exitZero
 
