@@ -538,7 +538,7 @@ class UserInterface(SubjectsObserver):
 				if subject.getType() == u'upload':
 					subjects[subject.getId()] = subject
 
-			ids = subjects.keys()
+			ids = list(subjects.keys())
 			ids.sort()
 			maxIdLength = max([len(currentID) for currentID in ids] or [0])
 
@@ -1741,8 +1741,9 @@ class OpsiPackageManagerControl(object):
 						-1 * versionWidth, u'Version',
 						-1 * nameWidth, u'Name')).encode(self.encoding, 'replace'))
 			print((u"%s%s" % (indent, "=" * (terminalWidth - len(indent) - 2))).encode(self.encoding, 'replace'))
-			productIds = values.keys()
+			productIds = list(values.keys())
 			productIds.sort()
+
 			for productId in productIds:
 				productOnDepot = productOnDepotInfo[depotId][productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
