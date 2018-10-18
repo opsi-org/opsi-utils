@@ -26,6 +26,8 @@ opsi-convert converts opsi-backends.
 :license: GNU Affero General Public License version 3
 """
 
+from __future__ import print_function
+
 import argparse
 import fcntl
 import getpass
@@ -82,7 +84,7 @@ class ProgressNotifier(ProgressObserver):
 
 		if self.error:
 			sys.stdout.write("\033[K")
-			print u"Error occurred: %s" % self.error
+			print(u"Error occurred: %s" % self.error)
 			sys.stdout.write("\033[K")
 		self.error = None
 		for subject in self.overallProgressSubject, self.currentProgressSubject:
@@ -95,7 +97,7 @@ class ProgressNotifier(ProgressObserver):
 			filledlen = int("%0.0f" % (barlen * subject.getPercent() / 100))
 			bar = u'=' * filledlen + u' ' * (barlen - filledlen)
 			percent = '%0.2f%%' % subject.getPercent()
-			print '%35s : %8s [%s] %5s/%-5s' % (text, percent, bar, subject.getState(), subject.getEnd())
+			print('%35s : %8s [%s] %5s/%-5s' % (text, percent, bar, subject.getState(), subject.getEnd()))
 
 	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
 		self.displayProgress()
@@ -219,7 +221,7 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	)
 	if progress:
 		ProgressNotifier(backendReplicator)
-		print ""
+		print("")
 	backendReplicator.replicate(audit=convertAudit)
 
 
@@ -298,5 +300,5 @@ if __name__ == "__main__":
 	except Exception as e:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(e)
-		print >> sys.stderr, u"ERROR: %s" % e
+		print(u"ERROR: %s" % e, file=sys.stderr)
 		sys.exit(1)
