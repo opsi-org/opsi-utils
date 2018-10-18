@@ -25,6 +25,8 @@ opsi-package-manager
 :license: GNU Affero General Public License version 3
 """
 
+from __future__ import print_function
+
 import base64
 import curses
 import fcntl
@@ -56,7 +58,7 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.1.1.19'
+__version__ = '4.1.1.26'
 
 logger = Logger()
 
@@ -536,7 +538,7 @@ class UserInterface(SubjectsObserver):
 				if subject.getType() == u'upload':
 					subjects[subject.getId()] = subject
 
-			ids = subjects.keys()
+			ids = list(subjects.keys())
 			ids.sort()
 			maxIdLength = max([len(currentID) for currentID in ids] or [0])
 
@@ -1459,7 +1461,7 @@ class OpsiPackageManagerControl(object):
 	def __init__(self):
 		logger.debug(u"OpsiPackageManagerControl")
 		# Set umask
-		os.umask(0077)
+		os.umask(0o077)
 		self._pid = 0
 		self._opm = None
 		self.encoding = locale.getpreferredencoding()
@@ -1510,7 +1512,7 @@ class OpsiPackageManagerControl(object):
 			sys.exit(0)
 
 		if self.opts.version:
-			print u"opsi-package-manager version %s" % __version__
+			print(u"opsi-package-manager version %s" % __version__)
 			sys.exit(0)
 
 		self.setDefaultConfig()
@@ -1621,13 +1623,13 @@ class OpsiPackageManagerControl(object):
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
 			if errors:
-				print >> sys.stderr, _(u"Errors occurred: ").encode(self.encoding, 'replace')
+				print(_(u"Errors occurred: ").encode(self.encoding, 'replace'), file=sys.stderr)
 				for (name, errs) in errors.items():
 					logger.error(u"Failure while processing %s:" % name)
-					print >> sys.stderr, "   " + (_(u"Failure while processing %s:") % name).encode(self.encoding, 'replace')
+					print("   " + (_(u"Failure while processing %s:") % name).encode(self.encoding, 'replace'), file=sys.stderr)
 					for err in errs:
 						logger.error(u"      %s" % err)
-						print >> sys.stderr, (u"      %s" % err).encode(self.encoding, 'replace')
+						print((u"      %s" % err).encode(self.encoding, 'replace'), file=sys.stderr)
 				sys.exit(1)
 
 	def processExtractCommand(self):
@@ -1732,22 +1734,23 @@ class OpsiPackageManagerControl(object):
 			return
 
 		for (depotId, values) in productOnDepotInfo.items():
-			print (u"-" * (len(depotId) + 4)).encode(self.encoding, 'replace')
-			print (u"- %s -" % depotId).encode(self.encoding, 'replace')
-			print (u"-" * (len(depotId) + 4)).encode(self.encoding, 'replace')
-			print (u"%s%*s %*s %*s" % (indent, -1 * idWidth, u'Product ID',
+			print((u"-" * (len(depotId) + 4)).encode(self.encoding, 'replace'))
+			print((u"- %s -" % depotId).encode(self.encoding, 'replace'))
+			print((u"-" * (len(depotId) + 4)).encode(self.encoding, 'replace'))
+			print((u"%s%*s %*s %*s" % (indent, -1 * idWidth, u'Product ID',
 						-1 * versionWidth, u'Version',
-						-1 * nameWidth, u'Name')).encode(self.encoding, 'replace')
-			print (u"%s%s" % (indent, "=" * (terminalWidth - len(indent) - 2))).encode(self.encoding, 'replace')
-			productIds = values.keys()
+						-1 * nameWidth, u'Name')).encode(self.encoding, 'replace'))
+			print((u"%s%s" % (indent, "=" * (terminalWidth - len(indent) - 2))).encode(self.encoding, 'replace'))
+			productIds = list(values.keys())
 			productIds.sort()
+
 			for productId in productIds:
 				productOnDepot = productOnDepotInfo[depotId][productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
-				print (u"%s%*s %*s %*s" % (indent, -1 * idWidth, productId,
+				print((u"%s%*s %*s %*s" % (indent, -1 * idWidth, productId,
 						-1 * versionWidth, product.productVersion + u'-' + product.packageVersion,
-						-1 * nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding, 'replace')
-			print ""
+						-1 * nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding, 'replace'))
+			print("")
 
 	def processDifferencesCommand(self):
 		if self.config['quiet']:
@@ -1809,12 +1812,12 @@ class OpsiPackageManagerControl(object):
 			if differs:
 				depotsInSync = False
 				for line in lines:
-					print line.encode(self.encoding, 'replace')
-				print ""
+					print(line.encode(self.encoding, 'replace'))
+				print("")
 
 		if depotsInSync:
 			syncMessage = _("There are no differences between the depots")
-			print syncMessage.encode(self.encoding, 'replace')
+			print(syncMessage.encode(self.encoding, 'replace'))
 
 	def processUploadCommand(self):
 		self._opm = OpsiPackageManager(self.config, self.backend)
@@ -1965,49 +1968,49 @@ class OpsiPackageManagerControl(object):
 			logger.debug(u"Running thread after signal: %s" % thread)
 
 	def usage(self):
-		print u"\nUsage: %s [options] <command>" % os.path.basename(sys.argv[0])
-		print u""
-		print u"Manage opsi packages"
-		print u""
-		print u"Commands:"
-		print u"  -i, --install      <opsi-package> ...      install opsi packages"
-		print u"  -u, --upload       <opsi-package> ...      upload opsi packages to repositories"
-		print u"  -l, --list         <regex>                 list opsi packages matching regex"
-		print u"  -D, --differences  <regex>                 show depot differences of opsi packages matching regex"
-		print u"  -r, --remove       <opsi-product-id> ...   uninstall opsi packages"
-		print u"  -x, --extract      <opsi-package> ...      extract opsi packages to local directory"
-		print u"  -V, --version                              show program's version info and exit"
-		print u"  -h, --help                                 show this help message and exit"
-		print u""
-		print u"Options:"
-		print u"  -v, --verbose                           increase verbosity (can be used multiple times)"
-		print u"  -q, --quiet                             do not display any messages"
-		print u"  --log-file         <log-file>           path to debug log file"
-		print u"  --log-file-level   <log-file-level>     log file level (default 4)"
-		print u"  -d, --depots       <depots>             comma separated list of depot ids to process"
-		print u"			 	             all = all known depots"
-		print u"  -p, --properties   <mode>               mode for default product property values"
-		print u"		                             ask     = display dialog"
-		print u"		                             package = use defaults from package"
-		print u"		                             keep    = keep depot defaults (default)"
-		print u"  --purge-client-properties               remove product property states of the installed product(s)"
-		print u"  -f, --force                             force install/uninstall (use with extreme caution)"
-		print u"  -U, --update                            set action \"update\" on hosts where installation status is \"installed\""
-		print u"  -S, --setup                             set action \"setup\" on hosts where installation status is \"installed\""
-		print u"  -s, --setup-with-dependencies           set action \"setup\" on hosts where installation status is \"installed\" with dependencies"
-		print u"  -o, --overwrite                         overwrite existing package on upload even if size matches"
-		print u"  -n, --no-delta                          full package transfers on uploads (do not use librsync)"
-		print u"  -k, --keep-files                        do not delete client data dir on uninstall"
-		print u"  -t, --temp-dir     <path>               tempory directory for package install"
-		print u"  --max-transfers    <num>                maximum number of simultaneous uploads"
-		print u"                                             0 = unlimited (default)"
-		print u"  --max-bandwidth    <kbps>               maximum transfer rate for each transfer (in kilobytes per second)"
-		print u"                                             0 = unlimited (default)"
-		print u"  --new-product-id   <product-id>         Set a new product id when extracting opsi package or"
-		print u"                                          set a specific product ID during installation."
-		print u"  --suppress-pcf-generation               Suppress the generation of a package content file during package"
-		print u"                                          installation. Do not use with WAN extension!"
-		print u""
+		print(u"\nUsage: %s [options] <command>" % os.path.basename(sys.argv[0]))
+		print(u"")
+		print(u"Manage opsi packages")
+		print(u"")
+		print(u"Commands:")
+		print(u"  -i, --install      <opsi-package> ...      install opsi packages")
+		print(u"  -u, --upload       <opsi-package> ...      upload opsi packages to repositories")
+		print(u"  -l, --list         <regex>                 list opsi packages matching regex")
+		print(u"  -D, --differences  <regex>                 show depot differences of opsi packages matching regex")
+		print(u"  -r, --remove       <opsi-product-id> ...   uninstall opsi packages")
+		print(u"  -x, --extract      <opsi-package> ...      extract opsi packages to local directory")
+		print(u"  -V, --version                              show program's version info and exit")
+		print(u"  -h, --help                                 show this help message and exit")
+		print(u"")
+		print(u"Options:")
+		print(u"  -v, --verbose                           increase verbosity (can be used multiple times)")
+		print(u"  -q, --quiet                             do not display any messages")
+		print(u"  --log-file         <log-file>           path to debug log file")
+		print(u"  --log-file-level   <log-file-level>     log file level (default 4)")
+		print(u"  -d, --depots       <depots>             comma separated list of depot ids to process")
+		print(u"			 	             all = all known depots")
+		print(u"  -p, --properties   <mode>               mode for default product property values")
+		print(u"		                             ask     = display dialog")
+		print(u"		                             package = use defaults from package")
+		print(u"		                             keep    = keep depot defaults (default)")
+		print(u"  --purge-client-properties               remove product property states of the installed product(s)")
+		print(u"  -f, --force                             force install/uninstall (use with extreme caution)")
+		print(u"  -U, --update                            set action \"update\" on hosts where installation status is \"installed\"")
+		print(u"  -S, --setup                             set action \"setup\" on hosts where installation status is \"installed\"")
+		print(u"  -s, --setup-with-dependencies           set action \"setup\" on hosts where installation status is \"installed\" with dependencies")
+		print(u"  -o, --overwrite                         overwrite existing package on upload even if size matches")
+		print(u"  -n, --no-delta                          full package transfers on uploads (do not use librsync)")
+		print(u"  -k, --keep-files                        do not delete client data dir on uninstall")
+		print(u"  -t, --temp-dir     <path>               tempory directory for package install")
+		print(u"  --max-transfers    <num>                maximum number of simultaneous uploads")
+		print(u"                                             0 = unlimited (default)")
+		print(u"  --max-bandwidth    <kbps>               maximum transfer rate for each transfer (in kilobytes per second)")
+		print(u"                                             0 = unlimited (default)")
+		print(u"  --new-product-id   <product-id>         Set a new product id when extracting opsi package or")
+		print(u"                                          set a specific product ID during installation.")
+		print(u"  --suppress-pcf-generation               Suppress the generation of a package content file during package")
+		print(u"                                          installation. Do not use with WAN extension!")
+		print(u"")
 
 
 if __name__ == "__main__":
@@ -2034,5 +2037,5 @@ if __name__ == "__main__":
 		pass
 	except Exception as exception:
 		logger.logException(exception)
-		print >> sys.stderr, (u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace')
+		print((u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace'), file=sys.stderr)
 		sys.exit(1)
