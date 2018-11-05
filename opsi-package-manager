@@ -1444,7 +1444,10 @@ class OpsiPackageManager(object):
 			tq.start()
 		self.waitForTaskQueues()
 		if packageNotInstalled:
-			raise ValueError('At least one package failed to uninstall, please check /var/log/opsi/package.log for more information')
+			raise ValueError(
+				'At least one package failed to uninstall, please check '
+				'{} for more information'.format(self.config['logFile'])
+			)
 
 	def uninstallPackage(self, productId, depotId):
 		subject = self.getDepotSubject(depotId)
