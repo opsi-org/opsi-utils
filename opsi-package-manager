@@ -58,7 +58,7 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.1.1.26'
+__version__ = '4.1.1.27'
 
 logger = Logger()
 
@@ -800,8 +800,9 @@ class OpsiPackageManager(object):
 			for tq in self.taskQueues:
 				if not tq.ended:
 					running += 1
-			self.infoSubject.setMessage(_(u'%d/%d task queues running')
-										% (running, len(self.taskQueues)))
+			self.infoSubject.setMessage(
+				_(u'%d/%d task queues running') % (running, len(self.taskQueues))
+			)
 			time.sleep(1)
 
 	def getTaskQueueErrors(self):
@@ -830,10 +831,14 @@ class OpsiPackageManager(object):
 
 			if dependency:
 				for client in [x.clientId for x in productOnClients]:
-					logger.notice(u"Setting action '%s' with Dependencies for product '%s' on client: %s" % (
-					actionRequest, productId, client))
-					subject.setMessage(_(u"Setting action %s with Dependencies for product %s on client: %s") % (
-					actionRequest, productId, client))
+					logger.notice(
+						u"Setting action '%s' with Dependencies for product '%s' on client: %s"
+						% (actionRequest, productId, client)
+					)
+					subject.setMessage(
+						_(u"Setting action %s with Dependencies for product %s on client: %s")
+						% (actionRequest, productId, client)
+					)
 					self.backend.setProductActionRequestWithDependencies(clientId=client, productId=productId, actionRequest=actionRequest)
 				return
 
@@ -855,8 +860,10 @@ class OpsiPackageManager(object):
 		try:
 			subject = self.getDepotSubject(depotId)
 			subject.setMessage(_(u"Purging product property states for product %s") % productId)
-			depotClientIds = [clientToDepot['clientId'] for clientToDepot
-				in self.backend.configState_getClientToDepotserver(depotIds=[depotId])]
+			depotClientIds = [
+				clientToDepot['clientId'] for clientToDepot
+				in self.backend.configState_getClientToDepotserver(depotIds=[depotId])
+			]
 
 			if not depotClientIds:
 				return
@@ -912,8 +919,10 @@ class OpsiPackageManager(object):
 					time.sleep(0.1 * random.randint(1, 20))
 			self.addRunningTransfer()
 
-			logger.notice(u"Processing upload of '%s' to depot '%s'"
-				% (os.path.basename(packageFile), depotId))
+			logger.notice(
+				u"Processing upload of '%s' to depot '%s'"
+				% (os.path.basename(packageFile), depotId)
+			)
 			subject.setMessage(_(u"Processing upload of %s") % os.path.basename(packageFile))
 
 			packageSize = os.stat(packageFile)[stat.ST_SIZE]
@@ -982,9 +991,13 @@ class OpsiPackageManager(object):
 			depotConnection = self.getDepotConnection(depotId)
 			info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
 			if info['available'] < packageSize:
-				subject.setMessage(_(u"Not enough disk space: %dMB needed, %dMB available")
-					% ((packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024))))
-				raise OSError(u"Not enough disk space on depot '%s': %dMB needed, %dMB available"
+				subject.setMessage(
+					_(u"Not enough disk space: %dMB needed, %dMB available")
+					% ((packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024)))
+				)
+
+				raise OSError(
+					u"Not enough disk space on depot '%s': %dMB needed, %dMB available"
 					% (depotId, (packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024)))
 				)
 
@@ -1044,14 +1057,20 @@ class OpsiPackageManager(object):
 						if speedup < 0:
 							speedup = 0
 						logger.notice(u"Delta calculated, upload speedup is %.3f" % speedup)
-						logger.notice(u"Starting delta upload of '%s' to depot '%s'"
-							% (deltaFilename, depotId))
-						subject.setMessage(_(u"Starting delta upload of %s")
-										% os.path.basename(packageFile))
+						logger.notice(
+							u"Starting delta upload of '%s' to depot '%s'"
+							% (deltaFilename, depotId)
+						)
+						subject.setMessage(
+							_(u"Starting delta upload of %s")
+							% os.path.basename(packageFile)
+						)
 
 						progressSubject = ProgressSubject(id=depotId, type='upload')
-						progressSubject.setMessage(u"Uploading %s (delta upload, speedup %.1f%%)"
-							% (os.path.basename(packageFile), speedup * 100))
+						progressSubject.setMessage(
+							u"Uploading %s (delta upload, speedup %.1f%%)"
+							% (os.path.basename(packageFile), speedup * 100)
+						)
 						if self.userInterface:
 							self.userInterface.addSubject(progressSubject)
 
@@ -1311,7 +1330,8 @@ class OpsiPackageManager(object):
 
 			packageFile = os.path.basename(packageFile)
 			if self.config['newProductId']:
-				logger.notice(u"Installing package {packageFile!r} as {forcedProductId!r} on depot {depotId!r}",
+				logger.notice(
+					u"Installing package {packageFile!r} as {forcedProductId!r} on depot {depotId!r}",
 					packageFile=packageFile,
 					forcedProductId=self.config['newProductId'],
 					depotId=depotId
@@ -1356,7 +1376,8 @@ class OpsiPackageManager(object):
 			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)
 
 			if self.config['newProductId']:
-				logger.notice(u"Installation of package '{packageFile}' as {forcedProductId} on depot '{depotId}' successful",
+				logger.notice(
+					u"Installation of package '{packageFile}' as {forcedProductId} on depot '{depotId}' successful",
 					packageFile=packageFile,
 					forcedProductId=self.config['newProductId'],
 					depotId=depotId
@@ -1423,7 +1444,10 @@ class OpsiPackageManager(object):
 			tq.start()
 		self.waitForTaskQueues()
 		if packageNotInstalled:
-			raise ValueError('At least one package failed to uninstall, please check /var/log/opsi/package.log for more information')
+			raise ValueError(
+				'At least one package failed to uninstall, please check '
+				'{} for more information'.format(self.config['logFile'])
+			)
 
 	def uninstallPackage(self, productId, depotId):
 		subject = self.getDepotSubject(depotId)
