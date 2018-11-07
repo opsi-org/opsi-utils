@@ -49,7 +49,7 @@ from OPSI.Util.Task.UpdatePackages.Updater import OpsiPackageUpdater
 from OPSI.Util.Task.UpdatePackages.Util import getUpdatablePackages
 
 
-__version__ = '4.1.1.26'
+__version__ = '4.2.0.1'
 
 logger = Logger()
 

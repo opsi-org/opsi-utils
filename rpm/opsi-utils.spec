@@ -14,10 +14,10 @@ Url:            http://www.opsi.org
 License:        GPLv2+
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        4.0.7.5
+Version:        4.2.0.1
 Release:        1
 Summary:        Tools for working on a opsi server.
-Source:         opsi-utils_4.0.7.5-1.tar.gz
+Source:         opsi-utils_4.2.0.1-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
