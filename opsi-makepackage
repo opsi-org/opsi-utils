@@ -171,9 +171,6 @@ def main(argv):
 		parser.print_help()
 		sys.exit(1)
 
-	reload(sys)
-	sys.setdefaultencoding("utf-8")
-
 	keepVersions = args.keepVersions
 	needOneVersion = False
 	newProductVersion = args.newProductVersion
