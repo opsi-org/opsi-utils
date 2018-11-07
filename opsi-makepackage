@@ -231,8 +231,8 @@ def main(argv):
 			raise OSError(u"Control file '%s' not found" % packageControlFilePath)
 
 	if not quiet:
-		print ""
-		print _(u"Locking package")
+		print("")
+		print(_(u"Locking package"))
 	pcf = PackageControlFile(packageControlFilePath)
 
 	lockPackage(tempDir, pcf)
@@ -242,47 +242,47 @@ def main(argv):
 			product = pcf.getProduct()
 
 			if not quiet:
-				print u""
-				print _(u"Package info")
-				print u"----------------------------------------------------------------------------"
-				print u"   %-20s : %s" % (u'version', product.packageVersion)
-				print u"   %-20s : %s" % (u'custom package name', customName)
-				print u"   %-20s : %s" % (u'package dependencies', u', '.join(u'{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies()))
+				print(u"")
+				print(_(u"Package info"))
+				print(u"----------------------------------------------------------------------------")
+				print(u"   %-20s : %s" % (u'version', product.packageVersion))
+				print(u"   %-20s : %s" % (u'custom package name', customName))
+				print(u"   %-20s : %s" % (u'package dependencies', u', '.join(u'{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies())))
 
-				print ""
-				print _(u"Product info")
-				print u"----------------------------------------------------------------------------"
-				print u"   %-20s : %s" % (u'product id', product.id)
+				print("")
+				print(_(u"Product info"))
+				print(u"----------------------------------------------------------------------------")
+				print(u"   %-20s : %s" % (u'product id', product.id))
 
 				if product.getType() == 'LocalbootProduct':
-					print u"   %-20s : %s" % (u'product type', u'localboot')
+					print(u"   %-20s : %s" % (u'product type', u'localboot'))
 				elif product.getType() == 'NetbootProduct':
-					print u"   %-20s : %s" % (u'product type', u'netboot')
+					print(u"   %-20s : %s" % (u'product type', u'netboot'))
 
-				print u"   %-20s : %s" % (u'version', product.productVersion)
-				print u"   %-20s : %s" % (u'name', product.name)
-				print u"   %-20s : %s" % (u'description', product.description)
-				print u"   %-20s : %s" % (u'advice', product.advice)
-				print u"   %-20s : %s" % (u'priority', product.priority)
-				print u"   %-20s : %s" % (u'licenseRequired', product.licenseRequired)
-				print u"   %-20s : %s" % (u'product classes', u', '.join(product.productClassIds))
-				print u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds))
+				print(u"   %-20s : %s" % (u'version', product.productVersion))
+				print(u"   %-20s : %s" % (u'name', product.name))
+				print(u"   %-20s : %s" % (u'description', product.description))
+				print(u"   %-20s : %s" % (u'advice', product.advice))
+				print(u"   %-20s : %s" % (u'priority', product.priority))
+				print(u"   %-20s : %s" % (u'licenseRequired', product.licenseRequired))
+				print(u"   %-20s : %s" % (u'product classes', u', '.join(product.productClassIds)))
+				print(u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds)))
 
 				if product.getType() == 'NetbootProduct':
-					print u"   %-20s : %s" % (u'pxe config template', product.pxeConfigTemplate)
+					print(u"   %-20s : %s" % (u'pxe config template', product.pxeConfigTemplate))
 
-				print ""
-				print _(u"Product scripts")
-				print u"----------------------------------------------------------------------------"
-				print u"   %-20s : %s" % (u'setup', product.setupScript)
-				print u"   %-20s : %s" % (u'uninstall', product.uninstallScript)
-				print u"   %-20s : %s" % (u'update', product.updateScript)
-				print u"   %-20s : %s" % (u'always', product.alwaysScript)
-				print u"   %-20s : %s" % (u'once', product.onceScript)
-				print u"   %-20s : %s" % (u'custom', product.customScript)
+				print("")
+				print(_(u"Product scripts"))
+				print(u"----------------------------------------------------------------------------")
+				print(u"   %-20s : %s" % (u'setup', product.setupScript))
+				print(u"   %-20s : %s" % (u'uninstall', product.uninstallScript))
+				print(u"   %-20s : %s" % (u'update', product.updateScript))
+				print(u"   %-20s : %s" % (u'always', product.alwaysScript))
+				print(u"   %-20s : %s" % (u'once', product.onceScript))
+				print(u"   %-20s : %s" % (u'custom', product.customScript))
 				if product.getType() == 'LocalbootProduct':
-					print u"   %-20s : %s" % (u'user login', product.userLoginScript)
-				print u""
+					print(u"   %-20s : %s" % (u'user login', product.userLoginScript))
+				print(u"")
 
 			if disablePigz:
 				logger.debug("Disabling pigz")
@@ -300,8 +300,8 @@ def main(argv):
 			)
 
 			if not quiet and os.path.exists(pps.getPackageFile()):
-				print _(u"Package file '%s' already exists.") % pps.getPackageFile()
-				print _(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"),
+				print(_(u"Package file '%s' already exists.") % pps.getPackageFile())
+				print(_(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"), end=' ')
 				newVersion = False
 				if keepVersions and needOneVersion:
 					newVersion = True
@@ -337,11 +337,11 @@ def main(argv):
 								break
 					finally:
 						termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
-						print '\r\033[0K'
+						print('\r\033[0K')
 
 				if newVersion:
 					while True:
-						print '\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion,
+						print('\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion, end=' ')
 						newVersion = newProductVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -359,10 +359,10 @@ def main(argv):
 								pcf.generate()
 							break
 						except Exception:
-							print _(u"Bad product version: %s") % newVersion
+							print(_(u"Bad product version: %s") % newVersion)
 
 					while True:
-						print '\r%s' % _(u"Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion,
+						print('\r%s' % _(u"Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion, end=' ')
 						newVersion = newPackageVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -380,7 +380,7 @@ def main(argv):
 								pcf.generate()
 							break
 						except Exception:
-							print _(u"Bad package version: %s") % newVersion
+							print(_(u"Bad package version: %s") % newVersion)
 
 					keepVersions = True
 					needOneVersion = False
@@ -395,16 +395,16 @@ def main(argv):
 			if not quiet:
 				progressSubject = ProgressSubject('packing')
 				progressSubject.attachObserver(ProgressNotifier())
-				print _(u"Creating package file '%s'") % pps.getPackageFile()
+				print(_(u"Creating package file '%s'") % pps.getPackageFile())
 			pps.pack(progressSubject=progressSubject)
 			setRights(pps.getPackageFile())
 
 			if not quiet:
-				print "\n"
+				print("\n")
 			if createMd5SumFile:
 				md5sumFile = u'%s.md5' % pps.getPackageFile()
 				if not quiet:
-					print _(u"Creating md5sum file '%s'") % md5sumFile
+					print(_(u"Creating md5sum file '%s'") % md5sumFile)
 				md5 = md5sum(pps.getPackageFile())
 				with open(md5sumFile, 'w') as f:
 					f.write(md5)
@@ -413,7 +413,7 @@ def main(argv):
 			if createZsyncFile:
 				zsyncFilePath = u'%s.zsync' % pps.getPackageFile()
 				if not quiet:
-					print _(u"Creating zsync file '%s'") % zsyncFilePath
+					print(_(u"Creating zsync file '%s'") % zsyncFilePath)
 				zsyncFile = ZsyncFile(zsyncFilePath)
 				zsyncFile.generate(pps.getPackageFile())
 				setRights(zsyncFilePath)
@@ -421,13 +421,13 @@ def main(argv):
 	finally:
 		if pps:
 			if not quiet:
-				print _(u"Cleaning up")
+				print(_(u"Cleaning up"))
 			pps.cleanup()
 		if not quiet:
-			print _(u"Unlocking package")
+			print(_(u"Unlocking package"))
 		unlockPackage(tempDir, pcf)
 		if not quiet:
-			print ""
+			print("")
 
 
 def lockPackage(tempDir, packageControlFile):
@@ -470,5 +470,5 @@ if __name__ == "__main__":
 	except Exception as exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
-		print >> sys.stderr, u"ERROR: %s" % exception
+		print(u"ERROR: %s" % exception, file=sys.stderr)
 		sys.exit(1)
