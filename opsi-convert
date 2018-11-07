@@ -1,13 +1,14 @@
-#! /usr/bin/env python2
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-convert is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2007-2020 uib GmbH <info@uib.de>
+# Copyright (C) 2007-2018 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License version 3 as
-# published by the Free Software Foundation.
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +23,6 @@ opsi-convert converts opsi-backends.
 :copyright: uib GmbH <info@uib.de>
 :author: Jan Schneider <j.schneider@uib.de>
 :author: Niko Wenselowski <n.wenselowski@uib.de>
-:author: Erol Ueluekmen <e.ueluekmen@uib.de>
 :license: GNU Affero General Public License version 3
 """
 
@@ -45,7 +45,7 @@ from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Backend.Replicator import BackendReplicator
 
-__version__ = '4.1.1.33'
+__version__ = '4.1.1.26'
 
 logLevel = LOG_NONE
 logger = Logger()
@@ -270,7 +270,7 @@ def createBackend(config):
 			logger.debug(u"Trying with a direct connection.")
 			backend = JSONRPCBackend(
 				deflate=True,
-				application='opsi-convert/%s' % __version__,
+				application='opsi-convert v{0}'.format(__version__),
 				**config
 			)
 		else:

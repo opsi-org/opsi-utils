@@ -1,13 +1,14 @@
-#! /usr/bin/env python2
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-admin is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2020 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2018 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License version 
-# 3 as published by the Free Software Foundation 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -48,7 +49,7 @@ from OPSI.Exceptions import OpsiRpcError
 from OPSI.Logger import (
 	COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_NORMAL,
 	COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
-	LOG_NONE, LOG_ERROR, LOG_DEBUG, Logger)
+	LOG_NONE, LOG_ERROR, Logger)
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
 from OPSI.Types import (
@@ -56,10 +57,9 @@ from OPSI.Types import (
 from OPSI.Util import (
 	blowfishDecrypt, deserialize, fromJson, getfqdn,
 	objectToBeautifiedText, objectToBash, serialize, toJson)
-from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
 
 
-__version__ = '4.1.1.33'
+__version__ = '4.1.1.26'
 
 backend = None
 exitZero = False
@@ -141,8 +141,6 @@ def usage():
 	print((u"  -u, --username       " + _(u"Username (default: current user)")).encode(outEncoding))
 	print((u"  -p, --password       " + _(u"Password (default: prompt for password)")).encode(outEncoding))
 	print((u"  -a, --address        " + _(u"URL of opsiconfd (default: https://localhost:4447/rpc)")).encode(outEncoding))
-	print((u"      --opsirc         " + _(u"Path to the opsirc file to use (default: ~/.opsi.org/opsirc)")).encode(outEncoding))
-	print((u"                       " + _(u"An opsirc file contains login credentials to the web API.")).encode(outEncoding))
 	print((u"  -d, --direct         " + _(u"Do not use opsiconfd")).encode(outEncoding))
 	print((u"      --no-depot       " + _(u"Do not use depotserver backend")).encode(outEncoding))
 	print((u"  -l, --log-level      " + _(u"Set log level (default: 3)")).encode(outEncoding))
@@ -163,21 +161,25 @@ def main(argv):
 	global interactive
 	global exitZero
 
+	try:
+		import pwd
+		username = forceUnicode(pwd.getpwuid(os.getuid())[0])
+	except Exception:
+		username = u''
+
 	password = u''
-	address = None
+	address = u'https://localhost:4447/rpc'
 	output = u'JSON'
 	color = False
 	direct = False
 	depotBackend = True
-	logLevel = LOG_ERROR
-	opsircfile = getOpsircPath()
-	username = u''
+	logLevel = LOG_NONE
 
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV",
 			[
 				"username=", "password=", "address=", "loglevel=",
-				"log-level=", "log-file=", "opsirc=", "interactive", "direct", "no-depot",
+				"log-level=", "log-file=", "interactive", "direct", "no-depot",
 				"colorize", "shell-output", "simple-output", "raw-output",
 				"help", "version", "exit-zero"
 			]
@@ -220,8 +222,6 @@ def main(argv):
 			output = u'RAW'
 		elif opt == '--exit-zero':
 			exitZero = True
-		elif opt == '--opsirc':
-			opsircfile = forceFilename(arg)
 
 	if logFile:
 		startLogFile(logFile, logLevel)
@@ -246,30 +246,6 @@ def main(argv):
 			)
 
 		else:
-			# Reading opsirc file.
-			# We should alway prefer the settings from the commandline
-			# in case an value is to be overridden.
-			opsircConfig = readOpsirc(opsircfile)
-
-			try:
-				password = password or opsircConfig['password']
-			except KeyError:
-				pass
-
-			try:
-				username = username or opsircConfig['username']
-			except KeyError:
-				try:
-					import pwd
-					username = forceUnicode(pwd.getpwuid(os.getuid())[0])
-				except Exception:
-					username = u''
-
-			try:
-				address = address or opsircConfig['address']
-			except KeyError:
-				address = u'https://localhost:4447/rpc'
-
 			# Connect to opsiconfd
 			if not password:
 				try:
@@ -278,7 +254,7 @@ def main(argv):
 				except Exception:
 					pass
 
-			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), u'.opsi.org'))
+			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), u'.opsi-admin'))
 			if not os.path.exists(opsiadminUserDir):
 				try:
 					os.mkdir(opsiadminUserDir)
@@ -286,19 +262,15 @@ def main(argv):
 					logger.info("Could not create {0}.".format(opsiadminUserDir))
 
 			sessionId = None
-			sessionFile = os.path.join(opsiadminUserDir, u'session')
 			try:
-				with codecs.open(sessionFile, 'r', 'utf-8') as session:
+				with codecs.open(os.path.join(opsiadminUserDir, u'session'), 'r', 'utf-8') as session:
 					for line in session:
 						line = line.strip()
 						if line:
 							sessionId = forceUnicode(line)
 							break
-			except IOError as error:
-				if error.errno != 2:  # 2 is No such file or directory
-					logger.error(u"Failed to read session file '%s': %s" % (sessionFile, forceUnicode(error)))
 			except Exception as error:
-				logger.error(u"Failed to read session file '%s': %s" % (sessionFile, forceUnicode(error)))
+				logger.error(u"Failed to read session file '%s': %s" % (os.path.join(opsiadminUserDir, 'session'), forceUnicode(error)))
 
 			from OPSI.Backend.JSONRPC import JSONRPCBackend
 			backend = JSONRPCBackend(

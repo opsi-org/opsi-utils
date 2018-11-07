@@ -1,28 +1,23 @@
 #
 # spec file for package opsi-utils
 #
-# Copyright (c) 2010-2020 uib GmbH.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
 
 Name:           opsi-utils
-%if 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
-BuildRequires:  python27
-%else
-BuildRequires:  python >= 2.7
-%endif
-Requires:       python >= 2.7
-Requires:       python-opsi >= 4.1.1.71
+BuildRequires:  python3
+Requires:       python3
+Requires:       python3-opsi >= 4.2
 Requires:       zsync
 Url:            http://www.opsi.org
-License:        AGPL-3.0-only
+License:        GPLv2+
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        4.1.1.36
+Version:        4.0.7.5
 Release:        1
-Summary:        Tools for working on a opsi server
-Source:         opsi-utils_4.1.1.36-1.tar.gz
+Summary:        Tools for working on a opsi server.
+Source:         opsi-utils_4.0.7.5-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
@@ -205,9 +200,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-linux.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-local_image.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-windows.repo
-%attr(644,root,root) %config /etc/logrotate.d/opsi-backup
-%attr(644,root,root) %config /etc/logrotate.d/opsi-package-manager
-%attr(644,root,root) %config /etc/logrotate.d/opsi-package-updater
+%config /etc/logrotate.d/opsi-backup
+%config /etc/logrotate.d/opsi-package-manager
+%config /etc/logrotate.d/opsi-package-updater
 
 # other files
 /usr/bin/opsi-admin

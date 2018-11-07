@@ -1,28 +1,34 @@
-#! /usr/bin/env python2
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
-
-# opsi-backup is part of the desktop management solution opsi
-# (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2020 uib GmbH <info@uib.de>
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License version 
-# 3 as published by the Free Software Foundation 
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-opsi-backup - a commandline tool to backup opsi configuration and backends.
+opsi-backup
 
-:copyright: uib GmbH <info@uib.de>
-:author: Erol Ueluekmen <e.ueluekmen@uib.de>
-:author: Niko Wenselowski <n.wenselowski@uib.de>
-:license: GNU Affero General Public License version 3
+opsi-backup is part of the desktop management solution opsi
+(open pc server integration) http://www.opsi.org
+
+Copyright (C) 2010-2018 uib GmbH
+
+http://www.uib.de/
+
+All rights reserved.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+@copyright:	uib GmbH <info@uib.de>
+@author: Christian Kampka <c.kampka@uib.de>
+@author: Niko Wenselowski <n.wenselowski@uib.de>
+@license: GNU General Public License version 2
 """
 
 from __future__ import print_function
@@ -35,7 +41,7 @@ import sys
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 
-__version__ = "4.1.1.29"
+__version__ = "4.1.1.26"
 
 logger = Logger()
 
@@ -99,24 +105,24 @@ def main():
 
 	subs = parser.add_subparsers(title="commands", dest="command")
 
-	verifyParser = subs.add_parser("verify")
-	verifyParser.add_argument("file", nargs="+")
+	parser_verify = subs.add_parser("verify")
+	parser_verify.add_argument("file", nargs="+")
 
-	listParser = subs.add_parser("list")
-	listParser.add_argument("file", nargs="+")
+	parser_verify = subs.add_parser("list")
+	parser_verify.add_argument("file", nargs="+")
 
-	restoreParser = subs.add_parser("restore")
-	restoreParser.add_argument("file", nargs=1)
-	restoreParser.add_argument("--backends", action="append")
-	restoreParser.add_argument("--configuration", action="store_true", default=False)
-	restoreParser.add_argument("-f", "--force", action="store_true", default=False)
+	parser_restore = subs.add_parser("restore")
+	parser_restore.add_argument("file", nargs=1)
+	parser_restore.add_argument("--backends", action="append")
+	parser_restore.add_argument("--configuration", action="store_true", default=False)
+	parser_restore.add_argument("-f", "--force", action="store_true", default=False)
 
-	creationParser = subs.add_parser("create")
-	creationParser.add_argument("destination", nargs="?")
-	creationParser.add_argument("--flush-logs", action="store_true", default=False)
-	creationParser.add_argument("--backends", action="append")
-	creationParser.add_argument("--no-configuration", action="store_true", default=False)
-	creationParser.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz', 'bz2', 'none'])
+	parser_create = subs.add_parser("create")
+	parser_create.add_argument("destination", nargs="?")
+	parser_create.add_argument("--flush-logs", action="store_true", default=False)
+	parser_create.add_argument("--backends", action="append")
+	parser_create.add_argument("--no-configuration", action="store_true", default=False)
+	parser_create.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz', 'bz2', 'none'])
 
 	try:
 		args = parser.parse_args()
@@ -174,10 +180,10 @@ def main():
 
 if __name__ == "__main__":
 	try:
-		returnCode = main()
+		ret = main()
 	except Exception as exception:
 		logger.logException(exception, LOG_INFO)
 		print((u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace'), file=sys.stderr)
-		returnCode = 1
+		ret = 1
 
-	sys.exit(returnCode)
+	sys.exit(ret)

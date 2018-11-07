@@ -1,14 +1,15 @@
-#! /usr/bin/env python2
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-newprod is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 
-# Copyright (C) 2010-2020 uib GmbH - http://www.uib.de/
+# Copyright (C) 2010-2018 uib GmbH - http://www.uib.de/
 
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License version 3
-# as published by the Free Software Foundation.
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,7 +24,6 @@ Creating opsi product source folders.
 :copyright: uib GmbH <info@uib.de>
 :author: Jan Schneider <j.schneider@uib.de>
 :author: Niko Wenselowski <n.wenselowski@uib.de>
-:author: Erol Ueluekmen <e.ueluekmen@uib.de>
 :license: GNU Affero General Public License version 3
 """
 
@@ -48,7 +48,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-__version__ = '4.1.1.32'
+__version__ = '4.1.1.26'
 
 logger = Logger()
 
@@ -682,7 +682,7 @@ copied to ``productDirectory``
 	# Create postinst template
 	postinstFilePath = os.path.join(productDirectory, 'OPSI', 'postinst')
 	with codecs.open(postinstFilePath, 'w', 'utf-8') as postinst:
-		postinst.write(u'#!/bin/bash\n')
+		postinst.write(u'#! /bin/bash\n')
 		postinst.write(u'#\n')
 		postinst.write(u'# postinst script\n')
 		postinst.write(u'# This script executes after unpacking files from that archive and registering the product at the depot.\n')

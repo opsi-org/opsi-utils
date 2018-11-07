@@ -1,10 +1,10 @@
-#! /usr/bin/python2
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-package-updater is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 
-# Copyright (C) 2013-2020 uib GmbH
+# Copyright (C) 2013-2018 uib GmbH
 
 # http://www.uib.de/
 
@@ -51,7 +51,7 @@ from OPSI.Util.Task.UpdatePackages.Updater import OpsiPackageUpdater
 from OPSI.Util.Task.UpdatePackages.Util import getUpdatablePackages
 
 
-__version__ = '4.1.1.29'
+__version__ = '4.1.1.26'
 
 logger = Logger()
 
@@ -190,10 +190,10 @@ def main():
 	logGroup = parser.add_mutually_exclusive_group()
 	logGroup.add_argument('--verbose', '-v',
 		dest="logLevel", default=LOG_WARNING, action="count",
-		help="Increase verbosity on console (can be used multiple times)")
+		help="increase verbosity (can be used multiple times)")
 	logGroup.add_argument('--log-level', '-l',
 		dest="logLevel", type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-		help="Set the desired loglevel for the console.")
+		help="Set the desired loglevel.")
 
 	parser.add_argument('--force-checksum-calculation',
 		dest='forceChecksumCalculation', action="store_true", default=False,
@@ -213,11 +213,6 @@ def main():
 							"--repo."
 						)
 	)
-	parser.add_argument('--no-zsync',
-		dest='no_zsync', action="store_true", default=False,
-		help=("Forces to not use zsync. Instead the fallback command is used.")
-	)
-
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
 	installparser = modeparsers.add_parser('install', help='Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)')
@@ -292,15 +287,11 @@ def main():
 	if args.mode == 'download':
 		config["forceDownload"] = args.forceDownload
 
-	if args.no_zsync:
-		config["zsyncCommand"] = None
-		logger.info("Not using zsync, instead using fallback")
-	else:
-		try:
-			config["zsyncCommand"] = System.which("zsync")
-			logger.info("Zsync command found: %s"% config["zsyncCommand"])
-		except Exception:
-			logger.warning("Zsync command not found")
+	try:
+		config["zsyncCommand"] = System.which("zsync")
+		logger.info(u"Zsync command found: %s" % config["zsyncCommand"])
+	except Exception:
+		logger.warning(u"Zsync command not found")
 
 	pid = os.getpid()
 	running = None
