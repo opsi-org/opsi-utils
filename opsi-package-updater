@@ -34,8 +34,6 @@ through a remote repository.
 @license: GNU Affero GPL version 3
 """
 
-from __future__ import print_function
-
 import argparse
 import operator
 import os

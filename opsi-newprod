@@ -27,8 +27,6 @@ Creating opsi product source folders.
 :license: GNU Affero General Public License version 3
 """
 
-from __future__ import print_function
-
 import argparse
 import codecs
 import gettext
