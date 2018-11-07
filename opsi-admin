@@ -139,7 +139,6 @@ def main(argv):
 	global logFile
 
 	try:
-		import pwd
 		username = forceUnicode(pwd.getpwuid(os.getuid())[0])
 	except Exception:
 		username = u''
