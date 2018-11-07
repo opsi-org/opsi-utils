@@ -268,16 +268,14 @@ def main(argv):
 					logger.error(u"Failed to write session file '%s': %s" % (sessionFile, forceUnicode(error)))
 
 		cmdline = u''
-		if len(args) > 0:
-			for i in range(len(args)):
-				args[i] = unicode(args[i], inEncoding)
-				logger.info(u"arg[%d]: %s" % (i, args[i]))
-				if i == 0:
-					cmdline = args[i]
-				elif (args[i].find(u' ') != -1) or (len(args[i]) == 0):
-					cmdline += u" '%s'" % args[i]
-				else:
-					cmdline += u" %s" % args[i]
+		for i, argument in enumerate(options.command, start=0):
+			logger.info(u"arg[{}]: {}", i, argument)
+			if i == 0:
+				cmdline = argument
+			elif ' ' in argument or len(argument) == 0:
+				cmdline += u" '%s'" % argument
+			else:
+				cmdline += u" %s" % argument
 
 		(readSelection, _unused, _unused) = select.select([sys.stdin], [], [], 0.2)
 		if sys.stdin in readSelection:
