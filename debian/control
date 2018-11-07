@@ -15,6 +15,7 @@ Depends: python3,
 Replaces: opsi-product-updater
 Conflicts: opsi-product-updater
 Provides: opsi-product-updater
-Recommends: mysql-client
+Recommends: logrotate,
+	mysql-client
 Description: utilites for working with opsi.
  This package contains the opsi util collection.
