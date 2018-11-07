@@ -92,7 +92,6 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin
 install -m 0755 opsi-admin $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-newprod $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-makepackage $RPM_BUILD_ROOT/usr/bin/
-install -m 0755 opsi-migrate-product-updater-configuration $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-package-manager $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-package-updater $RPM_BUILD_ROOT/usr/bin/
 install -m 0755 opsi-convert $RPM_BUILD_ROOT/usr/bin/
@@ -208,7 +207,6 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/opsi-backup
 /usr/bin/opsi-convert
 /usr/bin/opsi-makepackage
-/usr/bin/opsi-migrate-product-updater-configuration
 /usr/bin/opsi-newprod
 /usr/bin/opsi-package-manager
 /usr/bin/opsi-package-updater
