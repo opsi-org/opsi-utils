@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-newprod is part of the desktop management solution opsi
@@ -27,8 +27,6 @@ Creating opsi product source folders.
 :license: GNU Affero General Public License version 3
 """
 
-from __future__ import print_function
-
 import argparse
 import codecs
 import gettext
@@ -48,7 +46,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-__version__ = '4.1.1.26'
+__version__ = '4.2.0.1'
 
 logger = Logger()
 

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 opsi-backup
@@ -31,8 +31,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 @license: GNU General Public License version 2
 """
 
-from __future__ import print_function
-
 import argparse
 import locale
 import os
@@ -41,7 +39,7 @@ import sys
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 
-__version__ = "4.1.1.26"
+__version__ = '4.2.0.1'
 
 logger = Logger()
 

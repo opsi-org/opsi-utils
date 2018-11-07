@@ -1,3 +1,10 @@
+opsi-utils (4.2.0.1-1) experimental; urgency=medium
+
+  * Switch to Python 3.
+  * Removed opsi-migrate-product-updater-configuration.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 07 Nov 2018 08:56:49 +0100
+
 opsi-utils (4.1.1.27-1) stable; urgency=medium
 
   * opsi-package-manager: Reference the used logfile if tasks failed instead

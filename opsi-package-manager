@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-package-manager is part of the client management solution opsi
@@ -24,8 +24,6 @@ opsi-package-manager
 :author: Niko Wenselowski <n.wenselowski@uib.de>
 :license: GNU Affero General Public License version 3
 """
-
-from __future__ import print_function
 
 import base64
 import curses
@@ -58,7 +56,7 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.1.1.27'
+__version__ = '4.2.0.1'
 
 logger = Logger()
 
