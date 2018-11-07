@@ -22,12 +22,12 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
 %{py_requires}
+BuildRequires:  zypper
 %endif
 %if 0%{?centos_version} || 0%{?rhel_version} || 0%{?fedora_version}
 BuildRequires:  gettext
 %else
 BuildRequires:  gettext-runtime
-BuildRequires:  zypper
 %endif
 
 %if 0%{?suse_version} == 1110 || 0%{?suse_version} == 1315
