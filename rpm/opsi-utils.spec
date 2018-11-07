@@ -21,7 +21,6 @@ Source:         opsi-utils_4.0.7.5-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
-Requires:       python-curses
 %{py_requires}
 %endif
 %if 0%{?centos_version} || 0%{?rhel_version} || 0%{?fedora_version}
