@@ -27,8 +27,6 @@ opsi-admin - a commandline tool for accessing opsi.
 :license: GNU Affero General Public License version 3
 """
 
-from __future__ import print_function
-
 import codecs
 import curses
 import fcntl
