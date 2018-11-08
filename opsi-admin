@@ -248,7 +248,7 @@ def main(argv):
 			# Connect to opsiconfd
 			if not password:
 				try:
-					password = str(getpass.getpass(), inEncoding)
+					password = getpass.getpass()
 				except Exception:
 					pass
 
