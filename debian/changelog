@@ -1,3 +1,12 @@
+opsi-utils (4.2.0.2-1) experimental; urgency=medium
+
+  * opsi-package-manager: Reuse code existing in python-opsi.
+  * opsi-makepackage: Python 3 compatibility.
+  * opsi-admin: Switch to argparse for parsing the commandline.
+  * opsi-admin: Improved unicode handling.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 08 Nov 2018 16:35:57 +0100
+
 opsi-utils (4.2.0.1-1) experimental; urgency=medium
 
   * Switch to Python 3.
