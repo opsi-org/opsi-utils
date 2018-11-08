@@ -302,7 +302,7 @@ def main(argv):
 
 		(readSelection, _unused, _unused) = select.select([sys.stdin], [], [], 0.2)
 		if sys.stdin in readSelection:
-			read = str(sys.stdin.read(), inEncoding, 'replace')
+			read = sys.stdin.read()
 			read = read.replace('\r', '').replace('\n', '')
 			if read:
 				cmdline += u" '%s'" % read
@@ -540,7 +540,7 @@ class Shell:
 		self.screen.clrtoeol()
 		shellLine = self.infoline + (self.xMax - len(self.infoline)) * u' '
 		try:
-			self.screen.addstr(shellLine.encode(outEncoding), curses.A_REVERSE)
+			self.screen.addstr(shellLine, curses.A_REVERSE)
 		except Exception as error:
 			logger.error(u"Failed to add string {0!r}: {1}".format(shellLine, forceUnicode(error)))
 
@@ -552,7 +552,7 @@ class Shell:
 		self.screen.clrtoeol()
 		shellLine = self.prompt + u' ' + self.cmdline + u' ' * clear
 		try:
-			self.screen.addstr(shellLine.encode(outEncoding), curses.A_BOLD)
+			self.screen.addstr(shellLine, curses.A_BOLD)
 		except Exception as error:
 			logger.error(u"Failed to add string {0!r}: {1}".format(shellLine, forceUnicode(error)))
 
@@ -584,9 +584,9 @@ class Shell:
 
 			try:
 				if color is not None:
-					self.screen.addstr(shellLine.encode(outEncoding), color)
+					self.screen.addstr(shellLine, color)
 				else:
-					self.screen.addstr(shellLine.encode(outEncoding))
+					self.screen.addstr(shellLine)
 			except Exception as error:
 				logger.error(u"Failed to add string {0!r}: {1}".format(shellLine, forceUnicode(error)))
 
@@ -764,7 +764,7 @@ class Shell:
 		if interactive:
 			self.screen.move(self.yMax - 1, 0)
 			self.screen.clrtoeol()
-			self.screen.addstr((question + u' (n/y)').encode(inEncoding))
+			self.screen.addstr(question + u' (n/y)')
 			self.screen.refresh()
 			char = None
 			while True:
@@ -783,24 +783,24 @@ class Shell:
 			if interactive:
 				self.screen.move(self.yMax - 1, 0)
 				self.screen.clrtoeol()
-				self.screen.addstr(_(u"Please type password:").encode(outEncoding))
+				self.screen.addstr(_(u"Please type password:"))
 				self.screen.refresh()
-				password1 = str(self.screen.getstr(), inEncoding)
+				password1 = self.screen.getstr()
 
 				self.screen.move(self.yMax - 1, 0)
 				self.screen.clrtoeol()
-				self.screen.addstr(_(u"Please retype password:").encode(outEncoding))
+				self.screen.addstr(_(u"Please retype password:"))
 				self.screen.refresh()
-				password2 = str(self.screen.getstr(), inEncoding)
+				password2 = self.screen.getstr()
 
 				if password1 != password2:
 					self.screen.move(self.yMax - 1, 0)
 					self.screen.clrtoeol()
-					self.screen.addstr(_(u"Supplied passwords do not match").encode(outEncoding))
+					self.screen.addstr(_(u"Supplied passwords do not match"))
 					self.screen.refresh()
 					time.sleep(2)
 			else:
-				password1 = password2 = str(getpass.getpass(), inEncoding)
+				password1 = password2 = getpass.getpass()
 
 		logger.confidential(u"Got password '%s'" % password1)
 		return password1
@@ -1643,7 +1643,7 @@ class CommandTask(Command):
 					u"1>/dev/null 2>/dev/null"
 				).format(udm=udm, dn=dn, pw=password)
 				logger.debug("Setting password with: {0}", command)
-				os.system(command.encode(outEncoding))
+				os.system(command)
 
 				return  # Done with UCS
 
@@ -1651,18 +1651,18 @@ class CommandTask(Command):
 				# smbldap
 				smbldapCommand = u'{cmd} pcpatch 1>/dev/null 2>/dev/null'.format(cmd=which('smbldap-passwd'))
 				with closing(os.popen(smbldapCommand, 'w')) as process:
-					process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
+					process.write((u"%s\n%s\n" % (password, password)).encode())
 			except Exception as error:
 				logger.debug("Setting password through smbldap failed: {0!r}", error)
 
 				# unix
 				chpasswdCommand = u'{chpasswd} 1>/dev/null 2>/dev/null'.format(chpasswd=which(u'chpasswd'))
 				with os.popen(chpasswdCommand, 'w') as process:
-					process.write((u"pcpatch:%s\n" % password).encode(outEncoding))
+					process.write((u"pcpatch:%s\n" % password).encode())
 
 				smbpasswdCommand = u'{smbpasswd} -a -s pcpatch 1>/dev/null 2>/dev/null'.format(smbpasswd=which('smbpasswd'))
 				with os.popen(smbpasswdCommand, 'w') as process:
-					process.write((u"%s\n%s\n" % (password, password)).encode(outEncoding))
+					process.write((u"%s\n%s\n" % (password, password)).encode())
 
 
 if __name__ == "__main__":
