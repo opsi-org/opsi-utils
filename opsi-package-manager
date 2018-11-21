@@ -72,6 +72,10 @@ except Exception as gettextError:
 		return string
 
 
+class TaskError(RuntimeError):
+	pass
+
+
 class Task:
 	def __init__(self, name, opsiPackageManager, method, params):
 		self.name = forceUnicode(name)
@@ -1654,7 +1658,8 @@ class OpsiPackageManagerControl(object):
 					for err in errs:
 						logger.error(u"      %s" % err)
 						print((u"      %s" % err).encode(self.encoding, 'replace'), file=sys.stderr)
-				sys.exit(1)
+
+				raise TaskError("{} errors during the processing of tasks.".format(len(errors)))
 
 	def processExtractCommand(self):
 		progressSubject = ProgressSubject(id='extract', title=u'extracting')
