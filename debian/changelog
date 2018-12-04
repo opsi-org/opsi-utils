@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.28-1) stable; urgency=medium
+
+  * opsi-package-manager: Propagate problems when executing tasks instead
+    of an direct exit.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 04 Dec 2018 12:12:56 +0100
+
 opsi-utils (4.1.1.27-1) stable; urgency=medium
 
   * opsi-package-manager: Reference the used logfile if tasks failed instead
