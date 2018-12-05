@@ -439,6 +439,8 @@ class Shell:
 						continue
 					self.cmdList.append(line.strip())
 					self.cmdListPos += 1
+		except FileNotFoundError:
+			logger.debug("History {} file not found.", historyFile)
 		except Exception as error:
 			logger.error(u"Failed to read history file {0!r}: {1}".format(historyFile, forceUnicode(error)))
 
