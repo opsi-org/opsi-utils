@@ -56,7 +56,7 @@ from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Util.Sync import librsyncDeltaFile
 
-__version__ = '4.2.0.1'
+__version__ = '4.2.0.3'
 
 logger = Logger()
 

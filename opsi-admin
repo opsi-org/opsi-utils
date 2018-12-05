@@ -58,7 +58,7 @@ from OPSI.Util import (
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 
 
-__version__ = '4.2.0.1'
+__version__ = '4.2.0.3'
 
 backend = None
 exitZero = False
