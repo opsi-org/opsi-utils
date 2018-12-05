@@ -1856,7 +1856,7 @@ class OpsiPackageManagerControl(object):
 		self.config = {
 			'fileLogLevel': LOG_WARNING,
 			'consoleLogLevel': LOG_NONE,
-			'logFile': '/var/log/opsi/package.log',
+			'logFile': '/var/log/opsi/opsi-package-manager.log',
 			'quiet': False,
 			'tempDir': u'/tmp',
 			'backendConfigDir': u'/etc/opsi/backends',
