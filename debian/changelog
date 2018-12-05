@@ -1,3 +1,11 @@
+opsi-utils (4.2.0.3-1) experimental; urgency=medium
+
+  * opsi-package-manager: Default logfile is now opsi-package-manager.log.
+  * opsi-admin: A missing history logfile will not be shown as an error.
+  * opsi-admin: Task setPcpatchPassword uses correct types.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 05 Dec 2018 14:28:40 +0100
+
 opsi-utils (4.2.0.2-1) experimental; urgency=medium
 
   * opsi-package-manager: Reuse code existing in python-opsi.
