@@ -1653,18 +1653,18 @@ class CommandTask(Command):
 				# smbldap
 				smbldapCommand = u'{cmd} pcpatch 1>/dev/null 2>/dev/null'.format(cmd=which('smbldap-passwd'))
 				with closing(os.popen(smbldapCommand, 'w')) as process:
-					process.write((u"%s\n%s\n" % (password, password)).encode())
+					process.write(u"%s\n%s\n" % (password, password))
 			except Exception as error:
 				logger.debug("Setting password through smbldap failed: {0!r}", error)
 
 				# unix
 				chpasswdCommand = u'{chpasswd} 1>/dev/null 2>/dev/null'.format(chpasswd=which(u'chpasswd'))
 				with os.popen(chpasswdCommand, 'w') as process:
-					process.write((u"pcpatch:%s\n" % password).encode())
+					process.write(u"pcpatch:%s\n" % password)
 
 				smbpasswdCommand = u'{smbpasswd} -a -s pcpatch 1>/dev/null 2>/dev/null'.format(smbpasswd=which('smbpasswd'))
 				with os.popen(smbpasswdCommand, 'w') as process:
-					process.write((u"%s\n%s\n" % (password, password)).encode())
+					process.write(u"%s\n%s\n" % (password, password))
 
 
 if __name__ == "__main__":
