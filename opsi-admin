@@ -59,7 +59,7 @@ from OPSI.Util import (
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 
 
-__version__ = '4.2.0.1'
+__version__ = '4.2.0.3'
 
 backend = None
 exitZero = False
@@ -414,6 +414,8 @@ class Shell:
 						continue
 					self.cmdList.append(line.strip())
 					self.cmdListPos += 1
+		except FileNotFoundError:
+			logger.debug("History {} file not found.", historyFile)
 		except Exception as error:
 			logger.error(u"Failed to read history file {0!r}: {1}".format(historyFile, forceUnicode(error)))
 

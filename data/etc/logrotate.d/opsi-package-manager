@@ -1,4 +1,4 @@
-/var/log/opsi/package.log {
+/var/log/opsi/opsi-package-manager.log {
     monthly
     missingok
     rotate 2
