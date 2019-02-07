@@ -105,8 +105,11 @@ def main():
 
 	subs = parser.add_subparsers(title="commands", dest="command")
 
-	parser_verify = subs.add_parser("list")
+	parser_verify = subs.add_parser("verify")
 	parser_verify.add_argument("file", nargs="+")
+
+	parser_list = subs.add_parser("list")
+	parser_list.add_argument("file", nargs="+")
 
 	parser_restore = subs.add_parser("restore")
 	parser_restore.add_argument("file", nargs=1)
