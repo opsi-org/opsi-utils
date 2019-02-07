@@ -105,24 +105,24 @@ def main():
 
 	subs = parser.add_subparsers(title="commands", dest="command")
 
-	parser_verify = subs.add_parser("verify")
-	parser_verify.add_argument("file", nargs="+")
+	verifyParser = subs.add_parser("verify")
+	verifyParser.add_argument("file", nargs="+")
 
-	parser_list = subs.add_parser("list")
-	parser_list.add_argument("file", nargs="+")
+	listParser = subs.add_parser("list")
+	listParser.add_argument("file", nargs="+")
 
-	parser_restore = subs.add_parser("restore")
-	parser_restore.add_argument("file", nargs=1)
-	parser_restore.add_argument("--backends", action="append")
-	parser_restore.add_argument("--configuration", action="store_true", default=False)
-	parser_restore.add_argument("-f", "--force", action="store_true", default=False)
+	restoreParser = subs.add_parser("restore")
+	restoreParser.add_argument("file", nargs=1)
+	restoreParser.add_argument("--backends", action="append")
+	restoreParser.add_argument("--configuration", action="store_true", default=False)
+	restoreParser.add_argument("-f", "--force", action="store_true", default=False)
 
-	parser_create = subs.add_parser("create")
-	parser_create.add_argument("destination", nargs="?")
-	parser_create.add_argument("--flush-logs", action="store_true", default=False)
-	parser_create.add_argument("--backends", action="append")
-	parser_create.add_argument("--no-configuration", action="store_true", default=False)
-	parser_create.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz', 'bz2', 'none'])
+	creationParser = subs.add_parser("create")
+	creationParser.add_argument("destination", nargs="?")
+	creationParser.add_argument("--flush-logs", action="store_true", default=False)
+	creationParser.add_argument("--backends", action="append")
+	creationParser.add_argument("--no-configuration", action="store_true", default=False)
+	creationParser.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz', 'bz2', 'none'])
 
 	try:
 		args = parser.parse_args()
