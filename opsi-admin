@@ -1590,7 +1590,7 @@ class CommandTask(Command):
 				u"is obsolete. Please use 'method "
 				u"setActionRequestWhereOutdatedWithDependencies' instead.")
 
-			for clientId in backend.setActionRequestWhereOutdatedWithDependencies(actionRequest, params):
+			for clientId in backend.setActionRequestWhereOutdatedWithDependencies(actionRequest, productId):
 				shell.appendLine(clientId)
 
 		elif params[0] == u'decodePcpatchPassword':
