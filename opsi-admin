@@ -49,7 +49,7 @@ from OPSI.Exceptions import OpsiRpcError
 from OPSI.Logger import (
 	COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_NORMAL,
 	COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
-	LOG_NONE, LOG_ERROR, Logger)
+	LOG_NONE, LOG_ERROR, LOG_DEBUG, Logger)
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
 from OPSI.Types import (
@@ -1339,7 +1339,7 @@ class CommandSet(Command):
 				logger.setLogFile(None)
 			else:
 				logFile = params[1]
-				startLogFile(logFile)
+				startLogFile(logFile, LOG_DEBUG)
 
 		elif params[0] == u'log-level':
 			if not logFile:
