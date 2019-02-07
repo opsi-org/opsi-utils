@@ -173,7 +173,7 @@ def main(argv):
 	color = False
 	direct = False
 	depotBackend = True
-	logLevel = LOG_NONE
+	logLevel = LOG_ERROR
 
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV",
