@@ -177,10 +177,10 @@ def main():
 
 if __name__ == "__main__":
 	try:
-		ret = main()
+		returnCode = main()
 	except Exception as exception:
 		logger.logException(exception, LOG_INFO)
 		print((u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace'), file=sys.stderr)
-		ret = 1
+		returnCode = 1
 
-	sys.exit(ret)
+	sys.exit(returnCode)
