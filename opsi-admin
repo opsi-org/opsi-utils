@@ -3,7 +3,7 @@
 
 # opsi-admin is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
-# Copyright (C) 2010-2018 uib GmbH <info@uib.de>
+# Copyright (C) 2010-2019 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -49,7 +49,7 @@ from OPSI.Exceptions import OpsiRpcError
 from OPSI.Logger import (
 	COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_NORMAL,
 	COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
-	LOG_NONE, LOG_ERROR, Logger)
+	LOG_NONE, LOG_ERROR, LOG_DEBUG, Logger)
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
 from OPSI.Types import (
@@ -59,7 +59,7 @@ from OPSI.Util import (
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 
 
-__version__ = '4.1.1.26'
+__version__ = '4.1.1.29'
 
 backend = None
 exitZero = False
@@ -173,7 +173,7 @@ def main(argv):
 	color = False
 	direct = False
 	depotBackend = True
-	logLevel = LOG_NONE
+	logLevel = LOG_ERROR
 
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV",
@@ -1339,7 +1339,7 @@ class CommandSet(Command):
 				logger.setLogFile(None)
 			else:
 				logFile = params[1]
-				startLogFile(logFile)
+				startLogFile(logFile, LOG_DEBUG)
 
 		elif params[0] == u'log-level':
 			if not logFile:
@@ -1590,7 +1590,7 @@ class CommandTask(Command):
 				u"is obsolete. Please use 'method "
 				u"setActionRequestWhereOutdatedWithDependencies' instead.")
 
-			for clientId in backend.setActionRequestWhereOutdatedWithDependencies(actionRequest, params):
+			for clientId in backend.setActionRequestWhereOutdatedWithDependencies(actionRequest, productId):
 				shell.appendLine(clientId)
 
 		elif params[0] == u'decodePcpatchPassword':
