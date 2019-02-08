@@ -1,3 +1,15 @@
+opsi-utils (4.1.1.29-1) stable; urgency=medium
+
+  * opsi-admin: Fix bug in calling task
+    setActionRequestWhereOutdatedWithDependencies.
+    This method remains obsolete and the corresponding method should be used.
+  * opsi-admin: Logfile in interactive mode will use loglevel 7.
+  * opsi-admin: Set default loglevel to 3.
+  * opsi-backup: Small internal refactoring.
+  * opsi-package-updater: Improved text for --help.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 07 Feb 2019 16:53:11 +0100
+
 opsi-utils (4.1.1.28-1) stable; urgency=medium
 
   * opsi-package-manager: Propagate problems when executing tasks instead
