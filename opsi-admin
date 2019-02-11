@@ -262,15 +262,19 @@ def main(argv):
 					logger.info("Could not create {0}.".format(opsiadminUserDir))
 
 			sessionId = None
+			sessionFile = os.path.join(opsiadminUserDir, u'session')
 			try:
-				with codecs.open(os.path.join(opsiadminUserDir, u'session'), 'r', 'utf-8') as session:
+				with codecs.open(sessionFile, 'r', 'utf-8') as session:
 					for line in session:
 						line = line.strip()
 						if line:
 							sessionId = forceUnicode(line)
 							break
+			except IOError as error:
+				if e.errno != 2:  # 2 is No such file or directory
+					logger.error(u"Failed to read session file '%s': %s" % (sessionFile, forceUnicode(error)))
 			except Exception as error:
-				logger.error(u"Failed to read session file '%s': %s" % (os.path.join(opsiadminUserDir, 'session'), forceUnicode(error)))
+				logger.error(u"Failed to read session file '%s': %s" % (sessionFile, forceUnicode(error)))
 
 			from OPSI.Backend.JSONRPC import JSONRPCBackend
 			backend = JSONRPCBackend(
