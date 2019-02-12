@@ -667,15 +667,16 @@ class Shell:
 		cmdline = self.cmdline
 		if '|' in cmdline:
 			split = -1
-			qCount = 0
-			dqCount = 0
+			quoteCount = 0
+			doubleQuoteCount = 0
 			parts = cmdline.split(u'|')
-			for i in range(len(parts)):
-				qCount += parts[i].count(u"'")
-				dqCount += parts[i].count(u'"')
-				if (qCount % 2 == 0) and (dqCount % 2 == 0):
+			for i, part in enumerate(parts):
+				quoteCount += part.count(u"'")
+				doubleQuoteCount += part.count(u'"')
+				if (quoteCount % 2 == 0) and (doubleQuoteCount % 2 == 0):
 					split = i
 					break
+
 			if split >= 0:
 				cmdline = u'|'.join(parts[:split + 1])
 				self.shellCommand = u'|'.join(parts[split + 1:]).lstrip()
