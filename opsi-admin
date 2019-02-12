@@ -683,16 +683,18 @@ class Shell:
 
 		cur = 0
 		quote = None
-
-		for i in range(len(cmdline)):
-			logger.debug2(u"parseCmdline(): char '%s', quote: %s, cur: %d, params: %s" % (cmdline[i], quote, cur, self.params))
+		for i, element in enumerate(cmdline):
+			logger.debug2(
+				u"parseCmdline(): char {!r}, quote: {!r}, cur: {!r}, params: {!r}",
+				element, quote, cur, self.params
+			)
 			if len(self.params) < cur + 1:
 				self.params.append(u'')
 
 			if i == self.pos - 1:
 				self.paramPos = cur
 
-			if cmdline[i] == u"'":
+			if element == u"'":
 				if quote is None:
 					quote = u"'"
 				elif quote == u"'":
@@ -701,8 +703,7 @@ class Shell:
 					quote = None
 				else:
 					self.params[cur] += u'\''
-
-			elif cmdline[i] == u'"':
+			elif element == u'"':
 				if quote is None:
 					self.params[cur] += u'"'
 					quote = u'"'
@@ -713,15 +714,13 @@ class Shell:
 					quote = None
 				else:
 					self.params[cur] += u'"'
-
-			elif cmdline[i] == u" ":
+			elif element == u" ":
 				if quote is not None:
-					self.params[cur] += cmdline[i]
+					self.params[cur] += element
 				elif len(self.params[cur]) > 0:
 					cur += 1
-
 			else:
-				self.params[cur] += cmdline[i]
+				self.params[cur] += element
 
 		if not quote and self.params and self.params[-1] and self.pos == len(cmdline) and cmdline.endswith(u' '):
 			self.params.append(u'')
