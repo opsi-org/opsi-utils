@@ -57,6 +57,7 @@ from OPSI.Types import (
 from OPSI.Util import (
 	blowfishDecrypt, deserialize, fromJson, getfqdn,
 	objectToBeautifiedText, objectToBash, serialize, toJson)
+from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
 
 
 __version__ = '4.1.1.29'
@@ -141,6 +142,8 @@ def usage():
 	print((u"  -u, --username       " + _(u"Username (default: current user)")).encode(outEncoding))
 	print((u"  -p, --password       " + _(u"Password (default: prompt for password)")).encode(outEncoding))
 	print((u"  -a, --address        " + _(u"URL of opsiconfd (default: https://localhost:4447/rpc)")).encode(outEncoding))
+	print((u"      --opsirc         " + _(u"Path to the opsirc file to use (default: ~/.opsi.org/opsirc)")).encode(outEncoding))
+	print((u"                       " + _(u"An opsirc file contains login credentials to the web API.")).encode(outEncoding))
 	print((u"  -d, --direct         " + _(u"Do not use opsiconfd")).encode(outEncoding))
 	print((u"      --no-depot       " + _(u"Do not use depotserver backend")).encode(outEncoding))
 	print((u"  -l, --log-level      " + _(u"Set log level (default: 3)")).encode(outEncoding))
@@ -161,25 +164,21 @@ def main(argv):
 	global interactive
 	global exitZero
 
-	try:
-		import pwd
-		username = forceUnicode(pwd.getpwuid(os.getuid())[0])
-	except Exception:
-		username = u''
-
 	password = u''
-	address = u'https://localhost:4447/rpc'
+	address = None
 	output = u'JSON'
 	color = False
 	direct = False
 	depotBackend = True
 	logLevel = LOG_ERROR
+	opsircfile = getOpsircPath()
+	username = u''
 
 	try:
 		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV",
 			[
 				"username=", "password=", "address=", "loglevel=",
-				"log-level=", "log-file=", "interactive", "direct", "no-depot",
+				"log-level=", "log-file=", "opsirc=", "interactive", "direct", "no-depot",
 				"colorize", "shell-output", "simple-output", "raw-output",
 				"help", "version", "exit-zero"
 			]
@@ -222,6 +221,8 @@ def main(argv):
 			output = u'RAW'
 		elif opt == '--exit-zero':
 			exitZero = True
+		elif opt == '--opsirc':
+			opsircfile = forceFilename(arg)
 
 	if logFile:
 		startLogFile(logFile, logLevel)
@@ -246,6 +247,30 @@ def main(argv):
 			)
 
 		else:
+			# Reading opsirc file.
+			# We should alway prefer the settings from the commandline
+			# in case an value is to be overridden.
+			opsircConfig = readOpsirc(opsircfile)
+
+			try:
+				password = password or opsircConfig['password']
+			except KeyError:
+				pass
+
+			try:
+				username = username or opsircConfig['username']
+			except KeyError:
+				try:
+					import pwd
+					username = forceUnicode(pwd.getpwuid(os.getuid())[0])
+				except Exception:
+					username = u''
+
+			try:
+				address = address or opsircConfig['address']
+			except KeyError:
+				address = u'https://localhost:4447/rpc'
+
 			# Connect to opsiconfd
 			if not password:
 				try:
