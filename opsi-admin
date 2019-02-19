@@ -279,7 +279,7 @@ def main(argv):
 				except Exception:
 					pass
 
-			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), u'.opsi-admin'))
+			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), u'.opsi.org'))
 			if not os.path.exists(opsiadminUserDir):
 				try:
 					os.mkdir(opsiadminUserDir)
@@ -314,10 +314,10 @@ def main(argv):
 			sessionId = backend.jsonrpc_getSessionId()
 			if sessionId:
 				try:
-					with codecs.open(os.path.join(opsiadminUserDir, u'session'), 'w', 'utf-8') as session:
+					with codecs.open(sessionFile, 'w', 'utf-8') as session:
 						session.write(u"%s\n" % sessionId)
 				except Exception as error:
-					logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), forceUnicode(error)))
+					logger.error(u"Failed to write session file '%s': %s" % (sessionFile, forceUnicode(error)))
 
 		cmdline = u''
 		if len(args) > 0:
@@ -453,7 +453,7 @@ class Shell:
 			home = os.path.expanduser('~')
 
 		if home:
-			self.userConfigDir = forceFilename(os.path.join(home, '.opsi-admin'))
+			self.userConfigDir = forceFilename(os.path.join(home, '.opsi.org'))
 			if not os.path.isdir(self.userConfigDir):
 				try:
 					os.mkdir(self.userConfigDir)
