@@ -1,3 +1,11 @@
+opsi-utils (4.1.1.30-1) UNRELEASED; urgency=medium
+
+  * opsi-admin: Only show error message about reading session information
+    if an session file exists.
+  * opsi-admin: Added support for using an opsirc file via --opsirc.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 19 Feb 2019 17:07:15 +0100
+
 opsi-utils (4.1.1.29-1) stable; urgency=medium
 
   * opsi-admin: Fix bug in calling task
