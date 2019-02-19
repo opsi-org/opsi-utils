@@ -254,7 +254,7 @@ def main(argv):
 				except Exception:
 					pass
 
-			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), u'.opsi-admin'))
+			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), u'.opsi.org'))
 			if not os.path.exists(opsiadminUserDir):
 				try:
 					os.mkdir(opsiadminUserDir)
@@ -425,7 +425,7 @@ class Shell:
 			home = os.path.expanduser('~')
 
 		if home:
-			self.userConfigDir = forceFilename(os.path.join(home, '.opsi-admin'))
+			self.userConfigDir = forceFilename(os.path.join(home, '.opsi.org'))
 			if not os.path.isdir(self.userConfigDir):
 				try:
 					os.mkdir(self.userConfigDir)
