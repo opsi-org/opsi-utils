@@ -1153,14 +1153,14 @@ class CommandMethod(Command):
 		methodName = params[0]
 
 		if methodName == u'list':
-			for m in self.interface:
-				shell.appendLine(u"%s%s" % (m.get('name'), tuple(m.get('params'))), refresh=False)
+			for methodDescription in self.interface:
+				shell.appendLine(u"%s%s" % (methodDescription.get('name'), tuple(methodDescription.get('params'))), refresh=False)
 			shell.display()
 			return
 
-		for m in self.interface:
-			if methodName == m['name']:
-				methodInterface = m
+		for methodDescription in self.interface:
+			if methodName == methodDescription['name']:
+				methodInterface = methodDescription
 				break
 		else:
 			raise OpsiRpcError(u"Method '%s' is not valid" % methodName)
