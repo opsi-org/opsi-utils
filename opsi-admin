@@ -991,9 +991,9 @@ class Shell:
 
 					self.lines.append(
 						{
-							"text": self.prompt + ' ' + \
-									self.cmdline[:self.pos - len(self.currentParam)] + \
-									match.strip() + \
+							"text": self.prompt + ' ' +
+									self.cmdline[:self.pos - len(self.currentParam)] +
+									match.strip() +
 									self.cmdline[self.pos:],
 							"color": None
 						}
