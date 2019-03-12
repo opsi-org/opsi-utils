@@ -1168,12 +1168,13 @@ class CommandMethod(Command):
 		params = params[1:]
 		keywords = {}
 		if methodInterface['keywords']:
-			l = 0
+			parameters = 0
 			if methodInterface['args']:
-				l += len(methodInterface['args'])
+				parameters += len(methodInterface['args'])
 			if methodInterface['varargs']:
-				l += len(methodInterface['varargs'])
-			if len(params) >= l:
+				parameters += len(methodInterface['varargs'])
+
+			if len(params) >= parameters:
 				# Do not create Object instances!
 				params[-1] = fromJson(params[-1], preventObjectCreation=True)
 				if not isinstance(params[-1], dict):
