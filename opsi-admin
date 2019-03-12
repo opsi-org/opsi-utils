@@ -60,7 +60,7 @@ from OPSI.Util import (
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
 
 
-__version__ = '4.1.1.30'
+__version__ = '4.1.1.31'
 
 backend = None
 exitZero = False
@@ -296,7 +296,7 @@ def main(argv):
 							sessionId = forceUnicode(line)
 							break
 			except IOError as error:
-				if e.errno != 2:  # 2 is No such file or directory
+				if error.errno != 2:  # 2 is No such file or directory
 					logger.error(u"Failed to read session file '%s': %s" % (sessionFile, forceUnicode(error)))
 			except Exception as error:
 				logger.error(u"Failed to read session file '%s': %s" % (sessionFile, forceUnicode(error)))
@@ -991,9 +991,9 @@ class Shell:
 
 					self.lines.append(
 						{
-							"text": self.prompt + ' ' + \
-									self.cmdline[:self.pos - len(self.currentParam)] + \
-									match.strip() + \
+							"text": self.prompt + ' ' +
+									self.cmdline[:self.pos - len(self.currentParam)] +
+									match.strip() +
 									self.cmdline[self.pos:],
 							"color": None
 						}
@@ -1153,14 +1153,14 @@ class CommandMethod(Command):
 		methodName = params[0]
 
 		if methodName == u'list':
-			for m in self.interface:
-				shell.appendLine(u"%s%s" % (m.get('name'), tuple(m.get('params'))), refresh=False)
+			for methodDescription in self.interface:
+				shell.appendLine(u"%s%s" % (methodDescription.get('name'), tuple(methodDescription.get('params'))), refresh=False)
 			shell.display()
 			return
 
-		for m in self.interface:
-			if methodName == m['name']:
-				methodInterface = m
+		for methodDescription in self.interface:
+			if methodName == methodDescription['name']:
+				methodInterface = methodDescription
 				break
 		else:
 			raise OpsiRpcError(u"Method '%s' is not valid" % methodName)
@@ -1168,12 +1168,13 @@ class CommandMethod(Command):
 		params = params[1:]
 		keywords = {}
 		if methodInterface['keywords']:
-			l = 0
+			parameters = 0
 			if methodInterface['args']:
-				l += len(methodInterface['args'])
+				parameters += len(methodInterface['args'])
 			if methodInterface['varargs']:
-				l += len(methodInterface['varargs'])
-			if len(params) >= l:
+				parameters += len(methodInterface['varargs'])
+
+			if len(params) >= parameters:
 				# Do not create Object instances!
 				params[-1] = fromJson(params[-1], preventObjectCreation=True)
 				if not isinstance(params[-1], dict):
