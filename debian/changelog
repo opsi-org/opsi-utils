@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.31-2) stable; urgency=medium
+
+  * opsi-admin manpage: Added --opsirc.
+  * Updated translations: de, ru
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 01 Apr 2019 17:20:14 +0200
+
 opsi-utils (4.1.1.31-1) stable; urgency=medium
 
   * opsi-admin: Fix wrong reference.
