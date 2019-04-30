@@ -48,7 +48,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-__version__ = '4.1.1.26'
+__version__ = '4.1.1.32'
 
 logger = Logger()
 

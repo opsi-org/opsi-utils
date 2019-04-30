@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.32-1) stable; urgency=medium
+
+  * opsi-newprod: Fix naming interpreter in shebang line in templates for
+    preinst and postinst.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 30 Apr 2019 13:33:16 +0200
+
 opsi-utils (4.1.1.31-2) stable; urgency=medium
 
   * opsi-admin manpage: Added --opsirc.
