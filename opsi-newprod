@@ -48,7 +48,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-__version__ = '4.1.1.26'
+__version__ = '4.1.1.32'
 
 logger = Logger()
 
@@ -670,7 +670,7 @@ copied to ``productDirectory``
 	# Create preinst template
 	preinstFilePath = os.path.join(productDirectory, 'OPSI', 'preinst')
 	with codecs.open(preinstFilePath, 'w', 'utf-8') as preinst:
-		preinst.write(u'#! /bin/bash\n')
+		preinst.write(u'#!/bin/bash\n')
 		preinst.write(u'#\n')
 		preinst.write(u'# preinst script\n')
 		preinst.write(u'# This script executes before that package will be unpacked from its archive file.\n')
@@ -682,7 +682,7 @@ copied to ``productDirectory``
 	# Create postinst template
 	postinstFilePath = os.path.join(productDirectory, 'OPSI', 'postinst')
 	with codecs.open(postinstFilePath, 'w', 'utf-8') as postinst:
-		postinst.write(u'#! /bin/bash\n')
+		postinst.write(u'#!/bin/bash\n')
 		postinst.write(u'#\n')
 		postinst.write(u'# postinst script\n')
 		postinst.write(u'# This script executes after unpacking files from that archive and registering the product at the depot.\n')
