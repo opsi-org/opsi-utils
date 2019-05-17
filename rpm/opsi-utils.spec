@@ -199,9 +199,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-linux.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-local_image.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-windows.repo
-%config /etc/logrotate.d/opsi-backup
-%config /etc/logrotate.d/opsi-package-manager
-%config /etc/logrotate.d/opsi-package-updater
+%attr(644,root,root) %config /etc/logrotate.d/opsi-backup
+%attr(644,root,root) %config /etc/logrotate.d/opsi-package-manager
+%attr(644,root,root) %config /etc/logrotate.d/opsi-package-updater
 
 # other files
 /usr/bin/opsi-admin
