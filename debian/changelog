@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.32-2) stable; urgency=medium
+
+  * RPM: Change access rights for logrotate configs to 644.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 17 May 2019 13:41:05 +0200
+
 opsi-utils (4.1.1.32-1) stable; urgency=medium
 
   * opsi-newprod: Fix naming interpreter in shebang line in templates for
