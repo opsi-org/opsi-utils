@@ -777,9 +777,9 @@ class OpsiPackageManager(object):
 
 	def openProductPackageFile(self, packageFile):
 		filename = os.path.basename(packageFile)
-		self.infoSubject.setMessage(_(u'Opening package file %s') % filename)
 		with self.productPackageFilesLock:
 			if filename not in self.productPackageFiles:
+				self.infoSubject.setMessage(_(u'Opening package file %s') % filename)
 				self.productPackageFiles[filename] = ProductPackageFile(packageFile)
 				self.productPackageFiles[filename].getMetaData()
 
