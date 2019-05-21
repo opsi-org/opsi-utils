@@ -1162,13 +1162,10 @@ class OpsiPackageManager(object):
 			raise
 
 	def installOnDepots(self):
-		for packageFile in self.config['packageFiles']:
-			self.openProductPackageFile(packageFile)
-
-		sequence = []
-		for packageFile in self.config['packageFiles']:
-			product = self.getPackageControlFile(packageFile).getProduct()
-			sequence.append(product.id)
+		sequence = [
+			self.getPackageControlFile(packageFile).getProduct().id
+			for packageFile in self.config['packageFiles']
+		]
 
 		for packageFile in self.config['packageFiles']:
 			productId = self.getPackageControlFile(packageFile).getProduct().id
