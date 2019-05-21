@@ -1317,10 +1317,9 @@ class OpsiPackageManager(object):
 
 	def installPackage(self, packageFile, depotId):
 		subject = self.getDepotSubject(depotId)
+		depotPackageFile = packageFile
 
 		try:
-			depotPackageFile = packageFile
-
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
 				if not depot.repositoryLocalUrl.startswith('file://'):
