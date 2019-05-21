@@ -920,7 +920,6 @@ class OpsiPackageManager(object):
 		subject = self.getDepotSubject(depotId)
 
 		try:
-			repository = None
 			# Process upload
 			if self.maxTransfersReached():
 				logger.notice(u"Waiting for free upload slot for upload of '%s' to depot '%s'" % (os.path.basename(packageFile), depotId))
@@ -1156,8 +1155,6 @@ class OpsiPackageManager(object):
 					logger.warning(u"Failed to create zsync file '%s': %s" % (remotePackageZsyncFile, zsyncCreationError))
 			finally:
 				self.removeRunningTransfer()
-				repository = None
-
 		except Exception as uploadError:
 			logger.logException(uploadError, LOG_INFO)
 			logger.error(uploadError)
