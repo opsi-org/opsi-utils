@@ -785,16 +785,22 @@ class OpsiPackageManager(object):
 
 	def getPackageControlFile(self, packageFile):
 		filename = os.path.basename(packageFile)
-		if filename not in self.productPackageFiles:
+		try:
+			return self.productPackageFiles[filename].packageControlFile
+		except KeyError:
 			self.openProductPackageFile(packageFile)
-		return self.productPackageFiles[filename].packageControlFile
+			return self.productPackageFiles[filename].packageControlFile
 
 	def getPackageMd5Sum(self, packageFile):
 		filename = os.path.basename(packageFile)
 		with self.productPackageFilesMd5sumLock:
-			if filename not in self.productPackageFileMd5sums:
-				self.productPackageFileMd5sums[filename] = md5sum(packageFile)
-			return self.productPackageFileMd5sums[filename]
+			try:
+				checksum = self.productPackageFileMd5sums[filename]
+			except KeyError:
+				checksum = md5sum(packageFile)
+				self.productPackageFileMd5sums[filename] = checksum
+
+			return checksum
 
 	def waitForTaskQueues(self):
 		self.infoSubject.setMessage(_(u'Waiting for task queues to finish up'))
