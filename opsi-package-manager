@@ -1185,13 +1185,15 @@ class OpsiPackageManager(object):
 				if productId == self.getPackageControlFile(packageFile).getProduct().id:
 					sortedPackageFiles.append(packageFile)
 					break
+
 		self.config['packageFiles'] = sortedPackageFiles
 
 		if not self.config['forceInstall']:
 			logger.info(u"Checking product locks")
-			productIds = []
-			for packageFile in self.config['packageFiles']:
-				productIds.append(self.getPackageControlFile(packageFile).getProduct().getId())
+			productIds = [
+				self.getPackageControlFile(packageFile).getProduct().getId()
+				for packageFile in self.config['packageFiles']
+			]
 			lockedProductsOnDepot = self.backend.productOnDepot_getObjects(
 				productId=productIds,
 				depotId=self.config['depotIds'],
@@ -1199,9 +1201,10 @@ class OpsiPackageManager(object):
 			)
 
 			if lockedProductsOnDepot:
-				errors = []
-				for productOnDepot in lockedProductsOnDepot:
-					errors.append(u"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId))
+				errors = [
+					u"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId)
+					for productOnDepot in lockedProductsOnDepot
+				]
 				raise RuntimeError(u'\n' + u'\n'.join(errors) + u'\nUse --force to force installation')
 
 		if self.userInterface and (self.config['properties'] == 'ask'):
