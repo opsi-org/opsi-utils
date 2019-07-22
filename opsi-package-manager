@@ -716,17 +716,20 @@ class OpsiPackageManager(object):
 			productPackageFile.cleanup()
 
 	def getDepotConnection(self, depotId):
-		if depotId not in self.depotConnections:
+		try:
+			connection = self.depotConnections[depotId]
+		except KeyError:
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 
-			self.depotConnections[depotId] = JSONRPCBackend(
+			connection = JSONRPCBackend(
 				username=depotId,
 				password=depot.getOpsiHostKey(),
 				address=depotId,
-				application='opsi-package-manager version %s' % __version__
+				application='opsi-package-manager/%s' % __version__
 			)
+			self.depotConnections[depotId] = connection
 
-		return self.depotConnections[depotId]
+		return connection
 
 	def getRunningTransfers(self):
 		with self.runningTransfersLock:
