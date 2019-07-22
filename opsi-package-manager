@@ -1348,13 +1348,14 @@ class OpsiPackageManager(object):
 				logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
 				subject.setMessage(_(u"Installing package %s") % packageFile)
 
-			product = self.getPackageControlFile(packageFile).getProduct()
+			packageControlFile = self.getPackageControlFile(packageFile)
+			product = packageControlFile.getProduct()
 			if self.config['newProductId']:
 				product.setId(self.config['newProductId'])
 			productId = product.getId()
 
 			propertyDefaultValues = {}
-			for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
+			for productProperty in packageControlFile.getProductProperties():
 				if self.config['newProductId']:
 					productProperty.productId = productId
 
