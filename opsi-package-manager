@@ -1046,7 +1046,7 @@ class OpsiPackageManager(object):
 								i += 1
 							deltaFilename = newDeltaFilename
 
-						deltaFile = os.path.join('/tmp', deltaFilename)
+						deltaFile = os.path.join(self.config['tempDir'], deltaFilename)
 
 						bufsize = 1024 * 1024
 						with open(packageFile, "rb") as bf:
