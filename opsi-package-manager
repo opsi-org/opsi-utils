@@ -1781,7 +1781,7 @@ class OpsiPackageManagerControl(object):
 				productOnDepot = productOnDepotInfo[depotId][productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
 				print((u"%s%*s %*s %*s" % (indent, -1 * idWidth, productId,
-						-1 * versionWidth, product.productVersion + u'-' + product.packageVersion,
+						-1 * versionWidth, product.version,
 						-1 * nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding, 'replace'))
 			print("")
 
@@ -1835,7 +1835,7 @@ class OpsiPackageManagerControl(object):
 					differs = True
 
 				lines.append(
-					u"    {depotId:<{width}}: {product.productVersion}-{product.packageVersion}".format(
+					u"    {depotId:<{width}}: {product.version}".format(
 						depotId=depotId,
 						width=maxWidth,
 						product=productOnDepot
