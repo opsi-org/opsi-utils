@@ -57,7 +57,7 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.1.1.27'
+__version__ = '4.1.1.33'
 
 USER_AGENT = "opsi-package-manager/%s" % __version__
 

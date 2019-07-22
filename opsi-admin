@@ -60,7 +60,7 @@ from OPSI.Util import (
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
 
 
-__version__ = '4.1.1.31'
+__version__ = '4.1.1.33'
 
 backend = None
 exitZero = False
