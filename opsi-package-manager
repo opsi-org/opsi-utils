@@ -1537,7 +1537,7 @@ class OpsiPackageManagerControl(object):
 			sys.exit(0)
 
 		if self.opts.version:
-			print(USER_AGENT)  # TODO: shared variable?
+			print(USER_AGENT)
 			sys.exit(0)
 
 		self.setDefaultConfig()
