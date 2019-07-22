@@ -1,3 +1,13 @@
+opsi-utils (4.1.1.33-1) stable; urgency=medium
+
+  * opsi-package-manager: Delta file creation uses the configured temp dir.
+  * opsi-package-manager: Use functionality from python-opsi for creating a
+    librsync delta file.
+  * Use an RFC 2616 compatible User-Agent in opsi-admin, opsi-convert and
+    opsi-package-manager.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 22 Jul 2019 10:04:28 +0200
+
 opsi-utils (4.1.1.32-2) stable; urgency=medium
 
   * RPM: Change access rights for logrotate configs to 644.

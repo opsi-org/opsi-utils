@@ -43,7 +43,6 @@ import time
 from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
-from duplicity import librsync
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -51,14 +50,16 @@ from OPSI.Logger import LOG_INFO, LOG_NONE, LOG_WARNING, Logger
 from OPSI.Types import (forceActionRequest, forceBool, forceHostId, forceInt,
 	forceList, forceProductId, forceUnicode, forceUnicodeList)
 from OPSI.UI import SnackUI
-from OPSI.Util import md5sum, getfqdn
+from OPSI.Util import md5sum, getfqdn, librsyncDeltaFile
 from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 	ProgressSubject, SubjectsObserver)
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 
-__version__ = '4.1.1.27'
+__version__ = '4.1.1.33'
+
+USER_AGENT = "opsi-package-manager/%s" % __version__
 
 logger = Logger()
 
@@ -716,17 +717,20 @@ class OpsiPackageManager(object):
 			productPackageFile.cleanup()
 
 	def getDepotConnection(self, depotId):
-		if depotId not in self.depotConnections:
+		try:
+			connection = self.depotConnections[depotId]
+		except KeyError:
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 
-			self.depotConnections[depotId] = JSONRPCBackend(
+			connection = JSONRPCBackend(
 				username=depotId,
 				password=depot.getOpsiHostKey(),
 				address=depotId,
-				application='opsi-package-manager version %s' % __version__
+				application=USER_AGENT,
 			)
+			self.depotConnections[depotId] = connection
 
-		return self.depotConnections[depotId]
+		return connection
 
 	def getRunningTransfers(self):
 		with self.runningTransfersLock:
@@ -777,24 +781,30 @@ class OpsiPackageManager(object):
 
 	def openProductPackageFile(self, packageFile):
 		filename = os.path.basename(packageFile)
-		self.infoSubject.setMessage(_(u'Opening package file %s') % filename)
 		with self.productPackageFilesLock:
 			if filename not in self.productPackageFiles:
+				self.infoSubject.setMessage(_(u'Opening package file %s') % filename)
 				self.productPackageFiles[filename] = ProductPackageFile(packageFile)
 				self.productPackageFiles[filename].getMetaData()
 
 	def getPackageControlFile(self, packageFile):
 		filename = os.path.basename(packageFile)
-		if filename not in self.productPackageFiles:
+		try:
+			return self.productPackageFiles[filename].packageControlFile
+		except KeyError:
 			self.openProductPackageFile(packageFile)
-		return self.productPackageFiles[filename].packageControlFile
+			return self.productPackageFiles[filename].packageControlFile
 
 	def getPackageMd5Sum(self, packageFile):
 		filename = os.path.basename(packageFile)
 		with self.productPackageFilesMd5sumLock:
-			if filename not in self.productPackageFileMd5sums:
-				self.productPackageFileMd5sums[filename] = md5sum(packageFile)
-			return self.productPackageFileMd5sums[filename]
+			try:
+				checksum = self.productPackageFileMd5sums[filename]
+			except KeyError:
+				checksum = md5sum(packageFile)
+				self.productPackageFileMd5sums[filename] = checksum
+
+			return checksum
 
 	def waitForTaskQueues(self):
 		self.infoSubject.setMessage(_(u'Waiting for task queues to finish up'))
@@ -914,7 +924,6 @@ class OpsiPackageManager(object):
 		subject = self.getDepotSubject(depotId)
 
 		try:
-			repository = None
 			# Process upload
 			if self.maxTransfersReached():
 				logger.notice(u"Waiting for free upload slot for upload of '%s' to depot '%s'" % (os.path.basename(packageFile), depotId))
@@ -961,7 +970,7 @@ class OpsiPackageManager(object):
 				username=depotId,
 				password=depot.opsiHostKey,
 				maxBandwidth=maxBandwidth * 1000,
-				application='opsi-package-manager version %s' % __version__
+				application=USER_AGENT,
 			)
 
 			for dest in repository.content():
@@ -1041,19 +1050,9 @@ class OpsiPackageManager(object):
 								i += 1
 							deltaFilename = newDeltaFilename
 
-						deltaFile = os.path.join('/tmp', deltaFilename)
+						deltaFile = os.path.join(self.config['tempDir'], deltaFilename)
 
-						bufsize = 1024 * 1024
-						with open(packageFile, "rb") as bf:
-							with open(deltaFile, "wb") as df:
-								ldf = librsync.DeltaFile(sig, bf)
-
-								data = True
-								while data:
-									data = ldf.read(bufsize)
-									df.write(data)
-
-								ldf.close()
+						librsyncDeltaFile(packageFile, sig, deltaFile)
 
 						packageSize = os.stat(packageFile)[stat.ST_SIZE]
 						deltaSize = os.stat(deltaFile)[stat.ST_SIZE]
@@ -1150,8 +1149,6 @@ class OpsiPackageManager(object):
 					logger.warning(u"Failed to create zsync file '%s': %s" % (remotePackageZsyncFile, zsyncCreationError))
 			finally:
 				self.removeRunningTransfer()
-				repository = None
-
 		except Exception as uploadError:
 			logger.logException(uploadError, LOG_INFO)
 			logger.error(uploadError)
@@ -1159,13 +1156,10 @@ class OpsiPackageManager(object):
 			raise
 
 	def installOnDepots(self):
-		for packageFile in self.config['packageFiles']:
-			self.openProductPackageFile(packageFile)
-
-		sequence = []
-		for packageFile in self.config['packageFiles']:
-			product = self.getPackageControlFile(packageFile).getProduct()
-			sequence.append(product.id)
+		sequence = [
+			self.getPackageControlFile(packageFile).getProduct().id
+			for packageFile in self.config['packageFiles']
+		]
 
 		for packageFile in self.config['packageFiles']:
 			productId = self.getPackageControlFile(packageFile).getProduct().id
@@ -1185,13 +1179,15 @@ class OpsiPackageManager(object):
 				if productId == self.getPackageControlFile(packageFile).getProduct().id:
 					sortedPackageFiles.append(packageFile)
 					break
+
 		self.config['packageFiles'] = sortedPackageFiles
 
 		if not self.config['forceInstall']:
 			logger.info(u"Checking product locks")
-			productIds = []
-			for packageFile in self.config['packageFiles']:
-				productIds.append(self.getPackageControlFile(packageFile).getProduct().getId())
+			productIds = [
+				self.getPackageControlFile(packageFile).getProduct().getId()
+				for packageFile in self.config['packageFiles']
+			]
 			lockedProductsOnDepot = self.backend.productOnDepot_getObjects(
 				productId=productIds,
 				depotId=self.config['depotIds'],
@@ -1199,9 +1195,10 @@ class OpsiPackageManager(object):
 			)
 
 			if lockedProductsOnDepot:
-				errors = []
-				for productOnDepot in lockedProductsOnDepot:
-					errors.append(u"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId))
+				errors = [
+					u"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId)
+					for productOnDepot in lockedProductsOnDepot
+				]
 				raise RuntimeError(u'\n' + u'\n'.join(errors) + u'\nUse --force to force installation')
 
 		if self.userInterface and (self.config['properties'] == 'ask'):
@@ -1314,10 +1311,9 @@ class OpsiPackageManager(object):
 
 	def installPackage(self, packageFile, depotId):
 		subject = self.getDepotSubject(depotId)
+		depotPackageFile = packageFile
 
 		try:
-			depotPackageFile = packageFile
-
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
 				if not depot.repositoryLocalUrl.startswith('file://'):
@@ -1345,13 +1341,14 @@ class OpsiPackageManager(object):
 				logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
 				subject.setMessage(_(u"Installing package %s") % packageFile)
 
-			product = self.getPackageControlFile(packageFile).getProduct()
+			packageControlFile = self.getPackageControlFile(packageFile)
+			product = packageControlFile.getProduct()
 			if self.config['newProductId']:
 				product.setId(self.config['newProductId'])
 			productId = product.getId()
 
 			propertyDefaultValues = {}
-			for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
+			for productProperty in packageControlFile.getProductProperties():
 				if self.config['newProductId']:
 					productProperty.productId = productId
 
@@ -1540,7 +1537,7 @@ class OpsiPackageManagerControl(object):
 			sys.exit(0)
 
 		if self.opts.version:
-			print(u"opsi-package-manager version %s" % __version__)
+			print(USER_AGENT)
 			sys.exit(0)
 
 		self.setDefaultConfig()
@@ -1777,7 +1774,7 @@ class OpsiPackageManagerControl(object):
 				productOnDepot = productOnDepotInfo[depotId][productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
 				print((u"%s%*s %*s %*s" % (indent, -1 * idWidth, productId,
-						-1 * versionWidth, product.productVersion + u'-' + product.packageVersion,
+						-1 * versionWidth, product.version,
 						-1 * nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding, 'replace'))
 			print("")
 
@@ -1831,7 +1828,7 @@ class OpsiPackageManagerControl(object):
 					differs = True
 
 				lines.append(
-					u"    {depotId:<{width}}: {product.productVersion}-{product.packageVersion}".format(
+					u"    {depotId:<{width}}: {product.version}".format(
 						depotId=depotId,
 						width=maxWidth,
 						product=productOnDepot
