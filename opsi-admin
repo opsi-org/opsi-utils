@@ -306,7 +306,7 @@ def main(argv):
 				address=address,
 				username=username,
 				password=password,
-				application='opsi-admin version %s' % __version__,
+				application='opsi-admin/%s' % __version__,
 				sessionId=sessionId
 			)
 			logger.info(u'Connected')
