@@ -1052,7 +1052,7 @@ class OpsiPackageManager(object):
 
 						deltaFile = os.path.join(self.config['tempDir'], deltaFilename)
 
-						librsyncDeltaFile(packageFile, sig, deltafile)
+						librsyncDeltaFile(packageFile, sig, deltaFile)
 
 						packageSize = os.stat(packageFile)[stat.ST_SIZE]
 						deltaSize = os.stat(deltaFile)[stat.ST_SIZE]
