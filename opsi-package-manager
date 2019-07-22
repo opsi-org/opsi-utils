@@ -777,24 +777,30 @@ class OpsiPackageManager(object):
 
 	def openProductPackageFile(self, packageFile):
 		filename = os.path.basename(packageFile)
-		self.infoSubject.setMessage(_(u'Opening package file %s') % filename)
 		with self.productPackageFilesLock:
 			if filename not in self.productPackageFiles:
+				self.infoSubject.setMessage(_(u'Opening package file %s') % filename)
 				self.productPackageFiles[filename] = ProductPackageFile(packageFile)
 				self.productPackageFiles[filename].getMetaData()
 
 	def getPackageControlFile(self, packageFile):
 		filename = os.path.basename(packageFile)
-		if filename not in self.productPackageFiles:
+		try:
+			return self.productPackageFiles[filename].packageControlFile
+		except KeyError:
 			self.openProductPackageFile(packageFile)
-		return self.productPackageFiles[filename].packageControlFile
+			return self.productPackageFiles[filename].packageControlFile
 
 	def getPackageMd5Sum(self, packageFile):
 		filename = os.path.basename(packageFile)
 		with self.productPackageFilesMd5sumLock:
-			if filename not in self.productPackageFileMd5sums:
-				self.productPackageFileMd5sums[filename] = md5sum(packageFile)
-			return self.productPackageFileMd5sums[filename]
+			try:
+				checksum = self.productPackageFileMd5sums[filename]
+			except KeyError:
+				checksum = md5sum(packageFile)
+				self.productPackageFileMd5sums[filename] = checksum
+
+			return checksum
 
 	def waitForTaskQueues(self):
 		self.infoSubject.setMessage(_(u'Waiting for task queues to finish up'))
@@ -914,7 +920,6 @@ class OpsiPackageManager(object):
 		subject = self.getDepotSubject(depotId)
 
 		try:
-			repository = None
 			# Process upload
 			if self.maxTransfersReached():
 				logger.notice(u"Waiting for free upload slot for upload of '%s' to depot '%s'" % (os.path.basename(packageFile), depotId))
@@ -1041,7 +1046,7 @@ class OpsiPackageManager(object):
 								i += 1
 							deltaFilename = newDeltaFilename
 
-						deltaFile = os.path.join('/tmp', deltaFilename)
+						deltaFile = os.path.join(self.config['tempDir'], deltaFilename)
 
 						bufsize = 1024 * 1024
 						with open(packageFile, "rb") as bf:
@@ -1150,8 +1155,6 @@ class OpsiPackageManager(object):
 					logger.warning(u"Failed to create zsync file '%s': %s" % (remotePackageZsyncFile, zsyncCreationError))
 			finally:
 				self.removeRunningTransfer()
-				repository = None
-
 		except Exception as uploadError:
 			logger.logException(uploadError, LOG_INFO)
 			logger.error(uploadError)
@@ -1159,13 +1162,10 @@ class OpsiPackageManager(object):
 			raise
 
 	def installOnDepots(self):
-		for packageFile in self.config['packageFiles']:
-			self.openProductPackageFile(packageFile)
-
-		sequence = []
-		for packageFile in self.config['packageFiles']:
-			product = self.getPackageControlFile(packageFile).getProduct()
-			sequence.append(product.id)
+		sequence = [
+			self.getPackageControlFile(packageFile).getProduct().id
+			for packageFile in self.config['packageFiles']
+		]
 
 		for packageFile in self.config['packageFiles']:
 			productId = self.getPackageControlFile(packageFile).getProduct().id
@@ -1185,13 +1185,15 @@ class OpsiPackageManager(object):
 				if productId == self.getPackageControlFile(packageFile).getProduct().id:
 					sortedPackageFiles.append(packageFile)
 					break
+
 		self.config['packageFiles'] = sortedPackageFiles
 
 		if not self.config['forceInstall']:
 			logger.info(u"Checking product locks")
-			productIds = []
-			for packageFile in self.config['packageFiles']:
-				productIds.append(self.getPackageControlFile(packageFile).getProduct().getId())
+			productIds = [
+				self.getPackageControlFile(packageFile).getProduct().getId()
+				for packageFile in self.config['packageFiles']
+			]
 			lockedProductsOnDepot = self.backend.productOnDepot_getObjects(
 				productId=productIds,
 				depotId=self.config['depotIds'],
@@ -1199,9 +1201,10 @@ class OpsiPackageManager(object):
 			)
 
 			if lockedProductsOnDepot:
-				errors = []
-				for productOnDepot in lockedProductsOnDepot:
-					errors.append(u"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId))
+				errors = [
+					u"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId)
+					for productOnDepot in lockedProductsOnDepot
+				]
 				raise RuntimeError(u'\n' + u'\n'.join(errors) + u'\nUse --force to force installation')
 
 		if self.userInterface and (self.config['properties'] == 'ask'):
@@ -1314,10 +1317,9 @@ class OpsiPackageManager(object):
 
 	def installPackage(self, packageFile, depotId):
 		subject = self.getDepotSubject(depotId)
+		depotPackageFile = packageFile
 
 		try:
-			depotPackageFile = packageFile
-
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
 				if not depot.repositoryLocalUrl.startswith('file://'):
