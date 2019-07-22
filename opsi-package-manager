@@ -60,6 +60,8 @@ from OPSI.Util.Product import ProductPackageFile
 
 __version__ = '4.1.1.27'
 
+USER_AGENT = "opsi-package-manager/%s" % __version__
+
 logger = Logger()
 
 try:
@@ -723,7 +725,7 @@ class OpsiPackageManager(object):
 				username=depotId,
 				password=depot.getOpsiHostKey(),
 				address=depotId,
-				application='opsi-package-manager version %s' % __version__
+				application=USER_AGENT,
 			)
 
 		return self.depotConnections[depotId]
@@ -961,7 +963,7 @@ class OpsiPackageManager(object):
 				username=depotId,
 				password=depot.opsiHostKey,
 				maxBandwidth=maxBandwidth * 1000,
-				application='opsi-package-manager version %s' % __version__
+				application=USER_AGENT,
 			)
 
 			for dest in repository.content():
@@ -1540,7 +1542,7 @@ class OpsiPackageManagerControl(object):
 			sys.exit(0)
 
 		if self.opts.version:
-			print(u"opsi-package-manager version %s" % __version__)
+			print(USER_AGENT)  # TODO: shared variable?
 			sys.exit(0)
 
 		self.setDefaultConfig()

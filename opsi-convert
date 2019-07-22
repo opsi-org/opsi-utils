@@ -270,7 +270,7 @@ def createBackend(config):
 			logger.debug(u"Trying with a direct connection.")
 			backend = JSONRPCBackend(
 				deflate=True,
-				application='opsi-convert v{0}'.format(__version__),
+				application='opsi-convert/%s' % __version__,
 				**config
 			)
 		else:
