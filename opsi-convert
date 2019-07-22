@@ -45,7 +45,7 @@ from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Backend.Replicator import BackendReplicator
 
-__version__ = '4.1.1.26'
+__version__ = '4.1.1.33'
 
 logLevel = LOG_NONE
 logger = Logger()
@@ -270,7 +270,7 @@ def createBackend(config):
 			logger.debug(u"Trying with a direct connection.")
 			backend = JSONRPCBackend(
 				deflate=True,
-				application='opsi-convert v{0}'.format(__version__),
+				application='opsi-convert/%s' % __version__,
 				**config
 			)
 		else:
