@@ -715,17 +715,20 @@ class OpsiPackageManager(object):
 			productPackageFile.cleanup()
 
 	def getDepotConnection(self, depotId):
-		if depotId not in self.depotConnections:
+		try:
+			connection = self.depotConnections[depotId]
+		except KeyError:
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 
-			self.depotConnections[depotId] = JSONRPCBackend(
+			connection = JSONRPCBackend(
 				username=depotId,
 				password=depot.getOpsiHostKey(),
 				address=depotId,
-				application='opsi-package-manager version %s' % __version__
+				application='opsi-package-manager/%s' % __version__
 			)
+			self.depotConnections[depotId] = connection
 
-		return self.depotConnections[depotId]
+		return connection
 
 	def getRunningTransfers(self):
 		with self.runningTransfersLock:
@@ -1336,13 +1339,14 @@ class OpsiPackageManager(object):
 				logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
 				subject.setMessage(_(u"Installing package %s") % packageFile)
 
-			product = self.getPackageControlFile(packageFile).getProduct()
+			packageControlFile = self.getPackageControlFile(packageFile)
+			product = packageControlFile.getProduct()
 			if self.config['newProductId']:
 				product.setId(self.config['newProductId'])
 			productId = product.getId()
 
 			propertyDefaultValues = {}
-			for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
+			for productProperty in packageControlFile.getProductProperties():
 				if self.config['newProductId']:
 					productProperty.productId = productId
 
@@ -1768,7 +1772,7 @@ class OpsiPackageManagerControl(object):
 				productOnDepot = productOnDepotInfo[depotId][productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
 				print((u"%s%*s %*s %*s" % (indent, -1 * idWidth, productId,
-						-1 * versionWidth, product.productVersion + u'-' + product.packageVersion,
+						-1 * versionWidth, product.version,
 						-1 * nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding, 'replace'))
 			print("")
 
@@ -1822,7 +1826,7 @@ class OpsiPackageManagerControl(object):
 					differs = True
 
 				lines.append(
-					u"    {depotId:<{width}}: {product.productVersion}-{product.packageVersion}".format(
+					u"    {depotId:<{width}}: {product.version}".format(
 						depotId=depotId,
 						width=maxWidth,
 						product=productOnDepot
