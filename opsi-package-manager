@@ -43,7 +43,6 @@ import time
 from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
-from duplicity import librsync
 
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -51,7 +50,7 @@ from OPSI.Logger import LOG_INFO, LOG_NONE, LOG_WARNING, Logger
 from OPSI.Types import (forceActionRequest, forceBool, forceHostId, forceInt,
 	forceList, forceProductId, forceUnicode, forceUnicodeList)
 from OPSI.UI import SnackUI
-from OPSI.Util import md5sum, getfqdn
+from OPSI.Util import md5sum, getfqdn, librsyncDeltaFile
 from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 	ProgressSubject, SubjectsObserver)
@@ -1048,17 +1047,7 @@ class OpsiPackageManager(object):
 
 						deltaFile = os.path.join(self.config['tempDir'], deltaFilename)
 
-						bufsize = 1024 * 1024
-						with open(packageFile, "rb") as bf:
-							with open(deltaFile, "wb") as df:
-								ldf = librsync.DeltaFile(sig, bf)
-
-								data = True
-								while data:
-									data = ldf.read(bufsize)
-									df.write(data)
-
-								ldf.close()
+						librsyncDeltaFile(packageFile, sig, deltafile)
 
 						packageSize = os.stat(packageFile)[stat.ST_SIZE]
 						deltaSize = os.stat(deltaFile)[stat.ST_SIZE]
