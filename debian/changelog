@@ -1,3 +1,10 @@
+opsi-utils (4.1.1.33-2) stable; urgency=medium
+
+  * opsi-package-updater: It is now possible to configure a global proxy in
+    opsi-package-updater.conf. It can be overriden per repo.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 07 Aug 2019 14:18:06 +0200
+
 opsi-utils (4.1.1.33-1) stable; urgency=medium
 
   * opsi-package-manager: Delta file creation uses the configured temp dir.
