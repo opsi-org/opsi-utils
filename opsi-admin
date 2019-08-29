@@ -27,16 +27,17 @@ opsi-admin - a commandline tool for accessing opsi.
 :license: GNU Affero General Public License version 3
 """
 
+import argparse
 import codecs
 import curses
 import fcntl
 import gettext
-import getopt
 import getpass
 import json
 import locale
 import os
 import os.path
+import pwd
 import select
 import subprocess
 import sys
@@ -132,100 +133,77 @@ def signalHandler(signo, stackFrame):
 		sys.exit(0)
 
 
-def usage():
-	print((u"\n" + _(u"Usage: %s [options] [command] [args...]") % os.path.basename(sys.argv[0])).encode(outEncoding))
-	print((_(u"Options:")).encode(outEncoding))
-	print((u"  -h, --help           " + _(u"Display this text")).encode(outEncoding))
-	print((u"  -V, --version        " + _(u"Show version and exit")).encode(outEncoding))
-	print((u"  -u, --username       " + _(u"Username (default: current user)")).encode(outEncoding))
-	print((u"  -p, --password       " + _(u"Password (default: prompt for password)")).encode(outEncoding))
-	print((u"  -a, --address        " + _(u"URL of opsiconfd (default: https://localhost:4447/rpc)")).encode(outEncoding))
-	print((u"  -d, --direct         " + _(u"Do not use opsiconfd")).encode(outEncoding))
-	print((u"      --no-depot       " + _(u"Do not use depotserver backend")).encode(outEncoding))
-	print((u"  -l, --log-level      " + _(u"Set log level (default: 3)")).encode(outEncoding))
-	print((u"                       " + _(u"0=nothing, 1=essential, 2=critical, 3=error, 4=warning")).encode(outEncoding))
-	print((u"                       " + _(u"5=notice, 6=info, 7=debug, 8=debug2, 9=confidential")).encode(outEncoding))
-	print((u"  -f, --log-file       " + _(u"Path to log file")).encode(outEncoding))
-	print((u"  -i, --interactive    " + _(u"Start in interactive mode")).encode(outEncoding))
-	print((u"  -c, --colorize       " + _(u"Colorize output")).encode(outEncoding))
-	print((u"  -S, --simple-output  " + _(u"Simple output (only for scalars, lists)")).encode(outEncoding))
-	print((u"  -s, --shell-output   " + _(u"Shell output")).encode(outEncoding))
-	print((u"  -r, --raw-output     " + _(u"Raw output")).encode(outEncoding))
-	print((u"  --exit-zero          " + _(u"Always exit with exit code 0.")).encode(outEncoding))
-	print((u"").encode(outEncoding))
-
-
 def main(argv):
 	os.umask(0o077)
 	global interactive
 	global exitZero
+	global logFile
 
 	try:
-		import pwd
 		username = forceUnicode(pwd.getpwuid(os.getuid())[0])
 	except Exception:
 		username = u''
 
-	password = u''
-	address = u'https://localhost:4447/rpc'
-	output = u'JSON'
-	color = False
-	direct = False
-	depotBackend = True
-	logLevel = LOG_NONE
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--version', '-V', action='version',
+						version=__version__, help=_("Show version and exit"))
+	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_WARNING,
+						type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+						help=_(u"Set log level (default: 3)"))
+	parser.add_argument("--log-file", metavar='FILE', dest="logFile",
+						help=_(u"Path to log file"))
+	parser.add_argument('--address', '-a', default='https://localhost:4447/rpc',
+						help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"))
+	parser.add_argument('--username', '-u', default=username,
+						help=_(u"Username (default: current user)"))
+	parser.add_argument('--password', '-p',
+						help=_(u"Password (default: prompt for password)"))
+	parser.add_argument('--direct', '-d', action='store_true',
+						help=_(u"Do not use opsiconfd"))
+	parser.add_argument('--no-depot', dest="depot",
+						action="store_false", default=True,
+						help=_(u"Do not use depotserver backend"))
+	parser.add_argument('--interactive', '-i', action="store_true",
+						help=_(u"Start in interactive mode"))
+	parser.add_argument('--exit-zero', dest="exitZero", action='store_true',
+						help=_(u"Always exit with exit code 0."))
 
-	try:
-		(opts, args) = getopt.getopt(argv, "u:p:a:l:f:dicsSrhV",
-			[
-				"username=", "password=", "address=", "loglevel=",
-				"log-level=", "log-file=", "interactive", "direct", "no-depot",
-				"colorize", "shell-output", "simple-output", "raw-output",
-				"help", "version", "exit-zero"
-			]
-		)
-	except getopt.GetoptError:
-		usage()
-		sys.exit(1)
+	outputGroup = parser.add_argument_group(title=_("Output"))
+	outputGroup.add_argument('--colorize', '-c', action="store_true",
+						help=_(u"Colorize output"))
 
-	for (opt, arg) in opts:
-		if opt in ("-h", "--help"):
-			usage()
-			sys.exit(0)
-		elif opt in ("-V", "--version"):
-			print("%s %s" % (os.path.basename(sys.argv[0]), __version__))
-			sys.exit(0)
-		elif opt in ("-u", "--username"):
-			username = forceUnicode(arg)
-		elif opt in ("-p", "--password"):
-			password = forceUnicode(arg)
-		elif opt in ("-l", "--log-level", "--loglevel"):
-			logLevel = forceInt(arg)
-		elif opt in ("-f", "--log-file"):
-			global logFile
-			logFile = forceFilename(arg)
-		elif opt in ("-a", "--address"):
-			address = forceUnicode(arg)
-		elif opt in ("-d", "--direct"):
-			direct = True
-		elif opt in ("--no-depot",):
-			depotBackend = False
-		elif opt in ("-i", "--interactive"):
-			interactive = True
-		elif opt in ("-c", "--colorize"):
-			color = True
-		elif opt in ("-s", "--shell-output"):
-			output = u'SHELL'
-		elif opt in ("-S", "--simple-output"):
-			output = u'SIMPLE'
-		elif opt in ("-r", "--raw-output"):
-			output = u'RAW'
-		elif opt == '--exit-zero':
-			exitZero = True
+	outputFormat = outputGroup.add_mutually_exclusive_group()
+	outputFormat.add_argument(
+		'--simple-output', '-S', dest='output', const='SIMPLE', action='store_const',
+		help=_(u"Simple output (only for scalars, lists)"))
+	outputFormat.add_argument(
+		'--shell-output', '-s', dest='output', const='SHELL', action='store_const',
+		help=_(u"Shell output"))
+	outputFormat.add_argument(
+		'--raw-output', '-r', dest='output', const='RAW', action='store_const',
+		help=_(u"Raw output"))
+
+	parser.add_argument('command', nargs=argparse.REMAINDER,
+						help=_("Command to execute."))
+
+	options = parser.parse_args()
+
+	username = options.username
+	password = options.password
+
+	logFile = forceFilename(options.logFile)
+	address = options.address
+	direct = options.direct
+	depotBackend = options.depot
+	interactive = options.interactive
+	color = options.colorize
+	output = options.output or 'JSON'
+	exitZero = options.exitZero
 
 	if logFile:
-		startLogFile(logFile, logLevel)
+		startLogFile(logFile, options.logLevel)
 
-	logger.setConsoleLevel(logLevel)
+	logger.setConsoleLevel(options.logLevel)
 	logger.setColor(color)
 
 	if interactive:
@@ -289,16 +267,14 @@ def main(argv):
 					logger.error(u"Failed to write session file '%s': %s" % (os.path.join(opsiadminUserDir, u'session'), forceUnicode(error)))
 
 		cmdline = u''
-		if len(args) > 0:
-			for i in range(len(args)):
-				args[i] = unicode(args[i], inEncoding)
-				logger.info(u"arg[%d]: %s" % (i, args[i]))
-				if i == 0:
-					cmdline = args[i]
-				elif (args[i].find(u' ') != -1) or (len(args[i]) == 0):
-					cmdline += u" '%s'" % args[i]
-				else:
-					cmdline += u" %s" % args[i]
+		for i, argument in enumerate(options.command, start=0):
+			logger.info(u"arg[{}]: {}", i, argument)
+			if i == 0:
+				cmdline = argument
+			elif ' ' in argument or len(argument) == 0:
+				cmdline += u" '%s'" % argument
+			else:
+				cmdline += u" %s" % argument
 
 		(readSelection, _unused, _unused) = select.select([sys.stdin], [], [], 0.2)
 		if sys.stdin in readSelection:
@@ -363,8 +339,7 @@ To exit opsi-admin please type 'exit'."""
 				logger.logException(forceUnicode(error))
 				raise error
 		else:
-			usage()
-			sys.exit(1)
+			raise RuntimeError("Not running in interactive mode and no commandline arguments given.")
 	finally:
 		if backend:
 			try:
