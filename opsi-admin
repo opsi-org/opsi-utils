@@ -147,7 +147,7 @@ def main(argv):
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version',
 						version=__version__, help=_("Show version and exit"))
-	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_ERROR,
+	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_WARNING,
 						type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 						help=_(u"Set log level (default: 3)"))
 	parser.add_argument("--log-file", metavar='FILE', dest="logFile",
