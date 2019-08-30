@@ -12,13 +12,13 @@ Requires:       python >= 2.7
 Requires:       python-opsi >= 4.1.1.71
 Requires:       zsync
 Url:            http://www.opsi.org
-License:        GPLv2+
+License:        AGPL-3.0-only
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        4.0.7.5
-Release:        1
-Summary:        Tools for working on a opsi server.
-Source:         opsi-utils_4.0.7.5-1.tar.gz
+Version:        4.1.1.33
+Release:        3
+Summary:        Tools for working on a opsi server
+Source:         opsi-utils_4.1.1.33-3.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
