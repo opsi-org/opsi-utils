@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.33-3) testing; urgency=medium
+
+  * corrected RPM licensing
+
+ -- Mathias Radtke <m.radtke@uib.de>  Fri, 30 Aug 2019 09:11:33 +0200
+
 opsi-utils (4.1.1.33-2) stable; urgency=medium
 
   * opsi-package-updater: It is now possible to configure a global proxy in
