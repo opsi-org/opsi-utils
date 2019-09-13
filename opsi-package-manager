@@ -54,9 +54,12 @@ from OPSI.Util.Message import (MessageSubject, ProgressObserver,
 	ProgressSubject, SubjectsObserver)
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
-from OPSI.Util.Sync import librsyncDeltaFile
+try:
+	from OPSI.Util.Sync import librsyncDeltaFile
+except ImportError:
+	librsyncDeltaFile = None
 
-__version__ = '4.2.0.3'
+__version__ = '4.2.0.4'
 
 logger = Logger()
 
@@ -1868,7 +1871,7 @@ class OpsiPackageManagerControl(object):
 			'properties': u'keep',
 			'maxTransfers': 0,
 			'maxBandwidth': 0,  # Kbyte/s
-			'deltaUpload': True,
+			'deltaUpload': True if librsyncDeltaFile is not None else False,
 			'newProductId': None,
 			'depotIds': None,
 			'uploadToLocalDepot': False,
