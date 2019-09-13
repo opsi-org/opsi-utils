@@ -4,7 +4,7 @@
 # opsi-newprod is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 
-# Copyright (C) 2010-2018 uib GmbH - http://www.uib.de/
+# Copyright (C) 2010-2019 uib GmbH - http://www.uib.de/
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -668,7 +668,7 @@ copied to ``productDirectory``
 	# Create preinst template
 	preinstFilePath = os.path.join(productDirectory, 'OPSI', 'preinst')
 	with codecs.open(preinstFilePath, 'w', 'utf-8') as preinst:
-		preinst.write(u'#! /bin/bash\n')
+		preinst.write(u'#!/bin/bash\n')
 		preinst.write(u'#\n')
 		preinst.write(u'# preinst script\n')
 		preinst.write(u'# This script executes before that package will be unpacked from its archive file.\n')
@@ -680,7 +680,7 @@ copied to ``productDirectory``
 	# Create postinst template
 	postinstFilePath = os.path.join(productDirectory, 'OPSI', 'postinst')
 	with codecs.open(postinstFilePath, 'w', 'utf-8') as postinst:
-		postinst.write(u'#! /bin/bash\n')
+		postinst.write(u'#!/bin/bash\n')
 		postinst.write(u'#\n')
 		postinst.write(u'# postinst script\n')
 		postinst.write(u'# This script executes after unpacking files from that archive and registering the product at the depot.\n')

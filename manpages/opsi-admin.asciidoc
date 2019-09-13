@@ -39,6 +39,10 @@ will ask for the password.
 URL of opsiconfd webinterface.
 Default is "https://localhost:4447/rpc".
 
+*--opsirc*::
+Path to the opsirc file to use (default: ~/.opsi.org/opsirc).
+An opsirc file contains login credentials to the web API.
+
 *-d, --direct*::
 Direkt backend access. This bypasses the opsiconfd.
 
@@ -86,5 +90,5 @@ See <http://www.opsi.org/> for more information.
 
 COPYING
 -------
-Copyright \(C) 2013-2018 uib GmbH.
-This software is released under the GNU General Public License version 2.
+Copyright \(C) 2013-2019 uib GmbH.
+This software is released under the GNU Affero GPL version 3.

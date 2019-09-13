@@ -1,7 +1,7 @@
 #
 # spec file for package opsi-utils
 #
-# Copyright (c) 2010-2018 uib GmbH.
+# Copyright (c) 2010-2019 uib GmbH.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
@@ -12,7 +12,7 @@ Requires:       python3
 Requires:       python3-opsi >= 4.2
 Requires:       zsync
 Url:            http://www.opsi.org
-License:        GPLv2+
+License:        AGPL-3.0-only
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
 Version:        4.2.0.1
@@ -199,9 +199,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-linux.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-local_image.repo
 %attr(660,root,opsiadmin) %config(noreplace) /etc/opsi/package-updater.repos.d/uib-windows.repo
-%config /etc/logrotate.d/opsi-backup
-%config /etc/logrotate.d/opsi-package-manager
-%config /etc/logrotate.d/opsi-package-updater
+%attr(644,root,root) %config /etc/logrotate.d/opsi-backup
+%attr(644,root,root) %config /etc/logrotate.d/opsi-package-manager
+%attr(644,root,root) %config /etc/logrotate.d/opsi-package-updater
 
 # other files
 /usr/bin/opsi-admin
