@@ -22,6 +22,76 @@ opsi-utils (4.2.0.1-1) experimental; urgency=medium
 
  -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 07 Nov 2018 08:56:49 +0100
 
+opsi-utils (4.1.1.33-3) testing; urgency=medium
+
+  * corrected RPM licensing
+
+ -- Mathias Radtke <m.radtke@uib.de>  Fri, 30 Aug 2019 09:11:33 +0200
+
+opsi-utils (4.1.1.33-2) stable; urgency=medium
+
+  * opsi-package-updater: It is now possible to configure a global proxy in
+    opsi-package-updater.conf. It can be overriden per repo.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Wed, 07 Aug 2019 14:18:06 +0200
+
+opsi-utils (4.1.1.33-1) stable; urgency=medium
+
+  * opsi-package-manager: Delta file creation uses the configured temp dir.
+  * opsi-package-manager: Use functionality from python-opsi for creating a
+    librsync delta file.
+  * Use an RFC 2616 compatible User-Agent in opsi-admin, opsi-convert and
+    opsi-package-manager.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 22 Jul 2019 10:04:28 +0200
+
+opsi-utils (4.1.1.32-2) stable; urgency=medium
+
+  * RPM: Change access rights for logrotate configs to 644.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Fri, 17 May 2019 13:41:05 +0200
+
+opsi-utils (4.1.1.32-1) stable; urgency=medium
+
+  * opsi-newprod: Fix naming interpreter in shebang line in templates for
+    preinst and postinst.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 30 Apr 2019 13:33:16 +0200
+
+opsi-utils (4.1.1.31-2) stable; urgency=medium
+
+  * opsi-admin manpage: Added --opsirc.
+  * Updated translations: de, ru
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Mon, 01 Apr 2019 17:20:14 +0200
+
+opsi-utils (4.1.1.31-1) stable; urgency=medium
+
+  * opsi-admin: Fix wrong reference.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 12 Mar 2019 10:55:54 +0100
+
+opsi-utils (4.1.1.30-1) stable; urgency=medium
+
+  * opsi-admin: Only show error message about reading session information
+    if an session file exists.
+  * opsi-admin: Added support for using an opsirc file via --opsirc.
+  * opsi-admin: History and session ID are now stored in ~/.opsi.org/
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 19 Feb 2019 17:07:15 +0100
+
+opsi-utils (4.1.1.29-1) stable; urgency=medium
+
+  * opsi-admin: Fix bug in calling task
+    setActionRequestWhereOutdatedWithDependencies.
+    This method remains obsolete and the corresponding method should be used.
+  * opsi-admin: Logfile in interactive mode will use loglevel 7.
+  * opsi-admin: Set default loglevel to 3.
+  * opsi-backup: Small internal refactoring.
+  * opsi-package-updater: Improved text for --help.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 07 Feb 2019 16:53:11 +0100
+
 opsi-utils (4.1.1.28-1) stable; urgency=medium
 
   * opsi-package-manager: Propagate problems when executing tasks instead
