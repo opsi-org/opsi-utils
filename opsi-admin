@@ -556,7 +556,7 @@ class Shell:
 		self.linesMax = self.yMax - height - 1
 		self.screen.move(self.yMax - height, 0)
 		self.screen.clrtoeol()
-		shellLine = self.prompt + u' ' + self.cmdline + u' ' * clear
+		shellLine = "%s %s%s" % (self.prompt, self.cmdline, u' ' * clear)
 		try:
 			self.screen.addstr(shellLine, curses.A_BOLD)
 		except Exception as error:
@@ -963,15 +963,15 @@ class Shell:
 					if self.paramPos < 0:
 						self.currentParam = ""
 
-					self.lines.append(
-						{
-							"text": self.prompt + ' ' +
-									self.cmdline[:self.pos - len(self.currentParam)] +
-									match.strip() +
-									self.cmdline[self.pos:],
-							"color": None
-						}
+					text = (
+						"%s %s%s%s" % (
+							self.prompt,
+							self.cmdline[:self.pos - len(self.currentParam)],
+							match.strip(),
+							self.cmdline[self.pos:]
+						)
 					)
+					self.lines.append({"text": text, "color": None})
 
 					self.lines.extend(lines)
 
