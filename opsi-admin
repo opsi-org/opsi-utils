@@ -1020,7 +1020,8 @@ class Shell:
 							newPos = self.pos + 1
 							newCmdline = self.cmdline[0:self.pos] + char + self.cmdline[self.pos:]
 					except Exception as error:
-						logger.error("Failed to add char '%s': %s" % (char, forceUnicode(error)))
+						logger.error("Failed to add char %r: %s" % (char, forceUnicode(error)))
+
 				try:
 					if self.reverseSearch is not None:
 						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
