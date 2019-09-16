@@ -60,7 +60,7 @@ try:
 except ImportError:
 	librsyncDeltaFile = None
 
-__version__ = '4.2.0.4'
+__version__ = '4.2.0.5'
 
 USER_AGENT = "opsi-package-manager/%s" % __version__
 
@@ -144,7 +144,6 @@ class CursesWindow:
 		self.title = forceUnicode(title)
 		self.border = forceBool(border)
 		self.color = None
-		self.encoding = locale.getpreferredencoding()
 		self.win = curses.newwin(self.height, self.width, self.y, self.x)
 		if self.border:
 			self.win.border()
@@ -208,7 +207,7 @@ class CursesWindow:
 			newAttr = []
 			for i in range(len(attr)):
 				if i == 0:
-					newAttr.append(forceUnicode(attr[i]).encode(self.encoding, 'replace'))
+					newAttr.append(forceUnicode(attr[i]))
 				else:
 					newAttr.append(attr[i])
 			newAttr = tuple(newAttr)
@@ -1492,7 +1491,6 @@ class OpsiPackageManagerControl(object):
 		os.umask(0o077)
 		self._pid = 0
 		self._opm = None
-		self.encoding = locale.getpreferredencoding()
 
 		# Call signalHandler on signal SIGTERM, SIGINT
 		signal(SIGTERM, self.signalHandler)
@@ -1651,13 +1649,13 @@ class OpsiPackageManagerControl(object):
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
 			if errors:
-				print(_(u"Errors occurred: ").encode(self.encoding, 'replace'), file=sys.stderr)
+				print(_(u"Errors occurred: "), file=sys.stderr)
 				for (name, errs) in errors.items():
 					logger.error(u"Failure while processing %s:" % name)
-					print("   " + (_(u"Failure while processing %s:") % name).encode(self.encoding, 'replace'), file=sys.stderr)
+					print("   " + (_(u"Failure while processing %s:") % name), file=sys.stderr)
 					for err in errs:
 						logger.error(u"      %s" % err)
-						print((u"      %s" % err).encode(self.encoding, 'replace'), file=sys.stderr)
+						print((u"      %s" % err), file=sys.stderr)
 
 				raise TaskError("{} errors during the processing of tasks.".format(len(errors)))
 
@@ -1763,22 +1761,31 @@ class OpsiPackageManagerControl(object):
 			return
 
 		for (depotId, values) in productOnDepotInfo.items():
-			print((u"-" * (len(depotId) + 4)).encode(self.encoding, 'replace'))
-			print((u"- %s -" % depotId).encode(self.encoding, 'replace'))
-			print((u"-" * (len(depotId) + 4)).encode(self.encoding, 'replace'))
-			print((u"%s%*s %*s %*s" % (indent, -1 * idWidth, u'Product ID',
-						-1 * versionWidth, u'Version',
-						-1 * nameWidth, u'Name')).encode(self.encoding, 'replace'))
-			print((u"%s%s" % (indent, "=" * (terminalWidth - len(indent) - 2))).encode(self.encoding, 'replace'))
+			print(u"-" * (len(depotId) + 4))
+			print(u"- %s -" % depotId)
+			print(u"-" * (len(depotId) + 4))
+			print(u"%s%*s %*s %*s" % (
+				indent, -1 * idWidth,
+				u'Product ID',
+				-1 * versionWidth, u'Version',
+				-1 * nameWidth, u'Name'))
+			print(u"%s%s" % (indent, "=" * (terminalWidth - len(indent) - 2)))
 			productIds = list(values.keys())
 			productIds.sort()
 
 			for productId in productIds:
 				productOnDepot = productOnDepotInfo[depotId][productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
-				print((u"%s%*s %*s %*s" % (indent, -1 * idWidth, productId,
-						-1 * versionWidth, product.version,
-						-1 * nameWidth, product.name.replace(u'\n', u'')[:nameWidth])).encode(self.encoding, 'replace'))
+				print(
+					u"%s%*s %*s %*s" % (
+						indent, -1 * idWidth,
+						productId,
+						-1 * versionWidth,
+						product.version,
+						-1 * nameWidth,
+						product.name.replace(u'\n', u'')[:nameWidth]
+					)
+				)
 			print("")
 
 	def processDifferencesCommand(self):
@@ -1841,12 +1848,12 @@ class OpsiPackageManagerControl(object):
 			if differs:
 				depotsInSync = False
 				for line in lines:
-					print(line.encode(self.encoding, 'replace'))
+					print(line)
 				print("")
 
 		if depotsInSync:
 			syncMessage = _("There are no differences between the depots")
-			print(syncMessage.encode(self.encoding, 'replace'))
+			print(syncMessage)
 
 	def processUploadCommand(self):
 		self._opm = OpsiPackageManager(self.config, self.backend)
@@ -2066,5 +2073,5 @@ if __name__ == "__main__":
 		pass
 	except Exception as exception:
 		logger.logException(exception)
-		print((u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace'), file=sys.stderr)
+		print(u"\nERROR: %s\n" % exception, file=sys.stderr)
 		sys.exit(1)

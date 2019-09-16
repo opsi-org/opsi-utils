@@ -52,15 +52,14 @@ from OPSI.Logger import (
 	LOG_NONE, LOG_ERROR, LOG_DEBUG, Logger)
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
-from OPSI.Types import (
-	forceBool, forceFilename, forceInt, forceUnicode, forceUnicodeLower)
+from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from OPSI.Util import (
 	blowfishDecrypt, deserialize, fromJson, getfqdn,
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
 
 
-__version__ = '4.2.0.3'
+__version__ = '4.2.0.5'
 
 backend = None
 exitZero = False
@@ -148,7 +147,7 @@ def main(argv):
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version',
 						version=__version__, help=_("Show version and exit"))
-	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_ERROR,
+	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_WARNING,
 						type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 						help=_(u"Set log level (default: 3)"))
 	parser.add_argument("--log-file", metavar='FILE', dest="logFile",
@@ -159,6 +158,11 @@ def main(argv):
 						help=_(u"Username (default: current user)"))
 	parser.add_argument('--password', '-p',
 						help=_(u"Password (default: prompt for password)"))
+	parser.add_argument('--opsirc', default=getOpsircPath(),
+						help=(
+							_(u"Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
+							_(u"An opsirc file contains login credentials to the web API.")
+						))
 	parser.add_argument('--direct', '-d', action='store_true',
 						help=_(u"Do not use opsiconfd"))
 	parser.add_argument('--no-depot', dest="depot",
@@ -191,6 +195,7 @@ def main(argv):
 
 	username = options.username
 	password = options.password
+	opsircfile = options.opsirc
 
 	logFile = forceFilename(options.logFile)
 	address = options.address
@@ -556,7 +561,7 @@ class Shell:
 		self.linesMax = self.yMax - height - 1
 		self.screen.move(self.yMax - height, 0)
 		self.screen.clrtoeol()
-		shellLine = self.prompt + u' ' + self.cmdline + u' ' * clear
+		shellLine = "%s %s%s" % (self.prompt, self.cmdline, u' ' * clear)
 		try:
 			self.screen.addstr(shellLine, curses.A_BOLD)
 		except Exception as error:
@@ -963,15 +968,15 @@ class Shell:
 					if self.paramPos < 0:
 						self.currentParam = ""
 
-					self.lines.append(
-						{
-							"text": self.prompt + ' ' +
-									self.cmdline[:self.pos - len(self.currentParam)] +
-									match.strip() +
-									self.cmdline[self.pos:],
-							"color": None
-						}
+					text = (
+						"%s %s%s%s" % (
+							self.prompt,
+							self.cmdline[:self.pos - len(self.currentParam)],
+							match.strip(),
+							self.cmdline[self.pos:]
+						)
 					)
+					self.lines.append({"text": text, "color": None})
 
 					self.lines.extend(lines)
 
@@ -1007,12 +1012,14 @@ class Shell:
 					try:
 						curses.ungetch(char)
 						char = self.screen.getkey()
+						logger.debug2("Current char: %r" % char)
 
-						try:
-							char = str(char, inEncoding)
-						except Exception:
-							char += self.screen.getkey()
-							char = str(char, inEncoding)
+						if not isinstance(char, str):
+							try:
+								char = str(char)
+							except Exception:
+								char += self.screen.getkey()
+								char = str(char)
 
 						if self.reverseSearch is not None:
 							self.reverseSearch += char
@@ -1020,7 +1027,8 @@ class Shell:
 							newPos = self.pos + 1
 							newCmdline = self.cmdline[0:self.pos] + char + self.cmdline[self.pos:]
 					except Exception as error:
-						logger.error("Failed to add char '%s': %s" % (char, forceUnicode(error)))
+						logger.error("Failed to add char %r: %s" % (char, forceUnicode(error)))
+
 				try:
 					if self.reverseSearch is not None:
 						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
