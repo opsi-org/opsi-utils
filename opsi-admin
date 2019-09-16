@@ -158,6 +158,11 @@ def main(argv):
 						help=_(u"Username (default: current user)"))
 	parser.add_argument('--password', '-p',
 						help=_(u"Password (default: prompt for password)"))
+	parser.add_argument('--opsirc', default=getOpsircPath(),
+						help=(
+							_(u"Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
+							_(u"An opsirc file contains login credentials to the web API.")
+						))
 	parser.add_argument('--direct', '-d', action='store_true',
 						help=_(u"Do not use opsiconfd"))
 	parser.add_argument('--no-depot', dest="depot",
@@ -190,6 +195,7 @@ def main(argv):
 
 	username = options.username
 	password = options.password
+	opsircfile = options.opsirc
 
 	logFile = forceFilename(options.logFile)
 	address = options.address
