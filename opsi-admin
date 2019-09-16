@@ -52,8 +52,7 @@ from OPSI.Logger import (
 	LOG_NONE, LOG_ERROR, LOG_DEBUG, Logger)
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
-from OPSI.Types import (
-	forceBool, forceFilename, forceInt, forceUnicode, forceUnicodeLower)
+from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from OPSI.Util import (
 	blowfishDecrypt, deserialize, fromJson, getfqdn,
 	objectToBeautifiedText, objectToBash, serialize, toJson)
