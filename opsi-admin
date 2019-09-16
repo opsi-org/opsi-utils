@@ -963,15 +963,15 @@ class Shell:
 					if self.paramPos < 0:
 						self.currentParam = ""
 
-					self.lines.append(
-						{
-							"text": self.prompt + ' ' +
-									self.cmdline[:self.pos - len(self.currentParam)] +
-									match.strip() +
-									self.cmdline[self.pos:],
-							"color": None
-						}
+					text = (
+						"%s %s%s%s" % (
+							self.prompt,
+							self.cmdline[:self.pos - len(self.currentParam)],
+							match.strip(),
+							self.cmdline[self.pos:]
+						)
 					)
+					self.lines.append({"text": text, "color": None})
 
 					self.lines.extend(lines)
 
