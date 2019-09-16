@@ -1007,12 +1007,14 @@ class Shell:
 					try:
 						curses.ungetch(char)
 						char = self.screen.getkey()
+						logger.debug2("Current char: %r" % char)
 
-						try:
-							char = str(char, inEncoding)
-						except Exception:
-							char += self.screen.getkey()
-							char = str(char, inEncoding)
+						if not isinstance(char, str):
+							try:
+								char = str(char)
+							except Exception:
+								char += self.screen.getkey()
+								char = str(char)
 
 						if self.reverseSearch is not None:
 							self.reverseSearch += char
