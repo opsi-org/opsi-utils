@@ -556,7 +556,7 @@ class Shell:
 		self.linesMax = self.yMax - height - 1
 		self.screen.move(self.yMax - height, 0)
 		self.screen.clrtoeol()
-		shellLine = self.prompt + u' ' + self.cmdline + u' ' * clear
+		shellLine = "%s %s%s" % (self.prompt, self.cmdline, u' ' * clear)
 		try:
 			self.screen.addstr(shellLine, curses.A_BOLD)
 		except Exception as error:
