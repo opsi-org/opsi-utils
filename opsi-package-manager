@@ -60,7 +60,7 @@ try:
 except ImportError:
 	librsyncDeltaFile = None
 
-__version__ = '4.2.0.4'
+__version__ = '4.2.0.5'
 
 USER_AGENT = "opsi-package-manager/%s" % __version__
 
