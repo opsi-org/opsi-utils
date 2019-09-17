@@ -1,3 +1,9 @@
+opsi-utils (4.2.0.6-1) testing; urgency=medium
+
+  * opsi-admin: Added missing import.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Tue, 17 Sep 2019 08:17:24 +0200
+
 opsi-utils (4.2.0.5-1) testing; urgency=medium
 
   * opsi-admin: Default loglevel set to WARNING.
