@@ -49,7 +49,7 @@ from OPSI.Exceptions import OpsiRpcError
 from OPSI.Logger import (
 	COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_NORMAL,
 	COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
-	LOG_NONE, LOG_ERROR, LOG_DEBUG, Logger)
+	LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING, Logger)
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
 from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
