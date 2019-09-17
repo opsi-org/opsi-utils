@@ -49,7 +49,7 @@ from OPSI.Exceptions import OpsiRpcError
 from OPSI.Logger import (
 	COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_NORMAL,
 	COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
-	LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING, Logger)
+	LOG_NONE, LOG_ERROR, LOG_DEBUG, Logger)
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
 from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
@@ -59,7 +59,7 @@ from OPSI.Util import (
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
 
 
-__version__ = '4.2.0.6'
+__version__ = '4.2.0.5'
 
 backend = None
 exitZero = False
@@ -147,7 +147,7 @@ def main(argv):
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version',
 						version=__version__, help=_("Show version and exit"))
-	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_ERROR,
+	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_WARNING,
 						type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 						help=_(u"Set log level (default: 3)"))
 	parser.add_argument("--log-file", metavar='FILE', dest="logFile",
@@ -158,6 +158,11 @@ def main(argv):
 						help=_(u"Username (default: current user)"))
 	parser.add_argument('--password', '-p',
 						help=_(u"Password (default: prompt for password)"))
+	parser.add_argument('--opsirc', default=getOpsircPath(),
+						help=(
+							_(u"Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
+							_(u"An opsirc file contains login credentials to the web API.")
+						))
 	parser.add_argument('--direct', '-d', action='store_true',
 						help=_(u"Do not use opsiconfd"))
 	parser.add_argument('--no-depot', dest="depot",
@@ -190,8 +195,7 @@ def main(argv):
 
 	username = options.username
 	password = options.password
-
-	logFile = forceFilename(options.logFile)
+	opsircfile = options.opsirc
 	address = options.address
 	direct = options.direct
 	depotBackend = options.depot
@@ -200,7 +204,8 @@ def main(argv):
 	output = options.output or 'JSON'
 	exitZero = options.exitZero
 
-	if logFile:
+	if options.logFile:
+		logFile = forceFilename(options.logFile)
 		startLogFile(logFile, options.logLevel)
 
 	logger.setConsoleLevel(options.logLevel)
