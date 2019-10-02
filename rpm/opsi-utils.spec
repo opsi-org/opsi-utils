@@ -16,9 +16,9 @@ License:        AGPL-3.0-only
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
 Version:        4.1.1.33
-Release:        3
+Release:        4
 Summary:        Tools for working on a opsi server
-Source:         opsi-utils_4.1.1.33-3.tar.gz
+Source:         opsi-utils_4.1.1.33-4.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
