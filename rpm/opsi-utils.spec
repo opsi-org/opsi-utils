@@ -17,7 +17,7 @@ Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
 Version:        4.2.0.1
 Release:        1
-Summary:        Tools for working on a opsi server.
+Summary:        Tools for working on an opsi server.
 Source:         opsi-utils_4.2.0.1-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch

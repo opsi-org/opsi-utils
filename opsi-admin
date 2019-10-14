@@ -6,9 +6,8 @@
 # Copyright (C) 2010-2019 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
+# it under the terms of the GNU Affero General Public License version 
+# 3 as published by the Free Software Foundation 
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -196,8 +195,6 @@ def main(argv):
 	username = options.username
 	password = options.password
 	opsircfile = options.opsirc
-
-	logFile = forceFilename(options.logFile)
 	address = options.address
 	direct = options.direct
 	depotBackend = options.depot
@@ -206,7 +203,8 @@ def main(argv):
 	output = options.output or 'JSON'
 	exitZero = options.exitZero
 
-	if logFile:
+	if options.logFile:
+		logFile = forceFilename(options.logFile)
 		startLogFile(logFile, options.logLevel)
 
 	logger.setConsoleLevel(options.logLevel)
