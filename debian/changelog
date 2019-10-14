@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.33-4) testing; urgency=medium
+
+  * changed all licenses to AGPLv3 in all programs
+
+ -- Mathias Radtke <m.radtke@uib.de>  Wed, 02 Oct 2019 11:12:59 +0200
+
 opsi-utils (4.1.1.33-3) testing; urgency=medium
 
   * corrected RPM licensing
