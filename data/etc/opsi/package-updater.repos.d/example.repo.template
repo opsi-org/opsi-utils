@@ -10,7 +10,7 @@ opsiDepotId =
 baseUrl = http://download.uib.de
 ; Comma separated directories to include in search for product packages
 ; Use / if search should be done in baseUrl
-dirs = opsi4.1/stable/packages/windows/localboot/, opsi4.1/stable/packages/windows/netboot/
+dirs = opsi4.2/stable/packages/windows/localboot/, opsi4.2/stable/packages/windows/netboot/
 ; Comma separated list of productIds that will be updated
 ; If a product package file matches this regular expression it will be downloaded.
 ; Regular Expressions made under excludes can override anything under this.
