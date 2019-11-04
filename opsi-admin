@@ -666,7 +666,6 @@ class Shell:
 		self.shellCommand = u''
 		cmdline = self.cmdline
 		if '|' in cmdline:
-			split = -1
 			quoteCount = 0
 			doubleQuoteCount = 0
 			parts = cmdline.split(u'|')
@@ -674,12 +673,9 @@ class Shell:
 				quoteCount += part.count(u"'")
 				doubleQuoteCount += part.count(u'"')
 				if (quoteCount % 2 == 0) and (doubleQuoteCount % 2 == 0):
-					split = i
+					cmdline = u'|'.join(parts[:i + 1])
+					self.shellCommand = u'|'.join(parts[i + 1:]).lstrip()
 					break
-
-			if split >= 0:
-				cmdline = u'|'.join(parts[:split + 1])
-				self.shellCommand = u'|'.join(parts[split + 1:]).lstrip()
 
 		cur = 0
 		quote = None
