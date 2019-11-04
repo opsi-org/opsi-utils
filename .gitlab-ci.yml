@@ -19,4 +19,7 @@ package for OBS:
       - opsi-utils_*.tar.gz
       - opsi-utils.spec
     expire_in: 2 days
-
+  only:
+      - /^release/.*$/i
+      - tags
+      - web
