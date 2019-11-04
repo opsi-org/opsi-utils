@@ -1,0 +1,25 @@
+image: ubuntu:latest
+
+stages:
+  - package
+
+package for OBS:
+  stage: package
+  before_script:
+    - apt update
+    - apt install -y devscripts debhelper gettext
+  script:
+    - ./create_source.sh
+    - test -f opsi-utils_*.dsc
+    - test -f opsi-utils_*.tar.gz
+    - test -f opsi-utils.spec
+  artifacts:
+    paths:
+      - opsi-utils_*.dsc
+      - opsi-utils_*.tar.gz
+      - opsi-utils.spec
+    expire_in: 2 days
+  only:
+      - /^release/.*$/i
+      - tags
+      - web
