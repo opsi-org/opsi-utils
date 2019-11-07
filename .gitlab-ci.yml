@@ -8,7 +8,8 @@ build manpages:
   stage: build
   before_script:
     - apt update
-    - apt install -y gzip asciidoc
+    - DEBIAN_FRONTEND=noninteractive apt install -y tzdata
+    - apt install -y gzip asciidoc-base
   script:
     - ./recreate_manpages.sh
   artifacts:
