@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.33-5) stable; urgency=medium
+
+  * .deb postinst: Do not fail on empty /etc/opsi/package-updater.repos.d/.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 07 Nov 2019 09:13:17 +0100
+
 opsi-utils (4.1.1.33-4) testing; urgency=medium
 
   * changed all licenses to AGPLv3 in all programs
