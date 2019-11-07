@@ -9,8 +9,8 @@ case "$1" in
 		chown root:opsiadmin /etc/opsi/package-updater.repos.d
 		chmod 770 /etc/opsi/package-updater.repos.d
 
-		chown root:opsiadmin /etc/opsi/package-updater.repos.d/*
-		chmod 660 /etc/opsi/package-updater.repos.d/*
+		find /etc/opsi/package-updater.repos.d/ -type f -exec chown root:opsiadmin {} \;
+		find /etc/opsi/package-updater.repos.d/ -type f -exec chmod 660 {} \;
 
 		fileadmingroup=$(grep "fileadmingroup" /etc/opsi/opsi.conf | cut -d "=" -f 2 | sed 's/\s*//g')
 		if [ -z "$fileadmingroup" ]; then
