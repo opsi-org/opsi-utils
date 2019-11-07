@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.33-6) stable; urgency=medium
+
+  * Re-added manpages to the package.
+
+ -- Niko Wenselowski <n.wenselowski@uib.de>  Thu, 07 Nov 2019 09:43:33 +0100
+
 opsi-utils (4.1.1.33-5) stable; urgency=medium
 
   * .deb postinst: Do not fail on empty /etc/opsi/package-updater.repos.d/.
