@@ -1,7 +1,21 @@
 image: ubuntu:latest
 
 stages:
+  - build
   - package
+
+build manpages:
+  stage: build
+  before_script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive apt install -y tzdata
+    - apt install -y gzip asciidoc-base
+  script:
+    - ./recreate_manpages.sh
+  artifacts:
+    paths:
+      - manpages/compiled/*
+    expire_in: 2 days
 
 package for OBS:
   stage: package
