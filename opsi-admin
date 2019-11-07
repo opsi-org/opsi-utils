@@ -665,32 +665,31 @@ class Shell:
 		self.shellCommand = u''
 		cmdline = self.cmdline
 		if '|' in cmdline:
-			split = -1
-			qCount = 0
-			dqCount = 0
+			quoteCount = 0
+			doubleQuoteCount = 0
 			parts = cmdline.split(u'|')
-			for i in range(len(parts)):
-				qCount += parts[i].count(u"'")
-				dqCount += parts[i].count(u'"')
-				if (qCount % 2 == 0) and (dqCount % 2 == 0):
-					split = i
+			for i, part in enumerate(parts):
+				quoteCount += part.count(u"'")
+				doubleQuoteCount += part.count(u'"')
+				if (quoteCount % 2 == 0) and (doubleQuoteCount % 2 == 0):
+					cmdline = u'|'.join(parts[:i + 1])
+					self.shellCommand = u'|'.join(parts[i + 1:]).lstrip()
 					break
-			if split >= 0:
-				cmdline = u'|'.join(parts[:split + 1])
-				self.shellCommand = u'|'.join(parts[split + 1:]).lstrip()
 
 		cur = 0
 		quote = None
-
-		for i in range(len(cmdline)):
-			logger.debug2(u"parseCmdline(): char '%s', quote: %s, cur: %d, params: %s" % (cmdline[i], quote, cur, self.params))
+		for i, element in enumerate(cmdline):
+			logger.debug2(
+				u"parseCmdline(): char {!r}, quote: {!r}, cur: {!r}, params: {!r}",
+				element, quote, cur, self.params
+			)
 			if len(self.params) < cur + 1:
 				self.params.append(u'')
 
 			if i == self.pos - 1:
 				self.paramPos = cur
 
-			if cmdline[i] == u"'":
+			if element == u"'":
 				if quote is None:
 					quote = u"'"
 				elif quote == u"'":
@@ -699,8 +698,7 @@ class Shell:
 					quote = None
 				else:
 					self.params[cur] += u'\''
-
-			elif cmdline[i] == u'"':
+			elif element == u'"':
 				if quote is None:
 					self.params[cur] += u'"'
 					quote = u'"'
@@ -711,15 +709,13 @@ class Shell:
 					quote = None
 				else:
 					self.params[cur] += u'"'
-
-			elif cmdline[i] == u" ":
+			elif element == u" ":
 				if quote is not None:
-					self.params[cur] += cmdline[i]
+					self.params[cur] += element
 				elif len(self.params[cur]) > 0:
 					cur += 1
-
 			else:
-				self.params[cur] += cmdline[i]
+				self.params[cur] += element
 
 		if not quote and self.params and self.params[-1] and self.pos == len(cmdline) and cmdline.endswith(u' '):
 			self.params.append(u'')
@@ -730,19 +726,18 @@ class Shell:
 		else:
 			self.currentParam = u''
 
-		logger.debug(u"cmdline: {0}", cmdline)
+		logger.debug(u"cmdline: {!r}", cmdline)
 		logger.debug2(
-			u"paramPos: {0}, currentParam: {1}, params: {2}",
+			u"paramPos {0}, currentParam: {1!r}, params: {2!r}",
 			self.paramPos, self.currentParam, self.params
 		)
 
 		if self.paramPos >= len(self.params):
 			logger.error(
 				u"Assertion 'self.paramPos < len(self.params)' failed: "
-				u"self.paramPos: %s, len(self.params): %s" % (
-					self.paramPos,
-					len(self.params)
-				)
+				u"self.paramPos: {}, len(self.params): {}",
+				self.paramPos,
+				len(self.params)
 			)
 			self.paramPos = len(self.params) - 1
 
