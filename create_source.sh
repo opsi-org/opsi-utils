@@ -10,9 +10,7 @@ version=$(head -n1 debian/changelog | cut -d'(' -f2 | cut -d')' -f1 | cut -d'-' 
 release=$(head -n1 debian/changelog | cut -d'(' -f2 | cut -d')' -f1 | cut -d'-' -f2)
 tmpdir=/tmp/${packagename}-${version}
 
-
 cd $dir
-sh recreate_manpages.sh
 rm ${destdir}/${packagename}*.tar.gz  2>/dev/null || true
 rm ${destdir}/${packagename}*.dsc     2>/dev/null || true
 rm ${destdir}/${packagename}*.spec    2>/dev/null || true
@@ -48,4 +46,3 @@ echo "dsc file:       ${destdir}/${packagename}_${version}-${release}.dsc"
 echo "spec file:      ${destdir}/${packagename}.spec"
 echo "============================================================================================="
 cd $cwd
-
