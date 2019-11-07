@@ -1,7 +1,20 @@
 image: ubuntu:latest
 
 stages:
+  - build
   - package
+
+build manpages:
+  stage: build
+  before_script:
+    - apt update
+    - apt install -y gzip asciidoc
+  script:
+    - ./recreate_manpages.sh
+  artifacts:
+    paths:
+      - manpages/compiled/*
+    expire_in: 2 days
 
 package for OBS:
   stage: package
