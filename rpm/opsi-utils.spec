@@ -7,7 +7,11 @@
 #
 
 Name:           opsi-utils
+%if 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
+BuildRequires:  python27
+%else
 BuildRequires:  python >= 2.7
+%endif
 Requires:       python >= 2.7
 Requires:       python-opsi >= 4.1.1.71
 Requires:       zsync
@@ -16,9 +20,9 @@ License:        AGPL-3.0-only
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
 Version:        4.1.1.33
-Release:        4
+Release:        7
 Summary:        Tools for working on a opsi server
-Source:         opsi-utils_4.1.1.33-4.tar.gz
+Source:         opsi-utils_4.1.1.33-7.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
