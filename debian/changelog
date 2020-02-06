@@ -1,3 +1,15 @@
+opsi-utils (4.1.1.33-8) testing; urgency=medium
+
+  * CentOS/RHEL 8: patching python2 into scripts
+
+ -- Mathias Radtke <m.radtke@uib.de>  Wed, 18 Dec 2019 09:35:54 +0100
+
+opsi-utils (4.1.1.33-7) testing; urgency=medium
+
+  * CentOS/RHEL 8: installing python27
+
+ -- Mathias Radtke <m.radtke@uib.de>  Wed, 18 Dec 2019 09:10:59 +0100
+
 opsi-utils (4.1.1.33-6) stable; urgency=medium
 
   * Re-added manpages to the package.
