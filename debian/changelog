@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.34-1) stable; urgency=medium
+
+  * Shebang modified in scripts for RHEL/CentOS 8 support
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Thu, 06 Feb 2020 20:29:32 +0100
+
 opsi-utils (4.1.1.33-8) testing; urgency=medium
 
   * CentOS/RHEL 8: patching python2 into scripts
