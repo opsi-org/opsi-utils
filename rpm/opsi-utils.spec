@@ -20,9 +20,9 @@ License:        AGPL-3.0-only
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
 Version:        4.1.1.33
-Release:        7
+Release:        8
 Summary:        Tools for working on a opsi server
-Source:         opsi-utils_4.1.1.33-7.tar.gz
+Source:         opsi-utils_4.1.1.33-8.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
@@ -162,6 +162,16 @@ fi
 			LOGROTATE_CONFIG=data/etc/logrotate.d/opsi-package-updater
 			grep -v "su opsiconfd opsiadmin" $LOGROTATE_CONFIG > $LOGROTATE_TEMP
 			mv $LOGROTATE_TEMP $LOGROTATE_CONFIG
+			%if 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
+				sed -i "s_#! /usr/bin/env python_#! /usr/bin/env python2_" "opsi-admin" || true
+				sed -i "s_#! /usr/bin/env python_#! /usr/bin/env python2_" "opsi-backup" || true
+				sed -i "s_#! /usr/bin/env python_#! /usr/bin/env python2_" "opsi-convert" || true
+				sed -i "s_#! /usr/bin/env python_#! /usr/bin/env python2_" "opsi-makepackage" || true
+				sed -i "s_#! /usr/bin/env python_#! /usr/bin/env python2_" "opsi-newprod" || true
+				sed -i "s_#! /usr/bin/env python_#! /usr/bin/env python2_" "opsi-package-manager" || true
+				sed -i "s_#! /usr/bin/env python_#! /usr/bin/env python2_" "opsi-package-updater" || true
+				sed -i "s_#! /usr/bin/env python_#! /usr/bin/env python2_" "opsi-migrate-product-updater-configuration" || true
+			%endif
 		%endif
 	%endif
 %endif
