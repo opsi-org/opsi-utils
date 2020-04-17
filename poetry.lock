@@ -1,4 +1,12 @@
 [[package]]
+category = "dev"
+description = "Python graph (network) package"
+name = "altgraph"
+optional = false
+python-versions = "*"
+version = "0.17"
+
+[[package]]
 category = "main"
 description = "Classes Without Boilerplate"
 name = "attrs"
@@ -66,6 +74,14 @@ pep8test = ["flake8", "flake8-import-order", "pep8-naming"]
 test = ["pytest (>=3.6.0,<3.9.0 || >3.9.0,<3.9.1 || >3.9.1,<3.9.2 || >3.9.2)", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,<3.79.2 || >3.79.2)"]
 
 [[package]]
+category = "dev"
+description = "Python 2.7 backport of the \"dis\" module from Python 3.5+"
+name = "dis3"
+optional = false
+python-versions = "*"
+version = "0.1.3"
+
+[[package]]
 category = "main"
 description = "A featureful, immutable, and correct URL for Python."
 name = "hyperlink"
@@ -94,6 +110,22 @@ version = "17.5.0"
 
 [package.extras]
 scripts = ["click (>=6.0)", "twisted (>=16.4.0)"]
+
+[[package]]
+category = "main"
+description = "Python interface to MySQL"
+name = "mysqlclient"
+optional = false
+python-versions = "*"
+version = "1.4.6"
+
+[[package]]
+category = "main"
+description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
+name = "orjson"
+optional = false
+python-versions = ">=3.6"
+version = "2.6.5"
 
 [[package]]
 category = "main"
@@ -139,6 +171,19 @@ python-versions = ">=3.5"
 version = "2.0.2"
 
 [[package]]
+category = "dev"
+description = "PyInstaller bundles a Python application and all its dependencies into a single package."
+name = "pyinstaller"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "3.6"
+
+[package.dependencies]
+altgraph = "*"
+dis3 = "*"
+setuptools = "*"
+
+[[package]]
 category = "main"
 description = "Python wrapper module around the OpenSSL library"
 name = "pyopenssl"
@@ -153,6 +198,14 @@ six = ">=1.5.2"
 [package.extras]
 docs = ["sphinx", "sphinx-rtd-theme"]
 test = ["flaky", "pretend", "pytest (>=3.0.1)"]
+
+[[package]]
+category = "main"
+description = "File type identification using libmagic"
+name = "python-magic"
+optional = false
+python-versions = "*"
+version = "0.4.15"
 
 [[package]]
 category = "main"
@@ -291,10 +344,14 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [metadata]
-content-hash = "7ee4f94e066f915c7823a3122f4560eaf2f56e9fb0a529858ac1c6b86594d013"
+content-hash = "13a8c432f6b37039ceb01ca225447877b68753c094389fbe64fbdc5c2f343358"
 python-versions = "^3.7"
 
 [metadata.files]
+altgraph = [
+    {file = "altgraph-0.17-py2.py3-none-any.whl", hash = "sha256:c623e5f3408ca61d4016f23a681b9adb100802ca3e3da5e718915a9e4052cebe"},
+    {file = "altgraph-0.17.tar.gz", hash = "sha256:1f05a47122542f97028caf78775a095fbe6a2699b5089de8477eb583167d69aa"},
+]
 attrs = [
     {file = "attrs-19.3.0-py2.py3-none-any.whl", hash = "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c"},
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
@@ -358,6 +415,11 @@ cryptography = [
     {file = "cryptography-2.9-cp38-cp38-win_amd64.whl", hash = "sha256:6b744039b55988519cc183149cceb573189b3e46e16ccf6f8c46798bb767c9dc"},
     {file = "cryptography-2.9.tar.gz", hash = "sha256:0cacd3ef5c604b8e5f59bf2582c076c98a37fe206b31430d0cd08138aff0986e"},
 ]
+dis3 = [
+    {file = "dis3-0.1.3-py2-none-any.whl", hash = "sha256:61f7720dd0d8749d23fda3d7227ce74d73da11c2fade993a67ab2f9852451b14"},
+    {file = "dis3-0.1.3-py3-none-any.whl", hash = "sha256:30b6412d33d738663e8ded781b138f4b01116437f0872aa56aa3adba6aeff218"},
+    {file = "dis3-0.1.3.tar.gz", hash = "sha256:9259b881fc1df02ed12ac25f82d4a85b44241854330b1a651e40e0c675cb2d1e"},
+]
 hyperlink = [
     {file = "hyperlink-19.0.0-py2.py3-none-any.whl", hash = "sha256:ab4a308feb039b04f855a020a6eda3b18ca5a68e6d8f8c899cbe9e653721d04f"},
     {file = "hyperlink-19.0.0.tar.gz", hash = "sha256:4288e34705da077fada1111a24a0aa08bb1e76699c9ce49876af722441845654"},
@@ -369,6 +431,29 @@ idna = [
 incremental = [
     {file = "incremental-17.5.0-py2.py3-none-any.whl", hash = "sha256:717e12246dddf231a349175f48d74d93e2897244939173b01974ab6661406b9f"},
     {file = "incremental-17.5.0.tar.gz", hash = "sha256:7b751696aaf36eebfab537e458929e194460051ccad279c72b755a167eebd4b3"},
+]
+mysqlclient = [
+    {file = "mysqlclient-1.4.6-cp36-cp36m-win_amd64.whl", hash = "sha256:4c82187dd6ab3607150fbb1fa5ef4643118f3da122b8ba31c3149ddd9cf0cb39"},
+    {file = "mysqlclient-1.4.6-cp37-cp37m-win_amd64.whl", hash = "sha256:9e6080a7aee4cc6a06b58b59239f20f1d259c1d2fddf68ddeed242d2311c7087"},
+    {file = "mysqlclient-1.4.6-cp38-cp38-win_amd64.whl", hash = "sha256:f646f8d17d02be0872291f258cce3813497bc7888cd4712a577fd1e719b2f213"},
+    {file = "mysqlclient-1.4.6.tar.gz", hash = "sha256:f3fdaa9a38752a3b214a6fe79d7cae3653731a53e577821f9187e67cbecb2e16"},
+]
+orjson = [
+    {file = "orjson-2.6.5-cp36-cp36m-macosx_10_7_x86_64.whl", hash = "sha256:2b73518e036fcaabc03f88c951350d971493346f55cdc7368c10a13ff62a4f6f"},
+    {file = "orjson-2.6.5-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:2f2b6a425b43174ea4a34dcee67e6c07f6df88baaf7098d1f41bf3e9eb996b00"},
+    {file = "orjson-2.6.5-cp36-cp36m-manylinux2014_aarch64.whl", hash = "sha256:2a2e5f0dca7203f8779c20c3c0c5246bbeb62d48a72fa81d30fdae6508acb48f"},
+    {file = "orjson-2.6.5-cp36-none-win_amd64.whl", hash = "sha256:1393d45a08799f5058aa92e480f8da42e06a288af41bfc58fb48b37a66d711d5"},
+    {file = "orjson-2.6.5-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:dae4c6d25f09069127deb3866c8f22f9b25530df7ac93ae57068b9c10557d106"},
+    {file = "orjson-2.6.5-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:b424eab367173bf9d56ef5242371dc1258bf573dcb4517291ec3b1e4e8020abc"},
+    {file = "orjson-2.6.5-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:b10bda292e91df63c2ced92c0bdd4d74615acaf58b1f3742a19a82e84a1cb4ee"},
+    {file = "orjson-2.6.5-cp37-none-win_amd64.whl", hash = "sha256:211d03974a2141e1a52fc1c284ffbbf3c37e9d5c6dd9303aa0817158f800092c"},
+    {file = "orjson-2.6.5-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:411d3823f6b9cbb43a43942f0bc263720ad7c94d0c68d258cfbf76a0f3c0ce0d"},
+    {file = "orjson-2.6.5-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:dd9a62914fabe387cc3c8ff50c9ffd6a7009b422cea270c1527d98b87034ed01"},
+    {file = "orjson-2.6.5-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:a889288e111dbb36c740911232ccee97c86f25c70e7a666daca94c5b1f70d7f7"},
+    {file = "orjson-2.6.5-cp38-none-win_amd64.whl", hash = "sha256:c7d64e3452396af7810efe9fcb0a33c269a4b20e569e51ec9d1522ab4b6aa97b"},
+    {file = "orjson-2.6.5-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:b15831f847ecae767aed19e0365aefb5315a7834410ab6c59e046f0d199e1593"},
+    {file = "orjson-2.6.5-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:9f817e770cf4cf919cba6950a47f1b19e3c201dc02a2176821c9c63eff41ad86"},
+    {file = "orjson-2.6.5.tar.gz", hash = "sha256:89c853658e3dab6e553205159c809f84fd8a69886fe0ef7e4e5eeac407254926"},
 ]
 pyasn1 = [
     {file = "pyasn1-0.4.8-py2.4.egg", hash = "sha256:fec3e9d8e36808a28efb59b489e4528c10ad0f480e57dcc32b4de5c9d8c9fdf3"},
@@ -411,9 +496,16 @@ pyhamcrest = [
     {file = "PyHamcrest-2.0.2-py3-none-any.whl", hash = "sha256:7ead136e03655af85069b6f47b23eb7c3e5c221aa9f022a4fbb499f5b7308f29"},
     {file = "PyHamcrest-2.0.2.tar.gz", hash = "sha256:412e00137858f04bde0729913874a48485665f2d36fe9ee449f26be864af9316"},
 ]
+pyinstaller = [
+    {file = "PyInstaller-3.6.tar.gz", hash = "sha256:3730fa80d088f8bb7084d32480eb87cbb4ddb64123363763cf8f2a1378c1c4b7"},
+]
 pyopenssl = [
     {file = "pyOpenSSL-19.1.0-py2.py3-none-any.whl", hash = "sha256:621880965a720b8ece2f1b2f54ea2071966ab00e2970ad2ce11d596102063504"},
     {file = "pyOpenSSL-19.1.0.tar.gz", hash = "sha256:9a24494b2602aaf402be5c9e30a0b82d4a5c67528fe8fb475e3f3bc00dd69507"},
+]
+python-magic = [
+    {file = "python-magic-0.4.15.tar.gz", hash = "sha256:f3765c0f582d2dfc72c15f3b5a82aecfae9498bd29ca840d72f37d7bd38bfcd5"},
+    {file = "python_magic-0.4.15-py2.py3-none-any.whl", hash = "sha256:f2674dcfad52ae6c49d4803fa027809540b130db1dec928cfbb9240316831375"},
 ]
 python-opsi = [
     {file = "python-opsi-4.2.0.16.tar.gz", hash = "md5:6c34165c4677db080425b93826b086b9"},
