@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+
+from opsiutils.opsiconvert import main
+
+main()
+
