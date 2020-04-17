@@ -61,7 +61,7 @@ for script in SCRIPTS:
 		match = re.search(r"(.*)(a\s*=\s*)(Analysis[^\)]+\))(.*)", data, re.MULTILINE|re.DOTALL)
 		if not spec_a:
 			spec_a += match.group(1)
-		spec_a += "%s_a = {match.group(3)}\n" % varname
+		spec_a += "%s_a = %s\n" % (varname, match.group(3))
 		spec_o += match.group(4)
 		spec_m.append("(%s_a, '%s', '%s')" % (varname, script, script))
 
