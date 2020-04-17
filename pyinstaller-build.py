@@ -3,8 +3,11 @@
 
 import os
 import re
-import shutil
+import sys
+import glob
 import codecs
+import shutil
+import platform
 import subprocess
 
 SCRIPTS = [
@@ -17,11 +20,25 @@ SCRIPTS = [
 	"opsi-package-updater"
 ]
 HIDDEN_IMPORTS = [
-	"OPSI.Backend.MySQL"
+	"OPSI.Backend.MySQL",
+	"snack"
 ]
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+def add_snack():
+	try:
+		subprocess.check_output(["dpkg", "-l", "python3-newt"])
+	except:
+		subprocess.check_call(["apt", "install", "python3-newt"])
+	res = glob.glob("/usr/lib/python3/dist-packages/_snack.*")
+	if not res:
+		raise Exception("Failed to locate snack module (python3-newt)")
+	ver = os.path.basename(glob.glob(".venv/lib/python3.*")[0]).replace("python", "")
+	shutil.copy(res[0], f".venv/lib/python{ver}/site-packages/_snack.cpython-{ver.replace('.','')}m-x86_64-linux-gnu.so")
+	shutil.copy("/usr/lib/python3/dist-packages/snack.py", f".venv/lib/python{ver}/site-packages/snack.py")
+
 subprocess.check_call(["poetry", "install"])
+add_snack()
 
 for d in ("dist", "build"):
 	if os.path.isdir(d):
