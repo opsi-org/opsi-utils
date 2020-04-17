@@ -34,13 +34,12 @@ def add_snack():
 	if not res:
 		raise Exception("Failed to locate snack module (python3-newt)")
 	ver = os.path.basename(glob.glob(".venv/lib/python3.*")[0]).replace("python", "")
-	print("Running with python version: %s" % platform.python_version(), file=sys.stderr)
-	#shutil.copy(res[0], f".venv/lib/python{ver}/site-packages/_snack.cpython-{ver.replace('.','')}m-x86_64-linux-gnu.so")
-	#shutil.copy("/usr/lib/python3/dist-packages/snack.py", f".venv/lib/python{ver}/site-packages/snack.py")
+	shutil.copy(res[0], ".venv/lib/python%s/site-packages/_snack.cpython-%sm-x86_64-linux-gnu.so" % (ver, ver.replace('.','')))
+	shutil.copy("/usr/lib/python3/dist-packages/snack.py", ".venv/lib/python%s/site-packages/snack.py" % ver)
 
 subprocess.check_call(["poetry", "install"])
 add_snack()
-"""
+
 for d in ("dist", "build"):
 	if os.path.isdir(d):
 		shutil.rmtree(d)
@@ -54,7 +53,7 @@ for script in SCRIPTS:
 		cmd.extend(["--hidden-import", hi])
 	cmd.append(script)
 	subprocess.check_call(cmd)
-	with codecs.open(f"{script}.spec", "r", "utf-8") as f:
+	with codecs.open("%s.spec" % script, "r", "utf-8") as f:
 		varname = script.replace("-", "_")
 		data = f.read()
 		data = re.sub(r"([\s\(])a\.", r"\g<1>" + varname + "_a.", data)
@@ -62,20 +61,19 @@ for script in SCRIPTS:
 		match = re.search(r"(.*)(a\s*=\s*)(Analysis[^\)]+\))(.*)", data, re.MULTILINE|re.DOTALL)
 		if not spec_a:
 			spec_a += match.group(1)
-		spec_a += f"{varname}_a = {match.group(3)}\n"
+		spec_a += "%s_a = {match.group(3)}\n" % varname
 		spec_o += match.group(4)
-		spec_m.append(f"({varname}_a, '{script}', '{script}')")
+		spec_m.append("(%s_a, '%s', '%s')" % (varname, script, script))
 
-with codecs.open(f"opsi-utils.spec", "w", "utf-8") as f:
+with codecs.open("opsi-utils.spec", "w", "utf-8") as f:
 	f.write(spec_a)
-	f.write(f"\nMERGE( {', '.join(spec_m)} )\n")
+	f.write("\nMERGE( %s )\n" % ', '.join(spec_m))
 	f.write(spec_o)
 
 subprocess.check_call(["poetry", "run", "pyinstaller", "--log-level", "INFO", "opsi-utils.spec"])
 
 
-shutil.move(f"dist/{SCRIPTS[0]}", "dist/opsi-utils")
+shutil.move("dist/%s" % SCRIPTS[0], "dist/opsi-utils")
 for script in SCRIPTS[1:]:
-	shutil.move(f"dist/{script}/{script}", f"dist/opsi-utils/{script}")
-	shutil.rmtree(f"dist/{script}")
-"""
+	shutil.move("dist/%s/%s" % (script, script), "dist/opsi-utils/%s" % script)
+	shutil.rmtree("dist/%s" % script)
