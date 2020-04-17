@@ -90,7 +90,7 @@ class HelpFormatter(argparse.HelpFormatter):
 		return USAGE
 
 
-def main():
+def backup_main():
 	logger.setLogFormat('[%l] [%D] %M')
 	logger.setConsoleLevel(LOG_WARNING)
 
@@ -176,7 +176,7 @@ def main():
 	return result
 
 
-if __name__ == "__main__":
+def main():
 	try:
 		returnCode = main()
 	except Exception as exception:
@@ -185,3 +185,6 @@ if __name__ == "__main__":
 		returnCode = 1
 
 	sys.exit(returnCode)
+
+if __name__ == "__main__":
+	main()

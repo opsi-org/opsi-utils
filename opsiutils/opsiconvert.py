@@ -105,7 +105,7 @@ class ProgressNotifier(ProgressObserver):
 		self.displayProgress()
 
 
-def main():
+def opsiconvert_main():
 	global logLevel
 
 	parser = argparse.ArgumentParser(
@@ -289,9 +289,9 @@ def cleanBackendConfig(config):
 	return cleanedConfig
 
 
-if __name__ == "__main__":
+def main():
 	try:
-		main()
+		opsiconvert_main()
 	except SystemExit:
 		pass
 	except Exception as e:
@@ -299,3 +299,6 @@ if __name__ == "__main__":
 		logger.logException(e)
 		print(u"ERROR: %s" % e, file=sys.stderr)
 		sys.exit(1)
+
+if __name__ == "__main__":
+	main()
