@@ -1,6 +1,7 @@
 image: python:3.7-stretch
 
 stages:
+  - build
   - package
 
 pyinstaller build:
