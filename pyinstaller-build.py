@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
 import os
 import re
@@ -6,8 +7,18 @@ import shutil
 import codecs
 import subprocess
 
-SCRIPTS = ("opsi-admin", "opsi-backup")
-
+SCRIPTS = [
+	"opsi-admin",
+	"opsi-backup",
+	"opsi-convert",
+	"opsi-makepackage",
+	"opsi-newprod",
+	"opsi-package-manager",
+	"opsi-package-updater"
+]
+HIDDEN_IMPORTS = [
+	"OPSI.Backend.MySQL"
+]
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 subprocess.check_call(["poetry", "install"])
@@ -20,7 +31,11 @@ spec_a = ""
 spec_m = []
 spec_o = ""
 for script in SCRIPTS:
-	subprocess.check_call(["poetry", "run", "pyi-makespec", script])
+	cmd = ["poetry", "run", "pyi-makespec"]
+	for hi in HIDDEN_IMPORTS:
+		cmd.extend(["--hidden-import", hi])
+	cmd.append(script)
+	subprocess.check_call(cmd)
 	with codecs.open(f"{script}.spec", "r", "utf-8") as f:
 		varname = script.replace("-", "_")
 		data = f.read()
@@ -38,7 +53,7 @@ with codecs.open(f"opsi-utils.spec", "w", "utf-8") as f:
 	f.write(f"\nMERGE( {', '.join(spec_m)} )\n")
 	f.write(spec_o)
 
-subprocess.check_call(["poetry", "run", "pyinstaller", "opsi-utils.spec"])
+subprocess.check_call(["poetry", "run", "pyinstaller", "--log-level", "INFO", "opsi-utils.spec"])
 
 
 shutil.move(f"dist/{SCRIPTS[0]}", "dist/opsi-utils")
