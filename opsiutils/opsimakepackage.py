@@ -92,7 +92,7 @@ class ProgressNotifier(ProgressObserver):
 		sys.stderr.flush()
 
 
-def main(argv):
+def makepackage_main(argv):
 	os.umask(0o022)
 
 	logger.setConsoleLevel(LOG_WARNING)
@@ -458,9 +458,9 @@ def unlockPackage(tempDir, packageControlFile):
 		os.unlink(lockFile)
 
 
-if __name__ == "__main__":
+def main():
 	try:
-		main(sys.argv[1:])
+		makepackage_main(sys.argv[1:])
 	except SystemExit:
 		pass
 	except Exception as exception:
@@ -468,3 +468,6 @@ if __name__ == "__main__":
 		logger.logException(exception)
 		print(u"ERROR: %s" % exception, file=sys.stderr)
 		sys.exit(1)
+
+if __name__ == "__main__":
+	main()

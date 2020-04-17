@@ -173,7 +173,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			logger.notice("No updates found.")
 
 
-def main():
+def updater_main():
 	config = DEFAULT_CONFIG.copy()
 
 	parser = argparse.ArgumentParser(
@@ -332,11 +332,11 @@ def main():
 	return 0  # no errors encountered
 
 
-if __name__ == "__main__":
+def main():
 	logger.setConsoleColor(True)
 
 	try:
-		exitCode = main()
+		exitCode = updater_main()
 	except KeyboardInterrupt:
 		exitCode = 1
 	except Exception as exc:
@@ -346,3 +346,6 @@ if __name__ == "__main__":
 
 	if exitCode:
 		sys.exit(exitCode)
+
+if __name__ == "__main__":
+	main()
