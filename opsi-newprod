@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+
+from opsiutils.opsinewprod import main
+
+main()
+
