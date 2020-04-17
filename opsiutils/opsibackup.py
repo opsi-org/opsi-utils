@@ -178,7 +178,7 @@ def backup_main():
 
 def main():
 	try:
-		returnCode = main()
+		returnCode = backup_main()
 	except Exception as exception:
 		logger.logException(exception, LOG_INFO)
 		print((u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace'), file=sys.stderr)
