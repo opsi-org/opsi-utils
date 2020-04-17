@@ -34,10 +34,8 @@ def add_snack():
 	if not res:
 		raise Exception("Failed to locate snack module (python3-newt)")
 	ver = os.path.basename(glob.glob(".venv/lib/python3.*")[0]).replace("python", "")
+	raise Exception("Running with python version: %s" % ver)
 	print("Running with python version: %s" % ver, file=sys.stderr)
-	print("Running with python version: %s" % ver, file=sys.stdout)
-	sys.stderr.flush()
-	sys.stdout.flush()
 	#shutil.copy(res[0], f".venv/lib/python{ver}/site-packages/_snack.cpython-{ver.replace('.','')}m-x86_64-linux-gnu.so")
 	#shutil.copy("/usr/lib/python3/dist-packages/snack.py", f".venv/lib/python{ver}/site-packages/snack.py")
 
