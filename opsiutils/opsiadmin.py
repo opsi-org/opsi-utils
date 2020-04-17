@@ -124,6 +124,7 @@ class ErrorInResultException(Exception):
 
 
 def signalHandler(signo, stackFrame):
+	from signal import SIGINT, SIGQUIT
 	logger.info(u"Received signal %s" % signo)
 	if signo == SIGINT:
 		if shell:
