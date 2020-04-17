@@ -63,7 +63,7 @@ class CancelledByUserError(Exception):
 	pass
 
 
-def main():
+def newprod_main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version', version=__version__)
 	parser.add_argument("-t", "--template-dir", default=None,
@@ -692,11 +692,14 @@ copied to ``productDirectory``
 		copy(os.path.join(templateDirectory, '*'), productDirectory)
 
 
-if __name__ == "__main__":
+def main():
 	try:
-		main()
+		newprod_main()
 	except Exception as exception:
 		logger.setConsoleLevel(LOG_ERROR)
 		logger.logException(exception)
 		print("ERROR: {0}".format(forceUnicode(exception).encode('utf-8')), file=sys.stderr)
 		sys.exit(1)
+
+if __name__ == "__main__":
+	main()

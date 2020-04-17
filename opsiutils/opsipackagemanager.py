@@ -2047,9 +2047,7 @@ class OpsiPackageManagerControl(object):
 		print(u"                                          installation. Do not use with WAN extension!")
 		print(u"")
 
-
-if __name__ == "__main__":
-
+def main():
 	@contextmanager
 	def keepOriginalTerminalSettings():
 		try:
@@ -2074,3 +2072,6 @@ if __name__ == "__main__":
 		logger.logException(exception)
 		print(u"\nERROR: %s\n" % exception, file=sys.stderr)
 		sys.exit(1)
+
+if __name__ == "__main__":
+	main()
