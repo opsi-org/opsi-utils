@@ -24,7 +24,7 @@ install:
 	; done
 
 	# place locales
-	mv debian/opsi-utils/usr/lib/locale debian/opsi-utils/usr/share/
+	mv debian/opsi-utils/usr/lib/opsi-utils/locale debian/opsi-utils/usr/share/
 	
 	dh_install
 
