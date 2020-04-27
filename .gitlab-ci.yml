@@ -4,25 +4,23 @@ stages:
   - build
   - package
 
-pyinstaller build:
-  stage: package
-  before_script:
+build:linux-pyinstaller:
+  stage: build
+  script:
     - apt update
     - apt -y upgrade
     - apt -y install curl tar python3-newt
     - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
     - source $HOME/.poetry/env
-  script:
     - ./pyinstaller-build.py
-    - cd dist
-    - tar cjvf ../opsi-utils-pyinstaller.tar.bz2 opsi-utils
+    - mv dist/opsi-utils .
   artifacts:
-    #name: 'opsi-utils-pyinstaller.tar.bz2'
+    name: 'opsi-utils-linux-pyinstaller'
     paths:
-      - opsi-utils-pyinstaller.tar.bz2
-    expire_in: 14 day
+      - opsi-utils/*
+    expire_in: 2 days
 
-build manpages:
+build:linux-manpages:
   stage: build
   before_script:
     - apt update
