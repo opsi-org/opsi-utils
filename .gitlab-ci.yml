@@ -33,6 +33,28 @@ build:linux-manpages:
       - manpages/compiled/*
     expire_in: 2 days
 
+package:deb:
+  stage: package
+  dependencies:
+    - build:linux-pyinstaller
+  script:
+    - apt update
+    - apt -y upgrade
+    - apt -y install debhelper
+    - deps=$((dpkg-checkbuilddeps 2>&1 | sed "s/dpkg-checkbuilddeps\:\serror\:\sUnmet build dependencies\://g" | sed "s/[\(][^)]*[\)] //g") || echo -n "")
+    - echo $deps
+    - test -z "$deps" || apt -y install $deps
+    - dpkg-buildpackage -b
+    - mkdir deb
+    - mv ../opsi-utils_*.deb deb/
+
+  artifacts:
+    name: 'opsi-utils-deb'
+    paths:
+      - deb/*
+    expire_in: 2 day
+
+
 #package for OBS:
 #  stage: package
 #  before_script:
