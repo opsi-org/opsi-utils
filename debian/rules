@@ -23,13 +23,8 @@ install:
 		chmod 755 debian/opsi-utils/usr/bin/$$i \
 	; done
 
-	# copy locales
+	# place locales
 	mv debian/opsi-utils/usr/lib/locale debian/opsi-utils/usr/share/
-	#for i in gettext/*.mo; do \
-	#	lang=$$(basename $$i | cut -d'_' -f2 | cut -d'.' -f1) && \
-	#	mkdir -p debian/opsi-utils/usr/share/opsi-utils/locale/$$lang/LC_MESSAGES && \
-	#	install -m 0644 $$i debian/opsi-utils/usr/share/opsi-utils/locale/$$lang/LC_MESSAGES/opsi-utils.mo \
-	#; done
 	
 	dh_install
 
