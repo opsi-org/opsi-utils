@@ -17,7 +17,7 @@ build:linux-pyinstaller:
   artifacts:
     name: 'opsi-utils-linux-pyinstaller'
     paths:
-      - opsi-utils/*
+      - opsi-utils
     expire_in: 2 days
 
 build:linux-manpages:
