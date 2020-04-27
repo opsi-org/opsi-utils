@@ -77,3 +77,11 @@ shutil.move("dist/%s" % SCRIPTS[0], "dist/opsi-utils")
 for script in SCRIPTS[1:]:
 	shutil.move("dist/%s/%s" % (script, script), "dist/opsi-utils/%s" % script)
 	shutil.rmtree("dist/%s" % script)
+
+# locales
+subprocess.check_call(["./gettext/update_mo.sh"])
+for fn in glob.glob("gettext/*.mo"):
+	match = re.search('/([^/]+)_(\w\w).mo$', fn)
+	target = f"dist/opsi-utils/locale/%s/LC_MESSAGES/%s.mo" % (match.group(2), match.group(1))
+	os.makedirs(os.path.dirname(target))
+	shutil.copy(fn, target)
