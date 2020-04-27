@@ -20,7 +20,16 @@ SCRIPTS = [
 	"opsi-package-updater"
 ]
 HIDDEN_IMPORTS = [
+	"OPSI.Backend.Depotsever",
+	"OPSI.Backend.DHCPD",
+	"OPSI.Backend.File",
+	"OPSI.Backend.HostControl",
+	"OPSI.Backend.HostControlSafe",
+	"OPSI.Backend.JSONRPC",
 	"OPSI.Backend.MySQL",
+	"OPSI.Backend.OpsiPXEConfd",
+	"OPSI.Backend.Replicator",
+	"OPSI.Backend.SQLite",
 	"snack"
 ]
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
