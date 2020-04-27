@@ -19,7 +19,7 @@ install:
 	for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater; do \
 		echo "#!/bin/sh" > debian/opsi-utils/usr/bin/$$i && \
 		echo "cd /usr/lib/opsi-utils" >> debian/opsi-utils/usr/bin/$$i && \
-		echo "./opsiclientd \$$@" >> debian/opsi-utils/usr/bin/$$i && \
+		echo "./$$i \$$@" >> debian/opsi-utils/usr/bin/$$i && \
 		chmod 755 debian/opsi-utils/usr/bin/$$i \
 	; done
 
