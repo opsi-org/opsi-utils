@@ -44,8 +44,6 @@ package:deb:
     - deps=$((dpkg-checkbuilddeps 2>&1 | sed "s/dpkg-checkbuilddeps\:\serror\:\sUnmet build dependencies\://g" | sed "s/[\(][^)]*[\)] //g") || echo -n "")
     - echo $deps
     - test -z "$deps" || apt -y install $deps
-    - ls -l .
-    - ls -l opsi-utils
     - dpkg-buildpackage -b
     - mkdir deb
     - mv ../opsi-utils_*.deb deb/
