@@ -1,3 +1,9 @@
+opsi-utils (4.2.0.9-1) testing; urgency=medium
+
+  * repackage with pyinstaller
+
+ -- Jan Schneider <j.schneider@uib.de>  Mon, 27 Apr 2020 15:10:18 +0200
+
 opsi-utils (4.2.0.8-1) testing; urgency=medium
 
   * opsi-admin: Internal refactoring regarding command parsing.
