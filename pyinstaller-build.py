@@ -30,6 +30,7 @@ HIDDEN_IMPORTS = [
 	"OPSI.Backend.OpsiPXEConfd",
 	"OPSI.Backend.Replicator",
 	"OPSI.Backend.SQLite",
+	"curses",
 	"snack"
 ]
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
