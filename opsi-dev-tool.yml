@@ -1,0 +1,11 @@
+pyinstaller-poetry:
+  one_file: yes
+  hidden_imports:
+    all:
+      - six
+    windows: []
+    linux: []
+    darwin: []
+  scripts:
+    - script: opsi-dev-tool
+      binary: opsi-dev-tool
