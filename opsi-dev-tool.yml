@@ -1,5 +1,5 @@
 pyinstaller-poetry:
-  one_file: no
+  one_file: yes
   hidden_imports:
     all:
       - OPSI.Backend.Depotsever
