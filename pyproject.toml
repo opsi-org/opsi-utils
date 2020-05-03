@@ -20,7 +20,7 @@ mysqlclient = "^1.4.6"
 
 [tool.poetry.dev-dependencies]
 pyinstaller = "^3.6"
-opsidevtools = "^0.9"
+opsi-dev-tools = "^1.0"
 
 [tool.poetry.scripts]
 opsi-admin = "opsiutils.opsiadmin:main"
