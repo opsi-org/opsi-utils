@@ -1,3 +1,14 @@
+locale:
+  languages:
+    - de
+    - fr
+  source_files:
+    - opsiutils/opsiadmin.py
+    - opsiutils/opsiconvert.py
+    - opsiutils/opsimakepackage.py
+    - opsiutils/opsinewprod.py
+    - opsiutils/opsipackagemanager.py
+
 pyinstaller-poetry:
   one_file: no
   hidden_imports:
