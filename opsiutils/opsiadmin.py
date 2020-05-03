@@ -110,7 +110,7 @@ UNCOLORED_LOGO = """\
 LOGO = [{"color": COLOR_CYAN, "text": line} for line in UNCOLORED_LOGO]
 
 try:
-	translation = gettext.translation('opsi-utils', '/usr/share/locale')
+	translation = gettext.translation('opsiutils', '/usr/share/locale')
 	_ = translation.ugettext
 except Exception as error:
 	logger.error(u"Locale not found: %s" % error)

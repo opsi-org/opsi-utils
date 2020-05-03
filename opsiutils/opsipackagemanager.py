@@ -66,7 +66,7 @@ USER_AGENT = "opsi-package-manager/%s" % __version__
 logger = Logger()
 
 try:
-	translation = gettext.translation('opsi-utils', '/usr/share/locale')
+	translation = gettext.translation('opsiutils', '/usr/share/locale')
 	_ = translation.ugettext
 except Exception as gettextError:
 	logger.error(u"Locale not found: %s" % gettextError)

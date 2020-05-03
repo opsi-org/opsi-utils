@@ -50,7 +50,7 @@ __version__ = '4.2.0.1'
 logger = Logger()
 
 try:
-	t = gettext.translation('opsi-utils', '/usr/share/locale')
+	t = gettext.translation('opsiutils', '/usr/share/locale')
 	_ = t.ugettext
 except Exception as e:
 	logger.error(u"Locale not found: %s" % e)
