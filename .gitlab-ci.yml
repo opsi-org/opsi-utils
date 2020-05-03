@@ -13,8 +13,8 @@ build:linux-pyinstaller:
     - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
     - source $HOME/.poetry/env
     - poetry install
-    #- ./pyinstaller-build.py
     - poetry run opsi-dev-tool -l INFO --pyinstaller-poetry-build
+    - poetry run opsi-dev-tool -l INFO --locale-install dist/opsi-utils
     - mv dist/opsi-utils .
   artifacts:
     name: 'opsi-utils-linux-pyinstaller'
