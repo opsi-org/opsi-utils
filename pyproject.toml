@@ -1,8 +1,11 @@
 [tool.poetry]
-name = "opsiutils"
+name = "opsi-utils"
 version = "4.2.0"
 description = ""
 authors = ["Jan Schneider <j.schneider@uib.de>"]
+packages = [
+    { include = "opsiutils" }
+]
 
 [[tool.poetry.source]]
 name = "uibpypi"
