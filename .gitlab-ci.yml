@@ -14,7 +14,7 @@ build:linux-pyinstaller:
     - source $HOME/.poetry/env
     - poetry install
     - poetry run opsi-dev-tool -l INFO --pyinstaller-poetry-build
-    - poetry run opsi-dev-tool -l INFO --locale-install dist/opsi-utils
+    - poetry run opsi-dev-tool -l INFO --locale-install dist/opsi-utils/locale
     - mv dist/opsi-utils .
   artifacts:
     name: 'opsi-utils-linux-pyinstaller'
