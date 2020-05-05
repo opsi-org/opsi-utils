@@ -198,7 +198,7 @@ description = ""
 name = "opsi-dev-tools"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "1.0.1"
+version = "1.0.2"
 
 [package.dependencies]
 colorlog = ">=4.1.0,<5.0.0"
@@ -340,7 +340,7 @@ description = "The opsi python library"
 name = "python-opsi"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "4.2.0.22"
+version = "4.2.0.23"
 
 [package.dependencies]
 PyCryptodome = ">=3.9.7,<4.0.0"
@@ -665,8 +665,8 @@ mysqlclient = [
     {file = "mysqlclient-1.4.6.tar.gz", hash = "sha256:f3fdaa9a38752a3b214a6fe79d7cae3653731a53e577821f9187e67cbecb2e16"},
 ]
 opsi-dev-tools = [
-    {file = "opsi-dev-tools-1.0.1.tar.gz", hash = "md5:d81f5c527be286a4e9156d30f5bfa6b2"},
-    {file = "opsi_dev_tools-1.0.1-py3-none-any.whl", hash = "md5:992db2d9b77a7d5d1d07c063346d3d70"},
+    {file = "opsi-dev-tools-1.0.2.tar.gz", hash = "md5:25a86a7c8dd550aabc2c954a4824892c"},
+    {file = "opsi_dev_tools-1.0.2-py3-none-any.whl", hash = "md5:85967803a2947b45a9357e02b8e42c2e"},
 ]
 orjson = [
     {file = "orjson-2.6.8-cp36-cp36m-macosx_10_7_x86_64.whl", hash = "sha256:440acee918752157b578e489656776b17704089ab6f06d669409e1f1bfe431ac"},
@@ -779,8 +779,8 @@ python-magic = [
     {file = "python_magic-0.4.15-py2.py3-none-any.whl", hash = "sha256:f2674dcfad52ae6c49d4803fa027809540b130db1dec928cfbb9240316831375"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.22.tar.gz", hash = "md5:230522c98736349b7b4ef2fa4cdb9dbd"},
-    {file = "python_opsi-4.2.0.22-py3-none-any.whl", hash = "md5:c9c917f153d94a030de31c1762b64017"},
+    {file = "python-opsi-4.2.0.23.tar.gz", hash = "md5:bb6e40055425580ef0b957dc34cd50c3"},
+    {file = "python_opsi-4.2.0.23-py3-none-any.whl", hash = "md5:56ad9d0d1883c30398cf426efa20ccb5"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
