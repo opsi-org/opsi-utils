@@ -194,7 +194,7 @@ version = "1.4.6"
 
 [[package]]
 category = "dev"
-description = ""
+description = "opsi development tools"
 name = "opsi-dev-tools"
 optional = false
 python-versions = ">=3.6,<4.0"
@@ -538,8 +538,8 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [metadata]
-content-hash = "0ac553bde9df100ee66ba2b71cb7d7a5825093b0a37d8de34bd02ae028c89f17"
-python-versions = "^3.7"
+content-hash = "c1a399052b4d16590e61e1996695143d52a6a37a1a036fb5ebaf6bbaeb96a4cf"
+python-versions = "^3.6"
 
 [metadata.files]
 altgraph = [
@@ -665,8 +665,8 @@ mysqlclient = [
     {file = "mysqlclient-1.4.6.tar.gz", hash = "sha256:f3fdaa9a38752a3b214a6fe79d7cae3653731a53e577821f9187e67cbecb2e16"},
 ]
 opsi-dev-tools = [
-    {file = "opsi-dev-tools-1.0.2.tar.gz", hash = "md5:25a86a7c8dd550aabc2c954a4824892c"},
-    {file = "opsi_dev_tools-1.0.2-py3-none-any.whl", hash = "md5:85967803a2947b45a9357e02b8e42c2e"},
+    {file = "opsi-dev-tools-1.0.2.tar.gz", hash = "md5:6334b2466ccd519acdafc152ec63d43e"},
+    {file = "opsi_dev_tools-1.0.2-py3-none-any.whl", hash = "md5:ecab9f1757f2d584cc7eaa00788fd396"},
 ]
 orjson = [
     {file = "orjson-2.6.8-cp36-cp36m-macosx_10_7_x86_64.whl", hash = "sha256:440acee918752157b578e489656776b17704089ab6f06d669409e1f1bfe431ac"},
@@ -779,7 +779,7 @@ python-magic = [
     {file = "python_magic-0.4.15-py2.py3-none-any.whl", hash = "sha256:f2674dcfad52ae6c49d4803fa027809540b130db1dec928cfbb9240316831375"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.23.tar.gz", hash = "md5:bb6e40055425580ef0b957dc34cd50c3"},
+    {file = "python-opsi-4.2.0.23.tar.gz", hash = "md5:b85cb54a5b46fe81860cee9951360fa7"},
     {file = "python_opsi-4.2.0.23-py3-none-any.whl", hash = "md5:56ad9d0d1883c30398cf426efa20ccb5"},
 ]
 python-pam = [
