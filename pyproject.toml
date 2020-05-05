@@ -12,7 +12,7 @@ name = "uibpypi"
 url = "http://pypi.uib.gmbh:8080/simple"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.6"
 python-opsi = "^4.2.0"
 python-magic = "^0.4.15"
 orjson = "^2.6.5"
