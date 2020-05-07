@@ -11,7 +11,7 @@ locale:
 
 pyinstaller-poetry:
   update_version_in:
-    opsiutils/__init__.py
+    - opsiutils/__init__.py
   one_file: no
   hidden_imports:
     all:
