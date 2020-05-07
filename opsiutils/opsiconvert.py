@@ -1,4 +1,3 @@
-#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-convert is part of the desktop management solution opsi
@@ -42,7 +41,7 @@ from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Backend.Replicator import BackendReplicator
 
-__version__ = '4.2.0.1'
+from opsiutils import __version__
 
 logLevel = LOG_NONE
 logger = Logger()
@@ -299,6 +298,3 @@ def main():
 		logger.logException(e)
 		print(u"ERROR: %s" % e, file=sys.stderr)
 		sys.exit(1)
-
-if __name__ == "__main__":
-	main()

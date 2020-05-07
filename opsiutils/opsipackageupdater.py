@@ -1,4 +1,3 @@
-#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-package-updater is part of the desktop management solution opsi
@@ -48,8 +47,7 @@ from OPSI.Util.Task.UpdatePackages.Exceptions import NoActiveRepositoryError
 from OPSI.Util.Task.UpdatePackages.Updater import OpsiPackageUpdater
 from OPSI.Util.Task.UpdatePackages.Util import getUpdatablePackages
 
-
-__version__ = '4.2.0.1'
+from opsiutils import __version__
 
 logger = Logger()
 
@@ -346,6 +344,3 @@ def main():
 
 	if exitCode:
 		sys.exit(exitCode)
-
-if __name__ == "__main__":
-	main()

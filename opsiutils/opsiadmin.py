@@ -1,4 +1,3 @@
-#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-admin is part of the desktop management solution opsi
@@ -56,9 +55,7 @@ from OPSI.Util import (
 	blowfishDecrypt, deserialize, fromJson, getfqdn,
 	objectToBeautifiedText, objectToBash, serialize, toJson)
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
-
-
-__version__ = '4.2.0.6'
+from opsiutils import __version__
 
 backend = None
 exitZero = False
@@ -1712,6 +1709,3 @@ def main():
 		exitCode = 0
 
 	sys.exit(exitCode)
-
-if __name__ == "__main__":
-	main()

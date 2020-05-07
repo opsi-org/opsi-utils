@@ -10,32 +10,27 @@ locale:
     - opsiutils/opsipackagemanager.py
 
 pyinstaller-poetry:
+  update_version_in:
+    opsiutils/__init__.py
   one_file: no
   hidden_imports:
     all:
-      - OPSI.Backend.Depotsever
-      - OPSI.Backend.DHCPD
-      - OPSI.Backend.File
-      - OPSI.Backend.HostControl
-      - OPSI.Backend.HostControlSafe
-      - OPSI.Backend.JSONRPC
-      - OPSI.Backend.MySQL
-      - OPSI.Backend.OpsiPXEConfd
-      - OPSI.Backend.Replicator
-      - OPSI.Backend.SQLite
+      - OPSI.Backend.*
       - snack
     windows: []
     linux: []
     darwin: []
   dirname: opsi-utils
   scripts:
-    - script: opsi-admin
-    - script: opsi-backup
-    - script: opsi-convert
-    - script: opsi-makepackage
-    - script: opsi-newprod
-    - script: opsi-package-manager
-    - script: opsi-package-updater
+    - script: run-opsiutils
+      binaries:
+        - opsi-admin
+        - opsi-backup
+        - opsi-convert
+        - opsi-makepackage
+        - opsi-newprod
+        - opsi-package-manager
+        - opsi-package-updater
   before_script:
     - dpkg -l python3-newt >/dev/null 2>&1 || apt -y install python3-newt
     - pyver1=$(ls -ld .venv/lib/python* | sed s'/.*python//')
@@ -44,4 +39,3 @@ pyinstaller-poetry:
     - dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}m/g")
     - cp $src $dst
     - cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
-

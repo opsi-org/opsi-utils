@@ -1,4 +1,3 @@
-#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 opsi-backup
@@ -39,7 +38,7 @@ import sys
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 
-__version__ = '4.2.0.1'
+from opsiutils import __version__
 
 logger = Logger()
 
@@ -185,6 +184,3 @@ def main():
 		returnCode = 1
 
 	sys.exit(returnCode)
-
-if __name__ == "__main__":
-	main()

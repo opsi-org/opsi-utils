@@ -1,4 +1,3 @@
-#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-newprod is part of the desktop management solution opsi
@@ -45,7 +44,7 @@ from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
-__version__ = '4.2.0.1'
+from opsiutils import __version__
 
 logger = Logger()
 
@@ -700,6 +699,3 @@ def main():
 		logger.logException(exception)
 		print("ERROR: {0}".format(forceUnicode(exception).encode('utf-8')), file=sys.stderr)
 		sys.exit(1)
-
-if __name__ == "__main__":
-	main()
