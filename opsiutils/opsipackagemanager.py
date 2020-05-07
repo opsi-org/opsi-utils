@@ -1,4 +1,3 @@
-#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-package-manager is part of the client management solution opsi
@@ -59,7 +58,7 @@ try:
 except ImportError:
 	librsyncDeltaFile = None
 
-__version__ = '4.2.0.5'
+from opsiutils import __version__
 
 USER_AGENT = "opsi-package-manager/%s" % __version__
 
@@ -2073,5 +2072,3 @@ def main():
 		print(u"\nERROR: %s\n" % exception, file=sys.stderr)
 		sys.exit(1)
 
-if __name__ == "__main__":
-	main()

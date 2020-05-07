@@ -1,6 +1,0 @@
-#!/usr/bin/python3
-
-from opsiutils.opsipackageupdater import main
-
-main()
-

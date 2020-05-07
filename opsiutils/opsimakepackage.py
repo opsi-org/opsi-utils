@@ -1,4 +1,3 @@
-#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 # opsi-makepackage is part of the desktop management solution opsi
@@ -45,7 +44,7 @@ from OPSI.Util.File import ZsyncFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.Util import md5sum
 
-__version__ = '4.2.0.1'
+from opsiutils import __version__
 
 logger = Logger()
 
@@ -468,6 +467,3 @@ def main():
 		logger.logException(exception)
 		print(u"ERROR: %s" % exception, file=sys.stderr)
 		sys.exit(1)
-
-if __name__ == "__main__":
-	main()
