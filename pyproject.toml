@@ -6,6 +6,9 @@ authors = ["Jan Schneider <j.schneider@uib.de>"]
 packages = [
     { include = "opsiutils" }
 ]
+include = [
+    "opsi-utils_data/**/*"
+]
 
 [[tool.poetry.source]]
 name = "uibpypi"
