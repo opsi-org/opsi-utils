@@ -32,7 +32,7 @@ pyinstaller-poetry:
         - opsi-package-manager
         - opsi-package-updater
   data_files:
-    - src: opsi-utils_data/*
+    - src: opsi-utils_data/**/*
   before_script:
     - dpkg -l python3-newt >/dev/null 2>&1 || apt -y install python3-newt
     - pyver1=$(ls -ld .venv/lib/python* | sed s'/.*python//')
