@@ -15,7 +15,16 @@ pyinstaller-poetry:
   one_file: no
   hidden_imports:
     all:
-      - OPSI.Backend.*
+      - OPSI.Backend.Depotsever
+      - OPSI.Backend.DHCPD
+      - OPSI.Backend.File
+      - OPSI.Backend.HostControl
+      - OPSI.Backend.HostControlSafe
+      - OPSI.Backend.JSONRPC
+      - OPSI.Backend.MySQL
+      - OPSI.Backend.OpsiPXEConfd
+      - OPSI.Backend.Replicator
+      - OPSI.Backend.SQLite
       - snack
     windows: []
     linux: []
