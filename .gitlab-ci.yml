@@ -57,22 +57,14 @@ package:deb:
     expire_in: 2 day
 
 
-#package for OBS:
-#  stage: package
-#  before_script:
-#    - apt update
-#    - apt install -y devscripts debhelper gettext
-#  script:
-#    - ./create_source.sh
-#    - test -f opsi-utils_*.dsc
-#    - test -f opsi-utils_*.tar.gz
-#    - test -f opsi-utils.spec
-#  artifacts:
-#    paths:
-#      - opsi-utils_*.dsc
-#      - opsi-utils_*.tar.gz
-#      - opsi-utils.spec
-#    expire_in: 2 days
+package:obs:
+  stage: package
+  dependencies:
+    - build:linux-pyinstaller
+  script:
+    - apt update
+    - apt -y install debhelper build-essential osc
+    - opsi-dev-tools/opsi-dev-tool --obs-update-package https://obs.uib.local home:uibmz:opsi:4.2:experimental
 #  only:
 #      - /^release/.*$/i
 #      - tags
