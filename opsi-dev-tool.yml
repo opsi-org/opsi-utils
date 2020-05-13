@@ -50,3 +50,18 @@ pyinstaller-poetry:
     - dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}m/g")
     - cp $src $dst
     - cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
+
+package:
+  name: opsi-utils
+  type: binary
+  dependencies: []
+  source_script:
+    - mkdir -p ${DST}/rootfs/usr/lib
+    - mkdir -p ${DST}/rootfs/usr/bin
+    - cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
+    - for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater; do
+		-    echo "#!/bin/sh"               > ${DST}/rootfs/usr/bin/$i
+		-    echo "cd /usr/lib/opsi-utils" >> ${DST}/rootfs/usr/bin/$i
+		-    echo "./$i $@"                >> ${DST}/rootfs/usr/bin/$i
+		-    chmod 755 ${DST}/rootfs/usr/bin/$i
+	  - done
