@@ -62,7 +62,7 @@ package:obs:
     - build:linux-pyinstaller
   script:
     - apt update
-    - apt -y install osc
+    - apt -y install debhelper osc
     - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
     - source $HOME/.poetry/env
     - poetry install
