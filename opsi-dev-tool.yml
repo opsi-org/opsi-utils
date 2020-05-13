@@ -65,4 +65,5 @@ package:
     -    echo "exec ./$i \$@"          >> ${DST}/rootfs/usr/bin/$i
     -    chmod 755 ${DST}/rootfs/usr/bin/$i
     - done
-    - cp -a ${SRC}/opsi-utils/opsi-utils_data/* ${DST}/rootfs/
+    - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/* ${DST}/rootfs/
+    - rmdir ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data
