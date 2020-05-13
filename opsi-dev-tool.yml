@@ -60,8 +60,8 @@ package:
     - mkdir -p ${DST}/rootfs/usr/bin
     - cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
     - for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater; do
-		-    echo "#!/bin/sh"               > ${DST}/rootfs/usr/bin/$i
-		-    echo "cd /usr/lib/opsi-utils" >> ${DST}/rootfs/usr/bin/$i
-		-    echo "./$i $@"                >> ${DST}/rootfs/usr/bin/$i
-		-    chmod 755 ${DST}/rootfs/usr/bin/$i
-	  - done
+    -    echo "#!/bin/sh"               > ${DST}/rootfs/usr/bin/$i
+    -    echo "cd /usr/lib/opsi-utils" >> ${DST}/rootfs/usr/bin/$i
+    -    echo "./$i $@"                >> ${DST}/rootfs/usr/bin/$i
+    -    chmod 755 ${DST}/rootfs/usr/bin/$i
+    - done
