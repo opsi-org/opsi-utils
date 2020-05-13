@@ -2,7 +2,10 @@
 name = "opsi-utils"
 version = "4.2.0"
 description = ""
-authors = ["Jan Schneider <j.schneider@uib.de>"]
+homepage = "https://www.opsi.org"
+license = "AGPL-3.0"
+maintainers = ["uib GmbH <info@uib.de>"]
+authors = ["uib GmbH <info@uib.de>"]
 packages = [
     { include = "opsiutils" }
 ]
