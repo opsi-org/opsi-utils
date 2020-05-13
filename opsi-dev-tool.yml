@@ -54,7 +54,8 @@ pyinstaller-poetry:
 package:
   name: opsi-utils
   type: binary
-  dependencies: []
+  dependencies:
+    - zsync
   source_script:
     - mkdir -p ${DST}/rootfs/usr/lib
     - cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
