@@ -460,6 +460,9 @@ class Shell:
 
 	def initScreen(self):
 		if not self.screen:
+			if not os.environ.get("TERM"):
+				# prevent: setupterm: could not find terminal
+				os.environ["TERM"] = "linux"
 			self.screen = curses.initscr()
 		curses.noecho()
 		curses.cbreak()
