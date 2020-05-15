@@ -51,9 +51,16 @@ pyinstaller-poetry:
     - cp $src $dst
     - cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
   after_script:
-    - find dist/opsi-utils -iname "*.c" -delete
-    - find dist/opsi-utils -iname "*.h" -delete
-    - rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
+    linux:
+      - find dist/opsi-utils -iname "*.c" -delete
+      - find dist/opsi-utils -iname "*.h" -delete
+      - rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
+    darwin:
+      - find dist/opsi-utils -iname "*.c" -delete
+      - find dist/opsi-utils -iname "*.h" -delete
+      - rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
+    windows:
+      - rd /s /q dist\opsi-utils\site-packages\Crypto\SelfTest
 
 package:
   name: opsi-utils
