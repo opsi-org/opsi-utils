@@ -60,7 +60,7 @@ pyinstaller-poetry:
       - find dist/opsi-utils -iname "*.h" -delete
       - rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
     windows:
-      - rd /s /q dist\opsi-utils\site-packages\Crypto\SelfTest
+      - Remove-Item -Force -Recurse -Path dist\opsi-utils\site-packages\Crypto\SelfTest
 
 package:
   name: opsi-utils
