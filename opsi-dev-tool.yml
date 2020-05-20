@@ -3,11 +3,7 @@ locale:
     - de
     - fr
   source_files:
-    - opsiutils/opsiadmin.py
-    - opsiutils/opsiconvert.py
-    - opsiutils/opsimakepackage.py
-    - opsiutils/opsinewprod.py
-    - opsiutils/opsipackagemanager.py
+    - opsiutils
 
 pyinstaller-poetry:
   update_version_in:
