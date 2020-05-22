@@ -42,3 +42,6 @@ def main():
 	if name == "opsipackageupdater":
 		from opsiutils.opsipackageupdater import main
 		return main()
+	if name == "opsisetup":
+		from opsiutils.opsisetup import main
+		return main()
