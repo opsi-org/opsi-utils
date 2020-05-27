@@ -180,7 +180,7 @@ def main():
 		returnCode = backup_main()
 	except Exception as exception:
 		logger.logException(exception, LOG_INFO)
-		print((u"\nERROR: %s\n" % exception).encode(locale.getpreferredencoding(), 'replace'), file=sys.stderr)
+		print(f"\nERROR: {exception}\n", file=sys.stderr)
 		returnCode = 1
 
 	sys.exit(returnCode)
