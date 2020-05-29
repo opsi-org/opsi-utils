@@ -253,7 +253,12 @@ class CursesMainWindow(CursesWindow):
 		self.exitScreen()
 
 	def initScreen(self):
-		self.win = curses.initscr()
+		try:
+			self.win = curses.initscr()
+		except:
+			# setupterm: could not find terminal
+			os.environ["TERM"] = "linux"
+			self.win = curses.initscr()
 		(self.height, self.width) = self.win.getmaxyx()
 		(self.x, self.y) = (0, 0)
 		curses.noecho()
