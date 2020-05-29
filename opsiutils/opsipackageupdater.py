@@ -298,7 +298,7 @@ def updater_main():
 			#logger.debug("Found running process: %s", proc)
 			if proc.name() == proc_name:
 				child_pids = [ p.pid for p in proc.children() ]
-				parent_pid = proc.parent()
+				parent_pid = proc.parent().pid if proc.parent() else None
 				logger.debug(
 					"Found running '%s' process: %s, child pids: %s, parent pid: %s",
 					proc_name, proc, child_pids, parent_pid
@@ -309,8 +309,8 @@ def updater_main():
 		logger.debug(u"Check for running processes failed: {0}", error)
 
 	if running:
-		raise RuntimeError(u"Another %s process is running (pid: %s)." % (os.path.basename(sys.argv[0]), running))
-
+		raise RuntimeError(u"Another %s process is running (pids: %s / %s)." % (os.path.basename(sys.argv[0]), running, pid))
+	
 	logger.info(u"We are the only {0} running.", os.path.basename(sys.argv[0]))
 
 	with OpsiPackageUpdaterClient(config) as opu:
