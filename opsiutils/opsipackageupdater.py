@@ -256,6 +256,8 @@ def updater_main():
 
 	# Setting a default to not stumble over possibly not present args.
 	listparser.set_defaults(processProductIds=[])
+	updateparser.set_defaults(processProductIds=[])
+	downloadParser.set_defaults(processProductIds=[])
 
 	args = parser.parse_args()
 
@@ -339,7 +341,7 @@ def main():
 		exitCode = 1
 	except Exception as exc:
 		logger.logException(exc)
-		print(u"ERROR: {0}".format(forceUnicode(exc).encode('utf-8')), file=sys.stderr)
+		print(f"ERROR: {exc}", file=sys.stderr)
 		exitCode = 1
 
 	if exitCode:
