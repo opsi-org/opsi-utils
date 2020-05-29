@@ -77,9 +77,8 @@ package:
     -    chmod 755 ${DST}/rootfs/usr/bin/$i
     - done
     - echo "#!/bin/sh"                                              > ${DST}/rootfs/usr/bin/opsi-set-rights
-    - echo "exec /usr/lib/opsi-utils/opsi-admin --set-rights \$@"  >> ${DST}/rootfs/usr/bin/opsi-set-rights
+    - echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \$@"  >> ${DST}/rootfs/usr/bin/opsi-set-rights
     - chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
     - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
     - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/locale ${DST}/rootfs/usr/share/locale
     - rmdir ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data
-
