@@ -293,10 +293,18 @@ def updater_main():
 	pid = os.getpid()
 	running = None
 	try:
+		proc_name = os.path.basename(sys.argv[0])
 		for proc in psutil.process_iter():
-			logger.debug("Found running process: %s", proc)
-			if proc.name() == os.path.basename(sys.argv[0]) and proc.pid != pid:
-				running = proc.pid
+			#logger.debug("Found running process: %s", proc)
+			if proc.name() == proc_name:
+				child_pids = [ p.pid for p in proc.children() ]
+				parent_pid = proc.parent()
+				logger.debug(
+					"Found running '%s' process: %s, child pids: %s, parent pid: %s",
+					proc_name, proc, child_pids, parent_pid
+				)
+				if pid != proc.pid and proc.pid != parent_pid and proc.pid not in child_pids:
+					running = proc.pid
 	except Exception as error:
 		logger.debug(u"Check for running processes failed: {0}", error)
 
