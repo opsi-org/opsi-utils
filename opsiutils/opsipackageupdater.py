@@ -37,6 +37,7 @@ import argparse
 import operator
 import os
 import sys
+import psutil
 
 from OPSI import System
 from OPSI.Logger import LOG_NOTICE, LOG_WARNING, Logger
@@ -294,9 +295,9 @@ def updater_main():
 	pid = os.getpid()
 	running = None
 	try:
-		for anotherPid in System.execute("%s -x %s" % (System.which("pidof"), os.path.basename(sys.argv[0])))[0].strip().split():
-			if int(anotherPid) != pid:
-				running = anotherPid
+		for proc in psutil.process_iter():
+			if proc.name() == os.path.basename(sys.argv[0]) and proc.pid != pid:
+				running = proc.pid
 	except Exception as error:
 		logger.debug(u"Check for running processes failed: {0}", error)
 
