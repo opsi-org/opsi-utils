@@ -256,10 +256,8 @@ def updater_main():
 							help='Search for a package with the given name.')
 
 	# Setting a default to not stumble over possibly not present args.
-	listparser.set_defaults(processProductIds=[])
-	updateparser.set_defaults(processProductIds=[])
-	downloadParser.set_defaults(processProductIds=[])
-
+	parser.set_defaults(processProductIds=[])
+	
 	args = parser.parse_args()
 
 	logger.setConsoleLevel(args.logLevel)
@@ -296,6 +294,7 @@ def updater_main():
 	running = None
 	try:
 		for proc in psutil.process_iter():
+			logger.debug("Found running process: %s", proc)
 			if proc.name() == os.path.basename(sys.argv[0]) and proc.pid != pid:
 				running = proc.pid
 	except Exception as error:
