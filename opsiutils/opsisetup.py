@@ -280,7 +280,7 @@ def configureMySQLBackend(unattendedConfiguration=None):
 
 		config.update(unattendedConfiguration)
 
-		logger.debug(u"Configuration for unattended mysql configuration: {0}".format(config))
+		logger.debug("Configuration for unattended mysql configuration: {0}", config)
 		configureMySQLBackendWithoutGUI(
 			dbAdminUser, dbAdminPass, config, getSysConfig(),
 			additionalBackendConfig=backendConfig,
@@ -300,7 +300,7 @@ def configureMySQLBackend(unattendedConfiguration=None):
 				{"name": u"Opsi database user", "value": config['username']},
 				{"name": u"Opsi database password", "value": config['password'], "password": True}
 			]
-			values = ui.getValues(title=u'MysQL config', width=70, height=15, entries=values)
+			values = ui.getValues(title=u'MySQL config', width=70, height=15, entries=values)
 			if values is None:
 				raise Exception(u"Canceled")
 
@@ -312,7 +312,7 @@ def configureMySQLBackend(unattendedConfiguration=None):
 			config['password'] = values[5]["value"]
 
 			messageBox = ui.createMessageBox(
-				width=70, height=20, title=u'MysQL config', text=u''
+				width=70, height=20, title=u'MySQL config', text=u''
 			)
 
 			try:
@@ -890,9 +890,9 @@ def renewOpsiconfdCert(unattendedConfiguration=None):
 		certparams['expires'] = "2"  # Not included in existing cert
 
 	if unattendedConfiguration is not None:
-		logger.debug(u"Unattended certificate config: {0}".format(unattendedConfiguration))
+		logger.debug("Unattended certificate config: {0}", unattendedConfiguration)
 		certparams.update(unattendedConfiguration)
-		logger.debug(u"Configuration for unattended certificate renewal: {0}".format(certparams))
+		logger.debug("Configuration for unattended certificate renewal: {0}", certparams)
 
 		makeCert()
 		setPasswdRights()
@@ -1050,7 +1050,7 @@ def opsisetup_main():
 		elif (opt == "--patch-sudoers-file"):
 			task = "patch-sudoers-file"
 		elif opt == '--unattended':
-			logger.debug(u'Got unattended argument: {0}'.format(arg))
+			logger.debug('Got unattended argument: {0}', arg)
 
 			if args and not arg.strip().endswith('}'):
 				logger.debug("Probably wrong reading of arguments by getopt.")
@@ -1058,7 +1058,7 @@ def opsisetup_main():
 				tempArgs = [arg]
 				while args and not tempArgs[-1].strip().endswith('}'):
 					tempArgs.append(args.pop(0))
-					logger.debug("temp arguments are: {0}".format(tempArgs))
+					logger.debug("temp arguments are: {0}", tempArgs)
 
 				arg = ' '.join(tempArgs)
 				del tempArgs
@@ -1067,7 +1067,7 @@ def opsisetup_main():
 
 	path = u'/'
 	if len(args) > 0:
-		logger.debug("Additional arguments are: {0}".format(args))
+		logger.debug("Additional arguments are: {0}", args)
 		if task == 'set-rights' and len(args) == 1:
 			path = os.path.abspath(forceFilename(args[0]))
 		else:
