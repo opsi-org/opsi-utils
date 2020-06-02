@@ -48,6 +48,7 @@ pyinstaller-poetry:
     - cp $src $dst
     - cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
   locale_install: opsi-utils_data/locale
+  manpages_install: opsi-utils_data/manpages
   after_script:
     linux:
       - find dist/opsi-utils -iname "*.c" -delete
@@ -70,15 +71,17 @@ package:
     - mkdir -p ${DST}/rootfs/usr/bin
     - mkdir -p ${DST}/rootfs/usr/lib
     - mkdir -p ${DST}/rootfs/usr/share
+    - mkdir -p ${DST}/rootfs/usr/man/man1
     - cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
     - for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-setup; do
     -    echo "#!/bin/sh"                        > ${DST}/rootfs/usr/bin/$i
     -    echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
     -    chmod 755 ${DST}/rootfs/usr/bin/$i
     - done
-    - echo "#!/bin/sh"                                              > ${DST}/rootfs/usr/bin/opsi-set-rights
+    - echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-set-rights
     - echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \"\$@\""  >> ${DST}/rootfs/usr/bin/opsi-set-rights
     - chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
     - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
     - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/locale ${DST}/rootfs/usr/share/locale
+    - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages/*.1.gz ${DST}/rootfs/usr/share/man/man1/
     - rmdir ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data
