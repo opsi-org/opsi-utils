@@ -71,7 +71,7 @@ package:
     - mkdir -p ${DST}/rootfs/usr/bin
     - mkdir -p ${DST}/rootfs/usr/lib
     - mkdir -p ${DST}/rootfs/usr/share
-    - mkdir -p ${DST}/rootfs/usr/share/man/man1
+    - mkdir -p ${DST}/rootfs/usr/share/man
     - cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
     - for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-setup; do
     -    echo "#!/bin/sh"                        > ${DST}/rootfs/usr/bin/$i
@@ -83,5 +83,5 @@ package:
     - chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
     - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
     - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/locale ${DST}/rootfs/usr/share/locale
-    - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages/*.1.gz ${DST}/rootfs/usr/share/man/man1/
+    - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
     - rmdir ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data
