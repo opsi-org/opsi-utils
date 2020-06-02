@@ -71,7 +71,7 @@ package:
     - mkdir -p ${DST}/rootfs/usr/bin
     - mkdir -p ${DST}/rootfs/usr/lib
     - mkdir -p ${DST}/rootfs/usr/share
-    - mkdir -p ${DST}/rootfs/usr/man/man1
+    - mkdir -p ${DST}/rootfs/usr/share/man/man1
     - cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
     - for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-setup; do
     -    echo "#!/bin/sh"                        > ${DST}/rootfs/usr/bin/$i
