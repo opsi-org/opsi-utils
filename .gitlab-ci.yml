@@ -9,7 +9,7 @@ build:linux-pyinstaller:
   script:
     - apt update
     - apt -y upgrade
-    - apt -y install curl python3-newt gettext
+    - apt -y install curl python3-newt gettext gzip asciidoc-base
     - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
     - source $HOME/.poetry/env
     - poetry install
@@ -20,19 +20,6 @@ build:linux-pyinstaller:
     name: 'opsi-utils-linux-pyinstaller'
     paths:
       - opsi-utils
-    expire_in: 2 days
-
-build:linux-manpages:
-  stage: build
-  before_script:
-    - apt update
-    - DEBIAN_FRONTEND=noninteractive apt install -y tzdata
-    - apt install -y gzip asciidoc-base
-  script:
-    - ./recreate_manpages.sh
-  artifacts:
-    paths:
-      - manpages/compiled/*
     expire_in: 2 days
 
 #package:deb:
