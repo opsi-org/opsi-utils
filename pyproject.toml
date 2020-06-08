@@ -25,6 +25,7 @@ python-magic = "^0.4.15"
 orjson = "^2.6.5"
 mysqlclient = "^1.4.6"
 psutil = "^5.7.0"
+distro = {platform = "linux", version = "^1.5.0"}
 
 [tool.poetry.dev-dependencies]
 pyinstaller = "^3.6"
