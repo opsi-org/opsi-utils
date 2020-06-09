@@ -1,3 +1,10 @@
 *~
-manpages/compiled/*
+*.egg-info
+*.mo
+*.1.gz
+__pycache__
+/.venv
+/build
+/dist
+/python-opsi
 
