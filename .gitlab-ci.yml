@@ -15,6 +15,8 @@ build:linux-pyinstaller:
     - poetry install
     - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
     - mv dist/opsi-utils .
+    # Check if binary is working
+    - opsi-utils/opsi-admin --version
   artifacts:
     name: 'opsi-utils-linux-pyinstaller'
     paths:
