@@ -33,6 +33,7 @@ import sys
 import termios
 import tty
 
+from OPSI import __version__ as python_opsi_version
 import OPSI.Util.File.Archive
 from OPSI.Logger import LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, Logger
 from OPSI.System import execute
@@ -104,7 +105,7 @@ def makepackage_main(argv):
 	)
 	parser.add_argument('--help', action='store_true', default=False,
 						help="Show help.")  # Manual implementation because of -h
-	parser.add_argument('--version', '-V', action='version', version=__version__)
+	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
 	parser.add_argument('--quiet', '-q', action='store_true', default=False,
 						help="do not show progress")
 	parser.add_argument('--verbose', '-v', default=False, action="store_true",

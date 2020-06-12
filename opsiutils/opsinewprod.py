@@ -33,8 +33,8 @@ import sys
 import shutil
 import time
 
+from OPSI import __version__ as python_opsi_version
 from OPSI.Logger import Logger, LOG_ERROR
-
 from OPSI.Object import (ProductDependency, LocalbootProduct, NetbootProduct,
 	UnicodeProductProperty, BoolProductProperty)
 from OPSI.System import copy
@@ -64,7 +64,7 @@ class CancelledByUserError(Exception):
 
 def newprod_main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--version', '-V', action='version', version=__version__)
+	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
 	parser.add_argument("-t", "--template-dir", default=None,
 						dest="templateDir", metavar="DIRECTORY",
 						help=_(u"Copies the contents of DIRECTORY to the destination directory."))

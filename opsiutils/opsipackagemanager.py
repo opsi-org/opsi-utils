@@ -40,6 +40,7 @@ from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 
+from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Logger import LOG_INFO, LOG_NONE, LOG_WARNING, Logger
@@ -1541,7 +1542,7 @@ class OpsiPackageManagerControl(object):
 			sys.exit(0)
 
 		if self.opts.version:
-			print(USER_AGENT)
+			print(f"{__version__} [python-opsi={python_opsi_version}]")
 			sys.exit(0)
 
 		self.setDefaultConfig()
@@ -1914,7 +1915,7 @@ class OpsiPackageManagerControl(object):
 	def setCommandlineConfig(self):
 		if self.opts.properties == 'ask' and self.opts.quiet:
 			raise ValueError(u"You cannot use properties=ask in quiet mode")
-
+		
 		if self.opts.quiet:
 			self.config['quiet'] = True
 		if self.opts.verbose:
