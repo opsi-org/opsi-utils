@@ -38,6 +38,7 @@ import sys
 from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 
+from OPSI import __version__ as python_opsi_version
 from opsiutils import __version__
 
 logger = Logger()
@@ -49,8 +50,9 @@ Creates and restores opsi backups.
 Version %s.
 
 Common options:
-   -h, --help                          Show this help message and exit
+   -h, --help                          Show this help message and exit.
    -v, --verbose                       Log to standard error.
+   -V, --version                       Show version info and exit.
    -l, --log-level    <log-level>      Set log level to <log-level> (default: 4)
                                           0=nothing, 1=essential, 2=critical, 3=error, 4=warning
                                           5=notice, 6=info, 7=debug, 8=debug2, 9=confidential
@@ -96,6 +98,7 @@ def backup_main():
 	parser = argparse.ArgumentParser(prog="opsi-backup", add_help=False, usage=USAGE, formatter_class=HelpFormatter)
 	parser.add_argument("-h", "--help", action="help")
 	parser.add_argument("-v", "--verbose", action="store_true", default=False)
+	parser.add_argument("-V", "--version", action='store_true'),
 	parser.add_argument("-l", "--log-level", default=LOG_NOTICE, type=int,
 						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 	parser.add_argument("--log-file", metavar='FILE', default="/var/log/opsi/opsi-backup.log")
@@ -121,12 +124,11 @@ def backup_main():
 	creationParser.add_argument("--no-configuration", action="store_true", default=False)
 	creationParser.add_argument("-c", "--compression", nargs="?", default="bz2", choices=['gz', 'bz2', 'none'])
 
-	try:
-		args = parser.parse_args()
-	except Exception:
-		print(USAGE)
-		return 1
-
+	args = parser.parse_args()
+	if args.version:
+		print(f"{__version__} [python-opsi={python_opsi_version}]")
+		return 0
+	
 	if args.verbose:
 		logger.setConsoleColor(True)
 		logger.setConsoleLevel(args.log_level)
@@ -149,9 +151,9 @@ def backup_main():
 	elif args.command == 'verify':
 		result = backup.verify(file=args.file)
 		if result == 0:
-			print("Verified")
+			print("Verified", file=sys.stdout)
 		else:
-			print("Verification failed")
+			print("Verification failed", file=sys.stdout)
 	elif args.command == 'list':
 		if not args.verbose:
 			logger.setConsoleLevel(LOG_NOTICE)
