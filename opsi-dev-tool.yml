@@ -68,6 +68,7 @@ package:
   architecture: amd64
   depends:
     - zsync
+    - librsync1
   source_script:
     - mkdir -p ${DST}/rootfs/usr/bin
     - mkdir -p ${DST}/rootfs/usr/lib
