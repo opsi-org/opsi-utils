@@ -33,6 +33,7 @@ import struct
 import sys
 import termios
 
+from OPSI import __version__ as python_opsi_version
 from OPSI.Logger import LOG_DEBUG, LOG_ERROR, LOG_NONE, Logger
 from OPSI.Types import forceUnicode, forceHostId, forceUnicodeLower
 from OPSI.Util import getfqdn
@@ -113,7 +114,7 @@ def opsiconvert_main():
 The backends can either be the name of a backend as defined
 in /etc/opsi/backends (file, mysql, ...) or the the url of an opsi
 configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
-	parser.add_argument('--version', '-V', action='version', version=__version__)
+	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
 	parser.add_argument('--quiet', '-q', action='store_true', default=False,
 						help="do not show progress")
 	parser.add_argument('--verbose', '-v',

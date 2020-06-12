@@ -39,6 +39,7 @@ import os
 import sys
 import psutil
 
+from OPSI import __version__ as python_opsi_version
 from OPSI import System
 from OPSI.Logger import LOG_NOTICE, LOG_WARNING, Logger
 from OPSI.Types import forceProductId, forceUnicode
@@ -179,7 +180,7 @@ def updater_main():
 		description="Updater for local opsi products.",
 		epilog="Modes have their own options that can be viewed with MODE -h."
 	)
-	parser.add_argument('--version', '-V', action='version', version=__version__)
+	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
 	parser.add_argument('--config', '-c', help="Location of config file",
 						dest="configFile",
 						default='/etc/opsi/opsi-package-updater.conf')
