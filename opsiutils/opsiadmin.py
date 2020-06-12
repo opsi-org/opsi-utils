@@ -42,6 +42,7 @@ import sys
 import time
 from contextlib import closing, contextmanager
 
+from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Exceptions import OpsiRpcError
 from OPSI.Logger import (
@@ -143,7 +144,7 @@ def shell_main(argv):
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version',
-						version=__version__, help=_("Show version and exit"))
+						version=f"{__version__} [python-opsi={python_opsi_version}]", help=_("Show version and exit"))
 	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_WARNING,
 						type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 						help=_(u"Set log level (default: 3)"))
