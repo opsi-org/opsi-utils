@@ -18,6 +18,7 @@
 
 import os
 import sys
+import codecs
 
 def main():
 	name = os.path.splitext(os.path.basename(sys.argv[0]))[0].lower().replace("-", "")
@@ -45,3 +46,7 @@ def main():
 	if name == "opsisetup":
 		from opsiutils.opsisetup import main
 		return main()
+	if name == "opsipython":
+		if len(sys.argv) > 1:
+			with codecs.open(sys.argv[1], "r", "utf-8") as f:
+				exec(f.read())

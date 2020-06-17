@@ -38,6 +38,7 @@ pyinstaller-poetry:
         - opsi-package-manager
         - opsi-package-updater
         - opsi-setup
+        - opsi-python
   data_files:
     - src: opsi-utils_data/**/*
   before_script:
@@ -75,7 +76,7 @@ package:
     - mkdir -p ${DST}/rootfs/usr/share
     - mkdir -p ${DST}/rootfs/usr/share/man
     - cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
-    - for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-setup; do
+    - for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup; do
     -    echo "#!/bin/sh"                        > ${DST}/rootfs/usr/bin/$i
     -    echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
     -    chmod 755 ${DST}/rootfs/usr/bin/$i
