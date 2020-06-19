@@ -40,6 +40,7 @@ opsi-newprod = "opsiutils.opsinewprod:main"
 opsi-package-manager = "opsiutils.opsipackagemanager:main"
 opsi-package-updater = "opsiutils.opsipackageupdater:main"
 opsi-setup = "opsiutils.opsisetup:main"
+opsi-python = "opsiutils.opsipython:main"
 
 [build-system]
 requires = ["poetry>=0.12"]
