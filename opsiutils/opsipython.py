@@ -23,6 +23,7 @@
 import os
 import sys
 import codecs
+import traceback
 
 def main():
 	if len(sys.argv) > 1:
@@ -35,4 +36,10 @@ def main():
 		
 		with codecs.open(script, "r", "utf-8") as f:
 			code = f.read()
-		exec(code, new_module.__dict__)
+		try:
+			exec(code, new_module.__dict__)
+		except SystemExit:
+			raise
+		except Exception as e:
+			traceback.print_exc()
+			sys.exit(1)
