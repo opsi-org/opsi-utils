@@ -41,27 +41,27 @@ pyinstaller-poetry:
         - opsi-python
   data_files:
     - src: opsi-utils_data/**/*
-  before_script:
-    - dpkg -l python3-newt >/dev/null 2>&1 || apt -y install python3-newt
-    - pyver1=$(ls -ld .venv/lib/python* | sed s'/.*python//')
-    - pyver2=$(echo $pyver1 | sed s'/\.//')
-    - src=$(ls /usr/lib/python3/dist-packages/_snack.cpython-*m-x86_64-linux-gnu.so | head -n1)
-    - dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}m/g")
-    - cp $src $dst
-    - cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
+  before_script: |
+    dpkg -l python3-newt >/dev/null 2>&1 || apt -y install python3-newt
+    pyver1=$(ls -ld .venv/lib/python* | sed s'/.*python//')
+    pyver2=$(echo $pyver1 | sed s'/\.//')
+    src=$(ls /usr/lib/python3/dist-packages/_snack.cpython-*m-x86_64-linux-gnu.so | head -n1)
+    dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}m/g")
+    cp $src $dst
+    cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
   locale_install: opsi-utils_data/locale
   manpages_install: opsi-utils_data/manpages
   after_script:
-    linux:
-      - find dist/opsi-utils -iname "*.c" -delete
-      - find dist/opsi-utils -iname "*.h" -delete
-      - rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
-    darwin:
-      - find dist/opsi-utils -iname "*.c" -delete
-      - find dist/opsi-utils -iname "*.h" -delete
-      - rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
-    windows:
-      - Remove-Item -Force -Recurse -Path dist\opsi-utils\site-packages\Crypto\SelfTest
+    linux: |
+      find dist/opsi-utils -iname "*.c" -delete
+      find dist/opsi-utils -iname "*.h" -delete
+      rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
+    darwin: |
+      find dist/opsi-utils -iname "*.c" -delete
+      find dist/opsi-utils -iname "*.h" -delete
+      rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
+    windows: |
+      Remove-Item -Force -Recurse -Path dist\opsi-utils\site-packages\Crypto\SelfTest
 
 package:
   name: opsi-utils
@@ -70,21 +70,21 @@ package:
   depends:
     - zsync
     - librsync | librsync2 | librsync1
-  source_script:
-    - mkdir -p ${DST}/rootfs/usr/bin
-    - mkdir -p ${DST}/rootfs/usr/lib
-    - mkdir -p ${DST}/rootfs/usr/share
-    - mkdir -p ${DST}/rootfs/usr/share/man
-    - cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
-    - for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup; do
-    -    echo "#!/bin/sh"                        > ${DST}/rootfs/usr/bin/$i
-    -    echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
-    -    chmod 755 ${DST}/rootfs/usr/bin/$i
-    - done
-    - echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-set-rights
-    - echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \"\$@\""  >> ${DST}/rootfs/usr/bin/opsi-set-rights
-    - chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
-    - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
-    - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/locale ${DST}/rootfs/usr/share/locale
-    - mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
-    - rmdir ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data
+  source_script: |
+    mkdir -p ${DST}/rootfs/usr/bin
+    mkdir -p ${DST}/rootfs/usr/lib
+    mkdir -p ${DST}/rootfs/usr/share
+    mkdir -p ${DST}/rootfs/usr/share/man
+    cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
+    for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup; do
+       echo "#!/bin/sh"                        > ${DST}/rootfs/usr/bin/$i
+       echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
+       chmod 755 ${DST}/rootfs/usr/bin/$i
+    done
+    echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-set-rights
+    echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \"\$@\""  >> ${DST}/rootfs/usr/bin/opsi-set-rights
+    chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
+    mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
+    mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/locale ${DST}/rootfs/usr/share/locale
+    mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
+    rmdir ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data
