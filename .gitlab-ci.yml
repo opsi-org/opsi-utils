@@ -28,7 +28,7 @@ build:linux-pyinstaller:
     expire_in: 2 days
 
 package:obs_int:
-  stage: packagev
+  stage: package
   dependencies:
     - build:linux-pyinstaller
   script:
