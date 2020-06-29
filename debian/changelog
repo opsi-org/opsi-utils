@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.36-1) stable; urgency=medium
+
+  * autoSetupExcludes added to example package updater configuration
+
+ -- Erol Ueluekmen <e.ueluekmen@uib.de>  Tue, 30 Jun 2020 00:00:15 +0200
+
 opsi-utils (4.1.1.35-1) stable; urgency=medium
 
   * version bumped for cleanup in buildservice
