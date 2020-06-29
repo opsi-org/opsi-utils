@@ -9,6 +9,5 @@ dirs = opsi4.1/stable/packages/opsi-local-image/localboot/, opsi4.1/stable/packa
 autoInstall = false
 autoUpdate = true
 autoSetup = false
-autoSetupExcludes = ^opsi-local-image-.*
 ; Set Proxy handler like: http://10.10.10.1:8080
 proxy =
