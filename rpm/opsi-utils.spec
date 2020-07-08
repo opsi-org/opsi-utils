@@ -19,10 +19,10 @@ Url:            http://www.opsi.org
 License:        AGPL-3.0-only
 Group:          Productivity/Networking/Opsi
 AutoReqProv:    on
-Version:        4.1.1.33
-Release:        8
+Version:        4.1.1.36
+Release:        1
 Summary:        Tools for working on a opsi server
-Source:         opsi-utils_4.1.1.33-8.tar.gz
+Source:         opsi-utils_4.1.1.36-1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?suse_version}
