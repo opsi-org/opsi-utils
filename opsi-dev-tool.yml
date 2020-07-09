@@ -23,6 +23,7 @@ pyinstaller-poetry:
       - OPSI.Util.WIM
       - snack
       - distro
+      - pkg_resources.py2_warn
     windows: []
     linux: []
     darwin: []
