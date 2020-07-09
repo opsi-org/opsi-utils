@@ -169,7 +169,7 @@ description = "Internationalized Domain Names in Applications (IDNA)"
 name = "idna"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "2.9"
+version = "2.10"
 
 [[package]]
 category = "main"
@@ -207,7 +207,7 @@ description = "opsi development tools"
 name = "opsi-dev-tools"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "1.0.6"
+version = "1.0.11"
 
 [package.dependencies]
 colorlog = ">=4.1.0,<5.0.0"
@@ -369,7 +369,7 @@ description = "The opsi python library"
 name = "python-opsi"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "4.2.0.30"
+version = "4.2.0.32"
 
 [package.dependencies]
 SQLAlchemy = ">=1.3.15,<2.0.0"
@@ -699,8 +699,8 @@ hyperlink = [
     {file = "hyperlink-19.0.0.tar.gz", hash = "sha256:4288e34705da077fada1111a24a0aa08bb1e76699c9ce49876af722441845654"},
 ]
 idna = [
-    {file = "idna-2.9-py2.py3-none-any.whl", hash = "sha256:a068a21ceac8a4d63dbfd964670474107f541babbd2250d61922f029858365fa"},
-    {file = "idna-2.9.tar.gz", hash = "sha256:7588d1c14ae4c77d74036e8c22ff447b26d0fde8f007354fd48a7814db15b7cb"},
+    {file = "idna-2.10-py2.py3-none-any.whl", hash = "sha256:b97d804b1e9b523befed77c48dacec60e6dcb0b5391d57af6a65a312a90648c0"},
+    {file = "idna-2.10.tar.gz", hash = "sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6"},
 ]
 incremental = [
     {file = "incremental-17.5.0-py2.py3-none-any.whl", hash = "sha256:717e12246dddf231a349175f48d74d93e2897244939173b01974ab6661406b9f"},
@@ -721,8 +721,8 @@ mysqlclient = [
     {file = "mysqlclient-1.4.6.tar.gz", hash = "sha256:f3fdaa9a38752a3b214a6fe79d7cae3653731a53e577821f9187e67cbecb2e16"},
 ]
 opsi-dev-tools = [
-    {file = "opsi-dev-tools-1.0.6.tar.gz", hash = "md5:1f3c9cbadb0415ee5bd72983baeec435"},
-    {file = "opsi_dev_tools-1.0.6-py3-none-any.whl", hash = "md5:3d51b163df8d5971ffeb3c52be5df2d7"},
+    {file = "opsi-dev-tools-1.0.11.tar.gz", hash = "md5:ebf6deee7b96d007d149955278c40a63"},
+    {file = "opsi_dev_tools-1.0.11-py3-none-any.whl", hash = "md5:5b56d34b0bbe4880f3ad6e68a76f443f"},
 ]
 orjson = [
     {file = "orjson-2.6.8-cp36-cp36m-macosx_10_7_x86_64.whl", hash = "sha256:440acee918752157b578e489656776b17704089ab6f06d669409e1f1bfe431ac"},
@@ -851,8 +851,8 @@ python-magic = [
     {file = "python_magic-0.4.18-py2.py3-none-any.whl", hash = "sha256:356efa93c8899047d1eb7d3eb91e871ba2f5b1376edbaf4cc305e3c872207355"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.30.tar.gz", hash = "md5:391ce1486974709901c68b68d3748986"},
-    {file = "python_opsi-4.2.0.30-py3-none-any.whl", hash = "md5:13c6a57209cd8737eb4cdd2e90187296"},
+    {file = "python-opsi-4.2.0.32.tar.gz", hash = "md5:8351fbd3892202ef92b79aac957db97e"},
+    {file = "python_opsi-4.2.0.32-py3-none-any.whl", hash = "md5:c79619166ef6f3036617d3fb2e817724"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
