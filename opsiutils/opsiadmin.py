@@ -72,6 +72,12 @@ COLOR_LIGHT_BLUE = '\033[1;34;40m'
 COLOR_LIGHT_MAGENTA = '\033[1;35;40m'
 COLOR_LIGHT_CYAN = '\033[1;36;40m'
 COLOR_LIGHT_WHITE = '\033[1;37;40m'
+COLORS_AVAILABLE = [
+	COLOR_NORMAL, COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
+	COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE, COLOR_LIGHT_BLACK,
+	COLOR_LIGHT_RED, COLOR_LIGHT_GREEN, COLOR_LIGHT_YELLOW, COLOR_LIGHT_BLUE,
+	COLOR_LIGHT_MAGENTA, COLOR_LIGHT_CYAN, COLOR_LIGHT_WHITE
+]
 
 backend = None
 exitZero = False
@@ -124,7 +130,7 @@ try:
 	translation = gettext.translation('opsi-utils', '/usr/share/locale')
 	_ = translation.ugettext
 except Exception as error:
-	logger.error(u"Locale not found: %s" % error)
+	logger.error("Failed to load locale: %s", error, exc_info=True)
 
 	def _(string):
 		return string
