@@ -42,13 +42,10 @@ import sys
 import time
 from contextlib import closing, contextmanager
 
+from opsicommon.logging import logger, logging_config, LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Exceptions import OpsiRpcError
-from OPSI.Logger import (
-	COLOR_CYAN, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_NORMAL,
-	COLORS_AVAILABLE, COLOR_LIGHT_WHITE, COLOR_LIGHT_RED,
-	LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING, Logger)
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
 from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
@@ -58,13 +55,29 @@ from OPSI.Util import (
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
 from opsiutils import __version__
 
+COLOR_NORMAL = '\033[0;0;0m'
+COLOR_BLACK = '\033[0;30;40m'
+COLOR_RED = '\033[0;31;40m'
+COLOR_GREEN = '\033[0;32;40m'
+COLOR_YELLOW = '\033[0;33;40m'
+COLOR_BLUE = '\033[0;34;40m'
+COLOR_MAGENTA = '\033[0;35;40m'
+COLOR_CYAN = '\033[0;36;40m'
+COLOR_WHITE = '\033[0;37;40m'
+COLOR_LIGHT_BLACK = '\033[1;30;40m'
+COLOR_LIGHT_RED = '\033[1;31;40m'
+COLOR_LIGHT_GREEN = '\033[1;32;40m'
+COLOR_LIGHT_YELLOW = '\033[1;33;40m'
+COLOR_LIGHT_BLUE = '\033[1;34;40m'
+COLOR_LIGHT_MAGENTA = '\033[1;35;40m'
+COLOR_LIGHT_CYAN = '\033[1;36;40m'
+COLOR_LIGHT_WHITE = '\033[1;37;40m'
+
 backend = None
 exitZero = False
 shell = None
 logFile = None
-logger = Logger()
 interactive = False
-logger.setLogFormat(u"[%l] %M (%F|%N)")
 
 outEncoding = sys.stdout.encoding
 inEncoding = sys.stdin.encoding
@@ -206,11 +219,7 @@ def shell_main(argv):
 		logFile = forceFilename(options.logFile)
 		startLogFile(logFile, options.logLevel)
 
-	logger.setConsoleLevel(options.logLevel)
-	logger.setColor(color)
-
-	if interactive:
-		logger.setConsoleLevel(LOG_NONE)
+	logging_config(stderr_level = LOG_NONE if interactive else options.logLevel)
 
 	global backend
 	try:
@@ -381,11 +390,8 @@ To exit opsi-admin please type 'exit'."""
 
 def startLogFile(logFile, logLevel):
 	with codecs.open(logFile, 'w', 'utf-8') as log:
-		log.write(u"Starting log at: %s" % forceUnicode(time.strftime(u"%a, %d %b %Y %H:%M:%S")))
-
-	logger.setLogFile(logFile)
-	logger.setFileLevel(logLevel)
-
+		log.write(u"Starting log at: %s" % forceUnicode(time.strftime("%a, %d %b %Y %H:%M:%S")))
+	logging_config(log_file = logFile, file_level = logLevel)
 
 class Shell:
 
@@ -1344,8 +1350,7 @@ class CommandSet(Command):
 
 		elif params[0] == u'log-file':
 			if params[1] == u'off':
-				logger.setFileLevel(LOG_NONE)
-				logger.setLogFile(None)
+				logging_config(file_level = LOG_NONE)
 			else:
 				logFile = params[1]
 				startLogFile(logFile, LOG_DEBUG)
@@ -1353,7 +1358,7 @@ class CommandSet(Command):
 		elif params[0] == u'log-level':
 			if not logFile:
 				raise ValueError(_(u'No log-file set!'))
-			logger.setFileLevel(int(params[1]))
+			logging_config(file_level = int(params[1]))
 
 
 class CommandHelp(Command):
@@ -1703,12 +1708,11 @@ def main():
 			shell_main(sys.argv[1:])
 		exitCode = 0
 	except ErrorInResultException as error:
-		logger.warning(u"Error in result: {0}".format(forceUnicode(error)))
+		logger.warning("Error in result: %s", error)
 		exitCode = 2
 	except Exception as error:
-		logger.setConsoleLevel(LOG_ERROR)
-		logger.logException(error)
-		logger.error("Error during execution: {0}", error)
+		logging_config(stderr_level = LOG_ERROR)
+		logger.error("Error during execution: %s", error, exc_info=True)
 		exitCode = 1
 
 	if exitZero:
