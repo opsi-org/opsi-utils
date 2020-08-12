@@ -50,10 +50,10 @@ from opsiutils import __version__
 logger = Logger()
 
 try:
-	t = gettext.translation('opsi-utils', '/usr/share/locale')
-	_ = t.ugettext
-except Exception as e:
-	logger.error(u"Locale not found: %s" % e)
+	translation = gettext.translation('opsi-utils', '/usr/share/locale')
+	_ = translation.gettext
+except Exception as error:
+	logger.error("Failed to load locale: %s", error, exc_info=True)
 
 	def _(string):
 		return string
