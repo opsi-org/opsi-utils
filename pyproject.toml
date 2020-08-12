@@ -18,8 +18,8 @@ name = "uibpypi"
 url = "http://pypi.uib.gmbh:8080/simple"
 
 [tool.poetry.dependencies]
-python = "^3.6"
-python-opsi = "^4.2.0"
+python = "^3.7"
+python-opsi = "^4.2.0.44"
 #python-opsi = {path = "python-opsi"}
 python-magic = "^0.4.15"
 orjson = "^2.6.5"
