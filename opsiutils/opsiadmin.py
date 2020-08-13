@@ -277,7 +277,7 @@ def shell_main(argv):
 				try:
 					os.mkdir(opsiadminUserDir)
 				except OSError as error:
-					logger.info("Could not create {0}.".format(opsiadminUserDir))
+					logger.info("Could not create %s.", opsiadminUserDir)
 
 			sessionId = None
 			sessionFile = os.path.join(opsiadminUserDir, u'session')
@@ -314,7 +314,7 @@ def shell_main(argv):
 
 		cmdline = u''
 		for i, argument in enumerate(options.command, start=0):
-			logger.info(u"arg[{}]: {}", i, argument)
+			logger.info(u"arg[%s]: %s", i, argument)
 			if i == 0:
 				cmdline = argument
 			elif ' ' in argument or len(argument) == 0:
@@ -372,7 +372,7 @@ To exit opsi-admin please type 'exit'."""
 						shell.cmdline = cmd
 						shell.execute()
 
-				logger.debug("Shell lines are: {0!r}".format(shell.getLines()))
+				logger.debug("Shell lines are: '%s'", shell.getLines())
 				for line in shell.lines:
 					print(line['text'].rstrip())
 
@@ -380,7 +380,7 @@ To exit opsi-admin please type 'exit'."""
 					resultAsJSON = json.loads(u'\n'.join([line['text'] for line in shell.lines]))
 					searchForError(dict(resultAsJSON))
 				except (TypeError, ValueError) as error:
-					logger.debug2(u"Conversion to dict failed: {0}".format(error))
+					logger.debug2(u"Conversion to dict failed: %s", error)
 			except Exception as error:
 				logger.logException(forceUnicode(error))
 				raise error
@@ -445,7 +445,7 @@ class Shell:
 				try:
 					os.mkdir(self.userConfigDir)
 				except OSError as error:
-					logger.error(u"Failed to create user dir {0!r}: {1}".format(self.userConfigDir, forceUnicode(error)))
+					logger.error(u"Failed to create user dir '%s': %s", self.userConfigDir, forceUnicode(error))
 		else:
 			logger.error(u'Failed to get home directory from environment!')
 
@@ -458,9 +458,9 @@ class Shell:
 					self.cmdList.append(line.strip())
 					self.cmdListPos += 1
 		except FileNotFoundError:
-			logger.debug("History {} file not found.", historyFile)
+			logger.debug("History %s file not found.", historyFile)
 		except Exception as error:
-			logger.error(u"Failed to read history file {0!r}: {1}".format(historyFile, forceUnicode(error)))
+			logger.error(u"Failed to read history file '%s': %s", historyFile, forceUnicode(error))
 
 	def setColor(self, color):
 		color = forceBool(color)
@@ -540,7 +540,7 @@ class Shell:
 				try:
 					os.unlink(logFile)
 				except OSError as error:
-					logger.error(u"Failed to delete log-file {0!r}: {1}".format(logFile, forceUnicode(error)))
+					logger.error(u"Failed to delete log-file '%s': %s", logFile, forceUnicode(error))
 
 		historyFilePath = os.path.join(self.userConfigDir, 'history')
 		try:
@@ -550,7 +550,7 @@ class Shell:
 						continue
 					history.write(u"%s\n" % line)
 		except Exception as error:
-			logger.error(u"Failed to write history file {0!r}: {1}".format(historyFilePath, forceUnicode(error)))
+			logger.error(u"Failed to write history file '%s': %s", historyFilePath, forceUnicode(error))
 
 		self.exitScreen()
 		self.running = False
@@ -567,7 +567,7 @@ class Shell:
 		try:
 			self.screen.addstr(shellLine, curses.A_REVERSE)
 		except Exception as error:
-			logger.error(u"Failed to add string {0!r}: {1}".format(shellLine, forceUnicode(error)))
+			logger.error(u"Failed to add string '%s': %s", shellLine, forceUnicode(error))
 
 		height = int(len(self.prompt + u' ' + self.cmdline) / self.xMax) + 1
 		clear = self.xMax - (len(self.prompt + u' ' + self.cmdline) % self.xMax) - 1
@@ -579,7 +579,7 @@ class Shell:
 		try:
 			self.screen.addstr(shellLine, curses.A_BOLD)
 		except Exception as error:
-			logger.error(u"Failed to add string {0!r}: {1}".format(shellLine, forceUnicode(error)))
+			logger.error(u"Failed to add string '%s': %s", shellLine, forceUnicode(error))
 
 		for i in range(0, self.linesMax):
 			self.screen.move(self.linesMax - i, 0)
@@ -613,7 +613,7 @@ class Shell:
 				else:
 					self.screen.addstr(shellLine)
 			except Exception as error:
-				logger.error(u"Failed to add string {0!r}: {1}".format(shellLine, forceUnicode(error)))
+				logger.error(u"Failed to add string '%s': %s", shellLine, forceUnicode(error))
 
 		moveY = self.yMax - height + int((len(self.prompt + u' ') + self.pos) / self.xMax)
 		moveX = ((len(self.prompt + u' ') + self.pos) % self.xMax)
@@ -696,7 +696,7 @@ class Shell:
 		quote = None
 		for i, element in enumerate(cmdline):
 			logger.debug2(
-				u"parseCmdline(): char {!r}, quote: {!r}, cur: {!r}, params: {!r}",
+				u"parseCmdline(): char '%s', quote: '%s', cur: '%s', params: '%s'",
 				element, quote, cur, self.params
 			)
 			if len(self.params) < cur + 1:
@@ -742,23 +742,23 @@ class Shell:
 		else:
 			self.currentParam = u''
 
-		logger.debug(u"cmdline: {!r}", cmdline)
+		logger.debug(u"cmdline: '%s'", cmdline)
 		logger.debug2(
-			u"paramPos {0}, currentParam: {1!r}, params: {2!r}",
+			u"paramPos %s, currentParam: '%s', params: '%s'",
 			self.paramPos, self.currentParam, self.params
 		)
 
 		if self.paramPos >= len(self.params):
 			logger.error(
 				u"Assertion 'self.paramPos < len(self.params)' failed: "
-				u"self.paramPos: {}, len(self.params): {}",
+				u"self.paramPos: %s, len(self.params): %s",
 				self.paramPos,
 				len(self.params)
 			)
 			self.paramPos = len(self.params) - 1
 
 	def execute(self):
-		logger.info(u"Execute: {0!r}".format(self.cmdline))
+		logger.info(u"Execute: '%s'", self.cmdline)
 		self.cmdList.append(self.cmdline)
 		if len(self.cmdList) > self.cmdBufferSize:
 			del self.cmdList[0]
@@ -1179,7 +1179,7 @@ class CommandMethod(Command):
 			try:
 				return fromJson(obj)
 			except Exception as error:
-				logger.debug(u"Not a json string {0!r}: {1}", obj, forceUnicode(error))
+				logger.debug(u"Not a json string '%s': %s", obj, forceUnicode(error))
 				return forceUnicode(obj)
 
 		params = [createObjectOrString(item) for item in params]
@@ -1192,7 +1192,7 @@ class CommandMethod(Command):
 
 		result = None
 
-		logger.info(u"Executing:  {}({})", methodName, pString)
+		logger.info(u"Executing:  %s(%s)", methodName, pString)
 		shell.setInfoline(u"Executing:  %s(%s)" % (methodName, pString))
 		start = time.time()
 
@@ -1206,7 +1206,7 @@ class CommandMethod(Command):
 		logger.debug(u'Took %0.3f seconds to process: %s(%s)' % (duration, methodName, pString))
 		shell.setInfoline(_(u'Took %0.3f seconds to process: %s(%s)') % (duration, methodName, pString))
 		result = serialize(result)
-		logger.debug2(u"Serialized result: {0!r}", result)
+		logger.debug2(u"Serialized result: '%s'", result)
 
 		if result is not None:
 			lines = []
@@ -1649,7 +1649,7 @@ class CommandTask(Command):
 			if udm:  # We are on Univention Corporate Server (UCS)
 				dn = None
 				command = u'{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=udm)
-				logger.debug("Filtering for pcpatch: {0}", command)
+				logger.debug("Filtering for pcpatch: %s", command)
 				with closing(os.popen(command, 'r')) as process:
 					for line in process.readlines():
 						if line.startswith('DN'):
@@ -1665,7 +1665,7 @@ class CommandTask(Command):
 					u"--set overridePWLength=1 --set overridePWHistory=1 "
 					u"1>/dev/null 2>/dev/null"
 				).format(udm=udm, dn=dn, pw=password)
-				logger.debug("Setting password with: {0}", command)
+				logger.debug("Setting password with: %s", command)
 				os.system(command)
 
 				return  # Done with UCS
