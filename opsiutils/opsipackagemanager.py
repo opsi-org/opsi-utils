@@ -1337,12 +1337,12 @@ class OpsiPackageManager(object):
 			packageFile = os.path.basename(packageFile)
 			if self.config['newProductId']:
 				logger.notice(
-					u"Installing package {packageFile!r} as {forcedProductId!r} on depot {depotId!r}".format(
-					packageFile=packageFile,
-					forcedProductId=self.config['newProductId'],
-					depotId=depotId)
+					u"Installing package '%s' as '%s' on depot '%s'",
+					packageFile,
+					self.config['newProductId'],
+					depotId
 				)
-				subject.setMessage(_(u"Installing package {filename} as {forcedProductId}").format(filename=packageFile, forcedProductId=self.config['newProductId']))
+				subject.setMessage(_(u"Installing package '%s' as '%s'"), packageFile, self.config['newProductId'])
 			else:
 				logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
 				subject.setMessage(_(u"Installing package %s") % packageFile)
@@ -1384,10 +1384,10 @@ class OpsiPackageManager(object):
 
 			if self.config['newProductId']:
 				logger.notice(
-					u"Installation of package '{packageFile}' as {forcedProductId} on depot '{depotId}' successful".format(
-					packageFile=packageFile,
-					forcedProductId=self.config['newProductId'],
-					depotId=depotId)
+					u"Installation of package '%s' as %s on depot '%s' successful",
+					packageFile,
+					self.config['newProductId'],
+					depotId
 				)
 				subject.setMessage(_(u"Installation of package {packageFile} as {forcedProductId} successful").format(packageFile=packageFile, forcedProductId=self.config['newProductId']), severity=4)
 			else:
@@ -1429,7 +1429,7 @@ class OpsiPackageManager(object):
 				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId='%s' % product)
 				if not package:
 					subject.setMessage(_(u"WARNING: Product {0} not installed on depot {1}.".format(product, depotId)), severity=3)
-					logger.warning(u"WARNING: Product {0} not installed on depot {1}.".format(product, depotId))
+					logger.warning(u"WARNING: Product %s not installed on depot %s.", product, depotId)
 					packageNotInstalled = True
 
 			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
@@ -1447,7 +1447,7 @@ class OpsiPackageManager(object):
 					)
 				)
 			self.taskQueues.append(tq)
-			logger.info(u"Starting task queue {0!r}".format(tq.name))
+			logger.info(u"Starting task queue '%s'", tq.name)
 			tq.start()
 		self.waitForTaskQueues()
 		if packageNotInstalled:
@@ -1460,11 +1460,11 @@ class OpsiPackageManager(object):
 		subject = self.getDepotSubject(depotId)
 
 		try:
-			logger.notice(u"Uninstalling package {0!r} on depot {1!r}".format(productId, depotId))
+			logger.notice(u"Uninstalling package '%s' on depot '%s'", productId, depotId)
 			subject.setMessage(_(u"Uninstalling package {0}".format(productId)))
 
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
-			logger.info(u"Using {0!r} as repository url".format(depot.getRepositoryRemoteUrl()))
+			logger.info(u"Using '%s' as repository url", depot.getRepositoryRemoteUrl())
 			repository = getRepository(url=depot.getRepositoryRemoteUrl(), username=depotId, password=depot.getOpsiHostKey())
 			for destination in repository.listdir():
 				fileInfo = parseFilename(destination)
@@ -1474,12 +1474,12 @@ class OpsiPackageManager(object):
 				if not fileInfo.productId == productId:
 					continue
 
-				logger.info(u"Deleting destination {0!r} on depot {1!r}".format(destination, depotId))
+				logger.info(u"Deleting destination '%s' on depot '%s'", destination, depotId)
 				repository.delete(destination)
 
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_uninstallPackage(productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall'])
-			logger.notice(u"Uninstall of package {0!r} on depot {1!r} finished".format(productId, depotId))
+			logger.notice(u"Uninstall of package '%s' on depot '%s' finished", productId, depotId)
 			subject.setMessage(_(u"Uninstallation of package {0} successful").format(productId), severity=4)
 
 		except Exception as uninstallError:

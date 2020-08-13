@@ -181,11 +181,11 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 
 	logger.debug(u"Parsing read backend")
 	parseBackend(read, readBackend)
-	logger.debug(u"Settings for read-backend: {0}".format(read))
+	logger.debug(u"Settings for read-backend: %s", read)
 
 	logger.debug(u"Parsing write backend")
 	parseBackend(write, writeBackend)
-	logger.debug(u"Settings for write-backend: {0}".format(write))
+	logger.debug(u"Settings for write-backend: %s", write)
 	if write['address'] and write['username'] and newServerId:
 		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
 		newServerId = match.group(3).split(':')[0]
@@ -236,7 +236,7 @@ def parseBackend(config, backendString):
 		else:
 			raise ValueError(u"Bad source URL '%s'" % backendString)
 	else:
-		logger.debug(u"Assuming {0!r} is a backend name.".format(backendString))
+		logger.debug(u"Assuming '%s' is a backend name.", backendString)
 		config['backend'] = backendString
 
 
@@ -253,7 +253,7 @@ def sanityCheck(read, write):
 def createBackend(config):
 	logger.debug(u"Creating backend instance")
 	if config['address'] and not config['password']:
-		logger.comment(u"Connecting to {address} as {username}".format(**config))
+		logger.comment(u"Connecting to %s as %s", config.get("address"), config.get("username"))
 		config['password'] = getpass.getpass()
 
 	config = cleanBackendConfig(config)

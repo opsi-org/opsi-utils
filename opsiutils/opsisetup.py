@@ -466,12 +466,12 @@ def _getJSONRPCBackendFromConfig(config):
 		"username": config['username'],
 		"password": config['password']
 	}
-	logger.notice(u"Connecting to config server {address!r} as user {username!r}".format(**connectionConfig))
+	logger.notice(u"Connecting to config server '%s' as user '%s'", connectionConfig.get("address"), connectionConfig.get("username"))
 	jsonrpcBackend = JSONRPCBackend(**connectionConfig)
 	if not jsonrpcBackend.accessControl_userIsAdmin():
 		raise Exception(u"User {username!r} is not an admin user".format(**connectionConfig))
 
-	logger.notice(u"Successfully connected to config server {address!r} as user {username!r}".format(**connectionConfig))
+	logger.notice(u"Successfully connected to config server '%s' as user '%s'", connectionConfig.get("address"), connectionConfig.get("username"))
 	return jsonrpcBackend
 
 
@@ -877,7 +877,7 @@ def renewOpsiconfdCert(unattendedConfiguration=None):
 	except UnreadableCertificateError as err:
 		logger.notice(
 			u'Using default values because reading old certificate '
-			u'failed: {0}'.format(err)
+			u'failed: %s', err
 		)
 		certparams = DEFAULT_CERTIFICATE_PARAMETERS
 		certparams["commonName"] = getLocalFqdn()
