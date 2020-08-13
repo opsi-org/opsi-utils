@@ -314,7 +314,7 @@ def shell_main(argv):
 
 		cmdline = u''
 		for i, argument in enumerate(options.command, start=0):
-			logger.info(u"arg[{}]: {}", i, argument)
+			logger.info(u"arg[%s]: %s", i, argument)
 			if i == 0:
 				cmdline = argument
 			elif ' ' in argument or len(argument) == 0:
@@ -458,7 +458,7 @@ class Shell:
 					self.cmdList.append(line.strip())
 					self.cmdListPos += 1
 		except FileNotFoundError:
-			logger.debug("History {} file not found.", historyFile)
+			logger.debug("History %s file not found.", historyFile)
 		except Exception as error:
 			logger.error(u"Failed to read history file {0!r}: {1}".format(historyFile, forceUnicode(error)))
 
@@ -696,7 +696,7 @@ class Shell:
 		quote = None
 		for i, element in enumerate(cmdline):
 			logger.debug2(
-				u"parseCmdline(): char {!r}, quote: {!r}, cur: {!r}, params: {!r}",
+				u"parseCmdline(): char '%s', quote: '%s', cur: '%s', params: '%s'",
 				element, quote, cur, self.params
 			)
 			if len(self.params) < cur + 1:
@@ -742,16 +742,16 @@ class Shell:
 		else:
 			self.currentParam = u''
 
-		logger.debug(u"cmdline: {!r}", cmdline)
+		logger.debug(u"cmdline: '%s'", cmdline)
 		logger.debug2(
-			u"paramPos {0}, currentParam: {1!r}, params: {2!r}",
+			u"paramPos %s, currentParam: '%s', params: '%s'",
 			self.paramPos, self.currentParam, self.params
 		)
 
 		if self.paramPos >= len(self.params):
 			logger.error(
 				u"Assertion 'self.paramPos < len(self.params)' failed: "
-				u"self.paramPos: {}, len(self.params): {}",
+				u"self.paramPos: %s, len(self.params): %s",
 				self.paramPos,
 				len(self.params)
 			)
@@ -1179,7 +1179,7 @@ class CommandMethod(Command):
 			try:
 				return fromJson(obj)
 			except Exception as error:
-				logger.debug(u"Not a json string {0!r}: {1}", obj, forceUnicode(error))
+				logger.debug(u"Not a json string '%s': %s", obj, forceUnicode(error))
 				return forceUnicode(obj)
 
 		params = [createObjectOrString(item) for item in params]
@@ -1192,7 +1192,7 @@ class CommandMethod(Command):
 
 		result = None
 
-		logger.info(u"Executing:  {}({})", methodName, pString)
+		logger.info(u"Executing:  %s(%s)", methodName, pString)
 		shell.setInfoline(u"Executing:  %s(%s)" % (methodName, pString))
 		start = time.time()
 
@@ -1206,7 +1206,7 @@ class CommandMethod(Command):
 		logger.debug(u'Took %0.3f seconds to process: %s(%s)' % (duration, methodName, pString))
 		shell.setInfoline(_(u'Took %0.3f seconds to process: %s(%s)') % (duration, methodName, pString))
 		result = serialize(result)
-		logger.debug2(u"Serialized result: {0!r}", result)
+		logger.debug2(u"Serialized result: '%s'", result)
 
 		if result is not None:
 			lines = []
@@ -1649,7 +1649,7 @@ class CommandTask(Command):
 			if udm:  # We are on Univention Corporate Server (UCS)
 				dn = None
 				command = u'{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=udm)
-				logger.debug("Filtering for pcpatch: {0}", command)
+				logger.debug("Filtering for pcpatch: %s", command)
 				with closing(os.popen(command, 'r')) as process:
 					for line in process.readlines():
 						if line.startswith('DN'):
@@ -1665,7 +1665,7 @@ class CommandTask(Command):
 					u"--set overridePWLength=1 --set overridePWHistory=1 "
 					u"1>/dev/null 2>/dev/null"
 				).format(udm=udm, dn=dn, pw=password)
-				logger.debug("Setting password with: {0}", command)
+				logger.debug("Setting password with: %s", command)
 				os.system(command)
 
 				return  # Done with UCS

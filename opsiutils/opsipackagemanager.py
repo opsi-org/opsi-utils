@@ -1337,10 +1337,10 @@ class OpsiPackageManager(object):
 			packageFile = os.path.basename(packageFile)
 			if self.config['newProductId']:
 				logger.notice(
-					u"Installing package {packageFile!r} as {forcedProductId!r} on depot {depotId!r}",
+					u"Installing package {packageFile!r} as {forcedProductId!r} on depot {depotId!r}".format(
 					packageFile=packageFile,
 					forcedProductId=self.config['newProductId'],
-					depotId=depotId
+					depotId=depotId)
 				)
 				subject.setMessage(_(u"Installing package {filename} as {forcedProductId}").format(filename=packageFile, forcedProductId=self.config['newProductId']))
 			else:
@@ -1384,10 +1384,10 @@ class OpsiPackageManager(object):
 
 			if self.config['newProductId']:
 				logger.notice(
-					u"Installation of package '{packageFile}' as {forcedProductId} on depot '{depotId}' successful",
+					u"Installation of package '{packageFile}' as {forcedProductId} on depot '{depotId}' successful".format(
 					packageFile=packageFile,
 					forcedProductId=self.config['newProductId'],
-					depotId=depotId
+					depotId=depotId)
 				)
 				subject.setMessage(_(u"Installation of package {packageFile} as {forcedProductId} successful").format(packageFile=packageFile, forcedProductId=self.config['newProductId']), severity=4)
 			else:
