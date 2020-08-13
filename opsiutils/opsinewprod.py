@@ -345,7 +345,7 @@ created. Usually the `CLIENT_DATA` directory of a product.
 	for attribute in scriptAttributes:
 		script = getattr(product, attribute, None)
 		if not script:
-			logger.debug("No {0} set, skipping.", attribute)
+			logger.debug("No %s set, skipping.", attribute)
 			continue
 
 		scriptPath = os.path.join(clientDataDirectory, script)
@@ -354,7 +354,7 @@ created. Usually the `CLIENT_DATA` directory of a product.
 			# they may be already existing.
 			# Remember that multiple actions may refer the same script.
 			pass
-		logger.info('Created script {0}.', scriptPath)
+		logger.info('Created script %s.', scriptPath)
 
 
 def collectProductDependencies(ui, product):

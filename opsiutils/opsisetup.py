@@ -280,7 +280,7 @@ def configureMySQLBackend(unattendedConfiguration=None):
 
 		config.update(unattendedConfiguration)
 
-		logger.debug("Configuration for unattended mysql configuration: {0}", config)
+		logger.debug("Configuration for unattended mysql configuration: %s", config)
 		configureMySQLBackendWithoutGUI(
 			dbAdminUser, dbAdminPass, config, getSysConfig(),
 			additionalBackendConfig=backendConfig,
@@ -421,7 +421,7 @@ def registerDepot(unattendedConfiguration=None):
 		raise Exception(u"Failed to connect to config server as user '%s': %s" % (config['username'], e))
 	logger.notice(u"Successfully connected to config server as user '%s'" % config['username'])
 
-	logger.debug("Updating config file {0}", backendConfigFile)
+	logger.debug("Updating config file %s", backendConfigFile)
 	backendUtils.updateConfigFile(backendConfigFile, config)
 
 	logger.notice(u"Updating dispatch config '%s'" % dispatchConfigFile)
@@ -466,12 +466,12 @@ def _getJSONRPCBackendFromConfig(config):
 		"username": config['username'],
 		"password": config['password']
 	}
-	logger.notice(u"Connecting to config server {address!r} as user {username!r}", **connectionConfig)
+	logger.notice(u"Connecting to config server {address!r} as user {username!r}".format(**connectionConfig))
 	jsonrpcBackend = JSONRPCBackend(**connectionConfig)
 	if not jsonrpcBackend.accessControl_userIsAdmin():
 		raise Exception(u"User {username!r} is not an admin user".format(**connectionConfig))
 
-	logger.notice(u"Successfully connected to config server {address!r} as user {username!r}", **connectionConfig)
+	logger.notice(u"Successfully connected to config server {address!r} as user {username!r}".format(**connectionConfig))
 	return jsonrpcBackend
 
 
@@ -890,9 +890,9 @@ def renewOpsiconfdCert(unattendedConfiguration=None):
 		certparams['expires'] = "2"  # Not included in existing cert
 
 	if unattendedConfiguration is not None:
-		logger.debug("Unattended certificate config: {0}", unattendedConfiguration)
+		logger.debug("Unattended certificate config: %s", unattendedConfiguration)
 		certparams.update(unattendedConfiguration)
-		logger.debug("Configuration for unattended certificate renewal: {0}", certparams)
+		logger.debug("Configuration for unattended certificate renewal: %s", certparams)
 
 		makeCert()
 		setPasswdRights()
@@ -1050,7 +1050,7 @@ def opsisetup_main():
 		elif (opt == "--patch-sudoers-file"):
 			task = "patch-sudoers-file"
 		elif opt == '--unattended':
-			logger.debug('Got unattended argument: {0}', arg)
+			logger.debug('Got unattended argument: %s', arg)
 
 			if args and not arg.strip().endswith('}'):
 				logger.debug("Probably wrong reading of arguments by getopt.")
@@ -1058,7 +1058,7 @@ def opsisetup_main():
 				tempArgs = [arg]
 				while args and not tempArgs[-1].strip().endswith('}'):
 					tempArgs.append(args.pop(0))
-					logger.debug("temp arguments are: {0}", tempArgs)
+					logger.debug("temp arguments are: %s", tempArgs)
 
 				arg = ' '.join(tempArgs)
 				del tempArgs
@@ -1067,7 +1067,7 @@ def opsisetup_main():
 
 	path = u'/'
 	if len(args) > 0:
-		logger.debug("Additional arguments are: {0}", args)
+		logger.debug("Additional arguments are: %s", args)
 		if task == 'set-rights' and len(args) == 1:
 			path = os.path.abspath(forceFilename(args[0]))
 		else:
