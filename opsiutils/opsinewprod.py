@@ -48,7 +48,7 @@ from OPSI.UI import UIFactory
 from opsiutils import __version__
 
 try:
-	translation = gettext.translation('opsi-utils', '/usr/share/locale')
+	translation = gettext.translation('opsi-utils', '/usr/share/opsi-utils/locale')
 	_ = translation.gettext
 except Exception as error:
 	logger.error("Failed to load locale: %s", error, exc_info=True)
