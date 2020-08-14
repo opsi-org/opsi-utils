@@ -39,9 +39,9 @@ import os
 import sys
 import psutil
 
+from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_NOTICE, LOG_WARNING
 from OPSI import __version__ as python_opsi_version
 from OPSI import System
-from OPSI.Logger import LOG_NOTICE, LOG_WARNING, Logger
 from OPSI.Types import forceProductId, forceUnicode
 from OPSI.Util import compareVersions
 from OPSI.Util.Task.UpdatePackages.Config import DEFAULT_CONFIG
@@ -50,8 +50,6 @@ from OPSI.Util.Task.UpdatePackages.Updater import OpsiPackageUpdater
 from OPSI.Util.Task.UpdatePackages.Util import getUpdatablePackages
 
 from opsiutils import __version__
-
-logger = Logger()
 
 
 class OpsiPackageUpdaterClient(OpsiPackageUpdater):
@@ -266,9 +264,9 @@ def updater_main():
 	
 	args = parser.parse_args()
 
-	logger.setConsoleLevel(args.logLevel)
+	init_logging(stderr_level=args.logLevel)
 	if args.mode == 'list' and args.logLevel < LOG_NOTICE:
-		logger.setConsoleLevel(LOG_NOTICE)
+		logging_config(stderr_level=LOG_NOTICE)
 	logger.debug("Running in %s mode", args.mode)
 
 	config["configFile"] = args.configFile
@@ -292,9 +290,9 @@ def updater_main():
 
 	try:
 		config["zsyncCommand"] = System.which("zsync")
-		logger.info(u"Zsync command found: %s" % config["zsyncCommand"])
+		logger.info("Zsync command found: %s", config["zsyncCommand"])
 	except Exception:
-		logger.warning(u"Zsync command not found")
+		logger.warning("Zsync command not found")
 
 	pid = os.getpid()
 	running = None
@@ -312,12 +310,12 @@ def updater_main():
 					running = proc.pid
 					break
 	except Exception as error:
-		logger.debug(u"Check for running processes failed: %s", error)
+		logger.debug("Check for running processes failed: %s", error)
 
 	if running:
 		raise RuntimeError(u"Another %s process is running (pids: %s / %s)." % (os.path.basename(sys.argv[0]), running, pid))
 	
-	logger.info(u"We are the only %s running.", os.path.basename(sys.argv[0]))
+	logger.info("We are the only %s running.", os.path.basename(sys.argv[0]))
 
 	with OpsiPackageUpdaterClient(config) as opu:
 		if args.mode in ('install', 'update'):
@@ -347,14 +345,12 @@ def updater_main():
 
 
 def main():
-	logger.setConsoleColor(True)
-
 	try:
 		exitCode = updater_main()
 	except KeyboardInterrupt:
 		exitCode = 1
 	except Exception as exc:
-		logger.logException(exc)
+		logger.error(exc, exc_info=True)
 		print(f"ERROR: {exc}", file=sys.stderr)
 		exitCode = 1
 

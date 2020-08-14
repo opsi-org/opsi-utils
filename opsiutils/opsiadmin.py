@@ -42,7 +42,7 @@ import sys
 import time
 from contextlib import closing, contextmanager
 
-from opsicommon.logging import logger, logging_config, LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING
+from opsicommon.logging import logger, logging_config, secret_filter, LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Exceptions import OpsiRpcError
@@ -142,7 +142,7 @@ class ErrorInResultException(Exception):
 
 def signalHandler(signo, stackFrame):
 	from signal import SIGINT, SIGQUIT
-	logger.info(u"Received signal %s" % signo)
+	logger.info(u"Received signal %s", signo)
 	if signo == SIGINT:
 		if shell:
 			shell.sigint()
@@ -290,9 +290,9 @@ def shell_main(argv):
 							break
 			except IOError as error:
 				if error.errno != 2:  # 2 is No such file or directory
-					logger.error(u"Failed to read session file '%s': %s" % (sessionFile, forceUnicode(error)))
+					logger.error("Failed to read session file '%s': %s", sessionFile, forceUnicode(error))
 			except Exception as error:
-				logger.error(u"Failed to read session file '%s': %s" % (sessionFile, forceUnicode(error)))
+				logger.error("Failed to read session file '%s': %s", sessionFile, forceUnicode(error))
 
 			from OPSI.Backend.JSONRPC import JSONRPCBackend
 			backend = JSONRPCBackend(
@@ -302,7 +302,7 @@ def shell_main(argv):
 				application='opsi-admin/%s' % __version__,
 				sessionId=sessionId
 			)
-			logger.info(u'Connected')
+			logger.info('Connected')
 
 			sessionId = backend.jsonrpc_getSessionId()
 			if sessionId:
@@ -310,11 +310,11 @@ def shell_main(argv):
 					with codecs.open(sessionFile, 'w', 'utf-8') as session:
 						session.write(u"%s\n" % sessionId)
 				except Exception as error:
-					logger.error(u"Failed to write session file '%s': %s" % (sessionFile, forceUnicode(error)))
+					logger.error("Failed to write session file '%s': %s", sessionFile, forceUnicode(error))
 
 		cmdline = u''
 		for i, argument in enumerate(options.command, start=0):
-			logger.info(u"arg[%s]: %s", i, argument)
+			logger.info("arg[%s]: %s", i, argument)
 			if i == 0:
 				cmdline = argument
 			elif ' ' in argument or len(argument) == 0:
@@ -329,12 +329,12 @@ def shell_main(argv):
 			if read:
 				cmdline += u" '%s'" % read
 
-		logger.debug(u"cmdline: '%s'" % cmdline)
+		logger.debug("cmdline: '%s'", cmdline)
 
 		global shell
 		if interactive:
 			try:
-				logger.notice(u"Starting interactive mode")
+				logger.notice("Starting interactive mode")
 				shell = Shell(prompt=u'%s@opsi-admin>' % username, output=output, color=color, cmdline=cmdline)
 				shell.setInfoline(u"Connected to %s" % address)
 
@@ -350,7 +350,7 @@ To exit opsi-admin please type 'exit'."""
 					shell.appendLine(line, COLOR_NORMAL)
 				shell.run()
 			except Exception as error:
-				logger.logException(forceUnicode(error))
+				logger.error(error, exc_info=True)
 				raise
 		elif cmdline:
 			def searchForError(obj):
@@ -380,7 +380,7 @@ To exit opsi-admin please type 'exit'."""
 					resultAsJSON = json.loads(u'\n'.join([line['text'] for line in shell.lines]))
 					searchForError(dict(resultAsJSON))
 				except (TypeError, ValueError) as error:
-					logger.debug2(u"Conversion to dict failed: %s", error)
+					logger.debug2("Conversion to dict failed: %s", error)
 			except Exception as error:
 				logger.logException(forceUnicode(error))
 				raise error
@@ -445,9 +445,9 @@ class Shell:
 				try:
 					os.mkdir(self.userConfigDir)
 				except OSError as error:
-					logger.error(u"Failed to create user dir '%s': %s", self.userConfigDir, forceUnicode(error))
+					logger.error("Failed to create user dir '%s': %s", self.userConfigDir, error)
 		else:
-			logger.error(u'Failed to get home directory from environment!')
+			logger.error('Failed to get home directory from environment!')
 
 		historyFile = forceFilename(os.path.join(self.userConfigDir, u'history'))
 		try:
@@ -460,7 +460,7 @@ class Shell:
 		except FileNotFoundError:
 			logger.debug("History %s file not found.", historyFile)
 		except Exception as error:
-			logger.error(u"Failed to read history file '%s': %s", historyFile, forceUnicode(error))
+			logger.error("Failed to read history file '%s': %s", historyFile, forceUnicode(error))
 
 	def setColor(self, color):
 		color = forceBool(color)
@@ -540,7 +540,7 @@ class Shell:
 				try:
 					os.unlink(logFile)
 				except OSError as error:
-					logger.error(u"Failed to delete log-file '%s': %s", logFile, forceUnicode(error))
+					logger.error("Failed to delete log-file '%s': %s", logFile, forceUnicode(error))
 
 		historyFilePath = os.path.join(self.userConfigDir, 'history')
 		try:
@@ -550,7 +550,7 @@ class Shell:
 						continue
 					history.write(u"%s\n" % line)
 		except Exception as error:
-			logger.error(u"Failed to write history file '%s': %s", historyFilePath, forceUnicode(error))
+			logger.error("Failed to write history file '%s': %s", historyFilePath, forceUnicode(error))
 
 		self.exitScreen()
 		self.running = False
@@ -567,7 +567,7 @@ class Shell:
 		try:
 			self.screen.addstr(shellLine, curses.A_REVERSE)
 		except Exception as error:
-			logger.error(u"Failed to add string '%s': %s", shellLine, forceUnicode(error))
+			logger.error("Failed to add string '%s': %s", shellLine, forceUnicode(error))
 
 		height = int(len(self.prompt + u' ' + self.cmdline) / self.xMax) + 1
 		clear = self.xMax - (len(self.prompt + u' ' + self.cmdline) % self.xMax) - 1
@@ -579,7 +579,7 @@ class Shell:
 		try:
 			self.screen.addstr(shellLine, curses.A_BOLD)
 		except Exception as error:
-			logger.error(u"Failed to add string '%s': %s", shellLine, forceUnicode(error))
+			logger.error("Failed to add string '%s': %s", shellLine, forceUnicode(error))
 
 		for i in range(0, self.linesMax):
 			self.screen.move(self.linesMax - i, 0)
@@ -613,7 +613,7 @@ class Shell:
 				else:
 					self.screen.addstr(shellLine)
 			except Exception as error:
-				logger.error(u"Failed to add string '%s': %s", shellLine, forceUnicode(error))
+				logger.error("Failed to add string '%s': %s", shellLine, forceUnicode(error))
 
 		moveY = self.yMax - height + int((len(self.prompt + u' ') + self.pos) / self.xMax)
 		moveX = ((len(self.prompt + u' ') + self.pos) % self.xMax)
@@ -696,7 +696,7 @@ class Shell:
 		quote = None
 		for i, element in enumerate(cmdline):
 			logger.debug2(
-				u"parseCmdline(): char '%s', quote: '%s', cur: '%s', params: '%s'",
+				"parseCmdline(): char '%s', quote: '%s', cur: '%s', params: '%s'",
 				element, quote, cur, self.params
 			)
 			if len(self.params) < cur + 1:
@@ -742,23 +742,23 @@ class Shell:
 		else:
 			self.currentParam = u''
 
-		logger.debug(u"cmdline: '%s'", cmdline)
+		logger.debug("cmdline: '%s'", cmdline)
 		logger.debug2(
-			u"paramPos %s, currentParam: '%s', params: '%s'",
+			"paramPos %s, currentParam: '%s', params: '%s'",
 			self.paramPos, self.currentParam, self.params
 		)
 
 		if self.paramPos >= len(self.params):
 			logger.error(
-				u"Assertion 'self.paramPos < len(self.params)' failed: "
-				u"self.paramPos: %s, len(self.params): %s",
+				"Assertion 'self.paramPos < len(self.params)' failed: "
+				"self.paramPos: %s, len(self.params): %s",
 				self.paramPos,
 				len(self.params)
 			)
 			self.paramPos = len(self.params) - 1
 
 	def execute(self):
-		logger.info(u"Execute: '%s'", self.cmdline)
+		logger.info("Execute: '%s'", self.cmdline)
 		self.cmdList.append(self.cmdline)
 		if len(self.cmdList) > self.cmdBufferSize:
 			del self.cmdList[0]
@@ -770,9 +770,8 @@ class Shell:
 				try:
 					command.execute(self, self.getParams()[1:])
 				except Exception as error:
-					logger.logException(error)
-					message = u"Failed to execute {0!r}: {1}".format(self.cmdline, forceUnicode(error))
-					logger.error(message)
+					message = "Failed to execute %s: %s" % (self.cmdline, forceUnicode(error))
+					logger.error(message, exc_info=True)
 					raise RuntimeError(message)
 				break
 
@@ -822,7 +821,7 @@ class Shell:
 			else:
 				password1 = password2 = getpass.getpass()
 
-		logger.confidential(u"Got password '%s'" % password1)
+		logger.confidential("Got password '%s'", password1)
 		return password1
 
 	def getCommand(self):
@@ -1021,7 +1020,7 @@ class Shell:
 					try:
 						curses.ungetch(char)
 						char = self.screen.getkey()
-						logger.debug2("Current char: %r" % char)
+						logger.debug2("Current char: %r", char)
 
 						if not isinstance(char, str):
 							try:
@@ -1036,7 +1035,7 @@ class Shell:
 							newPos = self.pos + 1
 							newCmdline = self.cmdline[0:self.pos] + char + self.cmdline[self.pos:]
 					except Exception as error:
-						logger.error("Failed to add char %r: %s" % (char, forceUnicode(error)))
+						logger.error("Failed to add char %r: %s", char, error)
 
 				try:
 					if self.reverseSearch is not None:
@@ -1179,7 +1178,7 @@ class CommandMethod(Command):
 			try:
 				return fromJson(obj)
 			except Exception as error:
-				logger.debug(u"Not a json string '%s': %s", obj, forceUnicode(error))
+				logger.debug("Not a json string '%s': %s", obj, error)
 				return forceUnicode(obj)
 
 		params = [createObjectOrString(item) for item in params]
@@ -1192,8 +1191,8 @@ class CommandMethod(Command):
 
 		result = None
 
-		logger.info(u"Executing:  %s(%s)", methodName, pString)
-		shell.setInfoline(u"Executing:  %s(%s)" % (methodName, pString))
+		logger.info("Executing:  %s(%s)", methodName, pString)
+		shell.setInfoline("Executing:  %s(%s)" % (methodName, pString))
 		start = time.time()
 
 		method = getattr(backend, methodName)
@@ -1203,10 +1202,10 @@ class CommandMethod(Command):
 			result = method(*params)
 
 		duration = time.time() - start
-		logger.debug(u'Took %0.3f seconds to process: %s(%s)' % (duration, methodName, pString))
+		logger.debug('Took %0.3f seconds to process: %s(%s)', duration, methodName, pString)
 		shell.setInfoline(_(u'Took %0.3f seconds to process: %s(%s)') % (duration, methodName, pString))
 		result = serialize(result)
-		logger.debug2(u"Serialized result: '%s'", result)
+		logger.debug2("Serialized result: '%s'", result)
 
 		if result is not None:
 			lines = []
@@ -1250,7 +1249,7 @@ class CommandMethod(Command):
 				lines.append(forceUnicode(result))
 
 			if shell.shellCommand:
-				logger.notice(u"Executing: '%s'" % shell.shellCommand)
+				logger.notice("Executing: '%s'", shell.shellCommand)
 
 				proc = subprocess.Popen(
 					shell.shellCommand,
@@ -1524,8 +1523,9 @@ class CommandTask(Command):
 			productId = params[1]
 
 			logger.warning(
-				u"The task 'setupWhereInstalled' is obsolete. "
-				u"Please use 'method setupWhereInstalled' instead.")
+				"The task 'setupWhereInstalled' is obsolete. "
+				"Please use 'method setupWhereInstalled' instead."
+			)
 
 			for clientId in backend.setupWhereInstalled(productId):
 				shell.appendLine(clientId)
@@ -1536,8 +1536,9 @@ class CommandTask(Command):
 			productId = params[1]
 
 			logger.warning(
-				u"The task 'setupWhereNotInstalled' is obsolete. "
-				u"Please use 'method setupWhereNotInstalled' instead.")
+				"The task 'setupWhereNotInstalled' is obsolete. "
+				"Please use 'method setupWhereNotInstalled' instead."
+			)
 
 			for clientId in backend.setupWhereNotInstalled(productId):
 				shell.appendLine(clientId)
@@ -1548,8 +1549,9 @@ class CommandTask(Command):
 			productId = params[1]
 
 			logger.warning(
-				u"The task 'updateWhereInstalled' is obsolete. "
-				u"Please use 'method updateWhereInstalled' instead.")
+				"The task 'updateWhereInstalled' is obsolete. "
+				"Please use 'method updateWhereInstalled' instead."
+			)
 
 			for clientId in backend.updateWhereInstalled(productId):
 				shell.appendLine(clientId)
@@ -1560,8 +1562,9 @@ class CommandTask(Command):
 			productId = params[1]
 
 			logger.warning(
-				u"The task 'uninstallWhereInstalled' is obsolete. "
-				u"Please use 'method uninstallWhereInstalled' instead.")
+				"The task 'uninstallWhereInstalled' is obsolete. "
+				"Please use 'method uninstallWhereInstalled' instead."
+			)
 
 			for clientId in backend.uninstallWhereInstalled(productId):
 				shell.appendLine(clientId)
@@ -1576,8 +1579,9 @@ class CommandTask(Command):
 			productId = params[2]
 
 			logger.warning(
-				u"The task 'setActionRequestWhereOutdated' is obsolete. "
-				u"Please use 'method setActionRequestWhereOutdated' instead.")
+				"The task 'setActionRequestWhereOutdated' is obsolete. "
+				"Please use 'method setActionRequestWhereOutdated' instead."
+			)
 
 			for clientId in backend.setActionRequestWhereOutdated(actionRequest, productId):
 				shell.appendLine(clientId)
@@ -1606,9 +1610,10 @@ class CommandTask(Command):
 			productId = params[2]
 
 			logger.warning(
-				u"The task 'setActionRequestWhereOutdatedWithDependencies' "
-				u"is obsolete. Please use 'method "
-				u"setActionRequestWhereOutdatedWithDependencies' instead.")
+				"The task 'setActionRequestWhereOutdatedWithDependencies' "
+				"is obsolete. Please use 'method "
+				"setActionRequestWhereOutdatedWithDependencies' instead."
+			)
 
 			for clientId in backend.setActionRequestWhereOutdatedWithDependencies(actionRequest, productId):
 				shell.appendLine(clientId)
@@ -1637,8 +1642,8 @@ class CommandTask(Command):
 
 			if not password:
 				raise ValueError("Can not use empty password!")
-			logger.addConfidentialString(password)
-
+			secret_filter.add_secrets(password)
+			
 			backend.user_setCredentials(username='pcpatch', password=password)
 
 			try:
@@ -1676,7 +1681,7 @@ class CommandTask(Command):
 				with closing(os.popen(smbldapCommand, 'w')) as process:
 					process.write(u"%s\n%s\n" % (password, password))
 			except Exception as error:
-				logger.debug("Setting password through smbldap failed: {0!r}", error)
+				logger.debug("Setting password through smbldap failed: %s", error)
 
 				# unix
 				chpasswdCommand = u'{chpasswd} 1>/dev/null 2>/dev/null'.format(chpasswd=which(u'chpasswd'))

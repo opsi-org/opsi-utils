@@ -40,10 +40,10 @@ from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 
+from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_INFO, LOG_NONE, LOG_WARNING
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
-from OPSI.Logger import LOG_INFO, LOG_NONE, LOG_WARNING, Logger
 from OPSI.Types import (
 	forceActionRequest, forceBool, forceHostId, forceInt,
 	forceList, forceProductId, forceUnicode, forceUnicodeList)
@@ -62,8 +62,6 @@ except ImportError:
 from opsiutils import __version__
 
 USER_AGENT = "opsi-package-manager/%s" % __version__
-
-logger = Logger()
 
 try:
 	translation = gettext.translation('opsi-utils', '/usr/share/locale')
@@ -96,14 +94,14 @@ class Task:
 		return self.started and not self.ended
 
 	def start(self):
-		logger.debug(u"Task start()")
+		logger.debug("Task start()")
 		self.started = True
 		try:
-			logger.debug2(u"Method: %s" % self.method)
-			logger.debug2(u"Params: %s" % self.params)
+			logger.trace("Method: %s", self.method)
+			logger.trace("Params: %s", self.params)
 			self.method(*self.params)
 		except Exception as error:
-			logger.logException(error)
+			logger.error(error, exc_info=True)
 			self.exception = error
 			raise
 		finally:
@@ -116,7 +114,7 @@ class UploadTask(Task):
 
 	def start(self):
 		while self.opsiPackageManager.maxTransfersReached():
-			logger.debug(u"Maximum number transfers reached, waiting")
+			logger.debug("Maximum number transfers reached, waiting")
 			time.sleep(1)
 		Task.start(self)
 
@@ -218,32 +216,32 @@ class CursesWindow:
 		try:
 			self.win.clrtoeol()
 		except Exception as error:
-			logger.debug2(error)
+			logger.trace(error)
 
 	def move(self, y, x):
 		try:
 			self.win.move(y, x)
 		except Exception as error:
-			logger.debug2(error)
+			logger.trace(error)
 
 	def clear(self):
 		try:
 			self.win.clear()
 		except Exception as error:
-			logger.debug2(error)
+			logger.trace(error)
 
 	def refresh(self):
 		try:
 			self.win.refresh()
 		except Exception as error:
-			logger.debug2(error)
+			logger.trace(error)
 
 	def redraw(self):
 		try:
 			self.win.redrawwin()
 			self.win.refresh()
 		except Exception as error:
-			logger.debug2(error)
+			logger.trace(error)
 
 
 class CursesMainWindow(CursesWindow):
@@ -440,7 +438,7 @@ class UserInterface(SubjectsObserver):
 			logger.setMessageSubjectLevel(self.config['consoleLogLevel'])
 
 		signal(SIGWINCH, self.resized)
-		logger.info(u"UserInterface initialized")
+		logger.info("UserInterface initialized")
 
 	def resized(self, signo, stackFrame):
 		try:
@@ -472,7 +470,7 @@ class UserInterface(SubjectsObserver):
 					y=self.mainWindow.height - self.loggerWindowHeight
 				)
 		except Exception as error:
-			logger.debug2(error)
+			logger.trace(error)
 
 		try:
 			self.subjectsChanged(self.getSubjects())
@@ -489,7 +487,7 @@ class UserInterface(SubjectsObserver):
 
 	def messageChanged(self, subject, message):
 		if not message:
-			logger.warning("Message deleted: %s %s" % (subject.getType(), subject.getId()))
+			logger.warning("Message deleted: %s %s", subject.getType(), subject.getId())
 
 		if self.__lock.locked():
 			return
@@ -529,7 +527,7 @@ class UserInterface(SubjectsObserver):
 		self.exitScreen()
 
 	def exitScreen(self):
-		logger.debug(u"UserInterface: exitScreen()")
+		logger.debug("UserInterface: exitScreen()")
 		if not self.mainWindow:
 			return
 		self.mainWindow.exitScreen()
@@ -558,7 +556,7 @@ class UserInterface(SubjectsObserver):
 				subject = subjects[currentID]
 				if y >= self.progressWindow.height:
 					# Screen full
-					logger.info(u"Screen to small to display all progresses")
+					logger.info("Screen to small to display all progresses")
 					break
 
 				x = 0
@@ -641,7 +639,7 @@ class TaskQueue(threading.Thread):
 		if not self.tasks:
 			raise RuntimeError(u"No tasks in queue")
 		self.started = True
-		logger.debug(u"TaskQueue '%s' started" % self.name)
+		logger.debug("TaskQueue '%s' started", self.name)
 		i = 0
 		while i < len(self.tasks):
 			if self.ended:
@@ -649,16 +647,16 @@ class TaskQueue(threading.Thread):
 
 			task = self.tasks[i]
 			try:
-				logger.debug(u"Starting task '%s'" % task.name)
+				logger.debug("Starting task '%s'", task.name)
 				self.currentTaskNumber += 1
 				task.start()
-				logger.debug(u"Task '%s' ended" % task.name)
+				logger.debug("Task '%s' ended", task.name)
 			except Exception as error:
-				logger.error(u"Task '%s' failed: %s" % (task.name, error))
+				logger.error("Task '%s' failed: %s", task.name, error)
 				self.errors.append(error)
 				if i < (len(self.tasks) - 1) and isinstance(task, UploadTask) and isinstance(self.tasks[i + 1], InstallTask):
 					# Upload task failed => do not execute install task
-					logger.notice(u"Upload task failed, skipping install task")
+					logger.notice("Upload task failed, skipping install task")
 					i += 1
 			if i < len(self.tasks) - 1:
 				time.sleep(2)
@@ -700,9 +698,9 @@ class OpsiPackageManager(object):
 		self.depotConnections = {}
 
 		if not self.config['quiet']:
-			logger.setConsoleLevel(LOG_NONE)
+			logging_config(stderr_level=LOG_NONE)
 			self.userInterface = UserInterface(config=self.config, subjects=[self.infoSubject, self.transferSubject])
-		logger.info(u"OpsiPackageManager initiated")
+		logger.info("OpsiPackageManager initiated")
 
 	def abort(self):
 		self.aborted = True
@@ -711,11 +709,11 @@ class OpsiPackageManager(object):
 			running = False
 			for tq in self.taskQueues:
 				if not tq.ended:
-					logger.notice(u"Aborting task queue '%s'" % tq.name)
+					logger.notice("Aborting task queue '%s'", tq.name)
 					tq.abort()
 
 	def cleanup(self):
-		logger.info(u"Cleaning up")
+		logger.info("Cleaning up")
 		if self.userInterface:
 			self.userInterface.exit()
 
@@ -852,8 +850,8 @@ class OpsiPackageManager(object):
 			if dependency:
 				for client in [x.clientId for x in productOnClients]:
 					logger.notice(
-						u"Setting action '%s' with Dependencies for product '%s' on client: %s"
-						% (actionRequest, productId, client)
+						"Setting action '%s' with Dependencies for product '%s' on client: %s",
+						actionRequest, productId, client
 					)
 					subject.setMessage(
 						_(u"Setting action %s with Dependencies for product %s on client: %s")
@@ -868,7 +866,7 @@ class OpsiPackageManager(object):
 				clientIds.append(productOnClients[i].clientId)
 
 			clientIds.sort()
-			logger.notice(u"Setting action '%s' for product '%s' on client(s): %s" % (actionRequest, productId, ', '.join(clientIds)))
+			logger.notice("Setting action '%s' for product '%s' on client(s): %s", actionRequest, productId, ', '.join(clientIds))
 			subject.setMessage(_(u"Setting action %s for product %s on client(s): %s") % (actionRequest, productId, ', '.join(clientIds)))
 			self.backend.productOnClient_updateObjects(productOnClients)
 		except Exception as e:
@@ -895,7 +893,7 @@ class OpsiPackageManager(object):
 				if productPropertyState.objectId not in clientIds:
 					clientIds.append(productPropertyState.objectId)
 
-			logger.notice(u"Purging product property states for product '%s' on client(s): %s" % (productId, ', '.join(clientIds)))
+			logger.notice("Purging product property states for product '%s' on client(s): %s", productId, ', '.join(clientIds))
 			subject.setMessage(_(u"Purging product property states for product '%s' on client(s): %s") % (productId, ', '.join(clientIds)))
 
 			self.backend.productPropertyState_deleteObjects(productPropertyStates)
@@ -922,7 +920,7 @@ class OpsiPackageManager(object):
 
 			if not self.aborted:
 				self.taskQueues.append(tq)
-				logger.info(u"Starting task queue '%s'" % tq.name)
+				logger.info("Starting task queue '%s'", tq.name)
 				tq.start()
 		self.waitForTaskQueues()
 
@@ -932,15 +930,15 @@ class OpsiPackageManager(object):
 		try:
 			# Process upload
 			if self.maxTransfersReached():
-				logger.notice(u"Waiting for free upload slot for upload of '%s' to depot '%s'" % (os.path.basename(packageFile), depotId))
+				logger.notice("Waiting for free upload slot for upload of '%s' to depot '%s'", os.path.basename(packageFile), depotId)
 				subject.setMessage(_(u"Waiting for free upload slot for %s") % os.path.basename(packageFile))
 				while self.maxTransfersReached():
 					time.sleep(0.1 * random.randint(1, 20))
 			self.addRunningTransfer()
 
 			logger.notice(
-				u"Processing upload of '%s' to depot '%s'"
-				% (os.path.basename(packageFile), depotId)
+				"Processing upload of '%s' to depot '%s'",
+				os.path.basename(packageFile), depotId
 			)
 			subject.setMessage(_(u"Processing upload of %s") % os.path.basename(packageFile))
 
@@ -949,7 +947,7 @@ class OpsiPackageManager(object):
 			destination = os.path.basename(packageFile)
 
 			if u"~" in destination:
-				logger.notice(u"Custom-package detected, try to fix that.")
+				logger.notice("Custom-package detected, try to fix that.")
 				destination = "%s%s" % (destination.split("~")[0], ".opsi")
 
 			productId = self.getPackageControlFile(packageFile).getProduct().getId()
@@ -960,8 +958,8 @@ class OpsiPackageManager(object):
 			depotRepositoryPath = depot.repositoryLocalUrl[7:]
 			if depotRepositoryPath.endswith('/'):
 				depotRepositoryPath = depotRepositoryPath[:-1]
-			logger.info(u"Depot repository path is '%s'" % depotRepositoryPath)
-			logger.info(u"Using '%s' as repository url" % depot.repositoryRemoteUrl)
+			logger.info("Depot repository path is '%s'", depotRepositoryPath)
+			logger.info("Using '%s' as repository url", depot.repositoryRemoteUrl)
 
 			maxBandwidth = depot.maxBandwidth
 			if maxBandwidth < 0:
@@ -969,7 +967,7 @@ class OpsiPackageManager(object):
 			if not maxBandwidth and self.config['maxBandwidth']:
 				maxBandwidth = self.config['maxBandwidth']
 			if maxBandwidth:
-				logger.info(u"Setting max bandwidth for depot '%s' to %d kBytes/s" % (depotId, maxBandwidth))
+				logger.info("Setting max bandwidth for depot '%s' to %d kBytes/s", depotId, maxBandwidth)
 
 			repository = getRepository(
 				url=depot.repositoryRemoteUrl,
@@ -981,29 +979,29 @@ class OpsiPackageManager(object):
 
 			for dest in repository.content():
 				if dest['name'] == destination:
-					logger.info(u"Destination '%s' already exists on depot '%s'" % (destination, depotId))
+					logger.info("Destination '%s' already exists on depot '%s'", destination, depotId)
 					if not self.config['overwriteAlways']:
 						# Not overwriting always => checking file sizes first
 						if repository.fileInfo(destination)['size'] != packageSize:
 							# Size differs => overwrite
-							logger.info(u"Size of source and destination differs on depot '%s'" % depotId)
+							logger.info("Size of source and destination differs on depot '%s'", depotId)
 						else:
 							# Sizes match => check md5sum
-							logger.info(u"Size of source and destination matches on depot '%s'" % depotId)
+							logger.info("Size of source and destination matches on depot '%s'", depotId)
 							depotConnection = self.getDepotConnection(depotId)
 							remoteChecksum = depotConnection.depot_getMD5Sum(depotRepositoryPath + u'/' + destination)
 							if localChecksum == remoteChecksum:
 								# md5sum match => do not overwrite
-								logger.info(u"MD5sum of source and destination matches on depot '%s'" % depotId)
-								logger.notice(u"No need to upload, '%s' is up to date on '%s'" % (os.path.basename(packageFile), depotId))
+								logger.info("MD5sum of source and destination matches on depot '%s'", depotId)
+								logger.notice("No need to upload, '%s' is up to date on '%s'", os.path.basename(packageFile), depotId)
 								subject.setMessage(_(u"No need to upload, %s is up to date") % os.path.basename(packageFile), severity=4)
 								self.removeRunningTransfer()
 								return
 
 							# md5sums differ => overwrite
-							logger.info(u"MD5sum of source and destination differs on depot '%s'" % depotId)
+							logger.info("MD5sum of source and destination differs on depot '%s'", depotId)
 
-					logger.info(u"Overwriting destination '%s' on depot '%s'" % (destination, depotId))
+					logger.info("Overwriting destination '%s' on depot '%s'", destination, depotId)
 					subject.setMessage(_(u"Overwriting destination %s") % destination)
 					break
 
@@ -1038,12 +1036,12 @@ class OpsiPackageManager(object):
 						oldPackage = oldPackages[0]
 						depotConnection = self.getDepotConnection(depotId)
 
-						logger.notice(u"Getting librsync signature of '%s' on depot '%s'" % (oldPackage, depotId))
+						logger.notice("Getting librsync signature of '%s' on depot '%s'", oldPackage, depotId)
 						subject.setMessage(_(u"Getting librsync signature of %s") % oldPackage)
 
 						sig = base64.decodestring(depotConnection.depot_librsyncSignature(depotRepositoryPath + '/' + oldPackage))
 
-						logger.notice(u"Calculating delta for depot '%s'" % depotId)
+						logger.notice("Calculating delta for depot '%s'", depotId)
 						subject.setMessage(_(u"Calculating delta"))
 
 						deltaFilename = '%s_%s.delta' % (productId, depotId)
@@ -1065,11 +1063,8 @@ class OpsiPackageManager(object):
 						speedup = (float(packageSize) / float(deltaSize)) - 1
 						if speedup < 0:
 							speedup = 0
-						logger.notice(u"Delta calculated, upload speedup is %.3f" % speedup)
-						logger.notice(
-							u"Starting delta upload of '%s' to depot '%s'"
-							% (deltaFilename, depotId)
-						)
+						logger.notice("Delta calculated, upload speedup is %.3f", speedup)
+						logger.notice("Starting delta upload of '%s' to depot '%s'", deltaFilename, depotId)
 						subject.setMessage(
 							_(u"Starting delta upload of %s")
 							% os.path.basename(packageFile)
@@ -1089,7 +1084,7 @@ class OpsiPackageManager(object):
 							if self.userInterface:
 								self.userInterface.removeSubject(progressSubject)
 
-						logger.notice(u"Patching '%s'" % oldPackage)
+						logger.notice("Patching '%s'", oldPackage)
 						subject.setMessage(_(u"Patching %s") % oldPackage)
 
 						depotConnection.depot_librsyncPatchFile(depotRepositoryPath + u'/' + oldPackage, depotRepositoryPath + u'/' + deltaFilename, depotRepositoryPath + u'/' + destination)
@@ -1099,7 +1094,7 @@ class OpsiPackageManager(object):
 						if deltaFile and os.path.exists(deltaFile):
 							os.unlink(deltaFile)
 				else:
-					logger.notice(u"Starting upload of '%s' to depot '%s'" % (os.path.basename(packageFile), depotId))
+					logger.notice("Starting upload of '%s' to depot '%s'", os.path.basename(packageFile), depotId)
 					subject.setMessage(_(u"Starting upload of %s") % os.path.basename(packageFile))
 
 					progressSubject = ProgressSubject(id=depotId, type=u'upload')
@@ -1112,7 +1107,7 @@ class OpsiPackageManager(object):
 						if self.userInterface:
 							self.userInterface.removeSubject(progressSubject)
 
-				logger.notice(u"Upload of '%s' to depot '%s' finished" % (os.path.basename(packageFile), depotId))
+				logger.notice("Upload of '%s' to depot '%s' finished", os.path.basename(packageFile), depotId)
 				subject.setMessage(_(u"Upload of %s finished") % os.path.basename(packageFile))
 
 				for oldPackage in oldPackages:
@@ -1120,12 +1115,12 @@ class OpsiPackageManager(object):
 						continue
 
 					try:
-						logger.notice(u"Deleting '%s' from depot '%s'" % (oldPackage, depotId))
+						logger.notice("Deleting '%s' from depot '%s'", oldPackage, depotId)
 						repository.delete(oldPackage)
 					except Exception as deleteError:
-						logger.error(u"Failed to delete '%s' from depot '%s': %s" % (oldPackage, depotId, deleteError))
+						logger.error("Failed to delete '%s' from depot '%s': %s", oldPackage, depotId, deleteError)
 
-				logger.notice(u"Verifying upload")
+				logger.notice("Verifying upload")
 				subject.setMessage(_(u"Verifying upload"))
 
 				remotePackageFile = depotRepositoryPath + u'/' + destination
@@ -1136,27 +1131,27 @@ class OpsiPackageManager(object):
 					raise ValueError(u"MD5sum of source '%s' and destination '%s' differ after upload to depot '%s'" % (localChecksum, remoteChecksum, depotId))
 
 				if info['usage'] >= 0.9:
-					logger.warning(u"Warning: %d%% filesystem usage at repository on depot '%s'" % (int(100 * info['usage']), depotId))
+					logger.warning("Warning: %d%% filesystem usage at repository on depot '%s'", int(100 * info['usage']), depotId)
 					subject.setMessage(_(u"Warning: %d%% filesystem usage") % int(100 * info['usage']), severity=3)
 
-				logger.notice(u"Upload of '%s' to depot '%s' successful" % (os.path.basename(packageFile), depotId))
+				logger.notice("Upload of '%s' to depot '%s' successful", os.path.basename(packageFile), depotId)
 				subject.setMessage(_(u"Upload of %s successful") % os.path.basename(packageFile), severity=4)
 
 				remotePackageMd5sumFile = remotePackageFile + u'.md5'
 				try:
 					depotConnection.depot_createMd5SumFile(remotePackageFile, remotePackageMd5sumFile)
 				except Exception as checksumError:
-					logger.warning(u"Failed to create md5sum file '%s': %s" % (remotePackageMd5sumFile, checksumError))
+					logger.warning("Failed to create md5sum file '%s': %s", remotePackageMd5sumFile, checksumError)
 
 				remotePackageZsyncFile = remotePackageFile + u'.zsync'
 				try:
 					depotConnection.depot_createZsyncFile(remotePackageFile, remotePackageZsyncFile)
 				except Exception as zsyncCreationError:
-					logger.warning(u"Failed to create zsync file '%s': %s" % (remotePackageZsyncFile, zsyncCreationError))
+					logger.warning("Failed to create zsync file '%s': %s", remotePackageZsyncFile, zsyncCreationError)
 			finally:
 				self.removeRunningTransfer()
 		except Exception as uploadError:
-			logger.logException(uploadError, LOG_INFO)
+			logger.info(uploadError, exc_info=True)
 			logger.error(uploadError)
 			subject.setMessage(_("Error: %s") % uploadError, severity=2)
 			raise
@@ -1177,7 +1172,7 @@ class OpsiPackageManager(object):
 						sequence.remove(dependency['package'])
 						sequence.insert(ppos, dependency['package'])
 				except Exception as sequenceError:
-					logger.debug(u"While processing package '%s', dependency '%s': %s" % (packageFile, dependency['package'], sequenceError))
+					logger.debug("While processing package '%s', dependency '%s': %s", packageFile, dependency['package'], sequenceError)
 
 		sortedPackageFiles = []
 		for productId in sequence:
@@ -1189,7 +1184,7 @@ class OpsiPackageManager(object):
 		self.config['packageFiles'] = sortedPackageFiles
 
 		if not self.config['forceInstall']:
-			logger.info(u"Checking product locks")
+			logger.info("Checking product locks")
 			productIds = [
 				self.getPackageControlFile(packageFile).getProduct().getId()
 				for packageFile in self.config['packageFiles']
@@ -1227,7 +1222,7 @@ class OpsiPackageManager(object):
 					productProperty = productProperties[i]
 					product = products[productProperty.getIdent(returnType='unicode')]
 
-					logger.notice(u"Getting product property defaults from user")
+					logger.notice("Getting product property defaults from user")
 					title = _(u'Please select product property defaults')
 					text = u'%s: %s\n   %s\n\n%s: %s\n   %s' % (_(u'Product'), product.id, product.name, _(u'Property'), productProperty.propertyId, productProperty.description)
 					cancelLabel = _('Back')
@@ -1284,7 +1279,10 @@ class OpsiPackageManager(object):
 							possibleValues.append(value)
 							productProperties[i].setPossibleValues(possibleValues)
 						productProperties[i].setDefaultValues(value)
-					logger.notice(u"Product '%s', property '%s': default values set to: %s" % (productProperties[i].productId, productProperties[i].propertyId, productProperties[i].defaultValues))
+					logger.notice(
+						"Product '%s', property '%s': default values set to: %s",
+						productProperties[i].productId, productProperties[i].propertyId, productProperties[i].defaultValues
+					)
 					i += 1
 				ui.exit()
 				self.userInterface.initScreen()
@@ -1311,7 +1309,7 @@ class OpsiPackageManager(object):
 				)
 			if not self.aborted:
 				self.taskQueues.append(tq)
-				logger.info(u"Starting task queue '%s'" % tq.name)
+				logger.info("Starting task queue '%s'", tq.name)
 				tq.start()
 		self.waitForTaskQueues()
 
@@ -1332,19 +1330,19 @@ class OpsiPackageManager(object):
 			if u"~" in depotPackageFile and not os.path.exists(depotPackageFile):
 				depotPackageFile = depotPackageFile.split(u"~")[0] + u".opsi"
 
-			logger.info(u"Path to package file on depot '%s' is '%s'" % (depotId, depotPackageFile))
+			logger.info("Path to package file on depot '%s' is '%s'", depotId, depotPackageFile)
 
 			packageFile = os.path.basename(packageFile)
 			if self.config['newProductId']:
 				logger.notice(
-					u"Installing package '%s' as '%s' on depot '%s'",
+					"Installing package '%s' as '%s' on depot '%s'",
 					packageFile,
 					self.config['newProductId'],
 					depotId
 				)
 				subject.setMessage(_(u"Installing package '%s' as '%s'"), packageFile, self.config['newProductId'])
 			else:
-				logger.notice(u"Installing package '%s' on depot '%s'" % (packageFile, depotId))
+				logger.notice("Installing package '%s' on depot '%s'", packageFile, depotId)
 				subject.setMessage(_(u"Installing package %s") % packageFile)
 
 			packageControlFile = self.getPackageControlFile(packageFile)
@@ -1384,27 +1382,27 @@ class OpsiPackageManager(object):
 
 			if self.config['newProductId']:
 				logger.notice(
-					u"Installation of package '%s' as %s on depot '%s' successful",
+					"Installation of package '%s' as %s on depot '%s' successful",
 					packageFile,
 					self.config['newProductId'],
 					depotId
 				)
 				subject.setMessage(_(u"Installation of package {packageFile} as {forcedProductId} successful").format(packageFile=packageFile, forcedProductId=self.config['newProductId']), severity=4)
 			else:
-				logger.notice(u"Installation of package '%s' on depot '%s' successful" % (depotPackageFile, depotId))
+				logger.notice("Installation of package '%s' on depot '%s' successful", depotPackageFile, depotId)
 				subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
 
 			if self.config['setupWhereInstalled']:
 				if product.getSetupScript():
 					self.setActionRequestWhereInstalled(productId=productId, depotId=depotId, actionRequest=u'setup')
 				else:
-					logger.warning(u"Cannot set action 'setup' for product '%s': setupScript not defined" % productId)
+					logger.warning("Cannot set action 'setup' for product '%s': setupScript not defined", productId)
 
 			if self.config['setupWhereInstalledWithDependencies']:
 				if product.getSetupScript():
 					self.setActionRequestWhereInstalled(productId=productId, depotId=depotId, actionRequest=u'setup', dependency=True)
 				else:
-					logger.warning(u"Cannot set action 'setup' for product '%s': setupScript not defined" % productId)
+					logger.warning("Cannot set action 'setup' for product '%s': setupScript not defined", productId)
 
 			if self.config['purgeClientProperties']:
 				self.purgeProductPropertyStates(productId=productId, depotId=depotId)
@@ -1413,7 +1411,7 @@ class OpsiPackageManager(object):
 				if product.getUpdateScript():
 					self.setActionRequestWhereInstalled(productId=productId, depotId=depotId, actionRequest=u'update')
 				else:
-					logger.warning(u"Cannot set action 'update' for product '%s': updateScript not defined" % productId)
+					logger.warning("Cannot set action 'update' for product '%s': updateScript not defined", productId)
 
 		except Exception as installationError:
 			logger.error(installationError)
@@ -1429,7 +1427,7 @@ class OpsiPackageManager(object):
 				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId='%s' % product)
 				if not package:
 					subject.setMessage(_(u"WARNING: Product {0} not installed on depot {1}.".format(product, depotId)), severity=3)
-					logger.warning(u"WARNING: Product %s not installed on depot %s.", product, depotId)
+					logger.warning("WARNING: Product %s not installed on depot %s.", product, depotId)
 					packageNotInstalled = True
 
 			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
@@ -1447,7 +1445,7 @@ class OpsiPackageManager(object):
 					)
 				)
 			self.taskQueues.append(tq)
-			logger.info(u"Starting task queue '%s'", tq.name)
+			logger.info("Starting task queue '%s'", tq.name)
 			tq.start()
 		self.waitForTaskQueues()
 		if packageNotInstalled:
@@ -1460,11 +1458,11 @@ class OpsiPackageManager(object):
 		subject = self.getDepotSubject(depotId)
 
 		try:
-			logger.notice(u"Uninstalling package '%s' on depot '%s'", productId, depotId)
+			logger.notice("Uninstalling package '%s' on depot '%s'", productId, depotId)
 			subject.setMessage(_(u"Uninstalling package {0}".format(productId)))
 
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
-			logger.info(u"Using '%s' as repository url", depot.getRepositoryRemoteUrl())
+			logger.info("Using '%s' as repository url", depot.getRepositoryRemoteUrl())
 			repository = getRepository(url=depot.getRepositoryRemoteUrl(), username=depotId, password=depot.getOpsiHostKey())
 			for destination in repository.listdir():
 				fileInfo = parseFilename(destination)
@@ -1474,12 +1472,12 @@ class OpsiPackageManager(object):
 				if not fileInfo.productId == productId:
 					continue
 
-				logger.info(u"Deleting destination '%s' on depot '%s'", destination, depotId)
+				logger.info("Deleting destination '%s' on depot '%s'", destination, depotId)
 				repository.delete(destination)
 
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_uninstallPackage(productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall'])
-			logger.notice(u"Uninstall of package '%s' on depot '%s' finished", productId, depotId)
+			logger.notice("Uninstall of package '%s' on depot '%s' finished", productId, depotId)
 			subject.setMessage(_(u"Uninstallation of package {0} successful").format(productId), severity=4)
 
 		except Exception as uninstallError:
@@ -1490,7 +1488,7 @@ class OpsiPackageManager(object):
 
 class OpsiPackageManagerControl(object):
 	def __init__(self):
-		logger.debug(u"OpsiPackageManagerControl")
+		logger.debug("OpsiPackageManagerControl")
 		# Set umask
 		os.umask(0o077)
 		self._pid = 0
@@ -1548,14 +1546,11 @@ class OpsiPackageManagerControl(object):
 		self.setDefaultConfig()
 		self.setCommandlineConfig()
 
-		logger.setLogFormat(u'[%l] [%D] %M (%F|%N)')
 		if self.config['logFile']:
-			logger.setLogFile(self.config['logFile'])
-			logger.setFileLevel(self.config['fileLogLevel'])
+			logging_config(log_file=self.config['logFile'], file_level=self.config['fileLogLevel'])
 
-		logger.setConsoleLevel(self.config['consoleLogLevel'])
-		logger.setConsoleColor(True)
-
+		logging_config(stderr_level=self.config['consoleLogLevel'])
+		
 		self.backend = BackendManager(
 			backendConfigDir=self.config['backendConfigDir'],
 			dispatchConfigFile=self.config['dispatchConfigFile'],
@@ -1622,7 +1617,7 @@ class OpsiPackageManagerControl(object):
 		try:
 			self.processCommand()
 		except Exception as processingError:
-			logger.logException(processingError)
+			logger.error(processingError, exc_info=True)
 			raise RuntimeError(u"Failed to process command '%s': %s" % (self.config['command'], processingError))
 
 	def processCommand(self):
@@ -1655,10 +1650,10 @@ class OpsiPackageManagerControl(object):
 			if errors:
 				print(_(u"Errors occurred: "), file=sys.stderr)
 				for (name, errs) in errors.items():
-					logger.error(u"Failure while processing %s:" % name)
+					logger.error("Failure while processing %s:", name)
 					print("   " + (_(u"Failure while processing %s:") % name), file=sys.stderr)
 					for err in errs:
-						logger.error(u"      %s" % err)
+						logger.error(u"      %s", err)
 						print((u"      %s" % err), file=sys.stderr)
 
 				raise TaskError("{} errors during the processing of tasks.".format(len(errors)))
@@ -1995,7 +1990,7 @@ class OpsiPackageManagerControl(object):
 
 	def signalHandler(self, signo, stackFrame):
 		for thread in threading.enumerate():
-			logger.debug(u"Running thread before signal: %s" % thread)
+			logger.debug("Running thread before signal: %s", thread)
 
 		if signo in (SIGTERM, SIGINT):
 			if self._opm:
@@ -2005,7 +2000,7 @@ class OpsiPackageManagerControl(object):
 			self.backend.backend_exit()
 
 		for thread in threading.enumerate():
-			logger.debug(u"Running thread after signal: %s" % thread)
+			logger.debug("Running thread after signal: %s", thread)
 
 	def usage(self):
 		print(u"\nUsage: %s [options] <command>" % os.path.basename(sys.argv[0]))
@@ -2074,7 +2069,7 @@ def main():
 	except SystemExit:
 		pass
 	except Exception as exception:
-		logger.logException(exception)
+		logger.error(exception, exc_info=True)
 		print(u"\nERROR: %s\n" % exception, file=sys.stderr)
 		sys.exit(1)
 

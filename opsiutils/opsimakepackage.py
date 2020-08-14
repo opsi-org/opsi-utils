@@ -33,9 +33,9 @@ import sys
 import termios
 import tty
 
+from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING
 from OPSI import __version__ as python_opsi_version
 import OPSI.Util.File.Archive
-from OPSI.Logger import LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, Logger
 from OPSI.System import execute
 from OPSI.Types import forceFilename, forceUnicode
 from OPSI.Util.Message import ProgressObserver, ProgressSubject
@@ -46,8 +46,6 @@ from OPSI.Util.Task.Rights import setRights
 from OPSI.Util import md5sum
 
 from opsiutils import __version__
-
-logger = Logger()
 
 try:
 	translation = gettext.translation('opsi-utils', '/usr/share/locale')
@@ -95,10 +93,8 @@ class ProgressNotifier(ProgressObserver):
 def makepackage_main(argv):
 	os.umask(0o022)
 
-	logger.setConsoleLevel(LOG_WARNING)
-	logger.setConsoleColor(True)
-	logger.setConsoleFormat(u'%L: %M')
-
+	init_logging(stderr_level=LOG_WARNING)
+	
 	parser = argparse.ArgumentParser(add_help=False,
 		description=("Provides an opsi package from a package source directory.\n"
 				"If no source directory is supplied, the current directory will be used.")
@@ -200,18 +196,15 @@ def makepackage_main(argv):
 	if args.verbose:
 		logLevel = LOG_DEBUG
 
-	if logLevel != LOG_WARNING:
-		logger.setColor(True)
-
 	if quiet:
 		logLevel = LOG_NONE
 
-	logger.setConsoleLevel(logLevel)
+	logging_config(stderr_level=logLevel)
 
-	logger.info(u"Source dir: %s" % packageSourceDir)
-	logger.info(u"Temp dir: %s" % tempDir)
-	logger.info(u"Custom name: %s" % customName)
-	logger.info(u"Archive format: %s" % format)
+	logger.info("Source dir: %s", packageSourceDir)
+	logger.info("Temp dir: %s", tempDir)
+	logger.info("Custom name: %s", customName)
+	logger.info("Archive format: %s", format)
 
 	if format not in ['tar', 'cpio']:
 		raise ValueError(u"Unsupported archive format: %s" % format)
@@ -464,7 +457,7 @@ def main():
 	except SystemExit:
 		pass
 	except Exception as exception:
-		logger.setConsoleLevel(LOG_ERROR)
-		logger.logException(exception)
-		print(u"ERROR: %s" % exception, file=sys.stderr)
+		logging_config(stderr_level=LOG_ERROR)
+		logger.error(exception, exc_info=True)
+		print("ERROR: %s" % exception, file=sys.stderr)
 		sys.exit(1)

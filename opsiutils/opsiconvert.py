@@ -33,8 +33,8 @@ import struct
 import sys
 import termios
 
+from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_DEBUG, LOG_ERROR, LOG_NONE
 from OPSI import __version__ as python_opsi_version
-from OPSI.Logger import LOG_DEBUG, LOG_ERROR, LOG_NONE, Logger
 from OPSI.Types import forceUnicode, forceHostId, forceUnicodeLower
 from OPSI.Util import getfqdn
 from OPSI.Util.Message import ProgressObserver
@@ -45,12 +45,7 @@ from OPSI.Backend.Replicator import BackendReplicator
 from opsiutils import __version__
 
 logLevel = LOG_NONE
-logger = Logger()
-logger.setConsoleLevel(logLevel)
-logger.setConsoleFormat('%M')
-logger.setFileFormat('%D [%L] %M')
-logger.setConsoleColor(True)
-
+init_logging(stderr_level=logLevel)
 
 class ProgressNotifier(ProgressObserver):
 	def __init__(self, backendReplicator):
@@ -139,15 +134,9 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	args = parser.parse_args()
 
 	logLevel = args.logLevel
-	logger.setConsoleLevel(logLevel)
-	logger.setFileLevel(logLevel)
+	init_logging(stderr_level=logLevel)
 	if args.logFile:
-		logger.setLogFile(args.logFile)
-
-		if logLevel > LOG_DEBUG:
-			logger.setFileLevel(logLevel)
-		else:
-			logger.setFileLevel(LOG_DEBUG)
+		logging_config(log_file=args.logFile, file_level=logLevel)
 
 	cleanupFirst = args.cleanupFirst
 	progress = not args.quiet
@@ -177,15 +166,15 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 		'backend': u''
 	}
 
-	logger.comment(u"Converting from backend '%s' to backend '%s'." % (readBackend, writeBackend))
+	logger.comment("Converting from backend '%s' to backend '%s'.", readBackend, writeBackend)
 
-	logger.debug(u"Parsing read backend")
+	logger.debug("Parsing read backend")
 	parseBackend(read, readBackend)
-	logger.debug(u"Settings for read-backend: %s", read)
+	logger.debug("Settings for read-backend: %s", read)
 
-	logger.debug(u"Parsing write backend")
+	logger.debug("Parsing write backend")
 	parseBackend(write, writeBackend)
-	logger.debug(u"Settings for write-backend: %s", write)
+	logger.debug("Settings for write-backend: %s", write)
 	if write['address'] and write['username'] and newServerId:
 		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
 		newServerId = match.group(3).split(':')[0]
@@ -203,10 +192,10 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 
 	sanityCheck(read, write)
 
-	logger.debug(u"Creating BackendManager instance for reading")
+	logger.debug("Creating BackendManager instance for reading")
 	bmRead = createBackend(read)
 
-	logger.debug(u"Creating BackendManager instance for writing")
+	logger.debug("Creating BackendManager instance for writing")
 	bmWrite = createBackend(write)
 
 	backendReplicator = BackendReplicator(
@@ -227,7 +216,7 @@ def parseBackend(config, backendString):
 
 	match = re.search('^(\w+://)', backendString)
 	if match:
-		logger.debug(u"Read-backend seems to be an URL")
+		logger.debug("Read-backend seems to be an URL")
 		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', backendString)
 		if match:
 			config['backend'] = 'JSONRPC'
@@ -236,7 +225,7 @@ def parseBackend(config, backendString):
 		else:
 			raise ValueError(u"Bad source URL '%s'" % backendString)
 	else:
-		logger.debug(u"Assuming '%s' is a backend name.", backendString)
+		logger.debug("Assuming '%s' is a backend name.", backendString)
 		config['backend'] = backendString
 
 
@@ -251,9 +240,9 @@ def sanityCheck(read, write):
 
 
 def createBackend(config):
-	logger.debug(u"Creating backend instance")
+	logger.debug("Creating backend instance")
 	if config['address'] and not config['password']:
-		logger.comment(u"Connecting to %s as %s", config.get("address"), config.get("username"))
+		logger.comment("Connecting to %s as %s", config.get("address"), config.get("username"))
 		config['password'] = getpass.getpass()
 
 	config = cleanBackendConfig(config)
@@ -261,10 +250,10 @@ def createBackend(config):
 	try:
 		backend = BackendManager(backendConfigDir=u'/etc/opsi/backends', **config)
 	except Exception as error:
-		logger.logException(error)
+		logger.error(error, exc_info=True)
 		if forceUnicodeLower(config['backend']) == u'jsonrpc':
-			logger.debug(u"Creating a JSONRPC backend through BackendManager failed.")
-			logger.debug(u"Trying with a direct connection.")
+			logger.debug("Creating a JSONRPC backend through BackendManager failed.")
+			logger.debug("Trying with a direct connection.")
 			backend = JSONRPCBackend(
 				deflate=True,
 				application='opsi-convert/%s' % __version__,
@@ -295,7 +284,7 @@ def main():
 	except SystemExit:
 		pass
 	except Exception as e:
-		logger.setConsoleLevel(LOG_ERROR)
-		logger.logException(e)
+		logging_config(stderr_level=LOG_ERROR)
+		logger.error(e, exc_info=True)
 		print(u"ERROR: %s" % e, file=sys.stderr)
 		sys.exit(1)
