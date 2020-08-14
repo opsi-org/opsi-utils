@@ -40,12 +40,12 @@ import shutil
 import sys
 import time
 
+from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_DEBUG, LOG_NONE, LOG_INFO, LOG_NOTICE
 import OPSI.System.Posix as Posix
 import OPSI.Util.Task.ConfigureBackend as backendUtils
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Config import DEFAULT_DEPOT_USER as CLIENT_USER
-from OPSI.Logger import LOG_DEBUG, LOG_NONE, LOG_INFO, LOG_NOTICE, Logger
 from OPSI.Object import OpsiDepotserver
 from OPSI.System.Posix import (
 	execute, getLocalFqdn, getNetworkConfiguration, which, Distribution)
@@ -77,13 +77,11 @@ from OPSI.Util.Task.UpdateBackend.File import updateFileBackend
 from OPSI.Util.Task.UpdateBackend.MySQL import updateMySQLBackend
 from OPSI.Util.Task.Samba import SMB_CONF, configureSamba
 
-logger = Logger()
 
-logger.setConsoleLevel(LOG_NOTICE)
-logger.setConsoleColor(True)
+init_logging(stderr_level=LOG_NOTICE)
 
-LOG_FILE = u'/tmp/opsi-setup.log'
-DHCPD_CONF = Posix.locateDHCPDConfig(u'/etc/dhcp3/dhcpd.conf')
+LOG_FILE = '/tmp/opsi-setup.log'
+DHCPD_CONF = Posix.locateDHCPDConfig('/etc/dhcp3/dhcpd.conf')
 
 backendConfig = {}
 ipAddress = None
@@ -111,14 +109,14 @@ def getSysConfig():
 	if sysConfig:
 		return sysConfig
 
-	logger.notice(u"Getting current system config")
+	logger.notice("Getting current system config")
 
 	distri = Distribution()
 	sysConfig['distributor'] = distri.distributor
 	sysConfig['distribution'] = getDistribution()
 
 	if not sysConfig['distributor'] or not sysConfig['distribution']:
-		logger.warning(u"Failed to get distributor/distribution")
+		logger.warning("Failed to get distributor/distribution")
 
 	sysConfig.update(getNetworkConfiguration(ipAddress))
 
@@ -127,23 +125,23 @@ def getSysConfig():
 	sysConfig['domain'] = u'.'.join(sysConfig['fqdn'].split(u'.')[1:])
 	sysConfig['winDomain'] = readWindowsDomainFromSambaConfig(SMB_CONF)
 
-	logger.notice(u"System information:")
-	logger.notice(u"   distributor  : %s" % sysConfig['distributor'])
-	logger.notice(u"   distribution : %s" % sysConfig['distribution'])
-	logger.notice(u"   ip address   : %s" % sysConfig['ipAddress'])
-	logger.notice(u"   netmask      : %s" % sysConfig['netmask'])
-	logger.notice(u"   subnet       : %s" % sysConfig['subnet'])
-	logger.notice(u"   broadcast    : %s" % sysConfig['broadcast'])
-	logger.notice(u"   fqdn         : %s" % sysConfig['fqdn'])
-	logger.notice(u"   hostname     : %s" % sysConfig['hostname'])
-	logger.notice(u"   domain       : %s" % sysConfig['domain'])
-	logger.notice(u"   win domain   : %s" % sysConfig['winDomain'])
+	logger.notice("System information:")
+	logger.notice("   distributor  : %s", sysConfig['distributor'])
+	logger.notice("   distribution : %s", sysConfig['distribution'])
+	logger.notice("   ip address   : %s", sysConfig['ipAddress'])
+	logger.notice("   netmask      : %s", sysConfig['netmask'])
+	logger.notice("   subnet       : %s", sysConfig['subnet'])
+	logger.notice("   broadcast    : %s", sysConfig['broadcast'])
+	logger.notice("   fqdn         : %s", sysConfig['fqdn'])
+	logger.notice("   hostname     : %s", sysConfig['hostname'])
+	logger.notice("   domain       : %s", sysConfig['domain'])
+	logger.notice("   win domain   : %s", sysConfig['winDomain'])
 
 	return sysConfig
 
 
 def configureClientUser():
-	logger.notice(u"Configuring client user %s" % CLIENT_USER)
+	logger.notice("Configuring client user %s", CLIENT_USER)
 
 	clientUserHome = pwd.getpwnam(CLIENT_USER)[5]
 	sshDir = os.path.join(clientUserHome, '.ssh')
@@ -157,7 +155,7 @@ def configureClientUser():
 	if not os.path.exists(sshDir):
 		os.mkdir(sshDir)
 	if not os.path.exists(idRsa):
-		logger.notice(u"   Creating RSA private key for user %s in '%s'" % (CLIENT_USER, idRsa))
+		logger.notice("   Creating RSA private key for user %s in '%s'", CLIENT_USER, idRsa)
 		execute(u"%s -N '' -t rsa -f %s" % (which('ssh-keygen'), idRsa))
 
 	if not os.path.exists(authorizedKeys):
@@ -195,7 +193,7 @@ def setPasswordForClientUser():
 							jsonrpcBackend.user_getCredentials(username=u'pcpatch', hostId=depot.id)['password']
 						)
 				except Exception as error:
-					logger.info(u"Failed to get client user (pcpatch) password from configserver: %s" % error)
+					logger.info("Failed to get client user (pcpatch) password from configserver: %s", error)
 
 			if not password:
 				password = blowfishDecrypt(
@@ -203,13 +201,13 @@ def setPasswordForClientUser():
 					backend.user_getCredentials(username=u'pcpatch', hostId=depot.id)['password']
 				)
 	except Exception as error:
-		logger.info(u"Failed to get client user (pcpatch) password: %s" % error)
+		logger.info("Failed to get client user (pcpatch) password: %s", error)
 
 	if not password:
 		logger.warning("No password for pcpatch found. Generating random password.")
 		password = randomString(12)
 
-	logger.addConfidentialString(password)
+	secret_filter.add_secrets(password)
 	execute('opsi-admin -d task setPcpatchPassword "%s"' % password)
 
 
@@ -287,8 +285,8 @@ def configureMySQLBackend(unattendedConfiguration=None):
 		)
 		return
 
-	consoleLevel = logger.getConsoleLevel()
-	logger.setConsoleLevel(LOG_NONE)
+	log_level = logger.level
+	logging_config(stderr_level=LOG_NONE)
 	ui = UIFactory(type='snack')
 	try:
 		while True:
@@ -337,7 +335,7 @@ def configureMySQLBackend(unattendedConfiguration=None):
 			messageBox.hide()
 
 		ui.exit()
-		logger.setConsoleLevel(consoleLevel)
+		logging_config(stderr_level=log_level)
 
 
 def registerDepot(unattendedConfiguration=None):
@@ -391,7 +389,7 @@ def registerDepot(unattendedConfiguration=None):
 	getSysConfig()
 	config = backendUtils.getBackendConfiguration(backendConfigFile)
 	config.update(backendConfig)
-	logger.info(u"Current jsonrpc backend config: %s" % config)
+	logger.info("Current jsonrpc backend config: %s", config)
 
 	if unattendedConfiguration:
 		depotConfig = unattendedConfiguration.pop('depot', {})
@@ -402,29 +400,29 @@ def registerDepot(unattendedConfiguration=None):
 	else:
 		jsonrpcBackend, depot = _getBackendConfigViaGUI(config)
 
-	logger.notice(u"Creating depot '%s'" % depot.id)
+	logger.notice("Creating depot '%s'", depot.id)
 	jsonrpcBackend.host_createObjects([depot])
 
-	logger.notice(u"Getting depot '%s'" % depot.id)
+	logger.notice("Getting depot '%s'", depot.id)
 	depots = jsonrpcBackend.host_getObjects(id=depot.id)
 	if not depots:
-		raise Exception(u"Failed to create depot")
+		raise Exception("Failed to create depot")
 	depot = depots[0]
 	config['username'] = depot.id
 	config['password'] = depot.opsiHostKey
 	jsonrpcBackend.backend_exit()
 
-	logger.notice(u"Testing connection to config server as user '%s'" % config['username'])
+	logger.notice("Testing connection to config server as user '%s'", config['username'])
 	try:
 		jsonrpcBackend = JSONRPCBackend(address=config['address'], username=config['username'], password=config['password'])
 	except Exception as e:
 		raise Exception(u"Failed to connect to config server as user '%s': %s" % (config['username'], e))
-	logger.notice(u"Successfully connected to config server as user '%s'" % config['username'])
+	logger.notice("Successfully connected to config server as user '%s'", config['username'])
 
 	logger.debug("Updating config file %s", backendConfigFile)
 	backendUtils.updateConfigFile(backendConfigFile, config)
 
-	logger.notice(u"Updating dispatch config '%s'" % dispatchConfigFile)
+	logger.notice("Updating dispatch config '%s'", dispatchConfigFile)
 
 	# We want to keep lines that are currently commented out and only
 	# replace the currently active backend configuration
@@ -438,7 +436,7 @@ def registerDepot(unattendedConfiguration=None):
 		newDispatchConfig.writelines(lines)
 		newDispatchConfig.write("backend_.* : jsonrpc, opsipxeconfd, dhcpd\n")
 		newDispatchConfig.write(".*         : jsonrpc\n")
-	logger.notice(u"Dispatch config '%s' updated" % dispatchConfigFile)
+	logger.notice("Dispatch config '%s' updated", dispatchConfigFile)
 
 	setRights()
 	restartServices()
@@ -466,12 +464,12 @@ def _getJSONRPCBackendFromConfig(config):
 		"username": config['username'],
 		"password": config['password']
 	}
-	logger.notice(u"Connecting to config server '%s' as user '%s'", connectionConfig.get("address"), connectionConfig.get("username"))
+	logger.notice("Connecting to config server '%s' as user '%s'", connectionConfig.get("address"), connectionConfig.get("username"))
 	jsonrpcBackend = JSONRPCBackend(**connectionConfig)
 	if not jsonrpcBackend.accessControl_userIsAdmin():
 		raise Exception(u"User {username!r} is not an admin user".format(**connectionConfig))
 
-	logger.notice(u"Successfully connected to config server '%s' as user '%s'", connectionConfig.get("address"), connectionConfig.get("username"))
+	logger.notice("Successfully connected to config server '%s' as user '%s'", connectionConfig.get("address"), connectionConfig.get("username"))
 	return jsonrpcBackend
 
 
@@ -604,8 +602,8 @@ def _getConfiguredDepot(jsonrpcBackend, depotConfig=None):
 
 
 def _getBackendConfigViaGUI(config):
-	consoleLevel = logger.getConsoleLevel()
-	logger.setConsoleLevel(LOG_NONE)
+	log_level = logger.level
+	logging_config(stderr_level=LOG_NONE)
 
 	ui = UIFactory(type='snack')
 	try:
@@ -628,7 +626,7 @@ def _getBackendConfigViaGUI(config):
 
 			messageBox = ui.createMessageBox(width=70, height=20, title=u'Register depot', text=u'')
 			# Connect to config server
-			logger.notice(u"Connecting to config server '%s' as user '%s'" % (config['address'], adminUser))
+			logger.notice("Connecting to config server '%s' as user '%s'", config['address'], adminUser)
 			messageBox.addText(u"Connecting to config server '%s' as user '%s'\n" % (config['address'], adminUser))
 
 			try:
@@ -639,7 +637,7 @@ def _getBackendConfigViaGUI(config):
 				})
 			except Exception as e:
 				messageBox.hide()
-				logger.error(u"Failed to connect to config server '%s' as user '%s': %s" % (config['address'], adminUser, e))
+				logger.error("Failed to connect to config server '%s' as user '%s': %s", config['address'], adminUser, e)
 				ui.showError(
 					title=u'Failed to connect', width=70, height=6, seconds=0,
 					text=u"Failed to connect to config server '%s' as user '%s': %s" % (config['address'], adminUser, e)
@@ -841,16 +839,16 @@ This will remove the client and it's settings from opsi.''' % depot.id,
 			break
 	finally:
 		ui.exit()
-		logger.setConsoleLevel(consoleLevel)
-
+		logging_config(stderr_level=log_level)
+	
 	return jsonrpcBackend, depot
 
 
 def restartServices():
 	""" Restart *opsiconfd* and *opsipxeconfd* """
-	logger.notice(u"Restarting opsi webservice")
+	logger.notice("Restarting opsi webservice")
 	execute("service opsiconfd restart")
-	logger.notice(u"Restarting PXE service")
+	logger.notice("Restarting PXE service")
 	execute("service opsipxeconfd restart")
 
 
@@ -866,7 +864,7 @@ def renewOpsiconfdCert(unattendedConfiguration=None):
 
 	try:
 		which("ucr")
-		logger.notice(u"Don't use recreate method on UCS-Systems")
+		logger.notice("Don't use recreate method on UCS-Systems")
 		return
 	except Exception:
 		pass
@@ -876,8 +874,8 @@ def renewOpsiconfdCert(unattendedConfiguration=None):
 		certparams = loadConfigurationFromCertificate()
 	except UnreadableCertificateError as err:
 		logger.notice(
-			u'Using default values because reading old certificate '
-			u'failed: %s', err
+			'Using default values because reading old certificate '
+			'failed: %s', err
 		)
 		certparams = DEFAULT_CERTIFICATE_PARAMETERS
 		certparams["commonName"] = getLocalFqdn()
@@ -900,8 +898,8 @@ def renewOpsiconfdCert(unattendedConfiguration=None):
 		restartServices()
 		return
 
-	consoleLevel = logger.getConsoleLevel()
-	logger.setConsoleLevel(LOG_NONE)
+	log_level = logger.level
+	logging_config(stderr_level=LOG_NONE)
 	ui = UIFactory(type='snack')
 
 	try:
@@ -948,8 +946,8 @@ def renewOpsiconfdCert(unattendedConfiguration=None):
 			break
 	finally:
 		ui.exit()
-		logger.setConsoleLevel(consoleLevel)
-
+		logging_config(stderr_level=log_level)
+	
 	makeCert()
 	setPasswdRights()
 	setRights(OPSICONFD_CERTFILE)
@@ -1014,10 +1012,9 @@ def opsisetup_main():
 			usage()
 			return
 		elif (opt == "--log-file"):
-			logger.setLogFile(arg)
-			logger.setFileLevel(LOG_DEBUG)
+			logging_config(log_file=arg, file_level=LOG_DEBUG)
 		elif (opt == "-l"):
-			logger.setConsoleLevel(int(arg))
+			logging_config(stderr_level=int(arg))
 		elif (opt == "--ip-address"):
 			global ipAddress
 			ipAddress = forceIpAddress(arg)
@@ -1123,15 +1120,13 @@ def opsisetup_main():
 
 
 def main():
-	logger.setLogFormat(u'[%l] [%D] %M (%F|%N)')
-	logger.setLogFile(LOG_FILE)
-	logger.setFileLevel(LOG_INFO)
+	logging_config(log_file=LOG_FILE, file_level=LOG_INFO)
 
 	try:
 		opsisetup_main()
 	except SystemExit:
 		pass
 	except Exception as exception:
-		logger.logException(exception)
-		print(u"\nERROR: %s\n" % exception, file=sys.stderr)
+		logger.error(exception, exc_info=True)
+		print("\nERROR: %s\n" % exception, file=sys.stderr)
 		sys.exit(1)

@@ -35,13 +35,10 @@ import locale
 import os
 import sys
 
-from OPSI.Logger import Logger, LOG_WARNING, LOG_INFO, LOG_NOTICE
+from opsicommon.logging import logger, init_logging, logging_config, LOG_WARNING, LOG_INFO, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
-
 from OPSI import __version__ as python_opsi_version
 from opsiutils import __version__
-
-logger = Logger()
 
 USAGE = '''
 Usage: %s [common-options] <command> [command-options]
@@ -92,8 +89,7 @@ class HelpFormatter(argparse.HelpFormatter):
 
 
 def backup_main():
-	logger.setLogFormat('[%l] [%D] %M')
-	logger.setConsoleLevel(LOG_WARNING)
+	init_logging(stderr_level=LOG_WARNING)
 
 	parser = argparse.ArgumentParser(prog="opsi-backup", add_help=False, usage=USAGE, formatter_class=HelpFormatter)
 	parser.add_argument("-h", "--help", action="help")
@@ -130,12 +126,10 @@ def backup_main():
 		return 0
 	
 	if args.verbose:
-		logger.setConsoleColor(True)
-		logger.setConsoleLevel(args.log_level)
+		logging_config(stderr_level=args.log_level)
 
 	if args.log_file:
-		logger.setLogFile(args.log_file)
-		logger.setFileLevel(args.log_level)
+		logging_config(log_file=args.log_file, file_level=args.log_level)
 
 	backup = OpsiBackup(stdout=sys.stdout)
 	result = 0
@@ -156,7 +150,7 @@ def backup_main():
 			print("Verification failed", file=sys.stdout)
 	elif args.command == 'list':
 		if not args.verbose:
-			logger.setConsoleLevel(LOG_NOTICE)
+			logging_config(stderr_level=LOG_NOTICE)
 		backup.list(args.file)
 	elif args.command == 'create':
 		if not args.backends:
@@ -181,7 +175,7 @@ def main():
 	try:
 		returnCode = backup_main()
 	except Exception as exception:
-		logger.logException(exception, LOG_INFO)
+		logger.info(exception, exc_info=True)
 		print(f"\nERROR: {exception}\n", file=sys.stderr)
 		returnCode = 1
 

@@ -33,10 +33,11 @@ import sys
 import shutil
 import time
 
+from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_ERROR
 from OPSI import __version__ as python_opsi_version
-from OPSI.Logger import Logger, LOG_ERROR
-from OPSI.Object import (ProductDependency, LocalbootProduct, NetbootProduct,
-	UnicodeProductProperty, BoolProductProperty)
+from OPSI.Object import (
+	ProductDependency, LocalbootProduct, NetbootProduct, UnicodeProductProperty, BoolProductProperty
+)
 from OPSI.System import copy
 from OPSI.Types import forceEmailAddress, forceFilename, forceUnicode
 from OPSI.Util.File.Opsi import PackageControlFile
@@ -45,8 +46,6 @@ from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
 
 from opsiutils import __version__
-
-logger = Logger()
 
 try:
 	translation = gettext.translation('opsi-utils', '/usr/share/locale')
@@ -695,7 +694,7 @@ def main():
 	try:
 		newprod_main()
 	except Exception as exception:
-		logger.setConsoleLevel(LOG_ERROR)
-		logger.logException(exception)
+		logging_config(stderr_level=LOG_ERROR)
+		logger.error(exception, exc_info=True)
 		print("ERROR: {0}".format(forceUnicode(exception).encode('utf-8')), file=sys.stderr)
 		sys.exit(1)
