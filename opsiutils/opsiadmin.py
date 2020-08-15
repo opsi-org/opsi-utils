@@ -127,7 +127,7 @@ UNCOLORED_LOGO = """\
 LOGO = [{"color": COLOR_CYAN, "text": line} for line in UNCOLORED_LOGO]
 
 try:
-	translation = gettext.translation('opsi-utils', '/usr/share/opsi-utils/locale')
+	translation = gettext.translation('opsi-utils', os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'opsi-utils_data', 'locale'))
 	_ = translation.gettext
 except Exception as error:
 	logger.error("Failed to load locale: %s", error, exc_info=True)
