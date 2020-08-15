@@ -64,12 +64,16 @@ from opsiutils import __version__
 USER_AGENT = "opsi-package-manager/%s" % __version__
 
 try:
-	translation = gettext.translation('opsi-utils', os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'opsi-utils_data', 'locale'))
+	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+	if os.path.exists(os.path.join(sp, "site-packages")):
+		sp = os.path.join(sp, "site-packages")
+	translation = gettext.translation('opsi-utils', os.path.join(sp, 'opsi-utils_data', 'locale'))
 	_ = translation.gettext
 except Exception as error:
-	logger.error("Failed to load locale: %s", error, exc_info=True)
+	logger.error("Failed to load locale from %s: %s", sp, error, exc_info=True)
 
 	def _(string):
+		""" Fallback function """
 		return string
 
 
