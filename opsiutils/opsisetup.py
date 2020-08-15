@@ -77,6 +77,8 @@ from OPSI.Util.Task.UpdateBackend.File import updateFileBackend
 from OPSI.Util.Task.UpdateBackend.MySQL import updateMySQLBackend
 from OPSI.Util.Task.Samba import SMB_CONF, configureSamba
 
+from OPSI import __version__ as python_opsi_version
+from opsiutils import __version__
 
 init_logging(stderr_level=LOG_NOTICE)
 
@@ -958,8 +960,9 @@ def usage():
 	print(u"\nUsage: %s [options]" % os.path.basename(sys.argv[0]))
 	print(u"")
 	print(u"Options:")
-	print(u"   -h, --help  show this help")
-	print(u"   -l          log-level 0..9")
+	print(u"   -h, --help     show this help")
+	print(u"   -l             log-level 0..9")
+	print(u"   -V, --version  Show version info and exit.")
 	print(u"")
 	print(u"   --log-file <path>             path to log file")
 	print(u"   --backend-config <json hash>  overwrite backend config hash values")
@@ -981,13 +984,10 @@ def usage():
 
 
 def opsisetup_main():
-	if os.geteuid() != 0:
-		raise Exception(u"This script must be startet as root")
-
 	try:
-		(opts, args) = getopt.getopt(sys.argv[1:], "hl:",
+		(opts, args) = getopt.getopt(sys.argv[1:], "hVl:",
 			[
-				'help', 'log-file=', 'ip-address=', 'backend-config=',
+				'help', 'version', 'log-file=', 'ip-address=', 'backend-config=',
 				'init-current-config', 'set-rights', 'auto-configure-samba',
 				'auto-configure-dhcpd', 'register-depot', 'configure-mysql',
 				'update-mysql', 'update-file', 'edit-config-defaults',
@@ -1011,7 +1011,15 @@ def opsisetup_main():
 		if opt in ("-h", "--help"):
 			usage()
 			return
-		elif (opt == "--log-file"):
+		elif opt in ("-V", "--version"):
+			print(f"{__version__} [python-opsi={python_opsi_version}]")
+			return
+	
+	if os.geteuid() != 0:
+		raise Exception(u"This script must be startet as root")
+	
+	for (opt, arg) in opts:
+		if (opt == "--log-file"):
 			logging_config(log_file=arg, file_level=LOG_DEBUG)
 		elif (opt == "-l"):
 			logging_config(stderr_level=int(arg))
