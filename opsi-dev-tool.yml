@@ -59,12 +59,14 @@ pyinstaller-poetry:
       find dist/opsi-utils -iname "*.c" -delete
       find dist/opsi-utils -iname "*.h" -delete
       find dist/opsi-utils -iname "*.so" -exec chmod -x "{}" \;
+      find dist/opsi-utils -iname "*.so.*" -exec chmod -x "{}" \;
       rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
     darwin: |
       mv dist/opsi-utils/opsi-utils_data dist/opsi-utils/site-packages/
       find dist/opsi-utils -iname "*.c" -delete
       find dist/opsi-utils -iname "*.h" -delete
       find dist/opsi-utils -iname "*.so" -exec chmod -x "{}" \;
+      find dist/opsi-utils -iname "*.so.*" -exec chmod -x "{}" \;
       rm -r dist/opsi-utils/site-packages/Crypto/SelfTest
     windows: |
       Move-Item -Path dist\opsi-utils\opsi-utils_data -Destination dist\opsi-utils\site-packages
