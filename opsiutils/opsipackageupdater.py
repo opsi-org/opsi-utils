@@ -118,7 +118,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 						logger.notice('\t%s (Version %s, not installed)', package.get("productId"), package.get("version"))
 						continue
 
-					localVersion = '%s-%s', localProduct.get("productVersion"), localProduct.get("packageVersion"))
+					localVersion = '%s-%s' % (localProduct.get("productVersion"), localProduct.get("packageVersion"))
 					if compareVersions(package['version'], '==', localVersion):
 						logger.notice('\t%s (Version %s, installed)', package.get("productId"), package.get("version"))
 					else:
