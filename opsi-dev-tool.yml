@@ -79,6 +79,9 @@ package:
   depends:
     - zsync
     - librsync | librsync2 | librsync1
+  conflicts:
+    - opsi-server (<< 4.2)
+    - opsi-depotserver (<< 4.2)
   source_script: |
     mkdir -p ${DST}/rootfs/usr/bin
     mkdir -p ${DST}/rootfs/usr/lib
