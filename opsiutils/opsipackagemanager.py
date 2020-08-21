@@ -1919,8 +1919,7 @@ class OpsiPackageManagerControl(object):
 		if self.opts.quiet:
 			self.config['quiet'] = True
 		if self.opts.verbose:
-			self.config['consoleLogLevel'] = LOG_WARNING + self.opts.verbose
-
+			self.config['consoleLogLevel'] = 3 + self.opts.verbose
 			if self.opts.properties != 'ask':
 				self.config['quiet'] = True
 		if self.opts.logFile:
