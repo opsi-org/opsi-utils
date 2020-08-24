@@ -28,8 +28,8 @@ psutil = "^5.7.0"
 distro = {platform = "linux", version = "^1.5.0"}
 
 [tool.poetry.dev-dependencies]
-pyinstaller = "^3.6"
 opsi-dev-tools = "^1.0"
+pyinstaller = "^4.0"
 
 [tool.poetry.scripts]
 opsi-admin = "opsiutils.opsiadmin:main"
