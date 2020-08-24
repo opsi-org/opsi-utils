@@ -1044,8 +1044,11 @@ class OpsiPackageManager(object):
 						logger.notice("Getting librsync signature of '%s' on depot '%s'", oldPackage, depotId)
 						subject.setMessage(_(u"Getting librsync signature of %s") % oldPackage)
 
-						sig = base64.decodestring(depotConnection.depot_librsyncSignature(depotRepositoryPath + '/' + oldPackage))
-
+						sig = depotConnection.depot_librsyncSignature(depotRepositoryPath + '/' + oldPackage)
+						if type(sig) is not bytes:
+							sig = sig.encode("ascii")
+						sig = base64.decodestring(sig)
+						
 						logger.notice("Calculating delta for depot '%s'", depotId)
 						subject.setMessage(_(u"Calculating delta"))
 
