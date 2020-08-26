@@ -19,13 +19,14 @@ url = "http://pypi.uib.gmbh:8080/simple"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-python-opsi = "^4.2.0.44"
 #python-opsi = {path = "python-opsi"}
+python-opsi = "^4.2.0.60"
 python-magic = "^0.4.15"
 orjson = "^2.6.5"
 mysqlclient = "^1.4.6"
 psutil = "^5.7.0"
 distro = {platform = "linux", version = "^1.5.0"}
+ldap3 = "2.7"
 
 [tool.poetry.dev-dependencies]
 opsi-dev-tools = "^1.0"
