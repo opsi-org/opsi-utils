@@ -116,8 +116,11 @@ def newprod_main():
 			writeMaintainerInfo(ui, productSourceDir, product, productDependencies, productProperties)
 
 			createTemplates(productSourceDir, templateDirectory)
-			setRights(productSourceDir)
-
+			try:
+				setRights(productSourceDir)
+			except Exception as e:
+				logger.warning("Failed to set rights: %s", e)
+			
 			ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
 		except Exception as exc:
 			errorMessage = _("Product creation failed. Removing directory {0}").format(productSourceDir)
