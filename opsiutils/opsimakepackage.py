@@ -32,6 +32,7 @@ import struct
 import sys
 import termios
 import tty
+from contextlib import contextmanager
 
 from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING
 from OPSI import __version__ as python_opsi_version
@@ -85,7 +86,7 @@ class ProgressNotifier(ProgressObserver):
 
 		barlen = self.usedWidth - 10
 		filledlen = int("%0.0f" % (barlen * percent / 100))
-		bar = u'='*filledlen + u' ' * (barlen - filledlen)
+		bar = '='*filledlen + ' ' * (barlen - filledlen)
 		percent = '%0.2f%%' % percent
 		sys.stderr.write('\r %8s [%s]\r' % (percent, bar))
 		sys.stderr.flush()
@@ -94,6 +95,19 @@ class ProgressNotifier(ProgressObserver):
 		sys.stderr.write('\n%s\n' % message)
 		sys.stderr.flush()
 
+@contextmanager
+def raw_tty():
+	fd = sys.stdin.fileno()
+	#fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+	at = termios.tcgetattr(fd)
+	#fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+	tty.setraw(fd)
+	try:
+		yield
+	finally:
+		#fcntl.fcntl(fd, fcntl.F_SETFL, fl)
+		#termios.tcsetattr(fd, termios.TCSADRAIN, at)
+		termios.tcsetattr(fd, termios.TCSANOW, at)
 
 def makepackage_main(argv):
 	os.umask(0o022)
@@ -129,13 +143,13 @@ def makepackage_main(argv):
 						default=False, action='store_true')
 	customGroup = parser.add_mutually_exclusive_group()
 	customGroup.add_argument('--custom-name', '-i', metavar='custom name',
-							dest="customName", default=u'',
+							dest="customName", default='',
 							help="Add custom files and add custom name to the base package.")
 	customGroup.add_argument('--custom-only', '-c', metavar='custom name',
 							dest="customOnly", default=False,
 							help="Only package custom files and add custom name to base package.")
 	parser.add_argument('--temp-directory', '-t',
-						dest="tempDir", help="temp dir", default=u'/tmp',
+						dest="tempDir", help="temp dir", default='/tmp',
 						metavar='directory')
 	hashSumGroup = parser.add_mutually_exclusive_group()
 	hashSumGroup.add_argument(
@@ -161,8 +175,8 @@ def makepackage_main(argv):
 	vgroup.add_argument('--keep-versions', '-k', action='store_true',
 				help="Keep versions and overwrite package", dest="keepVersions")
 	vgroup.add_argument('--package-version', help="Set new package version ",
-				default=u'', metavar='packageversion', dest="newPackageVersion")
-	vgroup.add_argument('--product-version', default=u'',
+				default='', metavar='packageversion', dest="newPackageVersion")
+	vgroup.add_argument('--product-version', default='',
 				dest="newProductVersion", metavar='productversion',
 				help="Set new product version for package")
 
@@ -212,21 +226,21 @@ def makepackage_main(argv):
 	logger.info("Archive format: %s", format)
 
 	if format not in ['tar', 'cpio']:
-		raise ValueError(u"Unsupported archive format: %s" % format)
+		raise ValueError("Unsupported archive format: %s" % format)
 
 	if not os.path.isdir(packageSourceDir):
-		raise OSError(u"No such directory: %s" % packageSourceDir)
+		raise OSError("No such directory: %s" % packageSourceDir)
 
 	if customName:
-		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI.%s' % customName, u'control')
+		packageControlFilePath = os.path.join(packageSourceDir, 'OPSI.%s' % customName, 'control')
 	if not customName or not os.path.exists(packageControlFilePath):
-		packageControlFilePath = os.path.join(packageSourceDir, u'OPSI', u'control')
+		packageControlFilePath = os.path.join(packageSourceDir, 'OPSI', 'control')
 		if not os.path.exists(packageControlFilePath):
-			raise OSError(u"Control file '%s' not found" % packageControlFilePath)
+			raise OSError("Control file '%s' not found" % packageControlFilePath)
 
 	if not quiet:
 		print("")
-		print(_(u"Locking package"))
+		print(_("Locking package"))
 	pcf = PackageControlFile(packageControlFilePath)
 
 	lockPackage(tempDir, pcf)
@@ -236,47 +250,47 @@ def makepackage_main(argv):
 			product = pcf.getProduct()
 
 			if not quiet:
-				print(u"")
-				print(_(u"Package info"))
-				print(u"----------------------------------------------------------------------------")
-				print(u"   %-20s : %s" % (u'version', product.packageVersion))
-				print(u"   %-20s : %s" % (u'custom package name', customName))
-				print(u"   %-20s : %s" % (u'package dependencies', u', '.join(u'{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies())))
+				print("")
+				print(_("Package info"))
+				print("----------------------------------------------------------------------------")
+				print("   %-20s : %s" % ('version', product.packageVersion))
+				print("   %-20s : %s" % ('custom package name', customName))
+				print("   %-20s : %s" % ('package dependencies', ', '.join('{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies())))
 
 				print("")
-				print(_(u"Product info"))
-				print(u"----------------------------------------------------------------------------")
-				print(u"   %-20s : %s" % (u'product id', product.id))
+				print(_("Product info"))
+				print("----------------------------------------------------------------------------")
+				print("   %-20s : %s" % ('product id', product.id))
 
 				if product.getType() == 'LocalbootProduct':
-					print(u"   %-20s : %s" % (u'product type', u'localboot'))
+					print("   %-20s : %s" % ('product type', 'localboot'))
 				elif product.getType() == 'NetbootProduct':
-					print(u"   %-20s : %s" % (u'product type', u'netboot'))
+					print("   %-20s : %s" % ('product type', 'netboot'))
 
-				print(u"   %-20s : %s" % (u'version', product.productVersion))
-				print(u"   %-20s : %s" % (u'name', product.name))
-				print(u"   %-20s : %s" % (u'description', product.description))
-				print(u"   %-20s : %s" % (u'advice', product.advice))
-				print(u"   %-20s : %s" % (u'priority', product.priority))
-				print(u"   %-20s : %s" % (u'licenseRequired', product.licenseRequired))
-				print(u"   %-20s : %s" % (u'product classes', u', '.join(product.productClassIds)))
-				print(u"   %-20s : %s" % (u'windows software ids', u', '.join(product.windowsSoftwareIds)))
+				print("   %-20s : %s" % ('version', product.productVersion))
+				print("   %-20s : %s" % ('name', product.name))
+				print("   %-20s : %s" % ('description', product.description))
+				print("   %-20s : %s" % ('advice', product.advice))
+				print("   %-20s : %s" % ('priority', product.priority))
+				print("   %-20s : %s" % ('licenseRequired', product.licenseRequired))
+				print("   %-20s : %s" % ('product classes', ', '.join(product.productClassIds)))
+				print("   %-20s : %s" % ('windows software ids', ', '.join(product.windowsSoftwareIds)))
 
 				if product.getType() == 'NetbootProduct':
-					print(u"   %-20s : %s" % (u'pxe config template', product.pxeConfigTemplate))
+					print("   %-20s : %s" % ('pxe config template', product.pxeConfigTemplate))
 
 				print("")
-				print(_(u"Product scripts"))
-				print(u"----------------------------------------------------------------------------")
-				print(u"   %-20s : %s" % (u'setup', product.setupScript))
-				print(u"   %-20s : %s" % (u'uninstall', product.uninstallScript))
-				print(u"   %-20s : %s" % (u'update', product.updateScript))
-				print(u"   %-20s : %s" % (u'always', product.alwaysScript))
-				print(u"   %-20s : %s" % (u'once', product.onceScript))
-				print(u"   %-20s : %s" % (u'custom', product.customScript))
+				print(_("Product scripts"))
+				print("----------------------------------------------------------------------------")
+				print("   %-20s : %s" % ('setup', product.setupScript))
+				print("   %-20s : %s" % ('uninstall', product.uninstallScript))
+				print("   %-20s : %s" % ('update', product.updateScript))
+				print("   %-20s : %s" % ('always', product.alwaysScript))
+				print("   %-20s : %s" % ('once', product.onceScript))
+				print("   %-20s : %s" % ('custom', product.customScript))
 				if product.getType() == 'LocalbootProduct':
-					print(u"   %-20s : %s" % (u'user login', product.userLoginScript))
-				print(u"")
+					print("   %-20s : %s" % ('user login', product.userLoginScript))
+				print("")
 
 			if disablePigz:
 				logger.debug("Disabling pigz")
@@ -294,48 +308,46 @@ def makepackage_main(argv):
 			)
 
 			if not quiet and os.path.exists(pps.getPackageFile()):
-				print(_(u"Package file '%s' already exists.") % pps.getPackageFile())
-				print(_(u"Press <O> to overwrite, <C> to abort or <N> to specify a new version:"), end=' ')
+				print(_("Package file '%s' already exists.") % pps.getPackageFile())
+				print(_("Press <O> to overwrite, <C> to abort or <N> to specify a new version:"), end=' ')
+				sys.stdout.flush()
 				newVersion = False
 				if keepVersions and needOneVersion:
 					newVersion = True
 				elif keepVersions:
 					if os.path.exists(pps.packageFile):
 						os.remove(pps.packageFile)
-					if os.path.exists(pps.packageFile + u'.md5'):
-						os.remove(pps.packageFile + u'.md5')
-					if os.path.exists(pps.packageFile + u'.zsync'):
-						os.remove(pps.packageFile + u'.zsync')
+					if os.path.exists(pps.packageFile + '.md5'):
+						os.remove(pps.packageFile + '.md5')
+					if os.path.exists(pps.packageFile + '.zsync'):
+						os.remove(pps.packageFile + '.zsync')
 				elif needOneVersion:
 					newVersion = True
 
 				if not doNotUseTerminal:
-					fd = sys.stdin.fileno()
-					savedSettings = termios.tcgetattr(fd)
-					tty.setraw(fd)
-					try:
-						while True:
-							ch = sys.stdin.read(1)
-							if ch in ('o', 'O'):
-								if os.path.exists(pps.packageFile):
-									os.remove(pps.packageFile)
-								if os.path.exists(pps.packageFile + u'.md5'):
-									os.remove(pps.packageFile + u'.md5')
-								if os.path.exists(pps.packageFile + u'.zsync'):
-									os.remove(pps.packageFile + u'.zsync')
-								break
-							elif ch in ('c', 'C'):
-								raise Exception(_(u"Aborted"))
-							elif ch in ('n', 'N'):
-								newVersion = True
-								break
-					finally:
-						termios.tcsetattr(fd, termios.TCSADRAIN, savedSettings)
-						print('\r\033[0K')
+					with raw_tty():
+						try:
+							while True:
+								ch = sys.stdin.read(1)
+								if ch in ('o', 'O'):
+									if os.path.exists(pps.packageFile):
+										os.remove(pps.packageFile)
+									if os.path.exists(pps.packageFile + '.md5'):
+										os.remove(pps.packageFile + '.md5')
+									if os.path.exists(pps.packageFile + '.zsync'):
+										os.remove(pps.packageFile + '.zsync')
+									break
+								elif ch in ('c', 'C'):
+									raise Exception(_("Aborted"))
+								elif ch in ('n', 'N'):
+									newVersion = True
+									break
+						finally:
+							print('\r\033[0K')
 
 				if newVersion:
 					while True:
-						print('\r%s' % _(u"Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion, end=' ')
+						print('\r%s' % _("Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion, end=' ')
 						newVersion = newProductVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -353,10 +365,10 @@ def makepackage_main(argv):
 								pcf.generate()
 							break
 						except Exception:
-							print(_(u"Bad product version: %s") % newVersion)
+							print(_("Bad product version: %s") % newVersion)
 
 					while True:
-						print('\r%s' % _(u"Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion, end=' ')
+						print('\r%s' % _("Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion, end=' ')
 						newVersion = newPackageVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -374,7 +386,7 @@ def makepackage_main(argv):
 								pcf.generate()
 							break
 						except Exception:
-							print(_(u"Bad package version: %s") % newVersion)
+							print(_("Bad package version: %s") % newVersion)
 
 					keepVersions = True
 					needOneVersion = False
@@ -389,57 +401,66 @@ def makepackage_main(argv):
 			if not quiet:
 				progressSubject = ProgressSubject('packing')
 				progressSubject.attachObserver(ProgressNotifier())
-				print(_(u"Creating package file '%s'") % pps.getPackageFile())
+				print(_("Creating package file '%s'") % pps.getPackageFile())
 			pps.pack(progressSubject=progressSubject)
-			setRights(pps.getPackageFile())
+			try:
+				setRights(pps.getPackageFile())
+			except Exception as e:
+				logger.warning("Failed to set rights: %s", e)
 
 			if not quiet:
 				print("\n")
 			if createMd5SumFile:
-				md5sumFile = u'%s.md5' % pps.getPackageFile()
+				md5sumFile = '%s.md5' % pps.getPackageFile()
 				if not quiet:
-					print(_(u"Creating md5sum file '%s'") % md5sumFile)
+					print(_("Creating md5sum file '%s'") % md5sumFile)
 				md5 = md5sum(pps.getPackageFile())
 				with open(md5sumFile, 'w') as f:
 					f.write(md5)
-				setRights(md5sumFile)
+				try:
+					setRights(md5sumFile)
+				except Exception as e:
+					logger.warning("Failed to set rights: %s", e)
 
 			if createZsyncFile:
-				zsyncFilePath = u'%s.zsync' % pps.getPackageFile()
+				zsyncFilePath = '%s.zsync' % pps.getPackageFile()
 				if not quiet:
-					print(_(u"Creating zsync file '%s'") % zsyncFilePath)
+					print(_("Creating zsync file '%s'") % zsyncFilePath)
 				zsyncFile = ZsyncFile(zsyncFilePath)
 				zsyncFile.generate(pps.getPackageFile())
-				setRights(zsyncFilePath)
+				try:
+					setRights(zsyncFilePath)
+				except Exception as e:
+					logger.warning("Failed to set rights: %s", e)
 			break
 	finally:
 		if pps:
 			if not quiet:
-				print(_(u"Cleaning up"))
+				print(_("Cleaning up"))
 			pps.cleanup()
 		if not quiet:
-			print(_(u"Unlocking package"))
+			print(_("Unlocking package"))
 		unlockPackage(tempDir, pcf)
 		if not quiet:
 			print("")
 
 
 def lockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, u'.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
+	lockFile = os.path.join(tempDir, '.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
 	# Test if other processes are accessing same product
 	try:
 		with open(lockFile, 'r') as lf:
 			p = lf.read().strip()
 
 		if p:
-			for line in execute(u"ps -A"):
+			for line in execute("ps -A"):
 				line = line.strip()
 				if not line:
 					continue
 				if p == line.split()[0].strip():
 					pName = line.split()[-1].strip()
 					# process is running
-					raise RuntimeError(u"Product '%s' is currently locked by process %s (%s)."
+					raise RuntimeError("Product '%s' is currently locked by process %s (%s)."
 									% (packageControlFile.getProduct().id, pName, p))
 
 	except IOError:
@@ -451,7 +472,7 @@ def lockPackage(tempDir, packageControlFile):
 
 
 def unlockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, u'.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
+	lockFile = os.path.join(tempDir, '.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
 	if os.path.isfile(lockFile):
 		os.unlink(lockFile)
 
