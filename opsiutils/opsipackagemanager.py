@@ -1348,7 +1348,7 @@ class OpsiPackageManager(object):
 					self.config['newProductId'],
 					depotId
 				)
-				subject.setMessage(_(u"Installing package '%s' as '%s'"), packageFile, self.config['newProductId'])
+				subject.setMessage(_(u"Installing package '%s' as '%s'") % (packageFile, self.config['newProductId']))
 			else:
 				logger.notice("Installing package '%s' on depot '%s'", packageFile, depotId)
 				subject.setMessage(_(u"Installing package %s") % packageFile)
