@@ -1554,9 +1554,9 @@ class OpsiPackageManagerControl(object):
 		self.setDefaultConfig()
 		self.setCommandlineConfig()
 
-		if self.config['logFile']:
+		if self.opts.logFile:
 			logging_config(log_file=self.config['logFile'], file_level=self.config['fileLogLevel'])
-
+		
 		logging_config(stderr_level=self.config['consoleLogLevel'])
 		
 		self.backend = BackendManager(
