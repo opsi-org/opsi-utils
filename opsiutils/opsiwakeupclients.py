@@ -23,6 +23,7 @@ opsi-wakeup-clients - wakeup clients for deployment tasks
 """
 
 import argparse
+import codecs
 import os
 import sys
 import time
@@ -125,7 +126,10 @@ def wakeClientsForUpdate(
 	logger.info("Using event: %s", eventName)
 
 	if depotId:
-		logger.notice("Getting list of clients to process by depot '%s'", depotId)
+		if hostGroupId:
+			logger.notice("Getting list of clients to process by depot '%s' and client group '%s'", depotId, hostGroupId)
+		else:
+			logger.notice("Getting list of clients to process by depot '%s'", depotId)
 		clientsToWake = getClientIDsFromDepot(backend, depotId, hostGroupId)
 	elif hostGroupId:
 		logger.notice("Getting list of clients to process by group '%s'", hostGroupId)
@@ -174,6 +178,7 @@ def wakeClientsForUpdate(
 			for client in newClients:
 				thread = ClientMonitoringThread(backend, client, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout)
 				logger.info("Starting task on client '%s'", client)
+				thread.daemon = True
 				thread.start()
 				runningThreads.append(thread)
 
@@ -216,17 +221,14 @@ def getClientIDsFromDepot(backend, depotId, groupName):
 	
 	depotClients = backend.getClientsOnDepot(depotId)
 	if not clientsFromGroup:
-		logger.notice("Deploying all Client from depot %s", depotId)
 		return depotClients
 	else:
-		logger.notice("Combining HostGroup %s with depot %s", groupName, depotId)
 		return [ x for x in depotClients if x in clientsFromGroup ]
 
 def getClientIDsFromFile(backend, inputFile):
 	if not os.path.exists(inputFile):
-		logger.error("Given File %s not found.", inputFile)
-		sys.exit(1)
-	with open(inputFile, 'r') as f:
+		raise FileNotFoundError(f"Given input file {inputFile} not found")
+	with codecs.open(inputFile, 'r', "utf-8") as f:
 		return [l.strip() for line in f.readlines()]
 
 def getClientIDsFromGroup(backend, groupName):
@@ -235,7 +237,7 @@ def getClientIDsFromGroup(backend, groupName):
 	try:
 		group = group[0]
 	except IndexError:
-		raise ValueError("No HostGroup with id '{0}' found!".format(groupName))
+		raise ValueError(f"Client group '{groupName}' found")
 
 	return [mapping.objectId for mapping in backend.objectToGroup_getObjects(groupId=group.id)]
 
@@ -251,7 +253,7 @@ def getProductsFromProductGroup(backend, productGroupId):
 	try:
 		group = group[0]
 	except IndexError:
-		raise ValueError("No ProductGroup with id '{0}' found!".format(productGroupId))
+		raise ValueError(f"Product group '{productGroupId}' not found")
 
 	return set([mapping.objectId for mapping in backend.objectToGroup_getObjects(groupId=group.id)])
 
