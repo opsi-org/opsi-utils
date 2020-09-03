@@ -48,3 +48,6 @@ def main():
 	if name == "opsipython":
 		from opsiutils.opsipython import main
 		return main()
+	if name == "opsiwakeupclients":
+		from opsiutils.opsiwakeupclients import main
+		return main()

@@ -19,8 +19,6 @@
 opsi-makepackage - create opsi-packages for deployment.
 
 :copyright:	uib GmbH <info@uib.de>
-:author: Niko Wenselowski <n.wenselowski@uib.de>
-:author: Jan Schneider <j.schneider@uib.de>
 :license: GNU Affero General Public License version 3
 """
 
