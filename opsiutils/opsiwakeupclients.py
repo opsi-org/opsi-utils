@@ -92,7 +92,7 @@ def parseOptions():
 		'--host-group-id', '-H', dest='hostGroupId',
 		help='Group in which clients have to be to be waked up.')
 	parser.add_argument(
-		'--depotId', '-D', dest='depotId',
+		'--depot-id', '-D', dest='depotId',
 		help='DepotId in which clients have to be registered to be waked up.')
 	parser.add_argument(
 		'--host-file', '-F', dest='inputFile',
@@ -107,7 +107,7 @@ def parseOptions():
 		'--reboot', '-X', dest='reboot', default=False, action='store_true',
 		help="Triggering reboot on the clients")
 	parser.add_argument(
-		'--no-auto-update', '-N', dest='noAutoUpdate', default=False, type=bool,
+		'--no-auto-update', '-N', dest='noAutoUpdate', default=False, action='store_true',
 		help="Do not use opsi-auto-update product.")
 	parser.add_argument(
 		'--max-concurrent', dest="maxConcurrent", default=0, type=int,
@@ -150,9 +150,12 @@ def wakeClientsForUpdate(
 
 	productIds = set()
 	if productGroupId:
-		logger.notice("Getting list of products by product group '%s'", productGroupId)
+		logger.notice("Getting list of products to set to setup by product group '%s'", productGroupId)
 		productIds = getProductsFromProductGroup(backend, productGroupId)
-	logger.notice("List of products to process: %s", productIds)
+	if productIds:
+		logger.notice("List of products to set to setup: %s", productIds)
+	else:
+		logger.notice("No products to set to setup")
 	
 	clientSum = len(clientsToWake)
 	runningThreads = []
@@ -166,13 +169,14 @@ def wakeClientsForUpdate(
 		while clientsToWake and (maxConcurrent == 0 or len(runningThreads) + len(newClients) < maxConcurrent):
 			newClients.append(clientsToWake.pop())
 		if newClients:
-			requireProductInstallation(backend, newClients, productIds)
+			if productIds:
+				requireProductInstallation(backend, newClients, productIds)
 			for client in newClients:
 				thread = ClientMonitoringThread(backend, client, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout)
 				logger.info("Starting task on client '%s'", client)
 				thread.start()
 				runningThreads.append(thread)
-		
+
 		newRunningThreads = []
 		for thread in runningThreads:
 			if thread.success is None:
@@ -308,7 +312,7 @@ class ClientMonitoringThread(threading.Thread):
 		self.success = True
 
 	def wakeClient(self):
-		logger.info("Waking %s", self.clientId)
+		logger.info("Waking up client '%s'", self.clientId)
 		self.backend.hostControlSafe_start(self.clientId)
 
 		if os.geteuid() == 0:
@@ -316,25 +320,25 @@ class ClientMonitoringThread(threading.Thread):
 				# Only as root
 				self.waitForPing()
 			else:
-				logger.notice("Did not try to ping %s...", self.clientId)
+				logger.notice("Did not try to ping client '%s'", self.clientId)
 		self.waitForOpsiclientd()
 
 	def waitForPing(self):
 		timeout_event = threading.Event()
 		retryTimeout = 10
 
-		with timeoutThread(self.pingTimeout, timeout_event, NoPingReceivedError("Unable to ping %s" % self.clientId)):
+		with timeoutThread(self.pingTimeout, timeout_event, NoPingReceivedError("Unable to ping client '%s'" % self.clientId)):
 			start_timeout = 1
 			while not timeout_event.wait(start_timeout or retryTimeout):
 				start_timeout = 0
 				try:
-					logger.info("Trying to ping %s...", self.clientId)
+					logger.info("Trying to ping client '%s'", self.clientId)
 					delay = ping(self.clientId, retryTimeout - 2)
 					if delay:
-						logger.notice("Succesfully pinged %s", self.clientId)
+						logger.notice("Succesfully pinged '%s'", self.clientId)
 						break
 				except Exception as exc:
-					logger.info("Failed to connect ping %s (%s)", self.clientId, exc)
+					logger.info("Failed to ping client '%s' (%s)", self.clientId, exc)
 
 	def waitForOpsiclientd(self):
 		port = 4441
@@ -349,7 +353,7 @@ class ClientMonitoringThread(threading.Thread):
 			while not timeout_event.wait(start_timeout or retryTimeout):
 				start_timeout = 0
 				try:
-					logger.info("Trying to connect to %s...", self.clientId)
+					logger.info("Trying to connect to opsi-client-agent on client '%s'", self.clientId)
 					backend = JSONRPCBackend(
 						address=address,
 						username=self.clientId,
@@ -361,13 +365,13 @@ class ClientMonitoringThread(threading.Thread):
 						continue
 
 					self.opsiclientdbackend = backend
-					logger.notice("Connection to %s established", self.clientId)
+					logger.notice("Connection to client '%s' established", self.clientId)
 					break
 				except Exception as exc:
-					logger.info("Failed to connect port %s to %s (%s)", port, self.clientId, exc)
+					logger.info("Failed to connect to client '%s' on port %d (%s)", self.clientId, port, exc)
 
 	def triggerReboot(self):
-		logger.info("Triggering Reboot on %s with a %s sec gap", self.clientId, self.rebootTimeout)
+		logger.info("Triggering reboot on client '%s' with a delay of %s seconds", self.clientId, self.rebootTimeout)
 		self.opsiclientdbackend.reboot(str(self.rebootTimeout))
 
 	def triggerEvent(self):
@@ -377,25 +381,25 @@ class ClientMonitoringThread(threading.Thread):
 		timeout_event = threading.Event()
 		retryTimeout = 5
 
-		with timeoutThread(self.eventTimeout, timeout_event, WaitForEventTimeout("Did not see running event %s on %s"% (self.eventName, self.clientId))):
+		with timeoutThread(self.eventTimeout, timeout_event, WaitForEventTimeout("Did not see running event '%s' on '%s'"% (self.eventName, self.clientId))):
 			start_timeout = 1
 			runs = 0
 			while not timeout_event.wait(start_timeout or retryTimeout):
 				start_timeout = 0
 
 				if runs % 3 == 0:
-					logger.info("Triggering event %s on %s", self.eventName, self.clientId)
+					logger.info("Triggering event '%s' on '%s'", self.eventName, self.clientId)
 					self.opsiclientdbackend.fireEvent(self.eventName)
 
 				try:
 					if self.opsiclientdbackend.isEventRunning(self.eventName):
-						logger.notice("Event %s is running on %s.", self.eventName, self.clientId)
+						logger.notice("Event '%s' is running on '%s'", self.eventName, self.clientId)
 						break
 					if self.opsiclientdbackend.isEventRunning(self.eventName+"{user_logged_in}"):
-						logger.notice("Event %s is running on %s.", self.eventName+"{user_logged_in}", self.clientId)
+						logger.notice("Event '%s' is running on '%s'", self.eventName+"{user_logged_in}", self.clientId)
 						break
 				except Exception as exc:
-					logger.info("Failed to check running event on %s (%s)", self.clientId, exc)
+					logger.info("Failed to check running event on '%s': %s", self.clientId, exc)
 
 				runs += 1
 
