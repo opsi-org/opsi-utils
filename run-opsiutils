@@ -1,6 +1,12 @@
 #!/usr/bin/python3
 
-from opsiutils.__main__ import main
-
-main()
-
+try:
+	from opsiutils.__main__ import main
+	main()
+except SystemExit:
+	raise
+except Exception as e:
+	# Do not let pyinstaller handle exceptions and print:
+	# "Failed to execute script run-opsiutils"
+	traceback.print_exc()
+	sys.exit(1)
