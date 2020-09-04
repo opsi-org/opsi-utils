@@ -125,6 +125,8 @@ def wakeClientsForUpdate(
 ):
 	logger.info("Using event: %s", eventName)
 
+	clientsToWake = []
+	
 	if depotId:
 		if hostGroupId:
 			logger.notice("Getting list of clients to process by depot '%s' and client group '%s'", depotId, hostGroupId)
