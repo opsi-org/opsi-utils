@@ -18,6 +18,8 @@ build:linux-pyinstaller:
     - apt -y install python3-newt gettext gzip asciidoc-base
     - poetry install
     - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
+    - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils "$CI_JOB_ID"'
+    - '[ "$CI_COMMIT_TAG" = "" ] || poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils'
     - mv dist/opsi-utils .
     # Check if binary is working
     - opsi-utils/opsi-admin --version
