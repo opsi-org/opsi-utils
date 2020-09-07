@@ -40,6 +40,8 @@ import sys
 import psutil
 
 from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_NOTICE, LOG_WARNING
+from opsicommon.system import ensure_not_already_running
+
 from OPSI import __version__ as python_opsi_version
 from OPSI import System
 from OPSI.Types import forceProductId, forceUnicode
@@ -190,7 +192,7 @@ def updater_main():
 
 	logGroup = parser.add_mutually_exclusive_group()
 	logGroup.add_argument('--verbose', '-v',
-		dest="logLevel", default=LOG_WARNING, action="count",
+		dest="logLevel", default=3, action="count",
 		help="Increase verbosity on console (can be used multiple times)")
 	logGroup.add_argument('--log-level', '-l',
 		dest="logLevel", type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -265,8 +267,8 @@ def updater_main():
 	args = parser.parse_args()
 
 	init_logging(stderr_level=args.logLevel)
-	if args.mode == 'list' and args.logLevel < LOG_NOTICE:
-		logging_config(stderr_level=LOG_NOTICE)
+	if args.mode == 'list' and args.logLevel < 4:
+		logging_config(stderr_level=4)
 	logger.debug("Running in %s mode", args.mode)
 
 	config["configFile"] = args.configFile
@@ -294,28 +296,7 @@ def updater_main():
 	except Exception:
 		logger.warning("Zsync command not found")
 
-	pid = os.getpid()
-	running = None
-	try:
-		proc = psutil.Process(pid)
-		proc_name = proc.name()
-		parent_pid = proc.ppid()
-		child_pids = [ p.pid for p in proc.children(recursive=True) ]
-		
-		for proc in psutil.process_iter():
-			#logger.debug("Found running process: %s", proc)
-			if proc.name() == proc_name:
-				logger.debug("Found running '%s' process: %s", proc_name, proc)
-				if proc.pid != pid and proc.pid != parent_pid and proc.pid not in child_pids:
-					running = proc.pid
-					break
-	except Exception as error:
-		logger.debug("Check for running processes failed: %s", error)
-
-	if running:
-		raise RuntimeError(u"Another %s process is running (pids: %s / %s)." % (os.path.basename(sys.argv[0]), running, pid))
-	
-	logger.info("We are the only %s running.", os.path.basename(sys.argv[0]))
+	ensure_not_already_running("opsi-package-manager")
 
 	with OpsiPackageUpdaterClient(config) as opu:
 		if args.mode in ('install', 'update'):
