@@ -33,6 +33,7 @@ def main():
 		imp_new_module = type(sys)
 		new_module = imp_new_module(script)
 		new_module.__dict__['__name__'] = '__main__'
+		new_module.__dict__['__file__'] = script
 		
 		with codecs.open(script, "r", "utf-8") as f:
 			code = f.read()
