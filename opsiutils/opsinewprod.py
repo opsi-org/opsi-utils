@@ -55,7 +55,7 @@ try:
 	translation = gettext.translation('opsi-utils', sp)
 	_ = translation.gettext
 except Exception as error:
-	logger.error("Failed to load locale from %s: %s", sp, error, exc_info=True)
+	logger.debug("Failed to load locale from %s: %s", sp, error)
 
 	def _(string):
 		""" Fallback function """
