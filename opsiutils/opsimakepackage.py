@@ -401,10 +401,6 @@ def makepackage_main(argv):
 				progressSubject.attachObserver(ProgressNotifier())
 				print(_("Creating package file '%s'") % pps.getPackageFile())
 			pps.pack(progressSubject=progressSubject)
-			try:
-				setRights(pps.getPackageFile())
-			except Exception as e:
-				logger.warning("Failed to set rights: %s", e)
 
 			if not quiet:
 				print("\n")
@@ -415,10 +411,6 @@ def makepackage_main(argv):
 				md5 = md5sum(pps.getPackageFile())
 				with open(md5sumFile, 'w') as f:
 					f.write(md5)
-				try:
-					setRights(md5sumFile)
-				except Exception as e:
-					logger.warning("Failed to set rights: %s", e)
 
 			if createZsyncFile:
 				zsyncFilePath = '%s.zsync' % pps.getPackageFile()
@@ -426,10 +418,6 @@ def makepackage_main(argv):
 					print(_("Creating zsync file '%s'") % zsyncFilePath)
 				zsyncFile = ZsyncFile(zsyncFilePath)
 				zsyncFile.generate(pps.getPackageFile())
-				try:
-					setRights(zsyncFilePath)
-				except Exception as e:
-					logger.warning("Failed to set rights: %s", e)
 			break
 	finally:
 		if pps:
@@ -485,3 +473,5 @@ def main():
 		logger.error(exception, exc_info=True)
 		print("ERROR: %s" % exception, file=sys.stderr)
 		sys.exit(1)
+
+main()
