@@ -24,6 +24,8 @@ import os
 import sys
 import codecs
 import traceback
+# paramiko is needed for opsi-deploy-client-agent
+import paramiko
 
 def main():
 	if len(sys.argv) > 1:
@@ -33,6 +35,7 @@ def main():
 		imp_new_module = type(sys)
 		new_module = imp_new_module(script)
 		new_module.__dict__['__name__'] = '__main__'
+		new_module.__dict__['__file__'] = script
 		
 		with codecs.open(script, "r", "utf-8") as f:
 			code = f.read()
