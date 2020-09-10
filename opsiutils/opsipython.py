@@ -24,6 +24,8 @@ import os
 import sys
 import codecs
 import traceback
+# paramiko is needed for opsi-deploy-client-agent
+import paramiko
 
 def main():
 	if len(sys.argv) > 1:
