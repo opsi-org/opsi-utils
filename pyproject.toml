@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opsi-utils"
-version = "4.2.0.29"
+version = "4.2.0.30"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
@@ -27,6 +27,7 @@ mysqlclient = "^1.4.6"
 psutil = "^5.7.0"
 distro = {platform = "linux", version = "^1.5.0"}
 ldap3 = "2.7"
+paramiko = "^2.7.2"
 
 [tool.poetry.dev-dependencies]
 opsi-dev-tools = "^1.0"
