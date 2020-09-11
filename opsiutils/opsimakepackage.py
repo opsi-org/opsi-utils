@@ -107,11 +107,50 @@ def raw_tty():
 		#termios.tcsetattr(fd, termios.TCSADRAIN, at)
 		termios.tcsetattr(fd, termios.TCSANOW, at)
 
-def makepackage_main(argv):
-	os.umask(0o022)
+def print_info(product, customName, pcf):
+	print("")
+	print(_("Package info"))
+	print("----------------------------------------------------------------------------")
+	print("   %-20s : %s" % ('version', product.packageVersion))
+	print("   %-20s : %s" % ('custom package name', customName))
+	print("   %-20s : %s" % ('package dependencies', ', '.join('{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies())))
 
-	init_logging(stderr_level=LOG_WARNING)
-	
+	print("")
+	print(_("Product info"))
+	print("----------------------------------------------------------------------------")
+	print("   %-20s : %s" % ('product id', product.id))
+
+	if product.getType() == 'LocalbootProduct':
+		print("   %-20s : %s" % ('product type', 'localboot'))
+	elif product.getType() == 'NetbootProduct':
+		print("   %-20s : %s" % ('product type', 'netboot'))
+
+	print("   %-20s : %s" % ('version', product.productVersion))
+	print("   %-20s : %s" % ('name', product.name))
+	print("   %-20s : %s" % ('description', product.description))
+	print("   %-20s : %s" % ('advice', product.advice))
+	print("   %-20s : %s" % ('priority', product.priority))
+	print("   %-20s : %s" % ('licenseRequired', product.licenseRequired))
+	print("   %-20s : %s" % ('product classes', ', '.join(product.productClassIds)))
+	print("   %-20s : %s" % ('windows software ids', ', '.join(product.windowsSoftwareIds)))
+
+	if product.getType() == 'NetbootProduct':
+		print("   %-20s : %s" % ('pxe config template', product.pxeConfigTemplate))
+
+	print("")
+	print(_("Product scripts"))
+	print("----------------------------------------------------------------------------")
+	print("   %-20s : %s" % ('setup', product.setupScript))
+	print("   %-20s : %s" % ('uninstall', product.uninstallScript))
+	print("   %-20s : %s" % ('update', product.updateScript))
+	print("   %-20s : %s" % ('always', product.alwaysScript))
+	print("   %-20s : %s" % ('once', product.onceScript))
+	print("   %-20s : %s" % ('custom', product.customScript))
+	if product.getType() == 'LocalbootProduct':
+		print("   %-20s : %s" % ('user login', product.userLoginScript))
+	print("")
+
+def parse_args():
 	parser = argparse.ArgumentParser(add_help=False,
 		description=("Provides an opsi package from a package source directory.\n"
 				"If no source directory is supplied, the current directory will be used.")
@@ -136,6 +175,9 @@ def makepackage_main(argv):
 	parser.add_argument('--no-pigz', dest="disablePigz",
 					default=False, action='store_true',
 					help="Disable the usage of pigz")
+	parser.add_argument('--no-set-rights', dest="no_set_rights",
+					default=False, action='store_true',
+					help="Disable the setting of rights while building")
 	parser.add_argument('--follow-symlinks', '-h',
 						dest="dereference", help="follow symlinks",
 						default=False, action='store_true')
@@ -182,6 +224,14 @@ def makepackage_main(argv):
 	if args.help:
 		parser.print_help()
 		sys.exit(1)
+	return args
+
+def makepackage_main(argv):
+	os.umask(0o022)
+
+	init_logging(stderr_level=LOG_WARNING)
+	
+	args = parse_args()
 
 	keepVersions = args.keepVersions
 	needOneVersion = False
@@ -248,48 +298,7 @@ def makepackage_main(argv):
 			product = pcf.getProduct()
 
 			if not quiet:
-				print("")
-				print(_("Package info"))
-				print("----------------------------------------------------------------------------")
-				print("   %-20s : %s" % ('version', product.packageVersion))
-				print("   %-20s : %s" % ('custom package name', customName))
-				print("   %-20s : %s" % ('package dependencies', ', '.join('{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies())))
-
-				print("")
-				print(_("Product info"))
-				print("----------------------------------------------------------------------------")
-				print("   %-20s : %s" % ('product id', product.id))
-
-				if product.getType() == 'LocalbootProduct':
-					print("   %-20s : %s" % ('product type', 'localboot'))
-				elif product.getType() == 'NetbootProduct':
-					print("   %-20s : %s" % ('product type', 'netboot'))
-
-				print("   %-20s : %s" % ('version', product.productVersion))
-				print("   %-20s : %s" % ('name', product.name))
-				print("   %-20s : %s" % ('description', product.description))
-				print("   %-20s : %s" % ('advice', product.advice))
-				print("   %-20s : %s" % ('priority', product.priority))
-				print("   %-20s : %s" % ('licenseRequired', product.licenseRequired))
-				print("   %-20s : %s" % ('product classes', ', '.join(product.productClassIds)))
-				print("   %-20s : %s" % ('windows software ids', ', '.join(product.windowsSoftwareIds)))
-
-				if product.getType() == 'NetbootProduct':
-					print("   %-20s : %s" % ('pxe config template', product.pxeConfigTemplate))
-
-				print("")
-				print(_("Product scripts"))
-				print("----------------------------------------------------------------------------")
-				print("   %-20s : %s" % ('setup', product.setupScript))
-				print("   %-20s : %s" % ('uninstall', product.uninstallScript))
-				print("   %-20s : %s" % ('update', product.updateScript))
-				print("   %-20s : %s" % ('always', product.alwaysScript))
-				print("   %-20s : %s" % ('once', product.onceScript))
-				print("   %-20s : %s" % ('custom', product.customScript))
-				if product.getType() == 'LocalbootProduct':
-					print("   %-20s : %s" % ('user login', product.userLoginScript))
-				print("")
-
+				print_info(product, customName, pcf)
 			if disablePigz:
 				logger.debug("Disabling pigz")
 				OPSI.Util.File.Archive.PIGZ_ENABLED = False
@@ -401,6 +410,11 @@ def makepackage_main(argv):
 				progressSubject.attachObserver(ProgressNotifier())
 				print(_("Creating package file '%s'") % pps.getPackageFile())
 			pps.pack(progressSubject=progressSubject)
+			if not args.no_set_rights:
+				try:
+					setRights(pps.getPackageFile())
+				except Exception as e:
+					logger.warning("Failed to set rights: %s", e)
 
 			if not quiet:
 				print("\n")
@@ -411,6 +425,11 @@ def makepackage_main(argv):
 				md5 = md5sum(pps.getPackageFile())
 				with open(md5sumFile, 'w') as f:
 					f.write(md5)
+				if not args.no_set_rights:
+					try:
+						setRights(md5sumFile)
+					except Exception as e:
+						logger.warning("Failed to set rights: %s", e)
 
 			if createZsyncFile:
 				zsyncFilePath = '%s.zsync' % pps.getPackageFile()
@@ -418,6 +437,11 @@ def makepackage_main(argv):
 					print(_("Creating zsync file '%s'") % zsyncFilePath)
 				zsyncFile = ZsyncFile(zsyncFilePath)
 				zsyncFile.generate(pps.getPackageFile())
+				if not args.no_set_rights:
+					try:
+						setRights(zsyncFilePath)
+					except Exception as e:
+						logger.warning("Failed to set rights: %s", e)
 			break
 	finally:
 		if pps:
@@ -473,5 +497,3 @@ def main():
 		logger.error(exception, exc_info=True)
 		print("ERROR: %s" % exception, file=sys.stderr)
 		sys.exit(1)
-
-main()
