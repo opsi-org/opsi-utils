@@ -101,3 +101,7 @@ package:
     chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
     mv ${DST}/rootfs/usr/lib/opsi-utils/site-packages/opsi-utils_data/etc ${DST}/rootfs/etc
     mv ${DST}/rootfs/usr/lib/opsi-utils/site-packages/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
+  postinst: |
+    # workaround for error on openSUSE Leap 15.2:
+    #  /bin/sh: /usr/lib/opsi-utils/libreadline.so.7: no version information available (required by /bin/sh)
+    [ -e /usr/lib/opsi-utils/libreadline.so.7 -a -e /lib64/libreadline.so.7 ] && cp /lib64/libreadline.so.7 /usr/lib/opsi-utils/libreadline.so.7
