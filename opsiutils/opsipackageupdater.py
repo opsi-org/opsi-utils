@@ -297,7 +297,7 @@ def updater_main():
 	if args.mode == 'download':
 		config["forceDownload"] = args.forceDownload
 
-	if sync_fallback:
+	if args.sync_fallback:
 		config["zsyncCommand"] = None
 		logger.info("Not using zsync, instead using fallback")
 	else:
