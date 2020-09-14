@@ -178,9 +178,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			logger.notice("No updates found.")
 
 
-def updater_main():
-	config = DEFAULT_CONFIG.copy()
-
+def parse_args():
 	parser = argparse.ArgumentParser(
 		description="Updater for local opsi products.",
 		epilog="Modes have their own options that can be viewed with MODE -h."
@@ -215,6 +213,10 @@ def updater_main():
 							"repository. The repository must be given through "
 							"--repo."
 						)
+	)
+	parser.add_argument('--use-sync-fallback',
+		dest='sync_fallback', action="store_true", default=False,
+		help=("Forces to not use zsync. Instead the fallback command is used.")
 	)
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
@@ -264,7 +266,12 @@ def updater_main():
 	# Setting a default to not stumble over possibly not present args.
 	parser.set_defaults(processProductIds=[])
 	
-	args = parser.parse_args()
+	return parser.parse_args()
+
+
+def updater_main():
+	config = DEFAULT_CONFIG.copy()
+	args = parse_args()
 
 	init_logging(stderr_level=args.logLevel)
 	if args.mode == 'list' and args.logLevel < 4:
@@ -290,11 +297,15 @@ def updater_main():
 	if args.mode == 'download':
 		config["forceDownload"] = args.forceDownload
 
-	try:
-		config["zsyncCommand"] = System.which("zsync")
-		logger.info("Zsync command found: %s", config["zsyncCommand"])
-	except Exception:
-		logger.warning("Zsync command not found")
+	if sync_fallback:
+		config["zsyncCommand"] = None
+		logger.info("Not using zsync, instead using fallback")
+	else:
+		try:
+			config["zsyncCommand"] = System.which("zsync")
+			logger.info("Zsync command found: %s", config["zsyncCommand"])
+		except Exception:
+			logger.warning("Zsync command not found")
 
 	ensure_not_already_running("opsi-package-manager")
 
