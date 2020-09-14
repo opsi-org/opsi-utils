@@ -1551,7 +1551,13 @@ class OpsiPackageManagerControl(object):
 			print(f"{__version__} [python-opsi={python_opsi_version}]")
 			sys.exit(0)
 
-		self.setDefaultConfig()
+		need_opsi_server = (self.opts.COMMAND_INSTALL
+						or self.opts.COMMAND_UPLOAD
+						or self.opts.COMMAND_REMOVE
+						or self.opts.COMMAND_LIST
+						or self.opts.COMMAND_DIFFERENCES)
+
+		self.setDefaultConfig(opsi_server=need_opsi_server)
 		self.setCommandlineConfig()
 
 		if self.opts.logFile:
@@ -1883,27 +1889,27 @@ class OpsiPackageManagerControl(object):
 		finally:
 			self._opm.cleanup()
 
-	def setDefaultConfig(self):
+	def setDefaultConfig(self, opsi_server=True):
 		self.config = {
 			'fileLogLevel': LOG_WARNING,
 			'consoleLogLevel': LOG_NONE,
-			'logFile': '/var/log/opsi/opsi-package-manager.log',
+			'logFile': './opsi-package-manager.log',
 			'quiet': False,
 			'tempDir': u'/tmp',
-			'backendConfigDir': u'/etc/opsi/backends',
-			'dispatchConfigFile': u'/etc/opsi/backendManager/dispatch.conf',
-			'extendConfigDir': u"/etc/opsi/backendManager/extend.d",
+			'backendConfigDir': None,
+			'dispatchConfigFile': None,
+			'extendConfigDir': None,
 			'command': None,
 			'packageFiles': [],
 			'productIds': [],
 			'properties': u'keep',
 			'maxTransfers': 0,
 			'maxBandwidth': 0,  # Kbyte/s
-			'deltaUpload': True if librsyncDeltaFile is not None else False,
+			'deltaUpload': False,
 			'newProductId': None,
 			'depotIds': None,
 			'uploadToLocalDepot': False,
-			'localDepotId': forceHostId(getfqdn(conf='/etc/opsi/global.conf')),
+			'localDepotId': None,
 			'forceInstall': False,
 			'forceUninstall': False,
 			'deleteFilesOnUninstall': True,
@@ -1914,6 +1920,13 @@ class OpsiPackageManagerControl(object):
 			'purgeClientProperties': False,
 			'suppressPackageContentFileGeneration': False,
 		}
+		if opsi_server:
+			self.config['logFile'] = '/var/log/opsi/opsi-package-manager.log'
+			self.config['deltaUpload'] = True if librsyncDeltaFile is not None else False
+			self.config['backendConfigDir'] = u'/etc/opsi/backends'
+			self.config['dispatchConfigFile'] = u'/etc/opsi/backendManager/dispatch.conf'
+			self.config['extendConfigDir'] = u"/etc/opsi/backendManager/extend.d"
+			self.config['localDepotId'] = forceHostId(getfqdn(conf='/etc/opsi/global.conf'))
 
 	def setCommandlineConfig(self):
 		if self.opts.properties == 'ask' and self.opts.quiet:
