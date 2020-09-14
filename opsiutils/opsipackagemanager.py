@@ -1655,6 +1655,7 @@ class OpsiPackageManagerControl(object):
 			elif command == u'extract':
 				self.processExtractCommand()
 		finally:
+			logger.devel("initiating backend_exit")
 			if self.backend:
 				self.backend.backend_exit()
 
@@ -1663,6 +1664,7 @@ class OpsiPackageManagerControl(object):
 					thread.join(5)
 				except Exception:
 					pass
+		logger.devel("initiating opm_error print")
 
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
@@ -1676,6 +1678,7 @@ class OpsiPackageManagerControl(object):
 						print((u"      %s" % err), file=sys.stderr)
 
 				raise TaskError("{} errors during the processing of tasks.".format(len(errors)))
+		logger.devel("after processCommand")
 
 	def processExtractCommand(self):
 		progressSubject = ProgressSubject(id='extract', title=u'extracting')
