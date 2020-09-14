@@ -214,8 +214,8 @@ def parse_args():
 							"--repo."
 						)
 	)
-	parser.add_argument('--use-sync-fallback',
-		dest='sync_fallback', action="store_true", default=False,
+	parser.add_argument('--no-zsync',
+		dest='no_zsync', action="store_true", default=False,
 		help=("Forces to not use zsync. Instead the fallback command is used.")
 	)
 
@@ -297,7 +297,7 @@ def updater_main():
 	if args.mode == 'download':
 		config["forceDownload"] = args.forceDownload
 
-	if args.sync_fallback:
+	if args.no_zsync:
 		config["zsyncCommand"] = None
 		logger.info("Not using zsync, instead using fallback")
 	else:
