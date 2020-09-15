@@ -836,6 +836,9 @@ class Shell:
 		self.reverseSearch = None
 
 		while not char or (char != 10):
+			if not self.running:
+				return
+			
 			char = self.screen.getch()
 			textInput = False
 
