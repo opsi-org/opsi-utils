@@ -1551,7 +1551,13 @@ class OpsiPackageManagerControl(object):
 			print(f"{__version__} [python-opsi={python_opsi_version}]")
 			sys.exit(0)
 
-		self.setDefaultConfig()
+		need_opsi_server = (self.opts.COMMAND_INSTALL
+						or self.opts.COMMAND_UPLOAD
+						or self.opts.COMMAND_REMOVE
+						or self.opts.COMMAND_LIST
+						or self.opts.COMMAND_DIFFERENCES)
+
+		self.setDefaultConfig(opsi_server=need_opsi_server)
 		self.setCommandlineConfig()
 
 		if self.opts.logFile:
@@ -1559,37 +1565,43 @@ class OpsiPackageManagerControl(object):
 		
 		logging_config(stderr_level=self.config['consoleLogLevel'])
 		
-		self.backend = BackendManager(
-			backendConfigDir=self.config['backendConfigDir'],
-			dispatchConfigFile=self.config['dispatchConfigFile'],
-			extensionConfigDir=self.config['extendConfigDir'],
-			extend=True
-		)
+		self.backend = None
+		if need_opsi_server:
+			self.backend = BackendManager(
+				backendConfigDir=self.config['backendConfigDir'],
+				dispatchConfigFile=self.config['dispatchConfigFile'],
+				extensionConfigDir=self.config['extendConfigDir'],
+				extend=True
+			)
+			try:
+				if not self.config['depotIds']:
+					try:
+						self.config['depotIds'] = [self.config['localDepotId']]
+					except KeyError as e:
+						raise RuntimeError(u"Failed to get local depot id: %s" % e)
+				else:
+					self.config['uploadToLocalDepot'] = True
+
+				knownDepotIds = set(self.backend.host_getIdents(type='OpsiDepotserver', returnType='unicode'))
+
+				if any(depotId.lower() == 'all' for depotId in self.config['depotIds']):
+					self.config['depotIds'] = list(knownDepotIds)
+				else:
+					cleanedDepotIds = set()
+					for depotId in self.config['depotIds']:
+						depotId = forceHostId(depotId)
+						if depotId not in knownDepotIds:
+							raise RuntimeError(u"Depot '%s' not in list of known depots: %s" % (depotId, u', '.join(knownDepotIds)))
+						cleanedDepotIds.add(depotId)
+
+					self.config['depotIds'] = list(cleanedDepotIds)
+
+				self.config['depotIds'].sort()
+			except Exception:
+				if self.backend:
+					self.backend.backend_exit()
+				raise
 		try:
-			if not self.config['depotIds']:
-				try:
-					self.config['depotIds'] = [self.config['localDepotId']]
-				except KeyError as e:
-					raise RuntimeError(u"Failed to get local depot id: %s" % e)
-			else:
-				self.config['uploadToLocalDepot'] = True
-
-			knownDepotIds = set(self.backend.host_getIdents(type='OpsiDepotserver', returnType='unicode'))
-
-			if any(depotId.lower() == 'all' for depotId in self.config['depotIds']):
-				self.config['depotIds'] = list(knownDepotIds)
-			else:
-				cleanedDepotIds = set()
-				for depotId in self.config['depotIds']:
-					depotId = forceHostId(depotId)
-					if depotId not in knownDepotIds:
-						raise RuntimeError(u"Depot '%s' not in list of known depots: %s" % (depotId, u', '.join(knownDepotIds)))
-					cleanedDepotIds.add(depotId)
-
-				self.config['depotIds'] = list(cleanedDepotIds)
-
-			self.config['depotIds'].sort()
-
 			if self.config['command'] in (u'install', u'upload', u'extract'):
 				if len(self.config['packageFiles']) < 1:
 					raise ValueError(u"No opsi package given")
@@ -1883,27 +1895,27 @@ class OpsiPackageManagerControl(object):
 		finally:
 			self._opm.cleanup()
 
-	def setDefaultConfig(self):
+	def setDefaultConfig(self, opsi_server=True):
 		self.config = {
 			'fileLogLevel': LOG_WARNING,
 			'consoleLogLevel': LOG_NONE,
-			'logFile': '/var/log/opsi/opsi-package-manager.log',
+			'logFile': None,
 			'quiet': False,
 			'tempDir': u'/tmp',
-			'backendConfigDir': u'/etc/opsi/backends',
-			'dispatchConfigFile': u'/etc/opsi/backendManager/dispatch.conf',
-			'extendConfigDir': u"/etc/opsi/backendManager/extend.d",
+			'backendConfigDir': None,
+			'dispatchConfigFile': None,
+			'extendConfigDir': None,
 			'command': None,
 			'packageFiles': [],
 			'productIds': [],
 			'properties': u'keep',
 			'maxTransfers': 0,
 			'maxBandwidth': 0,  # Kbyte/s
-			'deltaUpload': True if librsyncDeltaFile is not None else False,
+			'deltaUpload': False,
 			'newProductId': None,
-			'depotIds': None,
+			'depotIds': [],
 			'uploadToLocalDepot': False,
-			'localDepotId': forceHostId(getfqdn(conf='/etc/opsi/global.conf')),
+			'localDepotId': None,
 			'forceInstall': False,
 			'forceUninstall': False,
 			'deleteFilesOnUninstall': True,
@@ -1914,6 +1926,14 @@ class OpsiPackageManagerControl(object):
 			'purgeClientProperties': False,
 			'suppressPackageContentFileGeneration': False,
 		}
+		if opsi_server:
+			self.config['logFile'] = '/var/log/opsi/opsi-package-manager.log'
+			self.config['deltaUpload'] = True if librsyncDeltaFile is not None else False
+			self.config['backendConfigDir'] = u'/etc/opsi/backends'
+			self.config['dispatchConfigFile'] = u'/etc/opsi/backendManager/dispatch.conf'
+			self.config['extendConfigDir'] = u"/etc/opsi/backendManager/extend.d"
+			self.config['localDepotId'] = forceHostId(getfqdn(conf='/etc/opsi/global.conf'))
+			self.config['depotIds'] = None
 
 	def setCommandlineConfig(self):
 		if self.opts.properties == 'ask' and self.opts.quiet:
