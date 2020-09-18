@@ -1,3 +1,9 @@
+opsi-utils (4.1.1.37-1) stable; urgency=medium
+
+  * opsi-product-updater: added --no-zsync option
+
+ -- Nils Doerrer <n.doerrer@uib.de>  Fri, 18 Sep 2020 10:36:03 +0200
+
 opsi-utils (4.1.1.36-1) stable; urgency=medium
 
   * autoSetupExcludes added to example package updater configuration
