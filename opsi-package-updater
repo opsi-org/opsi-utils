@@ -213,6 +213,11 @@ def main():
 							"--repo."
 						)
 	)
+	parser.add_argument('--no-zsync',
+		dest='no_zsync', action="store_true", default=False,
+		help=("Forces to not use zsync. Instead the fallback command is used.")
+	)
+
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
 	installparser = modeparsers.add_parser('install', help='Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)')
@@ -287,11 +292,15 @@ def main():
 	if args.mode == 'download':
 		config["forceDownload"] = args.forceDownload
 
-	try:
-		config["zsyncCommand"] = System.which("zsync")
-		logger.info(u"Zsync command found: %s" % config["zsyncCommand"])
-	except Exception:
-		logger.warning(u"Zsync command not found")
+	if args.no_zsync:
+		config["zsyncCommand"] = None
+		logger.info("Not using zsync, instead using fallback")
+	else:
+		try:
+			config["zsyncCommand"] = System.which("zsync")
+			logger.info("Zsync command found: %s"% config["zsyncCommand"])
+		except Exception:
+			logger.warning("Zsync command not found")
 
 	pid = os.getpid()
 	running = None
