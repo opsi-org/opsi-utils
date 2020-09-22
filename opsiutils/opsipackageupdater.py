@@ -63,7 +63,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			if repository.description:
 				descr = "- {description}".format(description=repository.description)
 
-			logger.notice("%s: %s %s", repository.name, repository.baseUrl, descr)
+			print(f"{repository.name}: {repository.baseUrl} {descr}")
 
 	def listRepos(self):
 		logger.notice("All repositories:")
@@ -72,13 +72,8 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			if repository.description:
 				descr = "- {description}".format(description=repository.description)
 
-			logger.notice(
-				"%s (%s): %s %s",
-				repository.name,
-				'active' if repository.active else 'inactive',
-				repository.baseUrl,
-				descr
-			)
+			status = 'active' if repository.active else 'inactive'
+			print(f"{repository.name} ({status}): {repository.baseUrl} {descr}")
 
 	def listProductsInRepositories(self, withLocalInstallationStatus=False, productId=None):
 		"""
@@ -117,16 +112,16 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 						localProduct = localProducts[package['productId']]
 					except KeyError as kerr:
 						logger.debug(kerr)
-						logger.notice('\t%s (Version %s, not installed)', package.get("productId"), package.get("version"))
+						print(f"\t{package.get("productId")} (Version {package.get("version")}, not installed)")
 						continue
 
 					localVersion = '%s-%s' % (localProduct.get("productVersion"), localProduct.get("packageVersion"))
 					if compareVersions(package['version'], '==', localVersion):
-						logger.notice('\t%s (Version %s, installed)', package.get("productId"), package.get("version"))
+						print(f"\t{package.get("productId")} (Version {package.get("version")}, installed)")
 					else:
-						logger.notice('\t%s (Version %s, installed %s)', package.get("productId"), package.get("version"), localVersion)
+						print(f"\t{package.get("productId")} (Version {package.get("version")}, installed {localVersion})")
 				else:
-					logger.notice('\t%s (Version %s)', package.get("productId"), package.get("version"))
+					print(f"\t{package.get("productId")} (Version {package.get("version")})")
 
 	def listProductsWithVersionDifference(self):
 		"""
@@ -154,10 +149,10 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 				localVersion = '{productVersion}-{packageVersion}'.format(**localProduct)
 				if not compareVersions(package['version'], '==', localVersion):
 					if not repoMessageShown:
-						logger.notice("Packages in %s:", repository.name)
+						print(f"Packages in {repository.name}:")
 						repoMessageShown = True
 
-					logger.notice('\t%s (Version %s, installed %s)', package.get("productId"), package.get("version"), localVersion)
+					print(f"\t{package.get("productId")} (Version {package.get("version")}, installed {localVersion})")
 
 	def listUpdatableProducts(self):
 		try:
@@ -168,12 +163,8 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
 		if updates:
 			for productId in sorted(updates.keys()):
-				logger.notice("%s: %s in %s (updatable from: %s)",
-						updates[productId].get("productId"),
-						updates[productId].get("newVersion"),
-						updates[productId].get("repository"),
-						updates[productId].get("oldVersion")
-				)
+				up = updates[productId]
+				print(f"{up.get("productId")}: {up.get("newVersion")} in {up.get("repository")} (updatable from: {up.get("oldVersion")})")
 		else:
 			logger.notice("No updates found.")
 
