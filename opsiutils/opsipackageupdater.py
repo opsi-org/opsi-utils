@@ -112,16 +112,16 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 						localProduct = localProducts[package['productId']]
 					except KeyError as kerr:
 						logger.debug(kerr)
-						print(f"\t{package.get("productId")} (Version {package.get("version")}, not installed)")
+						print(f"\t{package.get('productId')} (Version {package.get('version')}, not installed)")
 						continue
 
 					localVersion = '%s-%s' % (localProduct.get("productVersion"), localProduct.get("packageVersion"))
 					if compareVersions(package['version'], '==', localVersion):
-						print(f"\t{package.get("productId")} (Version {package.get("version")}, installed)")
+						print(f"\t{package.get('productId')} (Version {package.get('version')}, installed)")
 					else:
-						print(f"\t{package.get("productId")} (Version {package.get("version")}, installed {localVersion})")
+						print(f"\t{package.get('productId')} (Version {package.get('version')}, installed {localVersion})")
 				else:
-					print(f"\t{package.get("productId")} (Version {package.get("version")})")
+					print(f"\t{package.get('productId')} (Version {package.get('version')})")
 
 	def listProductsWithVersionDifference(self):
 		"""
@@ -152,7 +152,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 						print(f"Packages in {repository.name}:")
 						repoMessageShown = True
 
-					print(f"\t{package.get("productId")} (Version {package.get("version")}, installed {localVersion})")
+					print(f"\t{package.get('productId')} (Version {package.get('version')}, installed {localVersion})")
 
 	def listUpdatableProducts(self):
 		try:
@@ -164,7 +164,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		if updates:
 			for productId in sorted(updates.keys()):
 				up = updates[productId]
-				print(f"{up.get("productId")}: {up.get("newVersion")} in {up.get("repository")} (updatable from: {up.get("oldVersion")})")
+				print(f"{up.get('productId')}: {up.get('newVersion')} in {up.get('repository')} (updatable from: {up.get('oldVersion')})")
 		else:
 			logger.notice("No updates found.")
 
