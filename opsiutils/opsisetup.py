@@ -192,21 +192,21 @@ def setPasswordForClientUser():
 					with JSONRPCBackend(address=configserver.id, username=depot.id, password=depot.opsiHostKey) as jsonrpcBackend:
 						password = blowfishDecrypt(
 							depot.opsiHostKey,
-							jsonrpcBackend.user_getCredentials(username=u'pcpatch', hostId=depot.id)['password']
+							jsonrpcBackend.user_getCredentials(username=CLIENT_USER, hostId=depot.id)['password']
 						)
 				except Exception as error:
-					logger.info("Failed to get client user (pcpatch) password from configserver: %s", error)
+					logger.info("Failed to get client user (%s) password from configserver: %s", CLIENT_USER, error)
 
 			if not password:
 				password = blowfishDecrypt(
 					depot.opsiHostKey,
-					backend.user_getCredentials(username=u'pcpatch', hostId=depot.id)['password']
+					backend.user_getCredentials(username=CLIENT_USER, hostId=depot.id)['password']
 				)
 	except Exception as error:
-		logger.info("Failed to get client user (pcpatch) password: %s", error)
+		logger.info("Failed to get client user (%s) password: %s", CLIENT_USER, error)
 
 	if not password:
-		logger.warning("No password for pcpatch found. Generating random password.")
+		logger.warning("No password for %s found. Generating random password.", CLIENT_USER)
 		password = randomString(12)
 
 	secret_filter.add_secrets(password)
