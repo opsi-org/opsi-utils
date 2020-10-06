@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opsi-utils"
-version = "4.2.0.34"
+version = "4.2.0.35"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
@@ -20,13 +20,12 @@ url = "http://pypi.uib.gmbh:8080/simple"
 [tool.poetry.dependencies]
 python = "^3.7"
 #python-opsi = {path = "python-opsi"}
-python-opsi = "^4.2.0.60"
+python-opsi = "^4.2.0.86"
 python-magic = "^0.4.15"
 orjson = "^2.6.5"
 mysqlclient = "^1.4.6"
 psutil = "^5.7.0"
 distro = {platform = "linux", version = "^1.5.0"}
-ldap3 = "2.7"
 paramiko = "^2.7.2"
 
 [tool.poetry.dev-dependencies]
