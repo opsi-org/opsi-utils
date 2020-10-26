@@ -48,6 +48,7 @@ from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Exceptions import OpsiRpcError
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
+from OPSI.System import execute as opsi_execute
 from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from OPSI.Util import (
 	blowfishDecrypt, deserialize, fromJson, getfqdn,
@@ -1692,13 +1693,12 @@ class CommandTask(Command):
 				logger.debug("Setting password through smbldap failed: %s", error)
 
 				# unix
-				chpasswdCommand = u'{chpasswd} 1>/dev/null 2>/dev/null'.format(chpasswd=which(u'chpasswd'))
-				with os.popen(chpasswdCommand, 'w') as process:
-					process.write(u"pcpatch:%s\n" % password)
+				chpasswdCommand = f"echo -e 'pcpatch:{password}' | {which('chpasswd')}"
+				opsi_execute(chpasswdCommand)		
 
-				smbpasswdCommand = u'{smbpasswd} -a -s pcpatch 1>/dev/null 2>/dev/null'.format(smbpasswd=which('smbpasswd'))
-				with os.popen(smbpasswdCommand, 'w') as process:
-					process.write(u"%s\n%s\n" % (password, password))
+				smbpasswdCommand = f"{which('smbpasswd')} -a -s pcpatch"
+				stdin_data = f"{password}\n{password}\n"
+				opsi_execute(smbpasswdCommand, stdin_data=bytes(stdin_data,"utf8"))			
 
 
 def main():
