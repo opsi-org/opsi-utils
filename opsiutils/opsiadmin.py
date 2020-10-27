@@ -48,7 +48,7 @@ from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Exceptions import OpsiRpcError
 from OPSI.System import CommandNotFoundException
 from OPSI.System import which
-from OPSI.System import execute as opsi_execute
+from OPSI.System import execute as sys_execute
 from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from OPSI.Util import (
 	blowfishDecrypt, deserialize, fromJson, getfqdn,
@@ -1694,11 +1694,11 @@ class CommandTask(Command):
 
 				# unix
 				chpasswdCommand = f"echo -e 'pcpatch:{password}' | {which('chpasswd')}"
-				opsi_execute(chpasswdCommand)		
+				sys_execute(chpasswdCommand)		
 
 				smbpasswdCommand = f"{which('smbpasswd')} -a -s pcpatch"
 				stdin_data = f"{password}\n{password}\n"
-				opsi_execute(smbpasswdCommand, stdin_data=bytes(stdin_data,"utf8"))			
+				sys_execute(smbpasswdCommand, stdin_data=bytes(stdin_data,"utf8"))			
 
 
 def main():
