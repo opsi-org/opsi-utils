@@ -1687,9 +1687,8 @@ class CommandTask(Command):
 			password_set = False
 			try:
 				# smbldap
-				smbldapCommand = u'{cmd} pcpatch 1>/dev/null 2>/dev/null'.format(cmd=which('smbldap-passwd'))
-				with closing(os.popen(smbldapCommand, 'w')) as process:
-					process.write(u"%s\n%s\n" % (password, password))
+				smbldapCommand = f"{which('smbldap-passwd')} pcpatch"
+				sys_execute(smbldapCommand, stdin_data=f"{password}\n{password}\n".encode("utf8"))
 				password_set = True
 			except Exception as error:
 				logger.debug("Setting password through smbldap failed: %s", error)
@@ -1697,11 +1696,10 @@ class CommandTask(Command):
 			if not password_set:
 				# unix
 				chpasswdCommand = f"echo 'pcpatch:{password}' | {which('chpasswd')}"
-				sys_execute(chpasswdCommand)		
+				sys_execute(chpasswdCommand)
 
 				smbpasswdCommand = f"{which('smbpasswd')} -a -s pcpatch"
-				stdin_data = f"{password}\n{password}\n"
-				sys_execute(smbpasswdCommand, stdin_data=bytes(stdin_data,"utf8"))			
+				sys_execute(smbpasswdCommand, stdin_data=f"{password}\n{password}\n".encode("utf8"))
 
 
 def main():
