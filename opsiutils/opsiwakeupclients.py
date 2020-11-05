@@ -229,9 +229,19 @@ def getClientIDsFromDepot(backend, depotId, groupName):
 
 def getClientIDsFromFile(backend, inputFile):
 	if not os.path.exists(inputFile):
-		raise FileNotFoundError(f"Given input file {inputFile} not found")
-	with codecs.open(inputFile, 'r', "utf-8") as f:
-		return [l.strip() for line in f.readlines()]
+		raise FileNotFoundError(f"Host-file '{inputFile}' not found")
+	knownIds = backend.host_getIdents(type="OpsiClient")
+	clientIds = []
+	with codecs.open(inputFile, 'r', "utf8") as f:
+		for line in f.readlines():
+			line = line.strip()
+			if not line or line.startswith('#'):
+				continue
+			if not line in knownIds:
+				logger.warning("Client '%s' from host-file not found in backend", line)
+				continue
+			clientIds.append(line)
+	return clientIds
 
 def getClientIDsFromGroup(backend, groupName):
 	group = backend.group_getObjects(id=groupName, type="HostGroup")
@@ -375,6 +385,8 @@ class ClientMonitoringThread(threading.Thread):
 					logger.info("Failed to connect to client '%s' on port %d (%s)", self.clientId, port, exc)
 
 	def triggerReboot(self):
+		if not self.opsiclientdbackend:
+			raise Exception(f"Connection to client '{self.clientId}' failed")
 		logger.info("Triggering reboot on client '%s' with a delay of %s seconds", self.clientId, self.rebootTimeout)
 		self.opsiclientdbackend.reboot(str(self.rebootTimeout))
 
