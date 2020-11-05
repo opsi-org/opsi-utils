@@ -64,7 +64,7 @@ def parseOptions():
 
 	logGroup = parser.add_argument_group(title="Logging")
 	logGroup.add_argument(
-		'--verbose', '-v', dest="consoleLogLevel", default=3,
+		'--verbose', '-v', dest="consoleLogLevel", default=4,
 		action="count", help="increase verbosity on console (can be used multiple times)")
 	logGroup.add_argument(
 		'--log-file', action="store", dest="logFile", help="Set log file path")
