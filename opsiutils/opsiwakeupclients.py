@@ -123,8 +123,14 @@ def wakeClientsForUpdate(
 	backend, depotId, inputFile, noAutoUpdate, reboot, rebootTimeout, hostGroupId, productGroupId, eventName,
 	wolTimeout, eventTimeout, connectTimeout, pingTimeout, maxConcurrent
 ):
-	logger.info("Using event: %s", eventName)
-
+	logger.info(
+		"Using params: depotId=%s, inputFile=%s, noAutoUpdate=%s, reboot=%s, rebootTimeout=%s, "
+		"hostGroupId=%s, productGroupId=%s, eventName=%s, wolTimeout=%s, eventTimeout=%s, "
+		"connectTimeout=%s, pingTimeout=%s, maxConcurrent=%s",
+		depotId, inputFile, noAutoUpdate, reboot, rebootTimeout,
+		hostGroupId, productGroupId, eventName,	wolTimeout, eventTimeout,
+		connectTimeout, pingTimeout, maxConcurrent
+	)
 	clientsToWake = []
 	
 	if depotId:
