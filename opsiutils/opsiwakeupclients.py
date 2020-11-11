@@ -29,6 +29,7 @@ import sys
 import time
 import gettext
 import threading
+import socket
 from collections import defaultdict
 from contextlib import contextmanager
 from itertools import product
@@ -359,12 +360,12 @@ class ClientMonitoringThread(threading.Thread):
 						logger.notice("Succesfully pinged '%s'", self.clientId)
 						break
 				except Exception as exc:
-					logger.debug("Failed to ping client '%s' (%s)", self.clientId, exc)
+					logger.debug("Failed to ping client '%s': %s", self.clientId, exc)
 
 	def waitForOpsiclientd(self):
 		logger.notice("Connecting to opsi-client-agent on '%s'", self.clientId)
 		port = 4441
-		address = "https://%s:%s/opsiclientd" % (self.clientId, port)  # We expect the FQDN here
+		address = f"https://{self.clientId}:{port}/opsiclientd"  # We expect the FQDN here
 		password = self.backend.host_getObjects(id=self.clientId)[0].opsiHostKey
 		timeout_event = threading.Event()
 
@@ -376,6 +377,13 @@ class ClientMonitoringThread(threading.Thread):
 				start_timeout = 0
 				try:
 					logger.debug("Trying to connect to opsi-client-agent on client '%s'", self.clientId)
+					sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+					sock.settimeout(5)
+					res = sock.connect_ex((self.clientId, port))
+					sock.close()
+					if res != 0:
+						raise Exception(f"Port {port} unreachable")
+					
 					backend = JSONRPCBackend(
 						address=address,
 						username=self.clientId,
@@ -390,7 +398,7 @@ class ClientMonitoringThread(threading.Thread):
 					logger.notice("Connection to client '%s' established", self.clientId)
 					break
 				except Exception as exc:
-					logger.debug("Failed to connect to client '%s' on port %d (%s)", self.clientId, port, exc)
+					logger.debug("Failed to connect to client '%s': %s", self.clientId, exc)
 
 	def triggerReboot(self):
 		if not self.opsiclientdbackend:
