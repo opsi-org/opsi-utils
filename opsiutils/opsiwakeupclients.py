@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# opsi-makepackage is part of the desktop management solution opsi
+# This file is part of the desktop management solution opsi
 # (open pc server integration) http://www.opsi.org
 # Copyright (C) 2010-2019 uib GmbH <info@uib.de>
 
@@ -185,7 +185,7 @@ def wakeClientsForUpdate(
 				requireProductInstallation(backend, newClients, productIds)
 			for client in newClients:
 				thread = ClientMonitoringThread(backend, client, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout)
-				logger.info("Starting task on client '%s'", client)
+				logger.notice("Starting task on client '%s'", client)
 				thread.daemon = True
 				thread.start()
 				runningThreads.append(thread)
@@ -218,7 +218,7 @@ def wakeClientsForUpdate(
 	for reason, clientIds in list(failed.items()):
 		failcount = len(clientIds)
 		totalFails += failcount
-		logger.info("%s clients failed because of %s error: %s", failcount, reason, ', '.join(clientIds))
+		logger.warning("%s clients failed because of %s error: %s", failcount, reason, ', '.join(clientIds))
 
 	logger.notice("Succesfully processed %s/%s clients", clientSum - totalFails, clientSum)
 
@@ -332,7 +332,7 @@ class ClientMonitoringThread(threading.Thread):
 		self.success = True
 
 	def wakeClient(self):
-		logger.info("Waking up client '%s'", self.clientId)
+		logger.notice("Waking up client '%s'", self.clientId)
 		self.backend.hostControlSafe_start(self.clientId)
 
 		if os.geteuid() == 0:
@@ -340,10 +340,11 @@ class ClientMonitoringThread(threading.Thread):
 				# Only as root
 				self.waitForPing()
 			else:
-				logger.notice("Did not try to ping client '%s'", self.clientId)
+				logger.debug("Did not try to ping client '%s'", self.clientId)
 		self.waitForOpsiclientd()
 
 	def waitForPing(self):
+		logger.notice("Waiting for ping response of '%s'", self.clientId)
 		timeout_event = threading.Event()
 		retryTimeout = 10
 
@@ -352,15 +353,16 @@ class ClientMonitoringThread(threading.Thread):
 			while not timeout_event.wait(start_timeout or retryTimeout):
 				start_timeout = 0
 				try:
-					logger.info("Trying to ping client '%s'", self.clientId)
+					logger.debug("Trying to ping client '%s'", self.clientId)
 					delay = ping(self.clientId, retryTimeout - 2)
 					if delay:
 						logger.notice("Succesfully pinged '%s'", self.clientId)
 						break
 				except Exception as exc:
-					logger.info("Failed to ping client '%s' (%s)", self.clientId, exc)
+					logger.debug("Failed to ping client '%s' (%s)", self.clientId, exc)
 
 	def waitForOpsiclientd(self):
+		logger.notice("Connecting to opsi-client-agent on '%s'", self.clientId)
 		port = 4441
 		address = "https://%s:%s/opsiclientd" % (self.clientId, port)  # We expect the FQDN here
 		password = self.backend.host_getObjects(id=self.clientId)[0].opsiHostKey
@@ -373,7 +375,7 @@ class ClientMonitoringThread(threading.Thread):
 			while not timeout_event.wait(start_timeout or retryTimeout):
 				start_timeout = 0
 				try:
-					logger.info("Trying to connect to opsi-client-agent on client '%s'", self.clientId)
+					logger.debug("Trying to connect to opsi-client-agent on client '%s'", self.clientId)
 					backend = JSONRPCBackend(
 						address=address,
 						username=self.clientId,
@@ -388,7 +390,7 @@ class ClientMonitoringThread(threading.Thread):
 					logger.notice("Connection to client '%s' established", self.clientId)
 					break
 				except Exception as exc:
-					logger.info("Failed to connect to client '%s' on port %d (%s)", self.clientId, port, exc)
+					logger.debug("Failed to connect to client '%s' on port %d (%s)", self.clientId, port, exc)
 
 	def triggerReboot(self):
 		if not self.opsiclientdbackend:
@@ -400,6 +402,7 @@ class ClientMonitoringThread(threading.Thread):
 		"""
 		Trigger an event and wait for it to run.
 		"""
+		logger.notice("Triggering event '%s' on '%s'", self.eventName, self.clientId)
 		timeout_event = threading.Event()
 		retryTimeout = 5
 
@@ -410,7 +413,7 @@ class ClientMonitoringThread(threading.Thread):
 				start_timeout = 0
 
 				if runs % 3 == 0:
-					logger.info("Triggering event '%s' on '%s'", self.eventName, self.clientId)
+					logger.debug("Triggering event '%s' on '%s'", self.eventName, self.clientId)
 					self.opsiclientdbackend.fireEvent(self.eventName)
 
 				try:
@@ -421,7 +424,7 @@ class ClientMonitoringThread(threading.Thread):
 						logger.notice("Event '%s' is running on '%s'", self.eventName+"{user_logged_in}", self.clientId)
 						break
 				except Exception as exc:
-					logger.info("Failed to check running event on '%s': %s", self.clientId, exc)
+					logger.debug("Failed to check running event on '%s': %s", self.clientId, exc)
 
 				runs += 1
 
