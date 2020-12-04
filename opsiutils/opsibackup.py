@@ -50,31 +50,31 @@ Common options:
    -h, --help                          Show this help message and exit.
    -v, --verbose                       Log to standard error.
    -V, --version                       Show version info and exit.
-   -l, --log-level    <log-level>      Set log level to <log-level> (default: 4)
+   -l, --log-level <log-level>         Set log level to <log-level> (default: 4)
                                           0=nothing, 1=essential, 2=critical, 3=error, 4=warning
                                           5=notice, 6=info, 7=debug, 8=debug2, 9=confidential
-   --log-file         <log-file>       Log to <log-file>.
-                                       Default is /var/log/opsi/opsi-backup.log.
+   --log-file <log-file>               Log to <log-file>.
+                                          Default is /var/log/opsi/opsi-backup.log.
 
 Commands:
-   verify     <backup-archive>         Verify integrity of <backup-archive>.
+   verify <backup-archive>             Verify integrity of <backup-archive>.
 
-   list       <backup-archive>         List contents of <backup-archive>.
+   list <backup-archive>               List contents of <backup-archive>.
 
-   restore    <backup-archive>         Restore data from <backup-archive>.
-      --backends    <backend>          Select a backend to restore or 'all' for all backends.
+   restore <backup-archive>            Restore data from <backup-archive>.
+      --backends <backend>             Select a backend to restore or 'all' for all backends.
                                           Can be given multiple times.
       --configuration                  Restore opsi configuration.
       -f, --force                      Ignore sanity checks and try to apply anyways. Use with caution!
-
-   create     [destination]            Create a new backup.
+      --new-server-id <server-id>      Provide a new config server id.
+   create [destination]                Create a new backup.
                                           If [destination] is omitted, a backup archive will be created
                                           in the current directory. If [destination] is an existing
                                           directory, the backup archive will be created in that directory.
                                           If [destination] does not exist or is a file, [destination]
                                           will be used as backup archive destination file.
-      --flush-logs                        Causes mysql to flush table logs to disk before the backup (recommended).
-      --backends    <backend>          Select a backend to create a backup for. Use 'auto' for automatic detection
+      --flush-logs                     Causes mysql to flush table logs to disk before the backup (recommended).
+      --backends <backend>             Select a backend to create a backup for. Use 'auto' for automatic detection
                                           of used backends or 'all' for all backends.
                                           Can be given multiple times.
       --no-configuration               Do not backup opsi configuration.
@@ -111,6 +111,7 @@ def backup_main():
 	restoreParser.add_argument("file", nargs=1)
 	restoreParser.add_argument("--backends", action="append")
 	restoreParser.add_argument("--configuration", action="store_true", default=False)
+	restoreParser.add_argument("--new-server-id", action="store")
 	restoreParser.add_argument("-f", "--force", action="store_true", default=False)
 
 	creationParser = subs.add_parser("create")
@@ -140,7 +141,8 @@ def backup_main():
 
 		result = backup.restore(
 			file=args.file, backends=args.backends,
-			configuration=args.configuration, force=args.force
+			configuration=args.configuration, force=args.force,
+			new_server_id=args.new_server_id
 		)
 	elif args.command == 'verify':
 		result = backup.verify(file=args.file)
