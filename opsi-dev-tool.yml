@@ -42,9 +42,7 @@ pyinstaller-poetry:
         - opsi-wakeup-clients
   data_files:
     - src: opsi-utils_data/**/*
-  #  # from python-opsi
-  #  #- src: ${VENV_SITE_PACKAGES}/python-opsi_data/locale/**
-  #  #  dst: opsi-utils_data/locale/
+      dst: opsi-utils_data
   before_script: |
     dpkg -l python3-newt >/dev/null 2>&1 || apt -y install python3-newt
     pyver1=$(ls -ld .venv/lib/python* | sed s'/.*python//')
@@ -56,19 +54,15 @@ pyinstaller-poetry:
   manpages_install: opsi-utils_data/manpages
   after_script:
     linux: |
-      mv dist/opsi-utils/opsi-utils_data dist/opsi-utils/site-packages/
       find dist/opsi-utils -iname "*.c" -delete
       find dist/opsi-utils -iname "*.h" -delete
       find dist/opsi-utils -iname "*.so" -exec chmod -x "{}" \;
       find dist/opsi-utils -iname "*.so.*" -exec chmod -x "{}" \;
     darwin: |
-      mv dist/opsi-utils/opsi-utils_data dist/opsi-utils/site-packages/
       find dist/opsi-utils -iname "*.c" -delete
       find dist/opsi-utils -iname "*.h" -delete
       find dist/opsi-utils -iname "*.so" -exec chmod -x "{}" \;
       find dist/opsi-utils -iname "*.so.*" -exec chmod -x "{}" \;
-    windows: |
-      Move-Item -Path dist\opsi-utils\opsi-utils_data -Destination dist\opsi-utils\site-packages
 
 package:
   name: opsi-utils
@@ -96,8 +90,8 @@ package:
     echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-set-rights
     echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \"\$@\""  >> ${DST}/rootfs/usr/bin/opsi-set-rights
     chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
-    mv ${DST}/rootfs/usr/lib/opsi-utils/site-packages/opsi-utils_data/etc ${DST}/rootfs/etc
-    mv ${DST}/rootfs/usr/lib/opsi-utils/site-packages/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
+    mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
+    mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
   postinst_script: |
     # workaround for error on openSUSE Leap 15.2:
     #  /bin/sh: /usr/lib/opsi-utils/libreadline.so.7: no version information available (required by /bin/sh)
