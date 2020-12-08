@@ -168,12 +168,11 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		else:
 			logger.notice("No updates found.")
 
-
-def parse_args():
-	parser = argparse.ArgumentParser(
-		description="Updater for local opsi products.",
-		epilog="Modes have their own options that can be viewed with MODE -h."
-	)
+parser = argparse.ArgumentParser(
+	description="Updater for local opsi products.",
+	epilog="Modes have their own options that can be viewed with MODE -h."
+)
+def parse_args():	
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
 	parser.add_argument('--config', '-c', help="Location of config file",
 						dest="configFile",
@@ -320,7 +319,8 @@ def updater_main():
 				opu.listProductsWithVersionDifference()
 			elif args.searchForProduct:
 				opu.listProductsInRepositories(productId=args.searchForProduct)
-
+		else:
+			parser.error("No mode provided")
 		if opu.errors:
 			return 2  # things went wrong
 
