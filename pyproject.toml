@@ -20,7 +20,7 @@ url = "http://pypi.uib.gmbh:8080/simple"
 [tool.poetry.dependencies]
 python = "^3.7"
 #python-opsi = {path = "python-opsi"}
-python-opsi = "^4.2.0.86"
+python-opsi = "4.2.0.104"
 python-magic = "^0.4.15"
 orjson = "^2.6.5"
 mysqlclient = "^1.4.6"
