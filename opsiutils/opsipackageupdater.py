@@ -180,7 +180,7 @@ def parse_args():
 
 	logGroup = parser.add_mutually_exclusive_group()
 	logGroup.add_argument('--verbose', '-v',
-		dest="logLevel", default=3, action="count",
+		dest="logLevel", default=4, action="count",
 		help="Increase verbosity on console (can be used multiple times)")
 	logGroup.add_argument('--log-level', '-l',
 		dest="logLevel", type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
