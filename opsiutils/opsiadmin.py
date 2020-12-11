@@ -306,7 +306,8 @@ def shell_main(argv):
 				username=username,
 				password=password,
 				application='opsi-admin/%s' % __version__,
-				sessionId=sessionId
+				sessionId=sessionId,
+				compression=True
 			)
 			logger.info('Connected')
 

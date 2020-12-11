@@ -736,6 +736,7 @@ class OpsiPackageManager(object):
 				password=depot.getOpsiHostKey(),
 				address=depotId,
 				application=USER_AGENT,
+				compression=True
 			)
 			self.depotConnections[depotId] = connection
 
