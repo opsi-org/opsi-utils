@@ -1,42 +1,32 @@
 [[package]]
-name = "altgraph"
-version = "0.17"
-description = "Python graph (network) package"
 category = "dev"
+description = "Python graph (network) package"
+name = "altgraph"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "0.17"
 
 [[package]]
-name = "attrs"
-version = "20.3.0"
-description = "Classes Without Boilerplate"
 category = "main"
+description = "Classes Without Boilerplate"
+name = "attrs"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "20.3.0"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "furo", "sphinx", "pre-commit"]
+dev = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "furo", "sphinx", "pre-commit"]
 docs = ["furo", "sphinx", "zope.interface"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six"]
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+tests = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
+tests_no_zope = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six"]
 
 [[package]]
-name = "automat"
-version = "20.2.0"
-description = "Self-service finite-state machines for the programmer on the go."
 category = "main"
+description = "Self-service finite-state machines for the programmer on the go."
+name = "automat"
 optional = false
 python-versions = "*"
+version = "20.2.0"
 
 [package.dependencies]
 attrs = ">=19.2.0"
@@ -45,333 +35,232 @@ six = "*"
 [package.extras]
 visualize = ["graphviz (>0.5.1)", "Twisted (>=16.1.1)"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "bcrypt"
-version = "3.2.0"
-description = "Modern password hashing for your software and your servers"
 category = "main"
+description = "Modern password hashing for your software and your servers"
+name = "bcrypt"
 optional = false
 python-versions = ">=3.6"
+version = "3.2.0"
 
 [package.dependencies]
 cffi = ">=1.1"
 six = ">=1.4.1"
 
 [package.extras]
-tests = ["pytest (>=3.2.1,!=3.3.0)"]
+tests = ["pytest (>=3.2.1,<3.3.0 || >3.3.0)"]
 typecheck = ["mypy"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "beautifulsoup4"
-version = "4.9.3"
-description = "Screen-scraping library"
 category = "dev"
+description = "Screen-scraping library"
+name = "beautifulsoup4"
 optional = false
 python-versions = "*"
+version = "4.9.3"
 
 [package.dependencies]
-soupsieve = {version = ">1.2", markers = "python_version >= \"3.0\""}
+[package.dependencies.soupsieve]
+python = ">=3.0"
+version = ">1.2"
 
 [package.extras]
 html5lib = ["html5lib"]
 lxml = ["lxml"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "bs4"
-version = "0.0.1"
-description = "Screen-scraping library"
 category = "dev"
+description = "Dummy package for Beautiful Soup"
+name = "bs4"
 optional = false
 python-versions = "*"
+version = "0.0.1"
 
 [package.dependencies]
 beautifulsoup4 = "*"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "certifi"
-version = "2020.12.5"
-description = "Python package for providing Mozilla's CA Bundle."
 category = "dev"
+description = "Python package for providing Mozilla's CA Bundle."
+name = "certifi"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "2020.12.5"
 
 [[package]]
-name = "cffi"
-version = "1.14.4"
-description = "Foreign Function Interface for Python calling C code."
 category = "main"
+description = "Foreign Function Interface for Python calling C code."
+name = "cffi"
 optional = false
 python-versions = "*"
+version = "1.14.4"
 
 [package.dependencies]
 pycparser = "*"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "chardet"
-version = "3.0.4"
-description = "Universal encoding detector for Python 2 and 3"
 category = "dev"
+description = "Universal encoding detector for Python 2 and 3"
+name = "chardet"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "3.0.4"
 
 [[package]]
-name = "colorama"
-version = "0.4.4"
-description = "Cross-platform colored terminal text."
 category = "main"
+description = "Cross-platform colored terminal text."
+marker = "sys_platform == \"win32\""
+name = "colorama"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "0.4.4"
 
 [[package]]
-name = "colorlog"
-version = "4.6.2"
-description = "Log formatting with colors!"
 category = "main"
+description = "Log formatting with colors!"
+name = "colorlog"
 optional = false
 python-versions = "*"
+version = "4.6.2"
 
 [package.dependencies]
-colorama = {version = "*", markers = "sys_platform == \"win32\""}
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+colorama = "*"
 
 [[package]]
-name = "configargparse"
-version = "1.2.3"
-description = "A drop-in replacement for argparse that allows options to also be set via config files and/or environment variables."
 category = "dev"
+description = "A drop-in replacement for argparse that allows options to also be set via config files and/or environment variables."
+name = "configargparse"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "1.2.3"
 
 [package.extras]
 yaml = ["pyyaml"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "constantly"
-version = "15.1.0"
-description = "Symbolic constants in Python"
 category = "main"
+description = "Symbolic constants in Python"
+name = "constantly"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "15.1.0"
 
 [[package]]
-name = "cryptography"
-version = "3.3.1"
-description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
 category = "main"
+description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
+name = "cryptography"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*"
+version = "3.3.1"
 
 [package.dependencies]
 cffi = ">=1.12"
 six = ">=1.4.1"
 
 [package.extras]
-docs = ["sphinx (>=1.6.5,!=1.8.0,!=3.1.0,!=3.1.1)", "sphinx-rtd-theme"]
+docs = ["sphinx (>=1.6.5,<1.8.0 || >1.8.0,<3.1.0 || >3.1.0,<3.1.1 || >3.1.1)", "sphinx-rtd-theme"]
 docstest = ["doc8", "pyenchant (>=1.6.11)", "twine (>=1.12.0)", "sphinxcontrib-spelling (>=4.0.1)"]
 pep8test = ["black", "flake8", "flake8-import-order", "pep8-naming"]
 ssh = ["bcrypt (>=3.1.5)"]
-test = ["pytest (>=3.6.0,!=3.9.0,!=3.9.1,!=3.9.2)", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,!=3.79.2)"]
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+test = ["pytest (>=3.6.0,<3.9.0 || >3.9.0,<3.9.1 || >3.9.1,<3.9.2 || >3.9.2)", "pretend", "iso8601", "pytz", "hypothesis (>=1.11.4,<3.79.2 || >3.79.2)"]
 
 [[package]]
-name = "distro"
-version = "1.5.0"
-description = "Distro - an OS platform information API"
 category = "main"
+description = "Distro - an OS platform information API"
+name = "distro"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "1.5.0"
 
 [[package]]
-name = "future"
-version = "0.18.2"
-description = "Clean single-source support for Python 3 and 2"
 category = "main"
+description = "Clean single-source support for Python 3 and 2"
+name = "future"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "0.18.2"
 
 [[package]]
-name = "hyperlink"
-version = "20.0.1"
-description = "A featureful, immutable, and correct URL for Python."
 category = "main"
+description = "A featureful, immutable, and correct URL for Python."
+name = "hyperlink"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "20.0.1"
 
 [package.dependencies]
 idna = ">=2.5"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "idna"
-version = "2.10"
-description = "Internationalized Domain Names in Applications (IDNA)"
 category = "main"
+description = "Internationalized Domain Names in Applications (IDNA)"
+name = "idna"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "2.10"
 
 [[package]]
-name = "incremental"
-version = "17.5.0"
-description = ""
 category = "main"
+description = ""
+name = "incremental"
 optional = false
 python-versions = "*"
+version = "17.5.0"
 
 [package.extras]
 scripts = ["click (>=6.0)", "twisted (>=16.4.0)"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "ldap3"
-version = "2.8.1"
-description = "A strictly RFC 4510 conforming LDAP V3 pure Python client library"
 category = "main"
+description = "A strictly RFC 4510 conforming LDAP V3 pure Python client library"
+name = "ldap3"
 optional = false
 python-versions = "*"
+version = "2.8.1"
 
 [package.dependencies]
 pyasn1 = ">=0.4.6"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "lz4"
-version = "3.1.1"
-description = "LZ4 Bindings for Python"
 category = "main"
+description = "LZ4 Bindings for Python"
+name = "lz4"
 optional = false
 python-versions = ">=3.5"
+version = "3.1.1"
 
 [package.extras]
 docs = ["sphinx (>=1.6.0)", "sphinx-bootstrap-theme"]
 flake8 = ["flake8"]
 tests = ["pytest (!=3.3.0)", "psutil", "pytest-cov"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "macholib"
-version = "1.14"
-description = "Mach-O header analysis and editing"
 category = "dev"
+description = "Mach-O header analysis and editing"
+marker = "sys_platform == \"darwin\""
+name = "macholib"
 optional = false
 python-versions = "*"
+version = "1.14"
 
 [package.dependencies]
 altgraph = ">=0.15"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "mysqlclient"
-version = "1.4.6"
-description = "Python interface to MySQL"
 category = "main"
+description = "Python interface to MySQL"
+name = "mysqlclient"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "1.4.6"
 
 [[package]]
-name = "opsi-dev-tools"
-version = "1.0.48"
-description = "opsi development tools"
 category = "dev"
+description = "opsi development tools"
+name = "opsi-dev-tools"
 optional = false
 python-versions = ">=3.7,<4.0"
+version = "1.0.48"
 
 [package.dependencies]
 bs4 = ">=0.0.1,<0.0.2"
@@ -387,46 +276,36 @@ toml = ">=0.10.0,<0.11.0"
 virustotal3 = ">=1.0.8,<2.0.0"
 
 [package.source]
+reference = "uibpypi"
 type = "legacy"
 url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
 
 [[package]]
-name = "orjson"
-version = "2.6.8"
-description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
 category = "main"
+description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
+name = "orjson"
 optional = false
 python-versions = ">=3.6"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "2.6.8"
 
 [[package]]
-name = "packaging"
-version = "20.7"
-description = "Core utilities for Python packages"
 category = "dev"
+description = "Core utilities for Python packages"
+name = "packaging"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "20.7"
 
 [package.dependencies]
 pyparsing = ">=2.0.2"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "paramiko"
-version = "2.7.2"
-description = "SSH2 protocol library"
 category = "main"
+description = "SSH2 protocol library"
+name = "paramiko"
 optional = false
 python-versions = "*"
+version = "2.7.2"
 
 [package.dependencies]
 bcrypt = ">=3.1.3"
@@ -439,155 +318,106 @@ ed25519 = ["pynacl (>=1.0.1)", "bcrypt (>=3.1.3)"]
 gssapi = ["pyasn1 (>=0.1.7)", "gssapi (>=1.4.1)", "pywin32 (>=2.1.8)"]
 invoke = ["invoke (>=1.3)"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "pefile"
-version = "2019.4.18"
-description = "Python PE parsing module"
 category = "main"
+description = "Python PE parsing module"
+name = "pefile"
 optional = false
 python-versions = "*"
+version = "2019.4.18"
 
 [package.dependencies]
 future = "*"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "psutil"
-version = "5.7.3"
-description = "Cross-platform lib for process and system monitoring in Python."
 category = "main"
+description = "Cross-platform lib for process and system monitoring in Python."
+name = "psutil"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "5.7.3"
 
 [package.extras]
 test = ["ipaddress", "mock", "unittest2", "enum34", "pywin32", "wmi"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "pyasn1"
-version = "0.4.8"
+category = "main"
 description = "ASN.1 types and codecs"
-category = "main"
+name = "pyasn1"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "0.4.8"
 
 [[package]]
-name = "pyasn1-modules"
-version = "0.2.8"
-description = "A collection of ASN.1-based protocols modules."
 category = "main"
+description = "A collection of ASN.1-based protocols modules."
+name = "pyasn1-modules"
 optional = false
 python-versions = "*"
+version = "0.2.8"
 
 [package.dependencies]
 pyasn1 = ">=0.4.6,<0.5.0"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "pycparser"
-version = "2.20"
-description = "C parser in Python"
 category = "main"
+description = "C parser in Python"
+name = "pycparser"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "2.20"
 
 [[package]]
-name = "pycryptodome"
-version = "3.9.9"
-description = "Cryptographic library for Python"
 category = "main"
+description = "Cryptographic library for Python"
+name = "pycryptodome"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "3.9.9"
 
 [[package]]
-name = "pyhamcrest"
-version = "2.0.2"
-description = "Hamcrest framework for matcher objects"
 category = "main"
+description = "Hamcrest framework for matcher objects"
+name = "pyhamcrest"
 optional = false
 python-versions = ">=3.5"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "2.0.2"
 
 [[package]]
-name = "pyinstaller"
-version = "4.1"
-description = "PyInstaller bundles a Python application and all its dependencies into a single package."
 category = "dev"
+description = "PyInstaller bundles a Python application and all its dependencies into a single package."
+name = "pyinstaller"
 optional = false
 python-versions = "*"
+version = "4.1"
 
 [package.dependencies]
 altgraph = "*"
-macholib = {version = ">=1.8", markers = "sys_platform == \"darwin\""}
-pefile = {version = ">=2017.8.1", markers = "sys_platform == \"win32\""}
+macholib = ">=1.8"
+pefile = ">=2017.8.1"
 pyinstaller-hooks-contrib = ">=2020.6"
-pywin32-ctypes = {version = ">=0.2.0", markers = "sys_platform == \"win32\""}
+pywin32-ctypes = ">=0.2.0"
+setuptools = "*"
 
 [package.extras]
 encryption = ["tinyaes (>=1.0.0)"]
 hook_testing = ["pytest (>=2.7.3)", "execnet (>=1.5.0)", "psutil"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "pyinstaller-hooks-contrib"
-version = "2020.10"
-description = "Community maintained hooks for PyInstaller"
 category = "dev"
+description = "Community maintained hooks for PyInstaller"
+name = "pyinstaller-hooks-contrib"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "2020.10"
 
 [[package]]
-name = "pynacl"
-version = "1.4.0"
-description = "Python binding to the Networking and Cryptography (NaCl) library"
 category = "main"
+description = "Python binding to the Networking and Cryptography (NaCl) library"
+name = "pynacl"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "1.4.0"
 
 [package.dependencies]
 cffi = ">=1.4.1"
@@ -595,20 +425,15 @@ six = "*"
 
 [package.extras]
 docs = ["sphinx (>=1.6.5)", "sphinx-rtd-theme"]
-tests = ["pytest (>=3.2.1,!=3.3.0)", "hypothesis (>=3.27.0)"]
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+tests = ["pytest (>=3.2.1,<3.3.0 || >3.3.0)", "hypothesis (>=3.27.0)"]
 
 [[package]]
-name = "pyopenssl"
-version = "19.1.0"
-description = "Python wrapper module around the OpenSSL library"
 category = "main"
+description = "Python wrapper module around the OpenSSL library"
+name = "pyopenssl"
 optional = false
 python-versions = "*"
+version = "19.1.0"
 
 [package.dependencies]
 cryptography = ">=2.8"
@@ -618,31 +443,21 @@ six = ">=1.5.2"
 docs = ["sphinx", "sphinx-rtd-theme"]
 test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "pyparsing"
-version = "2.4.7"
-description = "Python parsing module"
 category = "dev"
+description = "Python parsing module"
+name = "pyparsing"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "2.4.7"
 
 [[package]]
-name = "pypi-simple"
-version = "0.6.0"
-description = "PyPI Simple Repository API client library"
 category = "dev"
+description = "PyPI Simple Repository API client library"
+name = "pypi-simple"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
+version = "0.6.0"
 
 [package.dependencies]
 beautifulsoup4 = ">=4.5,<5.0"
@@ -650,140 +465,105 @@ packaging = ">=16"
 requests = ">=2.5,<3.0"
 six = ">=1.4,<2.0"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "python-gettext"
-version = "4.0"
-description = "Python Gettext po to mo file compiler."
 category = "dev"
+description = "Python Gettext po to mo file compiler."
+name = "python-gettext"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "4.0"
 
 [[package]]
-name = "python-magic"
-version = "0.4.18"
-description = "File type identification using libmagic"
 category = "main"
+description = "File type identification using libmagic"
+name = "python-magic"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "0.4.18"
 
 [[package]]
-name = "python-opsi"
-version = "4.2.0.107"
-description = "The opsi python library"
 category = "main"
+description = "The opsi python library"
+name = "python-opsi"
 optional = false
 python-versions = ">=3.7,<4.0"
+version = "4.2.0.111"
 
 [package.dependencies]
+SQLAlchemy = ">=1.3.15,<2.0.0"
 colorlog = ">=4.2.1,<5.0.0"
-distro = {version = ">=1.5.0,<2.0.0", markers = "sys_platform == \"linux\""}
+distro = ">=1.5.0,<2.0.0"
 ldap3 = ">=2.8.1,<3.0.0"
 lz4 = ">=3.1.1,<4.0.0"
-mysqlclient = {version = ">=1.4.6,<2.0.0", markers = "sys_platform == \"linux\""}
+mysqlclient = ">=1.4.6,<2.0.0"
 pefile = ">=2019.4.18,<2020.0.0"
 psutil = ">=5.7.0,<6.0.0"
+pyOpenSSL = ">=19.1.0,<20.0.0"
 pyasn1 = ">=0.4.8,<0.5.0"
 pycryptodome = ">=3.9.7,<4.0.0"
-pyOpenSSL = ">=19.1.0,<20.0.0"
 python-pam = ">=1.8.4,<2.0.0"
-pywin32 = {version = ">=227,<228", markers = "sys_platform == \"win32\""}
+pywin32 = ">=227,<228"
 ruyaml = ">=0.19.2,<0.20.0"
-SQLAlchemy = ">=1.3.15,<2.0.0"
-twisted = {version = ">=20.3.0,<21.0.0", extras = ["tls"]}
-wmi = {version = ">=1.5.1,<2.0.0", markers = "sys_platform == \"win32\""}
+wmi = ">=1.5.1,<2.0.0"
+
+[package.dependencies.twisted]
+extras = ["tls"]
+version = ">=20.3.0,<21.0.0"
 
 [package.source]
+reference = "uibpypi"
 type = "legacy"
 url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
 
 [[package]]
-name = "python-pam"
-version = "1.8.4"
+category = "main"
 description = "Python PAM module using ctypes, py3/py2"
-category = "main"
+name = "python-pam"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "1.8.4"
 
 [[package]]
-name = "pywin32"
-version = "227"
+category = "main"
 description = "Python for Window Extensions"
-category = "main"
+marker = "sys_platform == \"win32\""
+name = "pywin32"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "227"
 
 [[package]]
-name = "pywin32-ctypes"
-version = "0.2.0"
+category = "dev"
 description = ""
-category = "dev"
+marker = "sys_platform == \"win32\""
+name = "pywin32-ctypes"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "0.2.0"
 
 [[package]]
-name = "pyyaml"
-version = "5.3.1"
+category = "dev"
 description = "YAML parser and emitter for Python"
-category = "dev"
+name = "pyyaml"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "5.3.1"
 
 [[package]]
-name = "rarfile"
-version = "4.0"
-description = "RAR archive reader for Python"
 category = "dev"
+description = "RAR archive reader for Python"
+name = "rarfile"
 optional = false
 python-versions = "*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "4.0"
 
 [[package]]
-name = "requests"
-version = "2.25.0"
-description = "Python HTTP for Humans."
 category = "dev"
+description = "Python HTTP for Humans."
+name = "requests"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "2.25.0"
 
 [package.dependencies]
 certifi = ">=2017.4.17"
@@ -793,39 +573,30 @@ urllib3 = ">=1.21.1,<1.27"
 
 [package.extras]
 security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)"]
-socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
 
 [[package]]
-name = "ruyaml"
-version = "0.19.2"
-description = "ruyaml is a fork of ruamel.yaml"
 category = "main"
+description = "ruyaml is a fork of ruamel.yaml"
+name = "ruyaml"
 optional = false
 python-versions = ">=3.6"
+version = "0.19.2"
 
 [package.dependencies]
 distro = ">=1.3.0"
+setuptools = ">=39.0"
 
 [package.extras]
 docs = ["ryd", "sphinx"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "service-identity"
-version = "18.1.0"
-description = "Service identity verification for pyOpenSSL & cryptography."
 category = "main"
+description = "Service identity verification for pyOpenSSL & cryptography."
+name = "service-identity"
 optional = false
 python-versions = "*"
+version = "18.1.0"
 
 [package.dependencies]
 attrs = ">=16.0.0"
@@ -839,44 +610,30 @@ docs = ["sphinx"]
 idna = ["idna"]
 tests = ["coverage (>=4.2.0)", "pytest"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "six"
-version = "1.15.0"
-description = "Python 2 and 3 compatibility utilities"
 category = "main"
+description = "Python 2 and 3 compatibility utilities"
+name = "six"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "1.15.0"
 
 [[package]]
-name = "soupsieve"
-version = "2.1"
-description = "A modern CSS selector implementation for Beautiful Soup."
 category = "dev"
+description = "A modern CSS selector implementation for Beautiful Soup."
+marker = "python_version >= \"3.0\""
+name = "soupsieve"
 optional = false
 python-versions = ">=3.5"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "2.1"
 
 [[package]]
-name = "sqlalchemy"
-version = "1.3.20"
-description = "Database Abstraction Library"
 category = "main"
+description = "Database Abstraction Library"
+name = "sqlalchemy"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "1.3.20"
 
 [package.extras]
 mssql = ["pyodbc"]
@@ -890,102 +647,87 @@ postgresql_psycopg2binary = ["psycopg2-binary"]
 postgresql_psycopg2cffi = ["psycopg2cffi"]
 pymysql = ["pymysql"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "toml"
-version = "0.10.2"
-description = "Python Library for Tom's Obvious, Minimal Language"
 category = "dev"
+description = "Python Library for Tom's Obvious, Minimal Language"
+name = "toml"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+version = "0.10.2"
 
 [[package]]
-name = "twisted"
-version = "20.3.0"
-description = "An asynchronous networking framework written in Python"
 category = "main"
+description = "An asynchronous networking framework written in Python"
+name = "twisted"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
+version = "20.3.0"
 
 [package.dependencies]
-attrs = ">=19.2.0"
 Automat = ">=0.3.0"
+PyHamcrest = ">=1.9.0,<1.10.0 || >1.10.0"
+attrs = ">=19.2.0"
 constantly = ">=15.1"
 hyperlink = ">=17.1.1"
-idna = {version = ">=0.6,<2.3 || >2.3", optional = true, markers = "extra == \"tls\""}
 incremental = ">=16.10.1"
-PyHamcrest = ">=1.9.0,<1.10.0 || >1.10.0"
-pyopenssl = {version = ">=16.0.0", optional = true, markers = "extra == \"tls\""}
-service_identity = {version = ">=18.1.0", optional = true, markers = "extra == \"tls\""}
 "zope.interface" = ">=4.4.2"
 
+[package.dependencies.idna]
+optional = true
+version = ">=0.6,<2.3 || >2.3"
+
+[package.dependencies.pyopenssl]
+optional = true
+version = ">=16.0.0"
+
+[package.dependencies.service_identity]
+optional = true
+version = ">=18.1.0"
+
 [package.extras]
-all_non_platform = ["pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,!=2.3)", "pyasn1", "cryptography (>=2.5)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.0)", "soappy", "pyserial (>=3.0)", "h2 (>=3.0,<4.0)", "priority (>=1.1.0,<2.0)", "pywin32 (!=226)"]
+all_non_platform = ["pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,<2.3 || >2.3)", "pyasn1", "cryptography (>=2.5)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.0)", "soappy", "pyserial (>=3.0)", "h2 (>=3.0,<4.0)", "priority (>=1.1.0,<2.0)", "pywin32 (!=226)"]
 conch = ["pyasn1", "cryptography (>=2.5)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.0)"]
 dev = ["pyflakes (>=1.0.0)", "twisted-dev-tools (>=0.0.2)", "python-subunit", "sphinx (>=1.3.1)", "towncrier (>=17.4.0)"]
 http2 = ["h2 (>=3.0,<4.0)", "priority (>=1.1.0,<2.0)"]
-macos_platform = ["pyobjc-core", "pyobjc-framework-cfnetwork", "pyobjc-framework-cocoa", "pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,!=2.3)", "pyasn1", "cryptography (>=2.5)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.0)", "soappy", "pyserial (>=3.0)", "h2 (>=3.0,<4.0)", "priority (>=1.1.0,<2.0)", "pywin32 (!=226)"]
-osx_platform = ["pyobjc-core", "pyobjc-framework-cfnetwork", "pyobjc-framework-cocoa", "pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,!=2.3)", "pyasn1", "cryptography (>=2.5)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.0)", "soappy", "pyserial (>=3.0)", "h2 (>=3.0,<4.0)", "priority (>=1.1.0,<2.0)", "pywin32 (!=226)"]
+macos_platform = ["pyobjc-core", "pyobjc-framework-cfnetwork", "pyobjc-framework-cocoa", "pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,<2.3 || >2.3)", "pyasn1", "cryptography (>=2.5)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.0)", "soappy", "pyserial (>=3.0)", "h2 (>=3.0,<4.0)", "priority (>=1.1.0,<2.0)", "pywin32 (!=226)"]
+osx_platform = ["pyobjc-core", "pyobjc-framework-cfnetwork", "pyobjc-framework-cocoa", "pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,<2.3 || >2.3)", "pyasn1", "cryptography (>=2.5)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.0)", "soappy", "pyserial (>=3.0)", "h2 (>=3.0,<4.0)", "priority (>=1.1.0,<2.0)", "pywin32 (!=226)"]
 serial = ["pyserial (>=3.0)", "pywin32 (!=226)"]
 soap = ["soappy"]
-tls = ["pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,!=2.3)"]
-windows_platform = ["pywin32 (!=226)", "pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,!=2.3)", "pyasn1", "cryptography (>=2.5)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.0)", "soappy", "pyserial (>=3.0)", "h2 (>=3.0,<4.0)", "priority (>=1.1.0,<2.0)", "pywin32 (!=226)"]
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+tls = ["pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,<2.3 || >2.3)"]
+windows_platform = ["pywin32 (!=226)", "pyopenssl (>=16.0.0)", "service_identity (>=18.1.0)", "idna (>=0.6,<2.3 || >2.3)", "pyasn1", "cryptography (>=2.5)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.0)", "soappy", "pyserial (>=3.0)", "h2 (>=3.0,<4.0)", "priority (>=1.1.0,<2.0)", "pywin32 (!=226)"]
 
 [[package]]
-name = "urllib3"
-version = "1.26.2"
-description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "dev"
+description = "HTTP library with thread-safe connection pooling, file post, and more."
+name = "urllib3"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
+version = "1.26.2"
 
 [package.extras]
 brotli = ["brotlipy (>=0.6.0)"]
 secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
-socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
-
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
+socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
 
 [[package]]
-name = "virustotal3"
-version = "1.0.8"
-description = "Python 3 implementation of the VirusTotal v3 API"
 category = "dev"
+description = "Python 3 implementation of the VirusTotal v3 API"
+name = "virustotal3"
 optional = false
 python-versions = "*"
+version = "1.0.8"
 
 [package.dependencies]
 requests = "*"
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "wmi"
-version = "1.5.1"
-description = "Windows Management Instrumentation"
 category = "main"
+description = "Windows Management Instrumentation"
+marker = "sys_platform == \"win32\""
+name = "wmi"
 optional = false
 python-versions = "*"
+version = "1.5.1"
 
 [package.dependencies]
 pywin32 = "*"
@@ -997,33 +739,25 @@ docs = ["sphinx"]
 package = ["wheel", "twine"]
 tests = ["pytest"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [[package]]
-name = "zope.interface"
-version = "5.2.0"
-description = "Interfaces for Python"
 category = "main"
+description = "Interfaces for Python"
+name = "zope.interface"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "5.2.0"
+
+[package.dependencies]
+setuptools = "*"
 
 [package.extras]
 docs = ["sphinx", "repoze.sphinx.autointerface"]
 test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
-[package.source]
-type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
-reference = "uibpypi"
-
 [metadata]
-lock-version = "1.1"
-python-versions = "^3.7"
 content-hash = "1f54d1f5dea2451718b0bd03216dcf01e6ca52334bf22fbd0ad5c5e103944812"
+python-versions = "^3.7"
 
 [metadata.files]
 altgraph = [
@@ -1081,11 +815,13 @@ cffi = [
     {file = "cffi-1.14.4-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:a7711edca4dcef1a75257b50a2fbfe92a65187c47dab5a0f1b9b332c5919a3fb"},
     {file = "cffi-1.14.4-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:00e28066507bfc3fe865a31f325c8391a1ac2916219340f87dfad602c3e48e5d"},
     {file = "cffi-1.14.4-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:798caa2a2384b1cbe8a2a139d80734c9db54f9cc155c99d7cc92441a23871c03"},
+    {file = "cffi-1.14.4-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:a5ed8c05548b54b998b9498753fb9cadbfd92ee88e884641377d8a8b291bcc01"},
     {file = "cffi-1.14.4-cp37-cp37m-win32.whl", hash = "sha256:00a1ba5e2e95684448de9b89888ccd02c98d512064b4cb987d48f4b40aa0421e"},
     {file = "cffi-1.14.4-cp37-cp37m-win_amd64.whl", hash = "sha256:9cc46bc107224ff5b6d04369e7c595acb700c3613ad7bcf2e2012f62ece80c35"},
     {file = "cffi-1.14.4-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:df5169c4396adc04f9b0a05f13c074df878b6052430e03f50e68adf3a57aa28d"},
     {file = "cffi-1.14.4-cp38-cp38-manylinux1_i686.whl", hash = "sha256:9ffb888f19d54a4d4dfd4b3f29bc2c16aa4972f1c2ab9c4ab09b8ab8685b9c2b"},
     {file = "cffi-1.14.4-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:8d6603078baf4e11edc4168a514c5ce5b3ba6e3e9c374298cb88437957960a53"},
+    {file = "cffi-1.14.4-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:d5ff0621c88ce83a28a10d2ce719b2ee85635e85c515f12bac99a95306da4b2e"},
     {file = "cffi-1.14.4-cp38-cp38-win32.whl", hash = "sha256:b4e248d1087abf9f4c10f3c398896c87ce82a9856494a7155823eb45a892395d"},
     {file = "cffi-1.14.4-cp38-cp38-win_amd64.whl", hash = "sha256:ec80dc47f54e6e9a78181ce05feb71a0353854cc26999db963695f950b5fb375"},
     {file = "cffi-1.14.4-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:840793c68105fe031f34d6a086eaea153a0cd5c491cde82a74b420edd0a2b909"},
@@ -1150,7 +886,10 @@ incremental = [
     {file = "incremental-17.5.0.tar.gz", hash = "sha256:7b751696aaf36eebfab537e458929e194460051ccad279c72b755a167eebd4b3"},
 ]
 ldap3 = [
+    {file = "ldap3-2.8.1-py2.6.egg", hash = "sha256:bed71c6ce2f70a00a330eed0c8370664c065239d45bcbe1b82517b6f6eed7f25"},
+    {file = "ldap3-2.8.1-py2.7.egg", hash = "sha256:8f59a7b5399555b22db06f153daa76c77ded2dd84bc0f0ffe5b0b33901b6eac4"},
     {file = "ldap3-2.8.1-py2.py3-none-any.whl", hash = "sha256:7c3738570766f5e5e74a56fade15470f339d5c436d821cf476ef27da0a4de8b0"},
+    {file = "ldap3-2.8.1-py3.8.egg", hash = "sha256:10bdd23b612e942ce90ea4dbc744dfd88735949833e46c5467a2dcf68e60f469"},
     {file = "ldap3-2.8.1.tar.gz", hash = "sha256:37d633e20fa360c302b1263c96fe932d40622d0119f1bddcb829b03462eeeeb7"},
 ]
 lz4 = [
@@ -1240,12 +979,34 @@ psutil = [
     {file = "psutil-5.7.3.tar.gz", hash = "sha256:af73f7bcebdc538eda9cc81d19db1db7bf26f103f91081d780bbacfcb620dee2"},
 ]
 pyasn1 = [
+    {file = "pyasn1-0.4.8-py2.4.egg", hash = "sha256:fec3e9d8e36808a28efb59b489e4528c10ad0f480e57dcc32b4de5c9d8c9fdf3"},
+    {file = "pyasn1-0.4.8-py2.5.egg", hash = "sha256:0458773cfe65b153891ac249bcf1b5f8f320b7c2ce462151f8fa74de8934becf"},
+    {file = "pyasn1-0.4.8-py2.6.egg", hash = "sha256:5c9414dcfede6e441f7e8f81b43b34e834731003427e5b09e4e00e3172a10f00"},
+    {file = "pyasn1-0.4.8-py2.7.egg", hash = "sha256:6e7545f1a61025a4e58bb336952c5061697da694db1cae97b116e9c46abcf7c8"},
     {file = "pyasn1-0.4.8-py2.py3-none-any.whl", hash = "sha256:39c7e2ec30515947ff4e87fb6f456dfc6e84857d34be479c9d4a4ba4bf46aa5d"},
+    {file = "pyasn1-0.4.8-py3.1.egg", hash = "sha256:78fa6da68ed2727915c4767bb386ab32cdba863caa7dbe473eaae45f9959da86"},
+    {file = "pyasn1-0.4.8-py3.2.egg", hash = "sha256:08c3c53b75eaa48d71cf8c710312316392ed40899cb34710d092e96745a358b7"},
+    {file = "pyasn1-0.4.8-py3.3.egg", hash = "sha256:03840c999ba71680a131cfaee6fab142e1ed9bbd9c693e285cc6aca0d555e576"},
+    {file = "pyasn1-0.4.8-py3.4.egg", hash = "sha256:7ab8a544af125fb704feadb008c99a88805126fb525280b2270bb25cc1d78a12"},
+    {file = "pyasn1-0.4.8-py3.5.egg", hash = "sha256:e89bf84b5437b532b0803ba5c9a5e054d21fec423a89952a74f87fa2c9b7bce2"},
+    {file = "pyasn1-0.4.8-py3.6.egg", hash = "sha256:014c0e9976956a08139dc0712ae195324a75e142284d5f87f1a87ee1b068a359"},
+    {file = "pyasn1-0.4.8-py3.7.egg", hash = "sha256:99fcc3c8d804d1bc6d9a099921e39d827026409a58f2a720dcdb89374ea0c776"},
     {file = "pyasn1-0.4.8.tar.gz", hash = "sha256:aef77c9fb94a3ac588e87841208bdec464471d9871bd5050a287cc9a475cd0ba"},
 ]
 pyasn1-modules = [
     {file = "pyasn1-modules-0.2.8.tar.gz", hash = "sha256:905f84c712230b2c592c19470d3ca8d552de726050d1d1716282a1f6146be65e"},
+    {file = "pyasn1_modules-0.2.8-py2.4.egg", hash = "sha256:0fe1b68d1e486a1ed5473f1302bd991c1611d319bba158e98b106ff86e1d7199"},
+    {file = "pyasn1_modules-0.2.8-py2.5.egg", hash = "sha256:fe0644d9ab041506b62782e92b06b8c68cca799e1a9636ec398675459e031405"},
+    {file = "pyasn1_modules-0.2.8-py2.6.egg", hash = "sha256:a99324196732f53093a84c4369c996713eb8c89d360a496b599fb1a9c47fc3eb"},
+    {file = "pyasn1_modules-0.2.8-py2.7.egg", hash = "sha256:0845a5582f6a02bb3e1bde9ecfc4bfcae6ec3210dd270522fee602365430c3f8"},
     {file = "pyasn1_modules-0.2.8-py2.py3-none-any.whl", hash = "sha256:a50b808ffeb97cb3601dd25981f6b016cbb3d31fbf57a8b8a87428e6158d0c74"},
+    {file = "pyasn1_modules-0.2.8-py3.1.egg", hash = "sha256:f39edd8c4ecaa4556e989147ebf219227e2cd2e8a43c7e7fcb1f1c18c5fd6a3d"},
+    {file = "pyasn1_modules-0.2.8-py3.2.egg", hash = "sha256:b80486a6c77252ea3a3e9b1e360bc9cf28eaac41263d173c032581ad2f20fe45"},
+    {file = "pyasn1_modules-0.2.8-py3.3.egg", hash = "sha256:65cebbaffc913f4fe9e4808735c95ea22d7a7775646ab690518c056784bc21b4"},
+    {file = "pyasn1_modules-0.2.8-py3.4.egg", hash = "sha256:15b7c67fabc7fc240d87fb9aabf999cf82311a6d6fb2c70d00d3d0604878c811"},
+    {file = "pyasn1_modules-0.2.8-py3.5.egg", hash = "sha256:426edb7a5e8879f1ec54a1864f16b882c2837bfd06eee62f2c982315ee2473ed"},
+    {file = "pyasn1_modules-0.2.8-py3.6.egg", hash = "sha256:cbac4bc38d117f2a49aeedec4407d23e8866ea4ac27ff2cf7fb3e5b570df19e0"},
+    {file = "pyasn1_modules-0.2.8-py3.7.egg", hash = "sha256:c29a5e5cc7a3f05926aff34e097e84f8589cd790ce0ed41b67aed6857b26aafd"},
 ]
 pycparser = [
     {file = "pycparser-2.20-py2.py3-none-any.whl", hash = "sha256:7582ad22678f0fcd81102833f60ef8d0e57288b6b5fb00323d101be910e35705"},
@@ -1339,8 +1100,8 @@ python-magic = [
     {file = "python_magic-0.4.18-py2.py3-none-any.whl", hash = "sha256:356efa93c8899047d1eb7d3eb91e871ba2f5b1376edbaf4cc305e3c872207355"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.107.tar.gz", hash = "md5:a6efe9d908078ce11195bc5b332de4ee"},
-    {file = "python_opsi-4.2.0.107-py3-none-any.whl", hash = "md5:0434d837765f6577c771e64f93fe70aa"},
+    {file = "python-opsi-4.2.0.111.tar.gz", hash = "md5:e6b6c500ee69c98a11b04e7d2403f362"},
+    {file = "python_opsi-4.2.0.111-py3-none-any.whl", hash = "md5:844da72c36d6d57b0053b6ccc419d466"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
@@ -1375,8 +1136,6 @@ pyyaml = [
     {file = "PyYAML-5.3.1-cp37-cp37m-win_amd64.whl", hash = "sha256:73f099454b799e05e5ab51423c7bcf361c58d3206fa7b0d555426b1f4d9a3eaf"},
     {file = "PyYAML-5.3.1-cp38-cp38-win32.whl", hash = "sha256:06a0d7ba600ce0b2d2fe2e78453a470b5a6e000a985dd4a4e54e436cc36b0e97"},
     {file = "PyYAML-5.3.1-cp38-cp38-win_amd64.whl", hash = "sha256:95f71d2af0ff4227885f7a6605c37fd53d3a106fcab511b8860ecca9fcf400ee"},
-    {file = "PyYAML-5.3.1-cp39-cp39-win32.whl", hash = "sha256:ad9c67312c84def58f3c04504727ca879cb0013b2517c85a9a253f0cb6380c0a"},
-    {file = "PyYAML-5.3.1-cp39-cp39-win_amd64.whl", hash = "sha256:6034f55dab5fea9e53f436aa68fa3ace2634918e8b5994d82f3621c04ff5ed2e"},
     {file = "PyYAML-5.3.1.tar.gz", hash = "sha256:b8eac752c5e14d3eca0e6dd9199cd627518cb5ec06add0de9d32baeee6fe645d"},
 ]
 rarfile = [
