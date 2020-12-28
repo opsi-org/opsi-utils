@@ -1637,12 +1637,12 @@ class CommandTask(Command):
 			shell.appendLine(cleartext)
 
 		elif params[0] == u'setPcpatchPassword':
-			if os.getuid() != 0:
-				raise RuntimeError(_(u"You have to be root to change pcpatch password!"))
+			#if os.getuid() != 0:
+			#	raise RuntimeError(_("You have to be root to change pcpatch password!"))
 
 			fqdn = getfqdn(conf='/etc/opsi/global.conf')
 			if fqdn.count('.') < 2:
-				raise RuntimeError(_(u"Failed to get my own fully qualified domainname"))
+				raise RuntimeError(_("Failed to get my own fully qualified domainname"))
 
 			password = u''
 			if len(params) < 2:
@@ -1658,10 +1658,7 @@ class CommandTask(Command):
 
 			try:
 				udm = which('univention-admin')
-			except CommandNotFoundException:
-				udm = None
-
-			if udm:  # We are on Univention Corporate Server (UCS)
+				# We are on Univention Corporate Server (UCS)
 				dn = None
 				command = u'{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=udm)
 				logger.debug("Filtering for pcpatch: %s", command)
@@ -1672,19 +1669,27 @@ class CommandTask(Command):
 							break
 
 				if not dn:
-					raise RuntimeError(u"Failed to get DN for user pcpatch")
+					raise RuntimeError("Failed to get DN for user pcpatch")
 
 				command = (
-					u"{udm} users/user modify --dn {dn} "
-					u"--set password='{pw}' "
-					u"--set overridePWLength=1 --set overridePWHistory=1 "
-					u"1>/dev/null 2>/dev/null"
-				).format(udm=udm, dn=dn, pw=password)
+					f"{udm} users/user modify --dn {dn} "
+					f"--set password='{password}' "
+					"--set overridePWLength=1 --set overridePWHistory=1 "
+					"1>/dev/null 2>/dev/null"
+				)
 				logger.debug("Setting password with: %s", command)
-				os.system(command)
-
-				return  # Done with UCS
-
+				sys_execute(command)
+				# Done with UCS
+				return
+			except CommandNotFoundException:
+				# Not on UCS
+				pass
+			
+			try:
+				pwd.getpwnam("pcpatch")
+			except KeyError as pwd_error:
+				raise KeyError("System user 'pcpatch' not found")
+			
 			password_set = False
 			try:
 				# smbldap
@@ -1693,15 +1698,23 @@ class CommandTask(Command):
 				password_set = True
 			except Exception as error:
 				logger.debug("Setting password through smbldap failed: %s", error)
-				
+			
 			if not password_set:
 				# unix
-				chpasswdCommand = f"echo 'pcpatch:{password}' | {which('chpasswd')}"
-				sys_execute(chpasswdCommand)
+				is_local_user = False
+				with codecs.open("/etc/passwd", "r", "utf-8") as f:
+					for line in f.readlines():
+						if line.startswith("pcpatch:"):
+							is_local_user = True
+							break
+				if is_local_user:
+					chpasswdCommand = f"echo 'pcpatch:{password}' | {which('chpasswd')}"
+					sys_execute(chpasswdCommand)
 
-				smbpasswdCommand = f"{which('smbpasswd')} -a -s pcpatch"
-				sys_execute(smbpasswdCommand, stdin_data=f"{password}\n{password}\n".encode("utf8"))
-
+					smbpasswdCommand = f"{which('smbpasswd')} -a -s pcpatch"
+					sys_execute(smbpasswdCommand, stdin_data=f"{password}\n{password}\n".encode("utf8"))
+				else:
+					logger.warning("The user 'pcpatch' is not a local user, please change password also in Active Directory")
 
 def main():
 	@contextmanager
