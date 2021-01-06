@@ -2108,4 +2108,4 @@ def main():
 def set_product_cache_outdated(debotId, backend):
 	logger.debug("mark redis product cache as dirty for depot: %s", debotId)
 	config_id = "opsiconfd.{}.product.cache.outdated".format(debotId)
-	r = backend._executeMethod("config_createBool", id=config_id, description="", defaultValues=[True])
+	backend.config_createBool(id=config_id, description="", defaultValues=[True])
