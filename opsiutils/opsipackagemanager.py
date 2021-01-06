@@ -1398,6 +1398,7 @@ class OpsiPackageManager(object):
 				)
 				subject.setMessage(_(u"Installation of package {packageFile} as {forcedProductId} successful").format(packageFile=packageFile, forcedProductId=self.config['newProductId']), severity=4)
 			else:
+				set_product_cache_outdated(depotId, self.backend)
 				logger.notice("Installation of package '%s' on depot '%s' successful", depotPackageFile, depotId)
 				subject.setMessage(_(u"Installation of package %s successful") % packageFile, severity=4)
 
@@ -1486,6 +1487,9 @@ class OpsiPackageManager(object):
 
 			depotConnection = self.getDepotConnection(depotId)
 			depotConnection.depot_uninstallPackage(productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall'])
+
+			set_product_cache_outdated(depotId, self.backend)
+		
 			logger.notice("Uninstall of package '%s' on depot '%s' finished", productId, depotId)
 			subject.setMessage(_(u"Uninstallation of package {0} successful").format(productId), severity=4)
 
@@ -2101,3 +2105,7 @@ def main():
 		print(u"\nERROR: %s\n" % exception, file=sys.stderr)
 		sys.exit(1)
 
+def set_product_cache_outdated(debotId, backend):
+	logger.debug("mark redis product cache as dirty for depot: %s", debotId)
+	config_id = "opsiconfd.{}.product.cache.outdated".format(debotId)
+	r = backend._executeMethod("config_createBool", id=config_id, description="", defaultValues=[True])
