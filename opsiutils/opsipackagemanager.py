@@ -40,7 +40,7 @@ from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 
-from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_INFO, LOG_NONE, LOG_WARNING
+from opsicommon.logging import logger, logging_config, LOG_NONE, LOG_WARNING
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -794,7 +794,7 @@ class OpsiPackageManager(object):
 		with self.productPackageFilesLock:
 			if filename not in self.productPackageFiles:
 				self.infoSubject.setMessage(_(u'Opening package file %s') % filename)
-				self.productPackageFiles[filename] = ProductPackageFile(packageFile)
+				self.productPackageFiles[filename] = ProductPackageFile(packageFile, tempDir=self.config['tempDir'])
 				self.productPackageFiles[filename].getMetaData()
 
 	def getPackageControlFile(self, packageFile):
