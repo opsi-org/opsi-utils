@@ -31,6 +31,7 @@ paramiko = "^2.7.2"
 [tool.poetry.dev-dependencies]
 opsi-dev-tools = "^1.0"
 pyinstaller = "^4.0"
+pylint = "^2.6.0"
 
 [tool.poetry.scripts]
 opsi-admin = "opsiutils.opsiadmin:main"
