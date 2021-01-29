@@ -139,7 +139,8 @@ def backup_main():
 			logger.debug("No backend given, assuming 'auto'")
 			args.backends = ['auto']
 
-		result = backup.restore(
+		# restore doesnt return anything, in case of error, an exception is thrown
+		backup.restore(
 			file=args.file, backends=args.backends,
 			configuration=args.configuration, force=args.force,
 			new_server_id=args.new_server_id
@@ -159,7 +160,8 @@ def backup_main():
 			logger.debug("No backends given, assuming 'auto'")
 			args.backends = ['auto']
 
-		result = backup.create(
+		# create doesnt return anything, in case of error, an exception is thrown
+		backup.create(
 			destination=args.destination,
 			backends=args.backends, noConfiguration=args.no_configuration,
 			compression=args.compression, flushLogs=args.flush_logs
