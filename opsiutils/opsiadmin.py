@@ -5,8 +5,8 @@
 # Copyright (C) 2010-2019 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License version 
-# 3 as published by the Free Software Foundation 
+# it under the terms of the GNU Affero General Public License version
+# 3 as published by the Free Software Foundation
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -363,7 +363,7 @@ To exit opsi-admin please type 'exit'."""
 			def searchForError(obj):
 				if isinstance(obj, dict):
 					try:
-						if obj['error']:
+						if obj.get('error'):
 							raise ErrorInResultException(obj['error'])
 					except KeyError:
 						for key in obj:
@@ -840,7 +840,7 @@ class Shell:
 		while not char or (char != 10):
 			if not self.running:
 				return
-			
+
 			char = self.screen.getch()
 			textInput = False
 
@@ -1653,7 +1653,7 @@ class CommandTask(Command):
 			if not password:
 				raise ValueError("Can not use empty password!")
 			secret_filter.add_secrets(password)
-			
+
 			backend.user_setCredentials(username='pcpatch', password=password)
 
 			try:
@@ -1684,12 +1684,12 @@ class CommandTask(Command):
 			except CommandNotFoundException:
 				# Not on UCS
 				pass
-			
+
 			try:
 				pwd.getpwnam("pcpatch")
 			except KeyError as pwd_error:
 				raise KeyError("System user 'pcpatch' not found")
-			
+
 			password_set = False
 			try:
 				# smbldap
@@ -1698,7 +1698,7 @@ class CommandTask(Command):
 				password_set = True
 			except Exception as error:
 				logger.debug("Setting password through smbldap failed: %s", error)
-			
+
 			if not password_set:
 				# unix
 				is_local_user = False
