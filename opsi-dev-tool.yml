@@ -99,3 +99,4 @@ package:
     # workaround for error on Red Hat 8
     # PAM unable to dlopen(/usr/lib64/security/pam_unix.so): /usr/lib/opsi-utils/libcrypto.so.1.1: version `OPENSSL_1_1_1b' not found (required by /lib64/libk5crypto.so.3)
     [ -e /usr/lib/opsi-utils/libcrypto.so.1.1 -a -e /usr/lib64/libcrypto.so.1.1 ] && cp /usr/lib64/libcrypto.so.1.1 /usr/lib/opsi-utils/libcrypto.so.1.1
+    exit 0
