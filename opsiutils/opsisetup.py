@@ -146,6 +146,7 @@ def configureClientUser():
 	logger.notice("Configuring client user %s", CLIENT_USER)
 
 	clientUserHome = pwd.getpwnam(CLIENT_USER)[5]
+
 	sshDir = os.path.join(clientUserHome, '.ssh')
 
 	if os.path.exists(sshDir):
@@ -842,7 +843,7 @@ This will remove the client and it's settings from opsi.''' % depot.id,
 	finally:
 		ui.exit()
 		logging_config(stderr_level=log_level)
-	
+
 	return jsonrpcBackend, depot
 
 
@@ -949,7 +950,7 @@ def renewOpsiconfdCert(unattendedConfiguration=None):
 	finally:
 		ui.exit()
 		logging_config(stderr_level=log_level)
-	
+
 	makeCert()
 	setPasswdRights()
 	setRights(OPSICONFD_CERTFILE)
@@ -1014,10 +1015,10 @@ def opsisetup_main():
 		elif opt in ("-V", "--version"):
 			print(f"{__version__} [python-opsi={python_opsi_version}]")
 			return
-	
+
 	if os.geteuid() != 0:
 		raise Exception(u"This script must be startet as root")
-	
+
 	for (opt, arg) in opts:
 		if (opt == "--log-file"):
 			logging_config(log_file=arg, file_level=LOG_DEBUG)
