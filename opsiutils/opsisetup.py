@@ -40,7 +40,9 @@ import shutil
 import sys
 import time
 
-from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_DEBUG, LOG_NONE, LOG_INFO, LOG_NOTICE
+from opsicommon.logging import logger, init_logging, logging_config, secret_filter
+from opsicommon.logging.constants import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_NONE, LOG_INFO, LOG_NOTICE
+
 import OPSI.System.Posix as Posix
 import OPSI.Util.Task.ConfigureBackend as backendUtils
 from OPSI.Backend.BackendManager import BackendManager
@@ -80,7 +82,7 @@ from OPSI.Util.Task.Samba import SMB_CONF, configureSamba
 from OPSI import __version__ as python_opsi_version
 from opsiutils import __version__
 
-init_logging(stderr_level=LOG_NOTICE)
+init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
 LOG_FILE = '/tmp/opsi-setup.log'
 DHCPD_CONF = Posix.locateDHCPDConfig('/etc/dhcp3/dhcpd.conf')
@@ -1129,7 +1131,7 @@ def opsisetup_main():
 
 
 def main():
-	logging_config(log_file=LOG_FILE, file_level=LOG_INFO)
+	logging_config(log_file=LOG_FILE, file_level=LOG_INFO, stderr_format=DEFAULT_COLORED_FORMAT)
 
 	try:
 		opsisetup_main()

@@ -42,7 +42,7 @@ import sys
 import time
 from contextlib import closing, contextmanager
 
-from opsicommon.logging import logger, logging_config, secret_filter, LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING
+from opsicommon.logging import logger, logging_config, secret_filter, LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Exceptions import OpsiRpcError
@@ -231,7 +231,7 @@ def shell_main(argv):
 		logFile = forceFilename(options.logFile)
 		startLogFile(logFile, options.logLevel)
 
-	logging_config(stderr_level = LOG_NONE if interactive else options.logLevel)
+	logging_config(stderr_level = LOG_NONE if interactive else options.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 
 	global backend
 	try:

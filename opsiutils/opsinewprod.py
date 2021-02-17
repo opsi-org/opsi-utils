@@ -33,7 +33,7 @@ import sys
 import shutil
 import time
 
-from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_ERROR
+from opsicommon.logging import logger, logging_config, LOG_ERROR, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
 from OPSI.Object import (
 	ProductDependency, LocalbootProduct, NetbootProduct, UnicodeProductProperty, BoolProductProperty
@@ -120,7 +120,7 @@ def newprod_main():
 				setRights(productSourceDir)
 			except Exception as e:
 				logger.warning("Failed to set rights: %s", e)
-			
+
 			ui.showMessage(title=_('Done'), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
 		except Exception as exc:
 			errorMessage = _("Product creation failed. Removing directory {0}").format(productSourceDir)
@@ -702,7 +702,7 @@ def main():
 	try:
 		newprod_main()
 	except Exception as exception:
-		logging_config(stderr_level=LOG_ERROR)
+		logging_config(stderr_level=LOG_ERROR, stderr_format=DEFAULT_COLORED_FORMAT)
 		logger.error(exception, exc_info=True)
 		print("ERROR: {0}".format(forceUnicode(exception).encode('utf-8')), file=sys.stderr)
 		sys.exit(1)
