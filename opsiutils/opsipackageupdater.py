@@ -35,11 +35,9 @@ through a remote repository.
 
 import argparse
 import operator
-import os
 import sys
-import psutil
 
-from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_NOTICE, LOG_WARNING
+from opsicommon.logging import logger, init_logging, logging_config, DEFAULT_COLORED_FORMAT
 from opsicommon.system import ensure_not_already_running
 
 from OPSI import __version__ as python_opsi_version
@@ -172,7 +170,7 @@ parser = argparse.ArgumentParser(
 	description="Updater for local opsi products.",
 	epilog="Modes have their own options that can be viewed with MODE -h."
 )
-def parse_args():	
+def parse_args():
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
 	parser.add_argument('--config', '-c', help="Location of config file",
 						dest="configFile",
@@ -255,7 +253,7 @@ def parse_args():
 
 	# Setting a default to not stumble over possibly not present args.
 	parser.set_defaults(processProductIds=[])
-	
+
 	return parser.parse_args()
 
 
@@ -263,7 +261,7 @@ def updater_main():
 	config = DEFAULT_CONFIG.copy()
 	args = parse_args()
 
-	init_logging(stderr_level=args.logLevel)
+	init_logging(stderr_level=args.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 	if args.mode == 'list' and args.logLevel < 4:
 		logging_config(stderr_level=4)
 	logger.debug("Running in %s mode", args.mode)

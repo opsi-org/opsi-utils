@@ -32,7 +32,7 @@ import termios
 import tty
 from contextlib import contextmanager
 
-from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING
+from opsicommon.logging import logger, init_logging, logging_config, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
 import OPSI.Util.File.Archive
 from OPSI.System import execute
@@ -229,8 +229,8 @@ def parse_args():
 def makepackage_main(argv):
 	os.umask(0o022)
 
-	init_logging(stderr_level=LOG_WARNING)
-	
+	init_logging(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
+
 	args = parse_args()
 
 	keepVersions = args.keepVersions
