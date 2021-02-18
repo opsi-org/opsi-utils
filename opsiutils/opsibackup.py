@@ -34,7 +34,7 @@ import argparse
 import os
 import sys
 
-from opsicommon.logging import logger, init_logging, logging_config, LOG_WARNING, LOG_NOTICE, DEFAULT_COLORED_FORMAT
+from opsicommon.logging import logger, init_logging, logging_config, LOG_WARNING, LOG_NOTICE
 from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI import __version__ as python_opsi_version
 from opsiutils import __version__
@@ -87,13 +87,13 @@ class HelpFormatter(argparse.HelpFormatter):
 		return USAGE
 
 
-def backup_main():
-	init_logging(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
+def backup_main():  # pylint: disable=too-many-branches,too-many-statements
+	init_logging(stderr_level=LOG_WARNING)
 
 	parser = argparse.ArgumentParser(prog="opsi-backup", add_help=False, usage=USAGE, formatter_class=HelpFormatter)
 	parser.add_argument("-h", "--help", action="help")
 	parser.add_argument("-v", "--verbose", action="store_true", default=False)
-	parser.add_argument("-V", "--version", action='store_true'),
+	parser.add_argument("-V", "--version", action='store_true')
 	parser.add_argument("-l", "--log-level", default=LOG_NOTICE, type=int,
 						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 	parser.add_argument("--log-file", metavar='FILE', default="/var/log/opsi/opsi-backup.log")
@@ -177,9 +177,9 @@ def backup_main():
 def main():
 	try:
 		returnCode = backup_main()
-	except Exception as exception:
-		logger.info(exception, exc_info=True)
-		print(f"\nERROR: {exception}\n", file=sys.stderr)
+	except Exception as err:  # pylint: disable=broad-except
+		logger.info(err, exc_info=True)
+		print(f"\nERROR: {err}\n", file=sys.stderr)
 		returnCode = 1
 
 	sys.exit(returnCode)

@@ -148,7 +148,7 @@ class ErrorInResultException(Exception):
 
 def signalHandler(signo, stackFrame):
 	from signal import SIGINT, SIGQUIT
-	logger.info(u"Received signal %s", signo)
+	logger.info("Received signal %s", signo)
 	if signo == SIGINT:
 		if shell:
 			shell.sigint()
@@ -172,44 +172,44 @@ def shell_main(argv):
 						version=f"{__version__} [python-opsi={python_opsi_version}]", help=_("Show version and exit"))
 	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_WARNING,
 						type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-						help=_(u"Set log level (default: 3)"))
+						help=_("Set log level (default: 3)"))
 	parser.add_argument("--log-file", metavar='FILE', dest="logFile",
-						help=_(u"Path to log file"))
+						help=_("Path to log file"))
 	parser.add_argument('--address', '-a', default='https://localhost:4447/rpc',
 						help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"))
 	parser.add_argument('--username', '-u', default=username,
-						help=_(u"Username (default: current user)"))
+						help=_("Username (default: current user)"))
 	parser.add_argument('--password', '-p',
-						help=_(u"Password (default: prompt for password)"))
+						help=_("Password (default: prompt for password)"))
 	parser.add_argument('--opsirc', default=getOpsircPath(),
 						help=(
-							_(u"Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
-							_(u"An opsirc file contains login credentials to the web API.")
+							_("Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
+							_("An opsirc file contains login credentials to the web API.")
 						))
 	parser.add_argument('--direct', '-d', action='store_true',
-						help=_(u"Do not use opsiconfd"))
+						help=_("Do not use opsiconfd"))
 	parser.add_argument('--no-depot', dest="depot",
 						action="store_false", default=True,
-						help=_(u"Do not use depotserver backend"))
+						help=_("Do not use depotserver backend"))
 	parser.add_argument('--interactive', '-i', action="store_true",
-						help=_(u"Start in interactive mode"))
+						help=_("Start in interactive mode"))
 	parser.add_argument('--exit-zero', dest="exitZero", action='store_true',
-						help=_(u"Always exit with exit code 0."))
+						help=_("Always exit with exit code 0."))
 
 	outputGroup = parser.add_argument_group(title=_("Output"))
 	outputGroup.add_argument('--colorize', '-c', action="store_true",
-						help=_(u"Colorize output"))
+						help=_("Colorize output"))
 
 	outputFormat = outputGroup.add_mutually_exclusive_group()
 	outputFormat.add_argument(
 		'--simple-output', '-S', dest='output', const='SIMPLE', action='store_const',
-		help=_(u"Simple output (only for scalars, lists)"))
+		help=_("Simple output (only for scalars, lists)"))
 	outputFormat.add_argument(
 		'--shell-output', '-s', dest='output', const='SHELL', action='store_const',
-		help=_(u"Shell output"))
+		help=_("Shell output"))
 	outputFormat.add_argument(
 		'--raw-output', '-r', dest='output', const='RAW', action='store_const',
-		help=_(u"Raw output"))
+		help=_("Raw output"))
 
 	parser.add_argument('command', nargs=argparse.REMAINDER,
 						help=_("Command to execute."))
@@ -315,7 +315,7 @@ def shell_main(argv):
 			if sessionId:
 				try:
 					with codecs.open(sessionFile, 'w', 'utf-8') as session:
-						session.write(u"%s\n" % sessionId)
+						session.write("%s\n" % sessionId)
 				except Exception as error:
 					logger.error("Failed to write session file '%s': %s", sessionFile, forceUnicode(error))
 
@@ -325,16 +325,16 @@ def shell_main(argv):
 			if i == 0:
 				cmdline = argument
 			elif ' ' in argument or len(argument) == 0:
-				cmdline += u" '%s'" % argument
+				cmdline += " '%s'" % argument
 			else:
-				cmdline += u" %s" % argument
+				cmdline += " %s" % argument
 
 		(readSelection, _unused, _unused) = select.select([sys.stdin], [], [], 0.2)
 		if sys.stdin in readSelection:
 			read = sys.stdin.read()
 			read = read.replace('\r', '').replace('\n', '')
 			if read:
-				cmdline += u" '%s'" % read
+				cmdline += " '%s'" % read
 
 		logger.debug("cmdline: '%s'", cmdline)
 
@@ -343,7 +343,7 @@ def shell_main(argv):
 			try:
 				logger.notice("Starting interactive mode")
 				shell = Shell(prompt=u'%s@opsi-admin>' % username, output=output, color=color, cmdline=cmdline)
-				shell.setInfoline(u"Connected to %s" % address)
+				shell.setInfoline("Connected to %s" % address)
 
 				for line in LOGO:
 					shell.appendLine(line.get('text'), line.get('color'))
@@ -403,7 +403,7 @@ To exit opsi-admin please type 'exit'."""
 
 def startLogFile(logFile, logLevel):
 	with codecs.open(logFile, 'w', 'utf-8') as log:
-		log.write(u"Starting log at: %s" % forceUnicode(time.strftime("%a, %d %b %Y %H:%M:%S")))
+		log.write("Starting log at: %s" % forceUnicode(time.strftime("%a, %d %b %Y %H:%M:%S")))
 	logging_config(log_file = logFile, file_level = logLevel)
 
 class Shell:
@@ -523,13 +523,13 @@ class Shell:
 		if self.cmdline:
 			for cmd in self.cmdline.split(u'\n'):
 				self.cmdline = cmd
-				self.appendLine(u"%s %s" % (self.prompt, self.cmdline))
+				self.appendLine("%s %s" % (self.prompt, self.cmdline))
 				if self.cmdline:
 					try:
 						self.execute()
 					except Exception as error:
 						lines = forceUnicode(error).split(u'\n')
-						lines[0] = u"ERROR: %s" % lines[0]
+						lines[0] = "ERROR: %s" % lines[0]
 						for line in lines:
 							self.appendLine(line, COLOR_RED)
 
@@ -555,7 +555,7 @@ class Shell:
 				for line in self.cmdList:
 					if not line or line in ('quit', 'exit'):
 						continue
-					history.write(u"%s\n" % line)
+					history.write("%s\n" % line)
 		except Exception as error:
 			logger.error("Failed to write history file '%s': %s", historyFilePath, forceUnicode(error))
 
@@ -692,7 +692,7 @@ class Shell:
 			doubleQuoteCount = 0
 			parts = cmdline.split(u'|')
 			for i, part in enumerate(parts):
-				quoteCount += part.count(u"'")
+				quoteCount += part.count("'")
 				doubleQuoteCount += part.count(u'"')
 				if (quoteCount % 2 == 0) and (doubleQuoteCount % 2 == 0):
 					cmdline = u'|'.join(parts[:i + 1])
@@ -712,10 +712,10 @@ class Shell:
 			if i == self.pos - 1:
 				self.paramPos = cur
 
-			if element == u"'":
+			if element == "'":
 				if quote is None:
-					quote = u"'"
-				elif quote == u"'":
+					quote = "'"
+				elif quote == "'":
 					if not self.params[cur]:
 						cur += 1
 					quote = None
@@ -732,7 +732,7 @@ class Shell:
 					quote = None
 				else:
 					self.params[cur] += u'"'
-			elif element == u" ":
+			elif element == " ":
 				if quote is not None:
 					self.params[cur] += element
 				elif len(self.params[cur]) > 0:
@@ -783,7 +783,7 @@ class Shell:
 				break
 
 		if invalid:
-			raise ValueError(_(u"Invalid command: '%s'") % self.getParam(0))
+			raise ValueError(_("Invalid command: '%s'") % self.getParam(0))
 
 	def question(self, question):
 		question = forceUnicode(question)
@@ -809,20 +809,20 @@ class Shell:
 			if interactive:
 				self.screen.move(self.yMax - 1, 0)
 				self.screen.clrtoeol()
-				self.screen.addstr(_(u"Please type password:"))
+				self.screen.addstr(_("Please type password:"))
 				self.screen.refresh()
 				password1 = self.screen.getstr()
 
 				self.screen.move(self.yMax - 1, 0)
 				self.screen.clrtoeol()
-				self.screen.addstr(_(u"Please retype password:"))
+				self.screen.addstr(_("Please retype password:"))
 				self.screen.refresh()
 				password2 = self.screen.getstr()
 
 				if password1 != password2:
 					self.screen.move(self.yMax - 1, 0)
 					self.screen.clrtoeol()
-					self.screen.addstr(_(u"Supplied passwords do not match"))
+					self.screen.addstr(_("Supplied passwords do not match"))
 					self.screen.refresh()
 					time.sleep(2)
 			else:
@@ -1095,16 +1095,16 @@ class Command:
 		return self.name
 
 	def getDescription(self):
-		return u""
+		return ""
 
 	def completion(self, params, paramPos):
 		return []
 
 	def help(self, shell):
-		shell.appendLine(u"")
+		shell.appendLine("")
 
 	def execute(self, shell, params):
-		raise NotImplementedError(u"Nothing to do.")
+		raise NotImplementedError("Nothing to do.")
 
 
 class CommandMethod(Command):
@@ -1113,13 +1113,13 @@ class CommandMethod(Command):
 		self.interface = backend.backend_getInterface()
 
 	def getDescription(self):
-		return _(u"Execute a config-interface-method")
+		return _("Execute a config-interface-method")
 
 	def help(self, shell):
-		shell.appendLine(u"\r{0}\n".format(_(u"Methods are:")))
+		shell.appendLine("\r{0}\n".format(_("Methods are:")))
 		for method in backend.backend_getInterface():
 			logger.debug(method)
-			shell.appendLine(u"\r%s\n" % method.get('name'))
+			shell.appendLine("\r%s\n" % method.get('name'))
 
 	def completion(self, params, paramPos):
 		completions = []
@@ -1154,7 +1154,7 @@ class CommandMethod(Command):
 
 		if methodName == u'list':
 			for methodDescription in self.interface:
-				shell.appendLine(u"%s%s" % (methodDescription.get('name'), tuple(methodDescription.get('params'))), refresh=False)
+				shell.appendLine("%s%s" % (methodDescription.get('name'), tuple(methodDescription.get('params'))), refresh=False)
 			shell.display()
 			return
 
@@ -1163,7 +1163,7 @@ class CommandMethod(Command):
 				methodInterface = methodDescription
 				break
 		else:
-			raise OpsiRpcError(u"Method '%s' is not valid" % methodName)
+			raise OpsiRpcError("Method '%s' is not valid" % methodName)
 
 		params = params[1:]
 		keywords = {}
@@ -1178,7 +1178,7 @@ class CommandMethod(Command):
 				# Do not create Object instances!
 				params[-1] = fromJson(params[-1], preventObjectCreation=True)
 				if not isinstance(params[-1], dict):
-					raise ValueError(u"kwargs param is not a dict: %s" % params[-1])
+					raise ValueError("kwargs param is not a dict: %s" % params[-1])
 
 				for (key, value) in params.pop(-1).items():
 					keywords[str(key)] = deserialize(value)
@@ -1250,7 +1250,7 @@ class CommandMethod(Command):
 								lines.append(u'%s=%s' % (key, value))
 							lines.append(u'')
 						elif isinstance(resultElement, (tuple, list)):
-							raise ValueError(u"Simple output not possible for list of lists")
+							raise ValueError("Simple output not possible for list of lists")
 						else:
 							lines.append(forceUnicode(resultElement))
 				else:
@@ -1285,7 +1285,7 @@ class CommandMethod(Command):
 					exitCode = proc.poll()
 					if lines:
 						for line in lines:
-							proc.stdin.write((u"%s\n" % line).encode(outEncoding, 'replace'))
+							proc.stdin.write(("%s\n" % line).encode(outEncoding, 'replace'))
 						lines = []
 						proc.stdin.close()
 
@@ -1319,7 +1319,7 @@ class CommandSet(Command):
 		Command.__init__(self, u'set')
 
 	def getDescription(self):
-		return _(u"Settings")
+		return _("Settings")
 
 	def completion(self, params, paramPos):
 		completions = []
@@ -1381,12 +1381,12 @@ class CommandHelp(Command):
 		Command.__init__(self, u'help')
 
 	def getDescription(self):
-		return _(u"Show this text")
+		return _("Show this text")
 
 	def execute(self, shell, params):
-		shell.appendLine(u'\r' + _(u"Commands are:") + u'\n', refresh=False)
+		shell.appendLine(u'\r' + _("Commands are:") + u'\n', refresh=False)
 		for cmd in shell.commands:
-			shell.appendLine(u"\r\t%-20s%s\n" % (cmd.getName() + ':', cmd.getDescription()), refresh=False)
+			shell.appendLine("\r\t%-20s%s\n" % (cmd.getName() + ':', cmd.getDescription()), refresh=False)
 		shell.display()
 
 
@@ -1395,7 +1395,7 @@ class CommandQuit(Command):
 		Command.__init__(self, u'quit')
 
 	def getDescription(self):
-		return _(u"Exit opsi-admin")
+		return _("Exit opsi-admin")
 
 	def execute(self, shell, params):
 		shell.exit()
@@ -1411,7 +1411,7 @@ class CommandHistory(Command):
 		Command.__init__(self, u'history')
 
 	def getDescription(self):
-		return _(u"show / clear command history")
+		return _("show / clear command history")
 
 	def completion(self, params, paramPos):
 		completions = []
@@ -1448,7 +1448,7 @@ class CommandLog(Command):
 		Command.__init__(self, u'log')
 
 	def getDescription(self):
-		return _(u"show log")
+		return _("show log")
 
 	def completion(self, params, paramPos):
 		completions = []
@@ -1495,7 +1495,7 @@ class CommandTask(Command):
 		)
 
 	def getDescription(self):
-		return _(u"execute a task")
+		return _("execute a task")
 
 	def help(self, shell):
 		shell.appendLine(u'')
