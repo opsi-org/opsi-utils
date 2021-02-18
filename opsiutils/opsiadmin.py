@@ -80,17 +80,17 @@ COLORS_AVAILABLE = [
 	COLOR_LIGHT_MAGENTA, COLOR_LIGHT_CYAN, COLOR_LIGHT_WHITE
 ]
 
-backend = None
-exitZero = False
-shell = None
-logFile = None
-interactive = False
+backend = None  # pylint: disable=invalid-name
+exitZero = False  # pylint: disable=invalid-name
+shell = None  # pylint: disable=invalid-name
+logFile = None  # pylint: disable=invalid-name
+interactive = False  # pylint: disable=invalid-name
 
-outEncoding = sys.stdout.encoding
-inEncoding = sys.stdin.encoding
-if not outEncoding or (outEncoding == 'ascii'):
+outEncoding = sys.stdout.encoding  # pylint: disable=invalid-name
+inEncoding = sys.stdin.encoding  # pylint: disable=invalid-name
+if not outEncoding or outEncoding == 'ascii':
 	outEncoding = locale.getpreferredencoding()
-if not outEncoding or (outEncoding == 'ascii'):
+if not outEncoding or outEncoding == 'ascii':
 	outEncoding = 'utf-8'
 
 if not inEncoding or (inEncoding == 'ascii'):
@@ -134,8 +134,8 @@ try:
 	sp = os.path.join(sp, 'opsi-utils_data', 'locale')
 	translation = gettext.translation('opsi-utils', sp)
 	_ = translation.gettext
-except Exception as error:
-	logger.debug("Failed to load locale from %s: %s", sp, error)
+except Exception as err:  # pylint: disable=broad-except
+	logger.debug("Failed to load locale from %s: %s", sp, err)
 
 	def _(string):
 		""" Fallback function """
@@ -146,7 +146,7 @@ class ErrorInResultException(Exception):
 	"Indicates that there is an error in the result."
 
 
-def signalHandler(signo, stackFrame):
+def signalHandler(signo, stackFrame):  # pylint: disable=unused-argument
 	from signal import SIGINT, SIGQUIT
 	logger.info("Received signal %s", signo)
 	if signo == SIGINT:
@@ -156,16 +156,16 @@ def signalHandler(signo, stackFrame):
 		sys.exit(0)
 
 
-def shell_main(argv):
+def shell_main():
 	os.umask(0o077)
-	global interactive
-	global exitZero
-	global logFile
+	global interactive  # pylint: disable=global-statement,invalid-name
+	global exitZero  # pylint: disable=global-statement,invalid-name
+	global logFile  # pylint: disable=global-statement,invalid-name
 
 	try:
 		username = forceUnicode(pwd.getpwuid(os.getuid())[0])
-	except Exception:
-		username = u''
+	except Exception:  # pylint: disable=broad-except
+		username = ''
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version',
@@ -177,7 +177,7 @@ def shell_main(argv):
 						help=_("Path to log file"))
 	parser.add_argument('--address', '-a', default='https://localhost:4447/rpc',
 						help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"))
-	parser.add_argument('--username', '-u', default=username,
+	parser.add_argument('--username', '-', default=username,
 						help=_("Username (default: current user)"))
 	parser.add_argument('--password', '-p',
 						help=_("Password (default: prompt for password)"))
@@ -233,14 +233,14 @@ def shell_main(argv):
 
 	logging_config(stderr_level = LOG_NONE if interactive else options.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 
-	global backend
+	global backend  # pylint: disable=global-statement,invalid-name
 	try:
 		if direct:
 			# Create BackendManager
 			backend = BackendManager(
-				dispatchConfigFile=u'/etc/opsi/backendManager/dispatch.conf',
-				backendConfigDir=u'/etc/opsi/backends',
-				extensionConfigDir=u'/etc/opsi/backendManager/extend.d',
+				dispatchConfigFile='/etc/opsi/backendManager/dispatch.conf',
+				backendConfigDir='/etc/opsi/backends',
+				extensionConfigDir='/etc/opsi/backendManager/extend.d',
 				depotBackend=depotBackend,
 				hostControlBackend=True,
 				hostControlSafeBackend=True
@@ -261,24 +261,23 @@ def shell_main(argv):
 				username = username or opsircConfig['username']
 			except KeyError:
 				try:
-					import pwd
 					username = forceUnicode(pwd.getpwuid(os.getuid())[0])
-				except Exception:
-					username = u''
+				except Exception:  # pylint: disable=broad-except
+					username = ''
 
 			try:
 				address = address or opsircConfig['address']
 			except KeyError:
-				address = u'https://localhost:4447/rpc'
+				address = 'https://localhost:4447/rpc'
 
 			# Connect to opsiconfd
 			if not password:
 				try:
 					password = getpass.getpass()
-				except Exception:
+				except Exception:  # pylint: disable=broad-except
 					pass
 
-			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), u'.opsi.org'))
+			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), '.opsi.org'))
 			if not os.path.exists(opsiadminUserDir):
 				try:
 					os.mkdir(opsiadminUserDir)
@@ -286,7 +285,7 @@ def shell_main(argv):
 					logger.info("Could not create %s.", opsiadminUserDir)
 
 			sessionId = None
-			sessionFile = os.path.join(opsiadminUserDir, u'session')
+			sessionFile = os.path.join(opsiadminUserDir, 'session')
 			try:
 				with codecs.open(sessionFile, 'r', 'utf-8') as session:
 					for line in session:
@@ -294,11 +293,11 @@ def shell_main(argv):
 						if line:
 							sessionId = forceUnicode(line)
 							break
-			except IOError as error:
-				if error.errno != 2:  # 2 is No such file or directory
-					logger.error("Failed to read session file '%s': %s", sessionFile, forceUnicode(error))
-			except Exception as error:
-				logger.error("Failed to read session file '%s': %s", sessionFile, forceUnicode(error))
+			except IOError as err:
+				if err.errno != 2:  # 2 is No such file or directory
+					logger.error("Failed to read session file '%s': %s", sessionFile, err)
+			except Exception as err:  # pylint: disable=broad-except
+				logger.error("Failed to read session file '%s': %s", sessionFile, err)
 
 			from OPSI.Backend.JSONRPC import JSONRPCBackend
 			backend = JSONRPCBackend(
@@ -316,10 +315,10 @@ def shell_main(argv):
 				try:
 					with codecs.open(sessionFile, 'w', 'utf-8') as session:
 						session.write("%s\n" % sessionId)
-				except Exception as error:
-					logger.error("Failed to write session file '%s': %s", sessionFile, forceUnicode(error))
+				except Exception as err:  # pylint: disable=broad-except
+					logger.error("Failed to write session file '%s': %s", sessionFile, err)
 
-		cmdline = u''
+		cmdline = ''
 		for i, argument in enumerate(options.command, start=0):
 			logger.info("arg[%s]: %s", i, argument)
 			if i == 0:
@@ -338,11 +337,11 @@ def shell_main(argv):
 
 		logger.debug("cmdline: '%s'", cmdline)
 
-		global shell
+		global shell  # pylint: disable=global-statement,invalid-name
 		if interactive:
 			try:
 				logger.notice("Starting interactive mode")
-				shell = Shell(prompt=u'%s@opsi-admin>' % username, output=output, color=color, cmdline=cmdline)
+				shell = Shell(prompt='%s@opsi-admin>' % username, output=output, color=color, cmdline=cmdline)
 				shell.setInfoline("Connected to %s" % address)
 
 				for line in LOGO:
@@ -373,8 +372,8 @@ To exit opsi-admin please type 'exit'."""
 						searchForError(element)
 
 			try:
-				shell = Shell(prompt=u'%s@opsi-admin>' % username, output=output, color=color)
-				for cmd in cmdline.split(u'\n'):
+				shell = Shell(prompt='%s@opsi-admin>' % username, output=output, color=color)
+				for cmd in cmdline.split('\n'):
 					if cmd:
 						shell.cmdline = cmd
 						shell.execute()
@@ -384,7 +383,7 @@ To exit opsi-admin please type 'exit'."""
 					print(line['text'].rstrip())
 
 				try:
-					resultAsJSON = json.loads(u'\n'.join([line['text'] for line in shell.lines]))
+					resultAsJSON = json.loads('\n'.join([line['text'] for line in shell.lines]))
 					searchForError(dict(resultAsJSON))
 				except (TypeError, ValueError) as error:
 					logger.debug2("Conversion to dict failed: %s", error)
@@ -397,18 +396,18 @@ To exit opsi-admin please type 'exit'."""
 		if backend:
 			try:
 				backend.backend_exit()
-			except Exception:
+			except Exception:  # pylint: disable=broad-except
 				pass
 
 
-def startLogFile(logFile, logLevel):
-	with codecs.open(logFile, 'w', 'utf-8') as log:
-		log.write("Starting log at: %s" % forceUnicode(time.strftime("%a, %d %b %Y %H:%M:%S")))
-	logging_config(log_file = logFile, file_level = logLevel)
+def startLogFile(log_file, logLevel):
+	with codecs.open(log_file, 'w', 'utf-8') as log:
+		log.write(f"Starting log at: {time.strftime('%a, %d %b %Y %H:%M:%S')}")
+	logging_config(log_file=log_file, file_level=logLevel)
 
-class Shell:
+class Shell:  # pylint: disable=too-many-instance-attributes
 
-	def __init__(self, prompt=u'opsi-admin>', output=u'JSON', color=True, cmdline=u''):
+	def __init__(self, prompt='opsi-admin>', output='JSON', color=True, cmdline=''):
 		self.color = forceBool(color)
 		self.output = forceUnicode(output)
 		self.running = False
@@ -416,19 +415,20 @@ class Shell:
 		self.cmdBufferSize = 1024
 		self.userConfigDir = None
 		self.prompt = forceUnicode(prompt)
-		self.infoline = u'opsi admin started'
+		self.infoline = 'opsi admin started'
 		self.yMax = 0
 		self.xMax = 0
 		self.pos = len(cmdline)
 		self.lines = []
 		self.linesBack = 0
 		self.linesMax = 0
+		self.params = []
 		self.paramPos = -1
 		self.currentParam = None
 		self.cmdListPos = 0
 		self.cmdList = []
 		self.cmdline = forceUnicode(cmdline)
-		self.shellCommand = u''
+		self.shellCommand = ''
 		self.reverseSearch = None
 		self.commands = [
 			CommandMethod(),
@@ -456,7 +456,7 @@ class Shell:
 		else:
 			logger.error('Failed to get home directory from environment!')
 
-		historyFile = forceFilename(os.path.join(self.userConfigDir, u'history'))
+		historyFile = forceFilename(os.path.join(self.userConfigDir, 'history'))
 		try:
 			with codecs.open(historyFile, 'r', 'utf-8', 'replace') as history:
 				for line in history:
@@ -466,8 +466,8 @@ class Shell:
 					self.cmdListPos += 1
 		except FileNotFoundError:
 			logger.debug("History %s file not found.", historyFile)
-		except Exception as error:
-			logger.error("Failed to read history file '%s': %s", historyFile, forceUnicode(error))
+		except Exception as err:  # pylint: disable=broad-except
+			logger.error("Failed to read history file '%s': %s", historyFile, err)
 
 	def setColor(self, color):
 		color = forceBool(color)
@@ -482,7 +482,7 @@ class Shell:
 		if not self.screen:
 			try:
 				self.screen = curses.initscr()
-			except:
+			except Exception:  # pylint: disable=broad-except
 				# setupterm: could not find terminal
 				os.environ["TERM"] = "linux"
 				self.screen = curses.initscr()
@@ -512,7 +512,7 @@ class Shell:
 
 	def sigint(self):
 		self.pos = 0
-		self.setCmdline(u'')
+		self.setCmdline('')
 		self.reverseSearch = None
 
 	def run(self):
@@ -521,15 +521,15 @@ class Shell:
 		self.initScreen()
 
 		if self.cmdline:
-			for cmd in self.cmdline.split(u'\n'):
+			for cmd in self.cmdline.split('\n'):
 				self.cmdline = cmd
 				self.appendLine("%s %s" % (self.prompt, self.cmdline))
 				if self.cmdline:
 					try:
 						self.execute()
-					except Exception as error:
-						lines = forceUnicode(error).split(u'\n')
-						lines[0] = "ERROR: %s" % lines[0]
+					except Exception as err:  # pylint: disable=broad-except
+						lines = str(err).split('\n')
+						lines[0] = f"ERROR: {lines[0]}"
 						for line in lines:
 							self.appendLine(line, COLOR_RED)
 
@@ -546,8 +546,8 @@ class Shell:
 			if self.question(_("Delete log-file '%s'?") % logFile):
 				try:
 					os.unlink(logFile)
-				except OSError as error:
-					logger.error("Failed to delete log-file '%s': %s", logFile, forceUnicode(error))
+				except OSError as err:
+					logger.error("Failed to delete log-file '%s': %s", logFile, err)
 
 		historyFilePath = os.path.join(self.userConfigDir, 'history')
 		try:
@@ -556,8 +556,8 @@ class Shell:
 					if not line or line in ('quit', 'exit'):
 						continue
 					history.write("%s\n" % line)
-		except Exception as error:
-			logger.error("Failed to write history file '%s': %s", historyFilePath, forceUnicode(error))
+		except Exception as err:  # pylint: disable=broad-except
+			logger.error("Failed to write history file '%s': %s", historyFilePath, err)
 
 		self.exitScreen()
 		self.running = False
@@ -570,28 +570,28 @@ class Shell:
 			return
 		self.screen.move(0, 0)
 		self.screen.clrtoeol()
-		shellLine = self.infoline + (self.xMax - len(self.infoline)) * u' '
+		shellLine = self.infoline + (self.xMax - len(self.infoline)) * ' '
 		try:
 			self.screen.addstr(shellLine, curses.A_REVERSE)
-		except Exception as error:
-			logger.error("Failed to add string '%s': %s", shellLine, forceUnicode(error))
+		except Exception as err:  # pylint: disable=broad-except
+			logger.error("Failed to add string '%s': %s", shellLine, err)
 
-		height = int(len(self.prompt + u' ' + self.cmdline) / self.xMax) + 1
-		clear = self.xMax - (len(self.prompt + u' ' + self.cmdline) % self.xMax) - 1
+		height = int(len(self.prompt + ' ' + self.cmdline) / self.xMax) + 1
+		clear = self.xMax - (len(self.prompt + ' ' + self.cmdline) % self.xMax) - 1
 
 		self.linesMax = self.yMax - height - 1
 		self.screen.move(self.yMax - height, 0)
 		self.screen.clrtoeol()
-		shellLine = "%s %s%s" % (self.prompt, self.cmdline, u' ' * clear)
+		shellLine = "%s %s%s" % (self.prompt, self.cmdline, ' ' * clear)
 		try:
 			self.screen.addstr(shellLine, curses.A_BOLD)
-		except Exception as error:
-			logger.error("Failed to add string '%s': %s", shellLine, forceUnicode(error))
+		except Exception as err:  # pylint: disable=broad-except
+			logger.error("Failed to add string '%s': %s", shellLine, err)
 
 		for i in range(0, self.linesMax):
 			self.screen.move(self.linesMax - i, 0)
 			self.screen.clrtoeol()
-			shellLine = u''
+			shellLine = ''
 			color = None
 			if len(self.lines) - self.linesBack > i:
 				shellLine = self.lines[len(self.lines) - self.linesBack - 1 - i]['text']
@@ -619,11 +619,11 @@ class Shell:
 					self.screen.addstr(shellLine, color)
 				else:
 					self.screen.addstr(shellLine)
-			except Exception as error:
-				logger.error("Failed to add string '%s': %s", shellLine, forceUnicode(error))
+			except Exception as err:  # pylint: disable=broad-except
+				logger.error("Failed to add string '%s': %s", shellLine, err)
 
-		moveY = self.yMax - height + int((len(self.prompt + u' ') + self.pos) / self.xMax)
-		moveX = ((len(self.prompt + u' ') + self.pos) % self.xMax)
+		moveY = self.yMax - height + int((len(self.prompt + ' ') + self.pos) / self.xMax)
+		moveX = ((len(self.prompt + ' ') + self.pos) % self.xMax)
 		self.screen.move(moveY, moveX)
 		self.screen.refresh()
 
@@ -647,7 +647,7 @@ class Shell:
 				color = COLOR_RED
 
 		for availableColor in COLORS_AVAILABLE:
-			line = line.replace(availableColor, u'')
+			line = line.replace(availableColor, '')
 
 		while self.xMax and (len(line) > self.xMax):
 			self.lines.append({"text": line[:self.xMax], "color": color})
@@ -675,7 +675,7 @@ class Shell:
 		self.parseCmdline()
 		if len(self.params) > i:
 			return self.params[i]
-		return u''
+		return ''
 
 	def parseCmdline(self):
 		self.params = []
@@ -685,18 +685,18 @@ class Shell:
 		if not self.cmdline:
 			return
 
-		self.shellCommand = u''
+		self.shellCommand = ''
 		cmdline = self.cmdline
 		if '|' in cmdline:
 			quoteCount = 0
 			doubleQuoteCount = 0
-			parts = cmdline.split(u'|')
+			parts = cmdline.split('|')
 			for i, part in enumerate(parts):
 				quoteCount += part.count("'")
-				doubleQuoteCount += part.count(u'"')
+				doubleQuoteCount += part.count('"')
 				if (quoteCount % 2 == 0) and (doubleQuoteCount % 2 == 0):
-					cmdline = u'|'.join(parts[:i + 1])
-					self.shellCommand = u'|'.join(parts[i + 1:]).lstrip()
+					cmdline = '|'.join(parts[:i + 1])
+					self.shellCommand = '|'.join(parts[i + 1:]).lstrip()
 					break
 
 		cur = 0
@@ -707,7 +707,7 @@ class Shell:
 				element, quote, cur, self.params
 			)
 			if len(self.params) < cur + 1:
-				self.params.append(u'')
+				self.params.append('')
 
 			if i == self.pos - 1:
 				self.paramPos = cur
@@ -720,18 +720,18 @@ class Shell:
 						cur += 1
 					quote = None
 				else:
-					self.params[cur] += u'\''
-			elif element == u'"':
+					self.params[cur] += '\''
+			elif element == '"':
 				if quote is None:
-					self.params[cur] += u'"'
-					quote = u'"'
-				elif quote == u'"':
-					self.params[cur] += u'"'
+					self.params[cur] += '"'
+					quote = '"'
+				elif quote == '"':
+					self.params[cur] += '"'
 					if not self.params[cur]:
 						cur += 1
 					quote = None
 				else:
-					self.params[cur] += u'"'
+					self.params[cur] += '"'
 			elif element == " ":
 				if quote is not None:
 					self.params[cur] += element
@@ -740,14 +740,14 @@ class Shell:
 			else:
 				self.params[cur] += element
 
-		if not quote and self.params and self.params[-1] and self.pos == len(cmdline) and cmdline.endswith(u' '):
-			self.params.append(u'')
+		if not quote and self.params and self.params[-1] and self.pos == len(cmdline) and cmdline.endswith(' '):
+			self.params.append('')
 			self.paramPos += 1
 
 		if self.params:
 			self.currentParam = self.params[self.paramPos]
 		else:
-			self.currentParam = u''
+			self.currentParam = ''
 
 		logger.debug("cmdline: '%s'", cmdline)
 		logger.debug2(
@@ -776,10 +776,10 @@ class Shell:
 				invalid = False
 				try:
 					command.execute(self, self.getParams()[1:])
-				except Exception as error:
-					message = "Failed to execute %s: %s" % (self.cmdline, forceUnicode(error))
+				except Exception as err:
+					message = f"Failed to execute {self.cmdline}: {err}"
 					logger.error(message, exc_info=True)
-					raise RuntimeError(message)
+					raise RuntimeError(message) from err
 				break
 
 		if invalid:
@@ -790,7 +790,7 @@ class Shell:
 		if interactive:
 			self.screen.move(self.yMax - 1, 0)
 			self.screen.clrtoeol()
-			self.screen.addstr(question + u' (n/y)')
+			self.screen.addstr(question + ' (n/y)')
 			self.screen.refresh()
 			char = None
 			while True:
@@ -803,8 +803,8 @@ class Shell:
 		return False
 
 	def getPassword(self):
-		password1 = u''
-		password2 = u''
+		password1 = ''
+		password2 = ''
 		while not password1 or (password1 != password2):
 			if interactive:
 				self.screen.move(self.yMax - 1, 0)
@@ -834,7 +834,7 @@ class Shell:
 	def getCommand(self):
 		char = None
 		self.pos = 0
-		self.setCmdline(u'')
+		self.setCmdline('')
 		self.reverseSearch = None
 
 		while not char or (char != 10):
@@ -1035,7 +1035,7 @@ class Shell:
 						if not isinstance(char, str):
 							try:
 								char = str(char)
-							except Exception:
+							except Exception:  # pylint: disable=broad-except
 								char += self.screen.getkey()
 								char = str(char)
 
@@ -1044,8 +1044,8 @@ class Shell:
 						else:
 							newPos = self.pos + 1
 							newCmdline = self.cmdline[0:self.pos] + char + self.cmdline[self.pos:]
-					except Exception as error:
-						logger.error("Failed to add char %r: %s", char, error)
+					except Exception as err:  # pylint: disable=broad-except
+						logger.error("Failed to add char %r: %s", char, err)
 
 				try:
 					if self.reverseSearch is not None:
@@ -1063,8 +1063,8 @@ class Shell:
 
 					self.pos = newPos
 					self.setCmdline(newCmdline)
-				except Exception as error:
-					self.setInfoline(forceUnicode(error))
+				except Exception as err:  # pylint: disable=broad-except
+					self.setInfoline(str(err))
 
 			if not textInput:
 				if self.reverseSearch is not None:
@@ -1077,9 +1077,9 @@ class Shell:
 		if self.cmdline:
 			try:
 				self.execute()
-			except Exception as error:
-				lines = forceUnicode(error).split('\n')
-				lines[0] = "ERROR: %s" % lines[0]
+			except Exception as err:  # pylint: disable=broad-except
+				lines = str(err).split('\n')
+				lines[0] = f"ERROR: {lines[0]}"
 				for line in lines:
 					self.appendLine(line, COLOR_RED)
 
@@ -1097,25 +1097,25 @@ class Command:
 	def getDescription(self):
 		return ""
 
-	def completion(self, params, paramPos):
+	def completion(self, params, paramPos):  # pylint: disable=unused-argument
 		return []
 
-	def help(self, shell):
+	def help(self, shell):  # pylint: disable=unused-argument,redefined-outer-name
 		shell.appendLine("")
 
-	def execute(self, shell, params):
+	def execute(self, shell, params):  # pylint: disable=unused-argument,redefined-outer-name
 		raise NotImplementedError("Nothing to do.")
 
 
 class CommandMethod(Command):
 	def __init__(self):
-		Command.__init__(self, u'method')
+		Command.__init__(self, 'method')
 		self.interface = backend.backend_getInterface()
 
 	def getDescription(self):
 		return _("Execute a config-interface-method")
 
-	def help(self, shell):
+	def help(self, shell):  # pylint: disable=redefined-outer-name
 		shell.appendLine("\r{0}\n".format(_("Methods are:")))
 		for method in backend.backend_getInterface():
 			logger.debug(method)
@@ -1125,13 +1125,13 @@ class CommandMethod(Command):
 		completions = []
 
 		if paramPos == 0:
-			completions.append(u'list')
+			completions.append('list')
 			for m in self.interface:
-				completions.append(m.get(u'name'))
+				completions.append(m.get('name'))
 
 		elif paramPos == 1:
-			if u'list'.startswith(params[0]):
-				completions.append(u'list')
+			if 'list'.startswith(params[0]):
+				completions.append('list')
 			for m in self.interface:
 				if m.get('name').startswith(params[0]):
 					completions.append(m.get('name'))
@@ -1145,14 +1145,14 @@ class CommandMethod(Command):
 
 		return completions
 
-	def execute(self, shell, params):
+	def execute(self, shell, params):  # pylint: disable=too-many-statements,redefined-outer-name
 		if len(params) <= 0:
-			shell.appendLine(_(u'No method defined'))
+			shell.appendLine(_('No method defined'))
 			return
 
 		methodName = params[0]
 
-		if methodName == u'list':
+		if methodName == 'list':
 			for methodDescription in self.interface:
 				shell.appendLine("%s%s" % (methodDescription.get('name'), tuple(methodDescription.get('params'))), refresh=False)
 			shell.display()
@@ -1187,17 +1187,17 @@ class CommandMethod(Command):
 			"Tries to return object from JSON. If this fails returns unicode."
 			try:
 				return fromJson(obj)
-			except Exception as error:
-				logger.debug("Not a json string '%s': %s", obj, error)
+			except Exception as err:  # pylint: disable=broad-except
+				logger.debug("Not a json string '%s': %s", obj, err)
 				return forceUnicode(obj)
 
 		params = [createObjectOrString(item) for item in params]
 
 		pString = str(params)[1:-1]
 		if keywords:
-			pString += u', ' + str(keywords)
+			pString += ', ' + str(keywords)
 		if len(pString) > 200:
-			pString = pString[:200] + u'...'
+			pString = pString[:200] + '...'
 
 		result = None
 
@@ -1213,19 +1213,19 @@ class CommandMethod(Command):
 
 		duration = time.time() - start
 		logger.debug('Took %0.3f seconds to process: %s(%s)', duration, methodName, pString)
-		shell.setInfoline(_(u'Took %0.3f seconds to process: %s(%s)') % (duration, methodName, pString))
+		shell.setInfoline(_('Took %0.3f seconds to process: %s(%s)') % (duration, methodName, pString))
 		result = serialize(result)
 		logger.debug2("Serialized result: '%s'", result)
 
 		if result is not None:
 			lines = []
-			if shell.output == u'RAW':
+			if shell.output == 'RAW':
 				lines.append(toJson(result))
 
-			elif shell.output == u'JSON':
-				lines = objectToBeautifiedText(result).split(u'\n')
+			elif shell.output == 'JSON':
+				lines = objectToBeautifiedText(result).split('\n')
 
-			elif shell.output == u'SHELL':
+			elif shell.output == 'SHELL':
 				bashVars = objectToBash(result, {})
 				for index in range(len(bashVars) - 1, -2, -1):
 					if index == -1:
@@ -1233,22 +1233,22 @@ class CommandMethod(Command):
 
 					value = bashVars.get('RESULT%s' % index)
 					if value:
-						lines.append(u'RESULT%s=%s' % (index, value))
+						lines.append('RESULT%s=%s' % (index, value))
 
-			elif shell.output == u'SIMPLE':
+			elif shell.output == 'SIMPLE':
 				if isinstance(result, dict):
 					for (key, value) in result.items():
 						if isinstance(value, bool):
 							value = forceUnicodeLower(value)
-						lines.append(u'%s=%s' % (key, value))
+						lines.append('%s=%s' % (key, value))
 				elif isinstance(result, (tuple, list, set)):
 					for resultElement in result:
 						if isinstance(resultElement, dict):
 							for (key, value) in resultElement.items():
 								if isinstance(value, bool):
 									value = forceUnicodeLower(value)
-								lines.append(u'%s=%s' % (key, value))
-							lines.append(u'')
+								lines.append('%s=%s' % (key, value))
+							lines.append('')
 						elif isinstance(resultElement, (tuple, list)):
 							raise ValueError("Simple output not possible for list of lists")
 						else:
@@ -1306,9 +1306,9 @@ class CommandMethod(Command):
 							raise
 
 				if exitCode != 0:
-					raise Exception(u'Exitcode: %s\n%s' % ((exitCode * -1), str(err, encoding, 'replace')))
+					raise Exception('Exitcode: %s\n%s' % ((exitCode * -1), str(err, encoding, 'replace')))
 
-				lines = str(buf, encoding, 'replace').split(u'\n')
+				lines = str(buf, encoding, 'replace').split('\n')
 
 			for line in lines:
 				shell.appendLine(line, COLOR_GREEN)
@@ -1316,7 +1316,7 @@ class CommandMethod(Command):
 
 class CommandSet(Command):
 	def __init__(self):
-		Command.__init__(self, u'set')
+		Command.__init__(self, 'set')
 
 	def getDescription(self):
 		return _("Settings")
@@ -1325,66 +1325,66 @@ class CommandSet(Command):
 		completions = []
 
 		if paramPos == 0 or not params[0]:
-			completions = [u'color', u'log-file', u'log-level']
+			completions = ['color', 'log-file', 'log-level']
 
 		elif paramPos == 1:
-			if u'color'.startswith(params[0]):
-				completions = [u'color']
-			if u'log-file'.startswith(params[0]):
-				completions = [u'log-file']
-			if u'log-level'.startswith(params[0]):
-				completions.append(u'log-level')
+			if 'color'.startswith(params[0]):
+				completions = ['color']
+			if 'log-file'.startswith(params[0]):
+				completions = ['log-file']
+			if 'log-level'.startswith(params[0]):
+				completions.append('log-level')
 
 		elif paramPos == 2:
-			if params[0] == u'color':
-				completions = [u'on', u'off']
-			elif params[0] == u'log-file':
-				completions = [u'<filename>', u'off']
-			elif params[0] == u'log-level':
-				completions = [u'0', u'1', u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9']
+			if params[0] == 'color':
+				completions = ['on', 'off']
+			elif params[0] == 'log-file':
+				completions = ['<filename>', 'off']
+			elif params[0] == 'log-level':
+				completions = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 		return completions
 
 	def execute(self, shell, params):
-		global logFile
+		global logFile  # pylint: disable=global-statement,invalid-name
 
 		if len(params) <= 0:
-			raise ValueError(_(u'Missing option'))
-		if params[0] not in (u'color', u'log-file', u'log-level'):
-			raise ValueError(_(u'Unknown option: %s') % params[0])
+			raise ValueError(_('Missing option'))
+		if params[0] not in ('color', 'log-file', 'log-level'):
+			raise ValueError(_('Unknown option: %s') % params[0])
 		if len(params) <= 1:
-			raise ValueError(_(u'Missing value'))
+			raise ValueError(_('Missing value'))
 
-		if params[0] == u'color':
-			if params[1] == u'on':
+		if params[0] == 'color':
+			if params[1] == 'on':
 				shell.setColor(True)
-			elif params[1] == u'off':
+			elif params[1] == 'off':
 				shell.setColor(False)
 			else:
-				raise ValueError(_(u'Bad value: %s') % params[1])
+				raise ValueError(_('Bad value: %s') % params[1])
 
-		elif params[0] == u'log-file':
-			if params[1] == u'off':
+		elif params[0] == 'log-file':
+			if params[1] == 'off':
 				logging_config(file_level = LOG_NONE)
 			else:
 				logFile = params[1]
 				startLogFile(logFile, LOG_DEBUG)
 
-		elif params[0] == u'log-level':
+		elif params[0] == 'log-level':
 			if not logFile:
-				raise ValueError(_(u'No log-file set!'))
+				raise ValueError(_('No log-file set!'))
 			logging_config(file_level = int(params[1]))
 
 
 class CommandHelp(Command):
 	def __init__(self):
-		Command.__init__(self, u'help')
+		Command.__init__(self, 'help')
 
 	def getDescription(self):
 		return _("Show this text")
 
 	def execute(self, shell, params):
-		shell.appendLine(u'\r' + _("Commands are:") + u'\n', refresh=False)
+		shell.appendLine('\r' + _("Commands are:") + '\n', refresh=False)
 		for cmd in shell.commands:
 			shell.appendLine("\r\t%-20s%s\n" % (cmd.getName() + ':', cmd.getDescription()), refresh=False)
 		shell.display()
@@ -1392,7 +1392,7 @@ class CommandHelp(Command):
 
 class CommandQuit(Command):
 	def __init__(self):
-		Command.__init__(self, u'quit')
+		Command.__init__(self, 'quit')
 
 	def getDescription(self):
 		return _("Exit opsi-admin")
@@ -1403,12 +1403,12 @@ class CommandQuit(Command):
 
 class CommandExit(CommandQuit):
 	def __init__(self):
-		Command.__init__(self, u'exit')
+		Command.__init__(self, 'exit')
 
 
 class CommandHistory(Command):
 	def __init__(self):
-		Command.__init__(self, u'history')
+		Command.__init__(self, 'history')
 
 	def getDescription(self):
 		return _("show / clear command history")
@@ -1417,35 +1417,35 @@ class CommandHistory(Command):
 		completions = []
 
 		if paramPos == 0 or not params[0]:
-			completions = [u'clear', u'show']
+			completions = ['clear', 'show']
 
 		elif paramPos == 1:
-			if u'clear'.startswith(params[0]):
-				completions = [u'clear']
-			elif u'show'.startswith(params[0]):
-				completions = [u'show']
+			if 'clear'.startswith(params[0]):
+				completions = ['clear']
+			elif 'show'.startswith(params[0]):
+				completions = ['show']
 
 		return completions
 
 	def execute(self, shell, params):
 		if len(params) <= 0:
 			# By default: show history
-			params = [u'show']
-		elif params[0] not in (u'clear', u'show'):
-			raise ValueError(_(u'Unknown command: %s') % params[0])
+			params = ['show']
+		elif params[0] not in ('clear', 'show'):
+			raise ValueError(_('Unknown command: %s') % params[0])
 
-		if params[0] == u'show':
+		if params[0] == 'show':
 			for line in shell.cmdList:
 				shell.appendLine(line, refresh=False)
 			shell.display()
-		elif params[0] == u'clear':
+		elif params[0] == 'clear':
 			shell.cmdList = []
 			shell.cmdListPos = -1
 
 
 class CommandLog(Command):
 	def __init__(self):
-		Command.__init__(self, u'log')
+		Command.__init__(self, 'log')
 
 	def getDescription(self):
 		return _("show log")
@@ -1454,24 +1454,24 @@ class CommandLog(Command):
 		completions = []
 
 		if paramPos == 0 or not params[0]:
-			completions = [u'show']
+			completions = ['show']
 
 		elif paramPos == 1:
-			if u'show'.startswith(params[0]):
-				completions = [u'show']
+			if 'show'.startswith(params[0]):
+				completions = ['show']
 
 		return completions
 
 	def execute(self, shell, params):
 		if len(params) <= 0:
 			# By default: show log
-			params = [u'show']
-		elif params[0] not in (u'show',):
-			raise ValueError(_(u'Unknown command: %s') % params[0])
+			params = ['show']
+		elif params[0] not in ('show',):
+			raise ValueError(_('Unknown command: %s') % params[0])
 
-		if params[0] == u'show':
+		if params[0] == 'show':
 			if not logFile:
-				raise RuntimeError(_(u'File logging is not activated'))
+				raise RuntimeError(_('File logging is not activated'))
 
 			with open(logFile) as log:
 				for line in log:
@@ -1481,24 +1481,24 @@ class CommandLog(Command):
 
 class CommandTask(Command):
 	def __init__(self):
-		Command.__init__(self, u'task')
+		Command.__init__(self, 'task')
 		self._tasks = (
-			(u'setupWhereInstalled', u'productId'),
-			(u'setupWhereNotInstalled', u'productId'),
-			(u'updateWhereInstalled', 'productId'),
-			(u'uninstallWhereInstalled', 'productId'),
-			(u'setActionRequestWhereOutdated', 'actionRequest', 'productId'),
-			(u'setActionRequestWhereOutdatedWithDependencies', 'actionRequest', 'productId'),
-			(u'setActionRequestWithDependencies', 'actionRequest', 'productId', 'clientId'),
-			(u'decodePcpatchPassword', u'encodedPassword', u'opsiHostKey'),
-			(u'setPcpatchPassword', u'*password')
+			('setupWhereInstalled', 'productId'),
+			('setupWhereNotInstalled', 'productId'),
+			('updateWhereInstalled', 'productId'),
+			('uninstallWhereInstalled', 'productId'),
+			('setActionRequestWhereOutdated', 'actionRequest', 'productId'),
+			('setActionRequestWhereOutdatedWithDependencies', 'actionRequest', 'productId'),
+			('setActionRequestWithDependencies', 'actionRequest', 'productId', 'clientId'),
+			('decodePcpatchPassword', 'encodedPassword', 'opsiHostKey'),
+			('setPcpatchPassword', '*password')
 		)
 
 	def getDescription(self):
 		return _("execute a task")
 
 	def help(self, shell):
-		shell.appendLine(u'')
+		shell.appendLine('')
 
 	def completion(self, params, paramPos):
 		completions = []
@@ -1525,11 +1525,11 @@ class CommandTask(Command):
 		if len(params) <= 0:
 			return
 		elif params[0] not in tasknames:
-			raise ValueError(_(u'Unknown task: %s') % params[0])
+			raise ValueError(_('Unknown task: %s') % params[0])
 
-		if params[0] == u'setupWhereInstalled':
+		if params[0] == 'setupWhereInstalled':
 			if len(params) < 2:
-				raise ValueError(_(u'Missing product-id'))
+				raise ValueError(_('Missing product-id'))
 			productId = params[1]
 
 			logger.warning(
@@ -1537,12 +1537,12 @@ class CommandTask(Command):
 				"Please use 'method setupWhereInstalled' instead."
 			)
 
-			for clientId in backend.setupWhereInstalled(productId):
+			for clientId in backend.setupWhereInstalled(productId):  # pylint: disable=no-member
 				shell.appendLine(clientId)
 
-		elif params[0] == u'setupWhereNotInstalled':
+		elif params[0] == 'setupWhereNotInstalled':
 			if len(params) < 2:
-				raise ValueError(_(u'Missing product-id'))
+				raise ValueError(_('Missing product-id'))
 			productId = params[1]
 
 			logger.warning(
@@ -1550,12 +1550,12 @@ class CommandTask(Command):
 				"Please use 'method setupWhereNotInstalled' instead."
 			)
 
-			for clientId in backend.setupWhereNotInstalled(productId):
+			for clientId in backend.setupWhereNotInstalled(productId):  # pylint: disable=no-member
 				shell.appendLine(clientId)
 
-		elif params[0] == u'updateWhereInstalled':
+		elif params[0] == 'updateWhereInstalled':
 			if len(params) < 2:
-				raise ValueError(_(u'Missing product-id'))
+				raise ValueError(_('Missing product-id'))
 			productId = params[1]
 
 			logger.warning(
@@ -1563,12 +1563,12 @@ class CommandTask(Command):
 				"Please use 'method updateWhereInstalled' instead."
 			)
 
-			for clientId in backend.updateWhereInstalled(productId):
+			for clientId in backend.updateWhereInstalled(productId):  # pylint: disable=no-member
 				shell.appendLine(clientId)
 
-		elif params[0] == u'uninstallWhereInstalled':
+		elif params[0] == 'uninstallWhereInstalled':
 			if len(params) < 2:
-				raise ValueError(_(u'Missing product-id'))
+				raise ValueError(_('Missing product-id'))
 			productId = params[1]
 
 			logger.warning(
@@ -1576,14 +1576,14 @@ class CommandTask(Command):
 				"Please use 'method uninstallWhereInstalled' instead."
 			)
 
-			for clientId in backend.uninstallWhereInstalled(productId):
+			for clientId in backend.uninstallWhereInstalled(productId):  # pylint: disable=no-member
 				shell.appendLine(clientId)
 
-		elif params[0] == u'setActionRequestWhereOutdated':
+		elif params[0] == 'setActionRequestWhereOutdated':
 			if len(params) < 2:
-				raise ValueError(_(u'Missing action request'))
+				raise ValueError(_('Missing action request'))
 			elif len(params) < 3:
-				raise ValueError(_(u'Missing product-id'))
+				raise ValueError(_('Missing product-id'))
 
 			actionRequest = params[1]
 			productId = params[2]
@@ -1593,28 +1593,28 @@ class CommandTask(Command):
 				"Please use 'method setActionRequestWhereOutdated' instead."
 			)
 
-			for clientId in backend.setActionRequestWhereOutdated(actionRequest, productId):
+			for clientId in backend.setActionRequestWhereOutdated(actionRequest, productId):  # pylint: disable=no-member
 				shell.appendLine(clientId)
 
-		elif params[0] == u'setActionRequestWithDependencies':
+		elif params[0] == 'setActionRequestWithDependencies':
 			if len(params) < 2:
-				raise ValueError(_(u'Missing action request'))
+				raise ValueError(_('Missing action request'))
 			if len(params) < 3:
-				raise ValueError(_(u'Missing product-id'))
+				raise ValueError(_('Missing product-id'))
 			if len(params) < 4:
-				raise ValueError(_(u'Missing client-id'))
+				raise ValueError(_('Missing client-id'))
 			actionRequest = params[1]
 			productId = params[2]
 			clientId = params[3]
 
 			if productId and clientId and actionRequest:
-				backend.setProductActionRequestWithDependencies(productId, clientId, actionRequest)
+				backend.setProductActionRequestWithDependencies(productId, clientId, actionRequest)  # pylint: disable=no-member
 
-		elif params[0] == u'setActionRequestWhereOutdatedWithDependencies':
+		elif params[0] == 'setActionRequestWhereOutdatedWithDependencies':
 			if len(params) < 2:
-				raise ValueError(_(u'Missing action request'))
+				raise ValueError(_('Missing action request'))
 			if len(params) < 3:
-				raise ValueError(_(u'Missing product-id'))
+				raise ValueError(_('Missing product-id'))
 
 			actionRequest = params[1]
 			productId = params[2]
@@ -1625,18 +1625,18 @@ class CommandTask(Command):
 				"setActionRequestWhereOutdatedWithDependencies' instead."
 			)
 
-			for clientId in backend.setActionRequestWhereOutdatedWithDependencies(actionRequest, productId):
+			for clientId in backend.setActionRequestWhereOutdatedWithDependencies(actionRequest, productId):  # pylint: disable=no-member
 				shell.appendLine(clientId)
 
-		elif params[0] == u'decodePcpatchPassword':
+		elif params[0] == 'decodePcpatchPassword':
 			if len(params) < 3:
-				raise ValueError(_(u'Missing argument'))
+				raise ValueError(_('Missing argument'))
 			crypt = params[1]
 			key = params[2]
 			cleartext = blowfishDecrypt(key, crypt)
 			shell.appendLine(cleartext)
 
-		elif params[0] == u'setPcpatchPassword':
+		elif params[0] == 'setPcpatchPassword':
 			#if os.getuid() != 0:
 			#	raise RuntimeError(_("You have to be root to change pcpatch password!"))
 
@@ -1644,7 +1644,7 @@ class CommandTask(Command):
 			if fqdn.count('.') < 2:
 				raise RuntimeError(_("Failed to get my own fully qualified domainname"))
 
-			password = u''
+			password = ''
 			if len(params) < 2:
 				password = shell.getPassword()
 			else:
@@ -1654,13 +1654,13 @@ class CommandTask(Command):
 				raise ValueError("Can not use empty password!")
 			secret_filter.add_secrets(password)
 
-			backend.user_setCredentials(username='pcpatch', password=password)
+			backend.user_setCredentials(username='pcpatch', password=password)  # pylint: disable=no-member
 
 			try:
 				udm = which('univention-admin')
 				# We are on Univention Corporate Server (UCS)
 				dn = None
-				command = u'{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=udm)
+				command = '{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=udm)
 				logger.debug("Filtering for pcpatch: %s", command)
 				with closing(os.popen(command, 'r')) as process:
 					for line in process.readlines():
@@ -1687,8 +1687,8 @@ class CommandTask(Command):
 
 			try:
 				pwd.getpwnam("pcpatch")
-			except KeyError as pwd_error:
-				raise KeyError("System user 'pcpatch' not found")
+			except KeyError as err:
+				raise KeyError("System user 'pcpatch' not found") from err
 
 			password_set = False
 			try:
@@ -1696,8 +1696,8 @@ class CommandTask(Command):
 				smbldapCommand = f"{which('smbldap-passwd')} pcpatch"
 				sys_execute(smbldapCommand, stdin_data=f"{password}\n{password}\n".encode("utf8"))
 				password_set = True
-			except Exception as error:
-				logger.debug("Setting password through smbldap failed: %s", error)
+			except Exception as err:  # pylint: disable=broad-except
+				logger.debug("Setting password through smbldap failed: %s", err)
 
 			if not password_set:
 				# unix
@@ -1724,12 +1724,12 @@ def main():
 		finally:
 			try:
 				shell.exit()
-			except Exception:
+			except Exception:  # pylint: disable=broad-except
 				pass
 
 	try:
 		locale.setlocale(locale.LC_ALL, '')
-	except Exception:
+	except Exception:  # pylint: disable=broad-except
 		pass
 
 	if os.name == 'posix':
@@ -1739,14 +1739,14 @@ def main():
 
 	try:
 		with shellExit():
-			shell_main(sys.argv[1:])
+			shell_main()
 		exitCode = 0
 	except ErrorInResultException as error:
 		logger.warning("Error in result: %s", error)
 		exitCode = 2
-	except Exception as error:
+	except Exception as err:  # pylint: disable=broad-except
 		logging_config(stderr_level = LOG_ERROR)
-		logger.error("Error during execution: %s", error, exc_info=True)
+		logger.error("Error during execution: %s", err, exc_info=True)
 		exitCode = 1
 
 	if exitZero:
