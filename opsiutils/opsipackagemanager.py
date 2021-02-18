@@ -40,7 +40,7 @@ from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
 
-from opsicommon.logging import logger, logging_config, LOG_NONE, LOG_WARNING
+from opsicommon.logging import logger, logging_config, LOG_NONE, LOG_WARNING, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -1049,7 +1049,7 @@ class OpsiPackageManager(object):
 						if type(sig) is not bytes:
 							sig = sig.encode("ascii")
 						sig = base64.decodestring(sig)
-						
+
 						logger.notice("Calculating delta for depot '%s'", depotId)
 						subject.setMessage(_(u"Calculating delta"))
 
@@ -1489,7 +1489,7 @@ class OpsiPackageManager(object):
 			depotConnection.depot_uninstallPackage(productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall'])
 
 			set_product_cache_outdated(depotId, self.backend)
-		
+
 			logger.notice("Uninstall of package '%s' on depot '%s' finished", productId, depotId)
 			subject.setMessage(_(u"Uninstallation of package {0} successful").format(productId), severity=4)
 
@@ -1567,9 +1567,9 @@ class OpsiPackageManagerControl(object):
 
 		if self.opts.logFile:
 			logging_config(log_file=self.config['logFile'], file_level=self.config['fileLogLevel'])
-		
-		logging_config(stderr_level=self.config['consoleLogLevel'])
-		
+
+		logging_config(stderr_level=self.config['consoleLogLevel'], stderr_format=DEFAULT_COLORED_FORMAT)
+
 		self.backend = None
 		if need_opsi_server:
 			self.backend = BackendManager(
@@ -1943,7 +1943,7 @@ class OpsiPackageManagerControl(object):
 	def setCommandlineConfig(self):
 		if self.opts.properties == 'ask' and self.opts.quiet:
 			raise ValueError(u"You cannot use properties=ask in quiet mode")
-		
+
 		if self.opts.quiet:
 			self.config['quiet'] = True
 		if self.opts.verbose:

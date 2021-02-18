@@ -31,11 +31,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import argparse
-import locale
 import os
 import sys
 
-from opsicommon.logging import logger, init_logging, logging_config, LOG_WARNING, LOG_INFO, LOG_NOTICE
+from opsicommon.logging import logger, init_logging, logging_config, LOG_WARNING, LOG_NOTICE, DEFAULT_COLORED_FORMAT
 from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI import __version__ as python_opsi_version
 from opsiutils import __version__
@@ -89,7 +88,7 @@ class HelpFormatter(argparse.HelpFormatter):
 
 
 def backup_main():
-	init_logging(stderr_level=LOG_WARNING)
+	init_logging(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
 
 	parser = argparse.ArgumentParser(prog="opsi-backup", add_help=False, usage=USAGE, formatter_class=HelpFormatter)
 	parser.add_argument("-h", "--help", action="help")
@@ -125,7 +124,7 @@ def backup_main():
 	if args.version:
 		print(f"{__version__} [python-opsi={python_opsi_version}]")
 		return 0
-	
+
 	if args.verbose:
 		logging_config(stderr_level=args.log_level)
 
