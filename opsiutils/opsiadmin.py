@@ -277,27 +277,29 @@ def shell_main():
 				except Exception:  # pylint: disable=broad-except
 					pass
 
-			opsiadminUserDir = forceFilename(os.path.join(os.environ.get('HOME'), '.opsi.org'))
-			if not os.path.exists(opsiadminUserDir):
-				try:
-					os.mkdir(opsiadminUserDir)
-				except OSError as error:
-					logger.info("Could not create %s.", opsiadminUserDir)
+			home = os.environ.get('HOME')
+			if home:
+				opsiadminUserDir = forceFilename(os.path.join(home, '.opsi.org'))
+				if not os.path.exists(opsiadminUserDir):
+					try:
+						os.mkdir(opsiadminUserDir)
+					except OSError as error:
+						logger.info("Could not create %s.", opsiadminUserDir)
 
-			sessionId = None
-			sessionFile = os.path.join(opsiadminUserDir, 'session')
-			try:
-				with codecs.open(sessionFile, 'r', 'utf-8') as session:
-					for line in session:
-						line = line.strip()
-						if line:
-							sessionId = forceUnicode(line)
-							break
-			except IOError as err:
-				if err.errno != 2:  # 2 is No such file or directory
+				sessionId = None
+				sessionFile = os.path.join(opsiadminUserDir, 'session')
+				try:
+					with codecs.open(sessionFile, 'r', 'utf-8') as session:
+						for line in session:
+							line = line.strip()
+							if line:
+								sessionId = forceUnicode(line)
+								break
+				except IOError as err:
+					if err.errno != 2:  # 2 is No such file or directory
+						logger.error("Failed to read session file '%s': %s", sessionFile, err)
+				except Exception as err:  # pylint: disable=broad-except
 					logger.error("Failed to read session file '%s': %s", sessionFile, err)
-			except Exception as err:  # pylint: disable=broad-except
-				logger.error("Failed to read session file '%s': %s", sessionFile, err)
 
 			from OPSI.Backend.JSONRPC import JSONRPCBackend
 			backend = JSONRPCBackend(
