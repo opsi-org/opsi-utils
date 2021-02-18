@@ -33,7 +33,7 @@ import struct
 import sys
 import termios
 
-from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_DEBUG, LOG_ERROR, LOG_NONE
+from opsicommon.logging import logger, init_logging, logging_config, LOG_ERROR, LOG_NONE, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
 from OPSI.Types import forceUnicode, forceHostId, forceUnicodeLower
 from OPSI.Util import getfqdn
@@ -45,7 +45,7 @@ from OPSI.Backend.Replicator import BackendReplicator
 from opsiutils import __version__
 
 logLevel = LOG_NONE
-init_logging(stderr_level=logLevel)
+init_logging(stderr_level=logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 
 class ProgressNotifier(ProgressObserver):
 	def __init__(self, backendReplicator):

@@ -34,7 +34,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 from itertools import product
 
-from opsicommon.logging import logger, init_logging, logging_config, secret_filter, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING
+from opsicommon.logging import logger, init_logging, logging_config, LOG_ERROR, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -114,7 +114,7 @@ def parseOptions():
 	parser.add_argument(
 		'--max-concurrent', dest="maxConcurrent", default=0, type=int,
 		help='Maximum number of concurrent client deployments.')
-	
+
 	args = parser.parse_args()
 
 	return args
@@ -133,7 +133,7 @@ def wakeClientsForUpdate(
 		connectTimeout, pingTimeout, maxConcurrent
 	)
 	clientsToWake = []
-	
+
 	if depotId:
 		if hostGroupId:
 			logger.notice("Getting list of clients to process by depot '%s' and client group '%s'", depotId, hostGroupId)
@@ -149,7 +149,7 @@ def wakeClientsForUpdate(
 	else:
 		logger.error("No criteria given to determine a list of clients to process. You have to provide either -D/-H or -F.")
 		sys.exit(1)
-	
+
 	clientsToWake.sort()
 
 	logger.notice("Processing %d clients", len(clientsToWake))
@@ -157,7 +157,7 @@ def wakeClientsForUpdate(
 		logger.debug("   %s", clientToWake)
 
 	logger.notice("Configuring products")
-	if not noAutoUpdate:	
+	if not noAutoUpdate:
 		logger.notice("Configuring opsi-auto-update product")
 		configureOpsiAutoUpdate(backend, clientsToWake)
 
@@ -169,11 +169,11 @@ def wakeClientsForUpdate(
 		logger.notice("List of products to set to setup: %s", productIds)
 	else:
 		logger.notice("No products to set to setup")
-	
+
 	clientSum = len(clientsToWake)
 	runningThreads = []
 	failed = defaultdict(set)
-	
+
 	logger.info("Starting to wake up clients")
 
 	while runningThreads or clientsToWake:
@@ -211,10 +211,10 @@ def wakeClientsForUpdate(
 					logger.info("Tasks on client '%s' failed with reason '%s' (%s)", thread.clientId, reason, exception)
 				else:
 					logger.info("Tasks on client '%s' finished sucessfully", thread.clientId)
-		
+
 		runningThreads = newRunningThreads
 		time.sleep(1)
-	
+
 	totalFails = 0
 	for reason, clientIds in list(failed.items()):
 		failcount = len(clientIds)
@@ -227,7 +227,7 @@ def getClientIDsFromDepot(backend, depotId, groupName):
 	clientsFromGroup = []
 	if groupName:
 		clientsFromGroup = getClientIDsFromGroup(backend, groupName)
-	
+
 	depotClients = backend.getClientsOnDepot(depotId)
 	if not clientsFromGroup:
 		return depotClients
@@ -383,7 +383,7 @@ class ClientMonitoringThread(threading.Thread):
 					sock.close()
 					if res != 0:
 						raise Exception(f"Port {port} unreachable")
-					
+
 					backend = JSONRPCBackend(
 						address=address,
 						username=self.clientId,
@@ -480,10 +480,10 @@ def opsiwakeupclients_main():
 	options = parseOptions()
 
 	if options.consoleLogLevel:
-		init_logging(stderr_level=options.consoleLogLevel)
+		init_logging(stderr_level=options.consoleLogLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 	if options.fileLogLevel and options.logFile:
 		init_logging(log_file=options.logFile, file_level=options.fileLogLevel)
-	
+
 	with BackendManager() as backend:
 		wakeClientsForUpdate(
 			backend,
