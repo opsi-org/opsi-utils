@@ -277,6 +277,8 @@ def shell_main():
 				except Exception:  # pylint: disable=broad-except
 					pass
 
+			sessionId = None
+			sessionFile = None
 			home = os.environ.get('HOME')
 			if home:
 				opsiadminUserDir = forceFilename(os.path.join(home, '.opsi.org'))
@@ -286,7 +288,6 @@ def shell_main():
 					except OSError as error:
 						logger.info("Could not create %s.", opsiadminUserDir)
 
-				sessionId = None
 				sessionFile = os.path.join(opsiadminUserDir, 'session')
 				try:
 					with codecs.open(sessionFile, 'r', 'utf-8') as session:
@@ -313,7 +314,7 @@ def shell_main():
 			logger.info('Connected')
 
 			sessionId = backend.jsonrpc_getSessionId()
-			if sessionId:
+			if sessionId and sessionFile:
 				try:
 					with codecs.open(sessionFile, 'w', 'utf-8') as session:
 						session.write("%s\n" % sessionId)
@@ -388,10 +389,10 @@ To exit opsi-admin please type 'exit'."""
 					resultAsJSON = json.loads('\n'.join([line['text'] for line in shell.lines]))
 					searchForError(dict(resultAsJSON))
 				except (TypeError, ValueError) as error:
-					logger.debug2("Conversion to dict failed: %s", error)
-			except Exception as error:
-				logger.logException(forceUnicode(error))
-				raise error
+					logger.trace("Conversion to dict failed: %s", error)
+			except Exception as err:
+				logger.error(err, exc_info=True)
+				raise err
 		else:
 			raise RuntimeError("Not running in interactive mode and no commandline arguments given.")
 	finally:
@@ -704,7 +705,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		cur = 0
 		quote = None
 		for i, element in enumerate(cmdline):
-			logger.debug2(
+			logger.trace(
 				"parseCmdline(): char '%s', quote: '%s', cur: '%s', params: '%s'",
 				element, quote, cur, self.params
 			)
@@ -752,7 +753,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 			self.currentParam = ''
 
 		logger.debug("cmdline: '%s'", cmdline)
-		logger.debug2(
+		logger.trace(
 			"paramPos %s, currentParam: '%s', params: '%s'",
 			self.paramPos, self.currentParam, self.params
 		)
@@ -1032,7 +1033,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 					try:
 						curses.ungetch(char)
 						char = self.screen.getkey()
-						logger.debug2("Current char: %r", char)
+						logger.trace("Current char: %r", char)
 
 						if not isinstance(char, str):
 							try:
@@ -1217,7 +1218,7 @@ class CommandMethod(Command):
 		logger.debug('Took %0.3f seconds to process: %s(%s)', duration, methodName, pString)
 		shell.setInfoline(_('Took %0.3f seconds to process: %s(%s)') % (duration, methodName, pString))
 		result = serialize(result)
-		logger.debug2("Serialized result: '%s'", result)
+		logger.trace("Serialized result: '%s'", result)
 
 		if result is not None:
 			lines = []
