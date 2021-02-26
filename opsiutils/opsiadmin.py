@@ -177,7 +177,7 @@ def shell_main():
 						help=_("Path to log file"))
 	parser.add_argument('--address', '-a', default='https://localhost:4447/rpc',
 						help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"))
-	parser.add_argument('--username', '-', default=username,
+	parser.add_argument('--username', '-u', default=username,
 						help=_("Username (default: current user)"))
 	parser.add_argument('--password', '-p',
 						help=_("Password (default: prompt for password)"))
