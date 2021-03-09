@@ -75,7 +75,7 @@ package:
     - opsi-server (<< 4.2)
     - opsi-server-expert (<< 4.2)
     - opsi-depotserver (<< 4.2)
-    - opsi4ucs
+    - opsi4ucs (<< 4.2)
   source_script: |
     mkdir -p ${DST}/rootfs/usr/bin
     mkdir -p ${DST}/rootfs/usr/lib
