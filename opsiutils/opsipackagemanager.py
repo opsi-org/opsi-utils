@@ -2085,8 +2085,9 @@ def main():
 		try:
 			fileno = sys.stdin.fileno()
 			originalTerminalSettings = termios.tcgetattr(fileno)
-		except Exception as readSettingsException:
-			logger.warning(readSettingsException)
+		except Exception as err:
+			# Exception (25, 'Inappropriate ioctl for device') can happen on ssh connections
+			logger.debug(err)
 			originalTerminalSettings = None
 
 		try:
