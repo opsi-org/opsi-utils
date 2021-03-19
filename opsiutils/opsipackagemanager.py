@@ -36,6 +36,7 @@ import sys
 import termios
 import threading
 import time
+import glob
 from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from optparse import OptionParser
@@ -1525,6 +1526,7 @@ class OpsiPackageManagerControl(object):
 		parser.add_option("-l", "--list", action="store_true", dest="COMMAND_LIST")
 		parser.add_option("-D", "--differences", action="store_true", dest="COMMAND_DIFFERENCES")
 		parser.add_option("-r", "--remove", action="store_true", dest="COMMAND_REMOVE")
+		parser.add_option("-R", "--repo-remove", action="store_true", dest="COMMAND_REPOREMOVE")
 		parser.add_option("-x", "--extract", action="store_true", dest="COMMAND_EXTRACT")
 		parser.add_option("--new-product-id", action="store", dest="newProductId")
 		parser.add_option("-d", "--depots", action="store", dest="depots")
@@ -1631,7 +1633,7 @@ class OpsiPackageManagerControl(object):
 				if self.config['command'] == u'differences' and len(self.config['depotIds']) <= 1:
 					raise ValueError(u"More than one depot id needed to display differences")
 
-			elif self.config['command'] == u'remove':
+			elif self.config['command'] in ('remove', 'repo_remove'):
 				if not self.config['productIds']:
 					raise ValueError(u"No opsi product id given")
 		except Exception:
@@ -1658,6 +1660,8 @@ class OpsiPackageManagerControl(object):
 				self.processInstallCommand()
 			elif command == u'remove':
 				self.processRemoveCommand()
+			elif command == u'repo_remove':
+				self.processRepoRemoveCommand()
 			elif command == u'extract':
 				self.processExtractCommand()
 		finally:
@@ -1900,6 +1904,18 @@ class OpsiPackageManagerControl(object):
 		finally:
 			self._opm.cleanup()
 
+	def processRepoRemoveCommand(self):
+		BASE_PATH = "/var/lib/opsi/repository"
+		for product in self.config['productIds']:
+			path = os.path.join(BASE_PATH, f"{product}_*")
+			matches = glob.glob(path)
+			if not matches:
+				logger.error(f"Did not find product {product} in {BASE_PATH}")
+				continue
+			for filename in matches:
+				logger.notice(f"Deleting {filename}")
+				os.remove(filename)
+
 	def setDefaultConfig(self, opsi_server=True):
 		self.config = {
 			'fileLogLevel': LOG_WARNING,
@@ -2002,6 +2018,10 @@ class OpsiPackageManagerControl(object):
 			if self.config['command']:
 				raise ValueError(u"More than one command specified")
 			self.config['command'] = u'remove'
+		if self.opts.COMMAND_REPOREMOVE:
+			if self.config['command']:
+				raise ValueError(u"More than one command specified")
+			self.config['command'] = u'repo_remove'
 		if self.opts.COMMAND_EXTRACT:
 			if self.config['command']:
 				raise ValueError(u"More than one command specified")
@@ -2017,7 +2037,7 @@ class OpsiPackageManagerControl(object):
 		if self.config['command'] in (u'install', u'upload', u'extract'):
 			self.config['packageFiles'] = self.args
 
-		elif self.config['command'] in (u'remove', u'list', u'differences'):
+		elif self.config['command'] in (u'remove', u'repo_remove', u'list', u'differences'):
 			self.config['productIds'] = self.args
 
 	def signalHandler(self, signo, stackFrame):
@@ -2045,6 +2065,7 @@ class OpsiPackageManagerControl(object):
 		print(u"  -l, --list         <regex>                 list opsi packages matching regex")
 		print(u"  -D, --differences  <regex>                 show depot differences of opsi packages matching regex")
 		print(u"  -r, --remove       <opsi-product-id> ...   uninstall opsi packages")
+		print(u"  -R, --repo-remove  <opsi-product-id> ...   remove opsi packages from local repository")
 		print(u"  -x, --extract      <opsi-package> ...      extract opsi packages to local directory")
 		print(u"  -V, --version                              show program's version info and exit")
 		print(u"  -h, --help                                 show this help message and exit")
