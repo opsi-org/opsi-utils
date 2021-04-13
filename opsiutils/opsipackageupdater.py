@@ -7,12 +7,6 @@ opsi-package-updater
 
 This tool can be used to update the packages on an opsi server
 through a remote repository.
-
-@copyright: uib GmbH <info@uib.de>
-@author: Jan Schneider <j.schneider@uib.de>
-@author: Erol Ueluekmen <e.ueluekmen@uib.de>
-@author: Niko Wenselowski <n.wenselowski@uib.de>
-@license: GNU Affero GPL version 3
 """
 
 import argparse
@@ -24,7 +18,7 @@ from opsicommon.system import ensure_not_already_running
 
 from OPSI import __version__ as python_opsi_version
 from OPSI import System
-from OPSI.Types import forceProductId, forceUnicode
+from OPSI.Types import forceProductId
 from OPSI.Util import compareVersions
 from OPSI.Util.Task.UpdatePackages.Config import DEFAULT_CONFIG
 from OPSI.Util.Task.UpdatePackages.Exceptions import NoActiveRepositoryError
@@ -190,7 +184,9 @@ def parse_args():
 	)
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
-	installparser = modeparsers.add_parser('install', help='Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)')
+	installparser = modeparsers.add_parser(
+		'install', help='Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)'
+	)
 	installparser.add_argument('processProductIds', nargs='*',
 								metavar="productID",
 								help="Limit installation to products with the given IDs.")
@@ -239,7 +235,7 @@ def parse_args():
 	return parser.parse_args()
 
 
-def updater_main():
+def updater_main():  # pylint: disable=too-many-branches,too-many-statements
 	config = DEFAULT_CONFIG.copy()
 	args = parse_args()
 
@@ -274,7 +270,7 @@ def updater_main():
 		try:
 			config["zsyncCommand"] = System.which("zsync")
 			logger.info("Zsync command found: %s", config["zsyncCommand"])
-		except Exception:
+		except Exception:  # pylint: disable=broad-except
 			logger.warning("Zsync command not found")
 
 	ensure_not_already_running("opsi-package-manager")
@@ -312,7 +308,7 @@ def main():
 		exitCode = updater_main()
 	except KeyboardInterrupt:
 		exitCode = 1
-	except Exception as exc:
+	except Exception as exc:  # pylint: disable=broad-except
 		logger.error(exc, exc_info=True)
 		print(f"ERROR: {exc}", file=sys.stderr)
 		exitCode = 1
