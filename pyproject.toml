@@ -21,17 +21,16 @@ url = "http://pypi.uib.gmbh:8080/simple"
 python = "^3.7"
 #python-opsi = {path = "python-opsi"}
 python-opsi = "^4.2.0.104"
-python-magic = "^0.4.15"
-orjson = "^2.6.5"
-mysqlclient = "^1.4.6"
-psutil = "^5.7.0"
+python-magic = "^0.4.22"
+orjson = "^3.5.1"
+mysqlclient = "^2.0.3"
 distro = {platform = "linux", version = "^1.5.0"}
 paramiko = "^2.7.2"
 
 [tool.poetry.dev-dependencies]
-opsi-dev-tools = "^1.0"
-pyinstaller = "^4.0"
-pylint = "^2.6.0"
+opsi-dev-tools = "^1.0.62"
+pyinstaller = "^4.2"
+pylint = "^2.7.4"
 
 [tool.poetry.scripts]
 opsi-admin = "opsiutils.opsiadmin:main"
