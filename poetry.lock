@@ -790,7 +790,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.177"
+version = "4.2.0.178"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -1203,7 +1203,7 @@ reference = "uibpypi"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "a369fb8106460a2485eb5fb0c63d74c62739ac60ae7b23089a451480215426ef"
+content-hash = "1fd0b3e1df06e51e2e47a063cf942881a4dca756342eef6429b3ee18f34a9cc7"
 
 [metadata.files]
 altgraph = [
@@ -1613,8 +1613,8 @@ python-magic = [
     {file = "python_magic-0.4.22-py2.py3-none-any.whl", hash = "sha256:8551e804c09a3398790bd9e392acb26554ae2609f29c72abb0b9dee9a5571eae"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.177.tar.gz", hash = "md5:94cac54a855d17d9d24f5c3464aed29c"},
-    {file = "python_opsi-4.2.0.177-py3-none-any.whl", hash = "md5:4d6c64c0d01941744ecde82bf6784e61"},
+    {file = "python-opsi-4.2.0.178.tar.gz", hash = "md5:aee651ae4cf71646fc01308af8a01065"},
+    {file = "python_opsi-4.2.0.178-py3-none-any.whl", hash = "md5:40a6570adea175168510286350e436be"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
