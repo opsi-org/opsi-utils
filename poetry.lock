@@ -463,7 +463,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "opsi-dev-tools"
-version = "1.0.63"
+version = "1.0.66"
 description = "opsi development tools"
 category = "dev"
 optional = false
@@ -790,7 +790,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.184"
+version = "4.2.0.186"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -1449,8 +1449,8 @@ mysqlclient = [
     {file = "mysqlclient-2.0.3.tar.gz", hash = "sha256:f6ebea7c008f155baeefe16c56cd3ee6239f7a5a9ae42396c2f1860f08a7c432"},
 ]
 opsi-dev-tools = [
-    {file = "opsi-dev-tools-1.0.63.tar.gz", hash = "md5:b3a2721a85fc08811f62cbc68b7951de"},
-    {file = "opsi_dev_tools-1.0.63-py3-none-any.whl", hash = "md5:4b089cae9eb514b6abd11429ac80d54d"},
+    {file = "opsi-dev-tools-1.0.66.tar.gz", hash = "md5:89904a075a9217c7852b23a49d081c26"},
+    {file = "opsi_dev_tools-1.0.66-py3-none-any.whl", hash = "md5:b3eb411f917357f8fe2dd3e5f658f58a"},
 ]
 orjson = [
     {file = "orjson-3.5.2-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:2ba4165883fbef0985bce60bddbf91bc5cea77cc22b1c12fe7a716c6323ab1e7"},
@@ -1613,8 +1613,8 @@ python-magic = [
     {file = "python_magic-0.4.22-py2.py3-none-any.whl", hash = "sha256:8551e804c09a3398790bd9e392acb26554ae2609f29c72abb0b9dee9a5571eae"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.184.tar.gz", hash = "md5:cf4be66b1323fafeb00272073d7ebff8"},
-    {file = "python_opsi-4.2.0.184-py3-none-any.whl", hash = "md5:d2c699f6401e2cf0cc2ef8f1629ede38"},
+    {file = "python-opsi-4.2.0.186.tar.gz", hash = "md5:c1fac6a640e4c7490598a1192c0b9b78"},
+    {file = "python_opsi-4.2.0.186-py3-none-any.whl", hash = "md5:64af73846ff26d043a1a0a7d9638c7f2"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
