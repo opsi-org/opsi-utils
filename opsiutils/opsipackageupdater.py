@@ -273,7 +273,7 @@ def updater_main():  # pylint: disable=too-many-branches,too-many-statements
 		except Exception:  # pylint: disable=broad-except
 			logger.warning("Zsync command not found")
 
-	ensure_not_already_running("opsi-package-manager")
+	ensure_not_already_running("opsi-package-updater")
 
 	with OpsiPackageUpdaterClient(config) as opu:
 		if args.mode in ('install', 'update'):
