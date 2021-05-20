@@ -31,9 +31,6 @@ autoUpdate = true
 ; If autoSetup is set to true, the action request "setup" will be set for every updated product
 ; on all clients of the local depot where the installation status of the product is "installed"
 autoSetup = false
-; Comma separated list of regular expressions
-; If a productId matches one of these regular expressions it will not be set automatically to setup 
-autoSetupExcludes = ^test.*
 ; Set True if you want only download packages without installation
 onlyDownload = false
 ; Proxy to use for the connection.
