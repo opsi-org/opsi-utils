@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "opsi-utils"
+version = "4.2.0.100"
+description = "Utilities for working with opsi"
+homepage = "https://www.opsi.org"
+license = "AGPL-3.0"
+maintainers = ["uib GmbH <info@uib.de>"]
+authors = ["uib GmbH <info@uib.de>"]
+packages = [
+    { include = "opsiutils" }
+]
+include = [
+    "opsi-utils_data/**/*"
+]
+
+[[tool.poetry.source]]
+name = "uibpypi"
+url = "http://pypi.uib.gmbh:8080/simple"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+#python-opsi = {path = "python-opsi"}
+python-opsi = "^4.2.0.177"
+python-magic = "^0.4.22"
+orjson = "^3.5.1"
+mysqlclient = "^2.0.3"
+distro = {platform = "linux", version = "^1.5.0"}
+paramiko = "^2.7.2"
+
+[tool.poetry.dev-dependencies]
+opsi-dev-tools = "^1.0.62"
+pyinstaller = "^4.2"
+pylint = "^2.7.4"
+
+[tool.poetry.scripts]
+opsi-admin = "opsiutils.opsiadmin:main"
+opsi-backup = "opsiutils.opsibackup:main"
+opsi-convert = "opsiutils.opsiconvert:main"
+opsi-makepackage = "opsiutils.opsimakepackage:main"
+opsi-newprod = "opsiutils.opsinewprod:main"
+opsi-package-manager = "opsiutils.opsipackagemanager:main"
+opsi-package-updater = "opsiutils.opsipackageupdater:main"
+opsi-setup = "opsiutils.opsisetup:main"
+opsi-python = "opsiutils.opsipython:main"
+opsi-wakeup-clients = "opsiutils.opsiwakeupclients:main"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

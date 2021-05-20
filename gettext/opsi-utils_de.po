@@ -1,6 +1,6 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR ORGANIZATION
-# 
+#
 # Translators:
 # Automatically generated, 2010
 # Ettore Atalan <atalanttore@googlemail.com>, 2017
@@ -9,342 +9,345 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: opsi.org\n"
-"POT-Creation-Date: 2019-02-28 11:45+CET\n"
+"POT-Creation-Date: 2020-08-12 17:09+CEST\n"
 "PO-Revision-Date: 2019-02-28 10:49+0000\n"
 "Last-Translator: Niko Wenselowski\n"
-"Language-Team: German (http://www.transifex.com/opsi-org/opsiorg/language/de/)\n"
+"Language-Team: German (http://www.transifex.com/opsi-org/opsiorg/language/"
 "MIME-Version: 1.0\n"
+"Language: de\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: ENCODING\n"
 "Generated-By: pygettext.py 1.5\n"
-"Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../opsi-admin:138
-msgid "Usage: %s [options] [command] [args...]"
-msgstr "Verwendung: %s [options] [command] [args...]"
-
-#: ../opsi-admin:139
-msgid "Options:"
-msgstr "Optionen:"
-
-#: ../opsi-admin:140
-msgid "Display this text"
-msgstr "Diesen Hilfetext anzeigen"
-
-#: ../opsi-admin:141
+#: opsiutils/opsiadmin.py:166
 msgid "Show version and exit"
 msgstr "Versionsnummer ausgeben und beenden"
 
-#: ../opsi-admin:142
-msgid "Username (default: current user)"
-msgstr "Benutzername (standard: momentaner Benutzer)"
-
-#: ../opsi-admin:143
-msgid "Password (default: prompt for password)"
-msgstr "Passwort (standard: Passwort interaktiv abfragen)"
-
-#: ../opsi-admin:144
-msgid "URL of opsiconfd (default: https://localhost:4447/rpc)"
-msgstr "URL des opsiconfd (standard: https://localhost:4447/rpc)"
-
-#: ../opsi-admin:145
-msgid "Path to the opsirc file to use (default: ~/.opsi.org/opsirc)"
-msgstr "Pfad zur zu verwendende opsirc-Datei (Standard: ~/.opsi.org/opsirc)"
-
-#: ../opsi-admin:146
-msgid "An opsirc file contains login credentials to the web API."
-msgstr "Eine opsirc-Datei beinhaltet Zugangsdaten für die Web API."
-
-#: ../opsi-admin:147
-msgid "Do not use opsiconfd"
-msgstr "opsiconfd umgehen"
-
-#: ../opsi-admin:148
-msgid "Do not use depotserver backend"
-msgstr "Depotserver-Backend nicht verwenden"
-
-#: ../opsi-admin:149
+#: opsiutils/opsiadmin.py:169
 msgid "Set log level (default: 3)"
 msgstr "Protokollierungsstufe (Standard: 3)"
 
-#: ../opsi-admin:150
-msgid "0=nothing, 1=essential, 2=critical, 3=error, 4=warning"
-msgstr "0=nichts, 1=essenziell, 2=kritisch, 3=Fehler, 4=Warnungen"
-
-#: ../opsi-admin:151
-msgid "5=notice, 6=info, 7=debug, 8=debug2, 9=confidential"
-msgstr "5=Hinweise, 6=Informationen, 7=debug, 8=debug2, 9=vertraulich"
-
-#: ../opsi-admin:152
+#: opsiutils/opsiadmin.py:171
 msgid "Path to log file"
 msgstr "Pfad zur Protokolldatei"
 
-#: ../opsi-admin:153
+#: opsiutils/opsiadmin.py:173
+msgid "URL of opsiconfd (default: https://localhost:4447/rpc)"
+msgstr "URL des opsiconfd (standard: https://localhost:4447/rpc)"
+
+#: opsiutils/opsiadmin.py:175
+msgid "Username (default: current user)"
+msgstr "Benutzername (standard: momentaner Benutzer)"
+
+#: opsiutils/opsiadmin.py:177
+msgid "Password (default: prompt for password)"
+msgstr "Passwort (standard: Passwort interaktiv abfragen)"
+
+#: opsiutils/opsiadmin.py:180
+msgid "Path to the opsirc file to use (default: ~/.opsi.org/opsirc)"
+msgstr "Pfad zur zu verwendende opsirc-Datei (Standard: ~/.opsi.org/opsirc)"
+
+#: opsiutils/opsiadmin.py:181
+msgid "An opsirc file contains login credentials to the web API."
+msgstr "Eine opsirc-Datei beinhaltet Zugangsdaten für die Web API."
+
+#: opsiutils/opsiadmin.py:184
+msgid "Do not use opsiconfd"
+msgstr "opsiconfd umgehen"
+
+#: opsiutils/opsiadmin.py:187
+msgid "Do not use depotserver backend"
+msgstr "Depotserver-Backend nicht verwenden"
+
+#: opsiutils/opsiadmin.py:189
 msgid "Start in interactive mode"
 msgstr "Im interaktiven Modus starten"
 
-#: ../opsi-admin:154
-msgid "Colorize output"
-msgstr "Farbige Ausgabe"
-
-#: ../opsi-admin:155
-msgid "Simple output (only for scalars, lists)"
-msgstr "Einfache Ausgabe (nur für Skalare und Listen)"
-
-#: ../opsi-admin:156
-msgid "Shell output"
-msgstr "Shell-Ausgabe"
-
-#: ../opsi-admin:157
-msgid "Raw output"
-msgstr "Rohdaten-Ausgabe"
-
-#: ../opsi-admin:158
+#: opsiutils/opsiadmin.py:191
 msgid "Always exit with exit code 0."
 msgstr "Beende immer mit Exit-Code 0."
 
-#: ../opsi-admin:545
+#: opsiutils/opsiadmin.py:193
+#, fuzzy
+msgid "Output"
+msgstr "Rohdaten-Ausgabe"
+
+#: opsiutils/opsiadmin.py:195
+msgid "Colorize output"
+msgstr "Farbige Ausgabe"
+
+#: opsiutils/opsiadmin.py:200
+msgid "Simple output (only for scalars, lists)"
+msgstr "Einfache Ausgabe (nur für Skalare und Listen)"
+
+#: opsiutils/opsiadmin.py:203
+msgid "Shell output"
+msgstr "Shell-Ausgabe"
+
+#: opsiutils/opsiadmin.py:206
+msgid "Raw output"
+msgstr "Rohdaten-Ausgabe"
+
+#: opsiutils/opsiadmin.py:209
+msgid "Command to execute."
+msgstr ""
+
+#: opsiutils/opsiadmin.py:539
 msgid "Delete log-file '%s'?"
 msgstr "Protokolldatei '%s' löschen?"
 
-#: ../opsi-admin:791
+#: opsiutils/opsiadmin.py:780
 msgid "Invalid command: '%s'"
 msgstr "Ungültiger Befehl: '%s'"
 
-#: ../opsi-admin:817
+#: opsiutils/opsiadmin.py:806
 msgid "Please type password:"
 msgstr "Bitte Passwort eingeben:"
 
-#: ../opsi-admin:823
+#: opsiutils/opsiadmin.py:812
 msgid "Please retype password:"
 msgstr "Bitte Passwort erneut eingeben:"
 
-#: ../opsi-admin:830
+#: opsiutils/opsiadmin.py:819
 msgid "Supplied passwords do not match"
 msgstr "Die eingegebenen Passwörter stimmen nicht überein."
 
-#: ../opsi-admin:1116
+#: opsiutils/opsiadmin.py:1107
 msgid "Execute a config-interface-method"
 msgstr "Eine config-interface-Methode ausführen"
 
-#: ../opsi-admin:1119
+#: opsiutils/opsiadmin.py:1110
 msgid "Methods are:"
 msgstr "Verfügbare Methoden:"
 
-#: ../opsi-admin:1150
+#: opsiutils/opsiadmin.py:1141
 msgid "No method defined"
 msgstr "Keine Methode angegeben"
 
-#: ../opsi-admin:1215
+#: opsiutils/opsiadmin.py:1207
 msgid "Took %0.3f seconds to process: %s(%s)"
 msgstr "Ausgeführt in %0.3f Sekunden: %s(%s)"
 
-#: ../opsi-admin:1321
+#: opsiutils/opsiadmin.py:1313
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: ../opsi-admin:1351
+#: opsiutils/opsiadmin.py:1343
 msgid "Missing option"
 msgstr "Fehlende Option"
 
-#: ../opsi-admin:1353
+#: opsiutils/opsiadmin.py:1345
 msgid "Unknown option: %s"
 msgstr "Unbekannte Option: %s"
 
-#: ../opsi-admin:1355
+#: opsiutils/opsiadmin.py:1347
 msgid "Missing value"
 msgstr "Fehlender Wert"
 
-#: ../opsi-admin:1363
+#: opsiutils/opsiadmin.py:1355
 msgid "Bad value: %s"
 msgstr "Unerlaubter Wert: %s"
 
-#: ../opsi-admin:1375
+#: opsiutils/opsiadmin.py:1366
 msgid "No log-file set!"
 msgstr "Keine Protokolldatei festgelegt!"
 
-#: ../opsi-admin:1384
+#: opsiutils/opsiadmin.py:1375
 msgid "Show this text"
 msgstr "Diesen Text anzeigen"
 
-#: ../opsi-admin:1387
+#: opsiutils/opsiadmin.py:1378
 msgid "Commands are:"
 msgstr "Verfügbare Befehle:"
 
-#: ../opsi-admin:1398
+#: opsiutils/opsiadmin.py:1389
 msgid "Exit opsi-admin"
 msgstr "opsi-admin beenden"
 
-#: ../opsi-admin:1414
+#: opsiutils/opsiadmin.py:1405
 msgid "show / clear command history"
 msgstr "Befehls-Historie anzeigen/löschen"
 
-#: ../opsi-admin:1435 ../opsi-admin:1470
+#: opsiutils/opsiadmin.py:1426 opsiutils/opsiadmin.py:1461
 msgid "Unknown command: %s"
 msgstr "Unbekannter Befehl: %s"
 
-#: ../opsi-admin:1451
+#: opsiutils/opsiadmin.py:1442
 msgid "show log"
 msgstr "Protokolldatei anzeigen"
 
-#: ../opsi-admin:1474
+#: opsiutils/opsiadmin.py:1465
 msgid "File logging is not activated"
 msgstr "Protokollierung in Datei ist nicht aktiviert"
 
-#: ../opsi-admin:1498
+#: opsiutils/opsiadmin.py:1489
 msgid "execute a task"
 msgstr "Einen Task ausführen"
 
-#: ../opsi-admin:1528
+#: opsiutils/opsiadmin.py:1519
 msgid "Unknown task: %s"
 msgstr "Unbekannter Task: %s"
 
-#: ../opsi-admin:1532 ../opsi-admin:1544 ../opsi-admin:1556 ../opsi-admin:1568
-#: ../opsi-admin:1582 ../opsi-admin:1598 ../opsi-admin:1612
+#: opsiutils/opsiadmin.py:1523 opsiutils/opsiadmin.py:1535
+#: opsiutils/opsiadmin.py:1547 opsiutils/opsiadmin.py:1559
+#: opsiutils/opsiadmin.py:1573 opsiutils/opsiadmin.py:1589
+#: opsiutils/opsiadmin.py:1603
 msgid "Missing product-id"
 msgstr "Fehlende Produkt-ID"
 
-#: ../opsi-admin:1580 ../opsi-admin:1596 ../opsi-admin:1610
+#: opsiutils/opsiadmin.py:1571 opsiutils/opsiadmin.py:1587
+#: opsiutils/opsiadmin.py:1601
 msgid "Missing action request"
 msgstr "Fehlende angeforderte Aktion"
 
-#: ../opsi-admin:1600
+#: opsiutils/opsiadmin.py:1591
 msgid "Missing client-id"
 msgstr "Fehlende Client-ID"
 
-#: ../opsi-admin:1627
+#: opsiutils/opsiadmin.py:1618
 msgid "Missing argument"
 msgstr "Fehlendes Argument"
 
-#: ../opsi-admin:1635
+#: opsiutils/opsiadmin.py:1626
 msgid "You have to be root to change pcpatch password!"
 msgstr "Sie müssen root sein um das pcpatch-Passwort ändern zu können!"
 
-#: ../opsi-admin:1639
+#: opsiutils/opsiadmin.py:1630
 msgid "Failed to get my own fully qualified domainname"
 msgstr "Konnte den vollen Hostnamen des Servers nicht ermitteln"
 
-#: ../opsi-makepackage:235
+#: opsiutils/opsimakepackage.py:231
 msgid "Locking package"
 msgstr "Sperre Paket"
 
-#: ../opsi-makepackage:246
+#: opsiutils/opsimakepackage.py:242
 msgid "Package info"
 msgstr "Paket-Informationen"
 
-#: ../opsi-makepackage:253
+#: opsiutils/opsimakepackage.py:249
 msgid "Product info"
 msgstr "Produkt-Informationen"
 
-#: ../opsi-makepackage:275
+#: opsiutils/opsimakepackage.py:271
 msgid "Product scripts"
 msgstr "Produkt-Skripte"
 
-#: ../opsi-makepackage:303
+#: opsiutils/opsimakepackage.py:299
 msgid "Package file '%s' already exists."
 msgstr "Paket-Datei '%s' existiert bereits."
 
-#: ../opsi-makepackage:304
+#: opsiutils/opsimakepackage.py:300
 msgid "Press <O> to overwrite, <C> to abort or <N> to specify a new version:"
-msgstr "Drücken Sie <O> zum Überschreiben, <C> zum Abbrechen oder <N> um einen neue Versionsnummer anzugeben:"
+msgstr ""
+"Drücken Sie <O> zum Überschreiben, <C> zum Abbrechen oder <N> um einen neue "
+"Versionsnummer anzugeben:"
 
-#: ../opsi-makepackage:334
+#: opsiutils/opsimakepackage.py:330
 msgid "Aborted"
 msgstr "Abgebrochen"
 
-#: ../opsi-makepackage:344
+#: opsiutils/opsimakepackage.py:340
 msgid ""
 "Please specify new product version, press <ENTER> to keep current version "
 "(%s):"
-msgstr "Bitte eine neue Produkt-Version eingeben, <ENTER> drücken um die momentane Version (%s) beizubehalten:"
+msgstr ""
+"Bitte eine neue Produkt-Version eingeben, <ENTER> drücken um die momentane "
+"Version (%s) beizubehalten:"
 
-#: ../opsi-makepackage:362
+#: opsiutils/opsimakepackage.py:358
 msgid "Bad product version: %s"
 msgstr "Ungültige Produkt-Version: %s"
 
-#: ../opsi-makepackage:365
+#: opsiutils/opsimakepackage.py:361
 msgid ""
 "Please specify new package version, press <ENTER> to keep current version "
 "(%s):"
-msgstr "Bitte eine neue Paket-Version eingeben, <ENTER> drücken um die momentane Version (%s) beizubehalten:"
+msgstr ""
+"Bitte eine neue Paket-Version eingeben, <ENTER> drücken um die momentane "
+"Version (%s) beizubehalten:"
 
-#: ../opsi-makepackage:383
+#: opsiutils/opsimakepackage.py:379
 msgid "Bad package version: %s"
 msgstr "Ungültige Paket-Version: %s"
 
-#: ../opsi-makepackage:398
+#: opsiutils/opsimakepackage.py:394
 msgid "Creating package file '%s'"
 msgstr "Erzeuge Paket-Datei '%s'"
 
-#: ../opsi-makepackage:407
+#: opsiutils/opsimakepackage.py:403
 msgid "Creating md5sum file '%s'"
 msgstr "Erzeuge MD5-Summen-Datei '%s'"
 
-#: ../opsi-makepackage:416
+#: opsiutils/opsimakepackage.py:412
 msgid "Creating zsync file '%s'"
 msgstr "Erzeuge zsync-Datei '%s'"
 
-#: ../opsi-makepackage:424
+#: opsiutils/opsimakepackage.py:420
 msgid "Cleaning up"
 msgstr "Räume auf"
 
-#: ../opsi-makepackage:427
+#: opsiutils/opsimakepackage.py:423
 msgid "Unlocking package"
 msgstr "Hebe Paket-Sperre auf"
 
-#: ../opsi-newprod:74
+#: opsiutils/opsinewprod.py:70
 msgid "Copies the contents of DIRECTORY to the destination directory."
 msgstr "Kopiert den Inhalt von VERZEICHNIS in das Ziel-Verzeichnis."
 
-#: ../opsi-newprod:76
+#: opsiutils/opsinewprod.py:72
 msgid ""
 "The destination of the new product source. If no destination directory is "
 "supplied, the current directory is used."
-msgstr "Das Zielverzeichnis für die neuen Produkt-Quellen. Falls kein Zielverzeichnis angegeben wird, wird das aktuelle Verzeichnis verwendet."
+msgstr ""
+"Das Zielverzeichnis für die neuen Produkt-Quellen. Falls kein "
+"Zielverzeichnis angegeben wird, wird das aktuelle Verzeichnis verwendet."
 
-#: ../opsi-newprod:95
+#: opsiutils/opsinewprod.py:91
 msgid "Overwrite?"
 msgstr "Überschreiben?"
 
-#: ../opsi-newprod:96
+#: opsiutils/opsinewprod.py:92
 msgid "Directory %s already exists, overwrite?"
 msgstr "Das Verzeichnis %s existiert bereits, überschreiben?"
 
-#: ../opsi-newprod:97 ../opsi-newprod:381 ../opsi-newprod:467
+#: opsiutils/opsinewprod.py:93 opsiutils/opsinewprod.py:377
+#: opsiutils/opsinewprod.py:463
 msgid "Yes"
 msgstr "Ja"
 
-#: ../opsi-newprod:98 ../opsi-newprod:382 ../opsi-newprod:468
+#: opsiutils/opsinewprod.py:94 opsiutils/opsinewprod.py:378
+#: opsiutils/opsinewprod.py:464
 msgid "No"
 msgstr "Nein"
 
-#: ../opsi-newprod:102 ../opsi-newprod:153 ../opsi-newprod:192
-#: ../opsi-newprod:278 ../opsi-newprod:604
+#: opsiutils/opsinewprod.py:98 opsiutils/opsinewprod.py:149
+#: opsiutils/opsinewprod.py:188 opsiutils/opsinewprod.py:274
+#: opsiutils/opsinewprod.py:600
 msgid "Cancelled"
 msgstr "Abgebrochen"
 
-#: ../opsi-newprod:121
+#: opsiutils/opsinewprod.py:117
 msgid "Done"
 msgstr "Fertig"
 
-#: ../opsi-newprod:121
+#: opsiutils/opsinewprod.py:117
 msgid "Package source directory '%s' created"
 msgstr "Das Paket-Quellverzeichnis '%s' wurde erzeugt."
 
-#: ../opsi-newprod:123
+#: opsiutils/opsinewprod.py:119
 msgid "Product creation failed. Removing directory {0}"
 msgstr "Produkterstellung fehlgeschlagen. Entferne Verzeichnis {0}"
 
-#: ../opsi-newprod:126
+#: opsiutils/opsinewprod.py:122
 msgid "Product creation failed"
 msgstr "Produkterstellung fehlgeschlagen"
 
-#: ../opsi-newprod:146
+#: opsiutils/opsinewprod.py:142
 msgid "Please select product type"
 msgstr "Bitte Produkt-Typ auswählen"
 
-#: ../opsi-newprod:163
+#: opsiutils/opsinewprod.py:159
 msgid ""
 "Product id:       A unique identifier for the product.\n"
 "Product name:     The full name of the product.\n"
@@ -353,87 +356,98 @@ msgid ""
 "Product version:  Version defined by software producer.\n"
 "Package version:  Opsi package version of the product.\n"
 "License required: Is a license required (0|1)?\n"
-"Priority:         The installation priority class of this product (value between -100 and 100, 0 = neutral)."
-msgstr "Produkt-ID: Ein eindeutiger Bezeichner für das Produkt.\nProdukt-Name: Der volle Name des Produkts.\nBeschreibung: Eine Produkt-Beschreibung (\\n für Zeilenumbrüche verwenden).\nHinweis: Ein zusätzlicher wichtiger Hinweis.\nProdukt-Version: Versionsnummer wie vom Software-Hersteller angegeben.\nPaket-Version: Opsi-Paket-Versionsnummer des Produkts. Lizenzpflichtig: Ist das Produkt lizenzpflichtig (0|1)?\nPriorität: Die Installations-Prioritätsklasse des Produkts (von -100 bis 100, 0 = neutral). "
+"Priority:         The installation priority class of this product (value "
+"between -100 and 100, 0 = neutral)."
+msgstr ""
+"Produkt-ID: Ein eindeutiger Bezeichner für das Produkt.\n"
+"Produkt-Name: Der volle Name des Produkts.\n"
+"Beschreibung: Eine Produkt-Beschreibung (\\n für Zeilenumbrüche verwenden).\n"
+"Hinweis: Ein zusätzlicher wichtiger Hinweis.\n"
+"Produkt-Version: Versionsnummer wie vom Software-Hersteller angegeben.\n"
+"Paket-Version: Opsi-Paket-Versionsnummer des Produkts. Lizenzpflichtig: Ist "
+"das Produkt lizenzpflichtig (0|1)?\n"
+"Priorität: Die Installations-Prioritätsklasse des Produkts (von -100 bis "
+"100, 0 = neutral). "
 
-#: ../opsi-newprod:173
+#: opsiutils/opsinewprod.py:169
 msgid "Product id"
 msgstr "Produkt-ID"
 
-#: ../opsi-newprod:174
+#: opsiutils/opsinewprod.py:170
 msgid "Product name"
 msgstr "Produkt-Name"
 
-#: ../opsi-newprod:175
+#: opsiutils/opsinewprod.py:171
 msgid "Description"
 msgstr "Beschreibung"
 
-#: ../opsi-newprod:176
+#: opsiutils/opsinewprod.py:172
 msgid "Advice"
 msgstr "Hinweis"
 
-#: ../opsi-newprod:177
+#: opsiutils/opsinewprod.py:173
 msgid "Product version"
 msgstr "Produkt-Version"
 
-#: ../opsi-newprod:178
+#: opsiutils/opsinewprod.py:174
 msgid "Package version"
 msgstr "Paket-Version"
 
-#: ../opsi-newprod:179
+#: opsiutils/opsinewprod.py:175
 msgid "License required"
 msgstr "Lizenzpflichtig"
 
-#: ../opsi-newprod:180
+#: opsiutils/opsinewprod.py:176
 msgid "Priority"
 msgstr "Priorität"
 
-#: ../opsi-newprod:183 ../opsi-newprod:267
+#: opsiutils/opsinewprod.py:179 opsiutils/opsinewprod.py:263
 msgid "PXE config template"
 msgstr "PXE-Konfigurations-Vorlage"
 
-#: ../opsi-newprod:186
+#: opsiutils/opsinewprod.py:182
 msgid "product information"
 msgstr "Produkt-Information"
 
-#: ../opsi-newprod:199
+#: opsiutils/opsinewprod.py:195
 msgid "You have to specify a valid product id."
 msgstr "Sie müssen eine gültige Produkt-ID angeben."
 
-#: ../opsi-newprod:206
+#: opsiutils/opsinewprod.py:202
 msgid "You have to specify a valid product name."
 msgstr "Sie müssen einen gültigen Produkt-Namen angeben."
 
-#: ../opsi-newprod:211
+#: opsiutils/opsinewprod.py:207
 msgid "Description is not valid."
 msgstr "Die Beschreibung ist ungültig."
 
-#: ../opsi-newprod:216
+#: opsiutils/opsinewprod.py:212
 msgid "Advice is not valid."
 msgstr "Der Hinweis ist ungültig."
 
-#: ../opsi-newprod:223
+#: opsiutils/opsinewprod.py:219
 msgid "You have to specify a valid product version."
 msgstr "Sie müssen eine gültige Produkt-Version angeben."
 
-#: ../opsi-newprod:230
+#: opsiutils/opsinewprod.py:226
 msgid "You have to specify a valid package version."
 msgstr "Sie müssen eine gültige Paket-Version angeben."
 
-#: ../opsi-newprod:235
+#: opsiutils/opsinewprod.py:231
 msgid "License required must be a boolean value."
 msgstr "Bitte verwenden Sie einen boolschen Wert für 'Lizenzpflichtig'."
 
-#: ../opsi-newprod:240
+#: opsiutils/opsinewprod.py:236
 msgid "Priority has to be an number between -100 and 100"
 msgstr "Die Priorität muss eine Zahl zwischen -100 und 100 sein."
 
-#: ../opsi-newprod:243 ../opsi-newprod:325 ../opsi-newprod:449
-#: ../opsi-newprod:540 ../opsi-newprod:576 ../opsi-newprod:624
+#: opsiutils/opsinewprod.py:239 opsiutils/opsinewprod.py:321
+#: opsiutils/opsinewprod.py:445 opsiutils/opsinewprod.py:536
+#: opsiutils/opsinewprod.py:572 opsiutils/opsinewprod.py:620
 msgid "Bad value"
 msgstr "Ungültiger Wert"
 
-#: ../opsi-newprod:247
+#: opsiutils/opsinewprod.py:243
 msgid ""
 "Setup script:        Relative path to script for action \"setup\".\n"
 "Uninstall script:    Relative path to script for action \"uninstall\".\n"
@@ -443,389 +457,438 @@ msgid ""
 "Custom script:       Relative path to script for action \"custom\".\n"
 "User login script:   Relative path to script for user login.\n"
 "PXE config template: path to a custom pxelinux config template."
-msgstr "Setup-Skript: Relativer Pfad zum Skript für die Aktion \"setup\".\nUninstall-Skript: Relativer Pfad zum Skript für die Aktion \"uninstall\".\nUpdate-Skript: Relativer Pfad zum Skript für die Aktion \"update\".\nAlways-Skript: Relativer Pfad zum Skript für die Aktion \"always\".\nOnce-Skript: Relativer Pfad zum Skript für die Aktion \"once\".\nCustom-Skript: Relativer Pfad zum Skript für die Aktion \"custom\".\nBenutzer-Anmeldungs-Skript: Relativer Pfad zum Skript für die Benutzer-Anmeldung.\nPXE-Konfigurations-Vorlage: Pfad zu einer spezifischen PXE-Konfigurations-Vorlage."
+msgstr ""
+"Setup-Skript: Relativer Pfad zum Skript für die Aktion \"setup\".\n"
+"Uninstall-Skript: Relativer Pfad zum Skript für die Aktion \"uninstall\".\n"
+"Update-Skript: Relativer Pfad zum Skript für die Aktion \"update\".\n"
+"Always-Skript: Relativer Pfad zum Skript für die Aktion \"always\".\n"
+"Once-Skript: Relativer Pfad zum Skript für die Aktion \"once\".\n"
+"Custom-Skript: Relativer Pfad zum Skript für die Aktion \"custom\".\n"
+"Benutzer-Anmeldungs-Skript: Relativer Pfad zum Skript für die Benutzer-"
+"Anmeldung.\n"
+"PXE-Konfigurations-Vorlage: Pfad zu einer spezifischen PXE-Konfigurations-"
+"Vorlage."
 
-#: ../opsi-newprod:258
+#: opsiutils/opsinewprod.py:254
 msgid "Setup script"
 msgstr "Setup-Skript"
 
-#: ../opsi-newprod:259
+#: opsiutils/opsinewprod.py:255
 msgid "Uninstall script"
 msgstr "Uninstall-Skript"
 
-#: ../opsi-newprod:260
+#: opsiutils/opsinewprod.py:256
 msgid "Update script"
 msgstr "Update-Skript"
 
-#: ../opsi-newprod:261
+#: opsiutils/opsinewprod.py:257
 msgid "Always script"
 msgstr "Always-Skript"
 
-#: ../opsi-newprod:262
+#: opsiutils/opsinewprod.py:258
 msgid "Once script"
 msgstr "Once-Skript"
 
-#: ../opsi-newprod:263
+#: opsiutils/opsinewprod.py:259
 msgid "Custom script"
 msgstr "Custom-Skript"
 
-#: ../opsi-newprod:269
+#: opsiutils/opsinewprod.py:265
 msgid "User login script"
 msgstr "Benutzer-Anmeldungs-Skript"
 
-#: ../opsi-newprod:272
+#: opsiutils/opsinewprod.py:268
 msgid "product scripts"
 msgstr "Produkt-Skripte"
 
-#: ../opsi-newprod:285
+#: opsiutils/opsinewprod.py:281
 msgid "Setup script is not valid."
 msgstr "Das Setup-Skript ist ungültig"
 
-#: ../opsi-newprod:290
+#: opsiutils/opsinewprod.py:286
 msgid "Uninstall script is not valid."
 msgstr "Das Uninstall-Skript ist ungültig"
 
-#: ../opsi-newprod:295
+#: opsiutils/opsinewprod.py:291
 msgid "Update script is not valid."
 msgstr "Das Update-Skript ist ungültig"
 
-#: ../opsi-newprod:300
+#: opsiutils/opsinewprod.py:296
 msgid "Always script is not valid."
 msgstr "Das Always-Skript ist ungültig"
 
-#: ../opsi-newprod:305
+#: opsiutils/opsinewprod.py:301
 msgid "Once script is not valid."
 msgstr "Das Once-Skript ist ungültig"
 
-#: ../opsi-newprod:310
+#: opsiutils/opsinewprod.py:306
 msgid "Custom script is not valid."
 msgstr "Das Custom-Skript ist ungültig"
 
-#: ../opsi-newprod:316
+#: opsiutils/opsinewprod.py:312
 msgid "PXE config template is not valid."
 msgstr "Die PXE-Konfigurations-Vorlage ist ungültig"
 
-#: ../opsi-newprod:322
+#: opsiutils/opsinewprod.py:318
 msgid "User login script is not valid."
 msgstr "Das Benutzer-Anmeldungs-Skript ist ungültig"
 
-#: ../opsi-newprod:366
+#: opsiutils/opsinewprod.py:362
 msgid ""
 "You have to specify a required product id.\n"
-"You have to specify either a required installation status or a required action.\n"
-"The requirement type can be used to specify the position of a requirement. This is optional.\n"
+"You have to specify either a required installation status or a required "
+"action.\n"
+"The requirement type can be used to specify the position of a requirement. "
+"This is optional.\n"
 "Possible actions are: %s\n"
 "Possible installation status are: %s\n"
 "Possible requirement types are: %s"
-msgstr "Sie müssen ein benötigtes Produkt angeben.\nSie müssen entweder einen benötigten Installations-Status oder eine benötigte Aktion angeben.\nDer Abhängigkeitstyp kann genutzt werden eine Position für die Abhängigkeit anzugeben. Dies ist optional.\nMögliche Aktionen sind: %s\nMögliche Installations-Zustände sind: %s\nMögliche Typen von Abhängigkeiten sind: %s"
+msgstr ""
+"Sie müssen ein benötigtes Produkt angeben.\n"
+"Sie müssen entweder einen benötigten Installations-Status oder eine "
+"benötigte Aktion angeben.\n"
+"Der Abhängigkeitstyp kann genutzt werden eine Position für die Abhängigkeit "
+"anzugeben. Dies ist optional.\n"
+"Mögliche Aktionen sind: %s\n"
+"Mögliche Installations-Zustände sind: %s\n"
+"Mögliche Typen von Abhängigkeiten sind: %s"
 
-#: ../opsi-newprod:379
+#: opsiutils/opsinewprod.py:375
 msgid "Create product dependency?"
 msgstr "Eine Produkt-Abhängigkeit anlegen?"
 
-#: ../opsi-newprod:380
+#: opsiutils/opsinewprod.py:376
 msgid "Do you want to create a product dependency?"
 msgstr "Wollen Sie eine Produkt-Abhängigkeit definieren?"
 
-#: ../opsi-newprod:397
+#: opsiutils/opsinewprod.py:393
 msgid "Dependency for action"
 msgstr "Abhängigkeit für die Aktion"
 
-#: ../opsi-newprod:398
+#: opsiutils/opsinewprod.py:394
 msgid "Required product id"
 msgstr "Benötigte Produkt-ID"
 
-#: ../opsi-newprod:399
+#: opsiutils/opsinewprod.py:395
 msgid "Required action"
 msgstr "Benötigte Aktion"
 
-#: ../opsi-newprod:400
+#: opsiutils/opsinewprod.py:396
 msgid "Required installation status"
 msgstr "Benötigter Installations-Zustand"
 
-#: ../opsi-newprod:401
+#: opsiutils/opsinewprod.py:397
 msgid "Requirement type"
 msgstr "Typ der Abhängigkeit"
 
-#: ../opsi-newprod:405
+#: opsiutils/opsinewprod.py:401
 msgid "Create dependency for product %s"
 msgstr "Anlegen einer Abhängigkeit für das Produkt %s"
 
-#: ../opsi-newprod:418
+#: opsiutils/opsinewprod.py:414
 msgid "You have to specify a valid product action."
 msgstr "Sie müssen eine gültige Produkt-Aktion angeben."
 
-#: ../opsi-newprod:424
+#: opsiutils/opsinewprod.py:420
 msgid "You have to specify a valid required product id."
 msgstr "Sie müssen eine gültige benötigte Produkt-ID angeben."
 
-#: ../opsi-newprod:431
+#: opsiutils/opsinewprod.py:427
 msgid "Required action is not valid."
 msgstr "Die benötigte Aktion ist ungültig."
 
-#: ../opsi-newprod:437
+#: opsiutils/opsinewprod.py:433
 msgid "Required installation status is not valid."
 msgstr "Der benötigte Installations-Zustand ist ungültig."
 
-#: ../opsi-newprod:440
+#: opsiutils/opsinewprod.py:436
 msgid ""
 "Please specify either a required installation status or a required action."
-msgstr "Bitte entweder einen benötigten Installations-Status oder eine benötigte Aktion angeben."
+msgstr ""
+"Bitte entweder einen benötigten Installations-Status oder eine benötigte "
+"Aktion angeben."
 
-#: ../opsi-newprod:446
+#: opsiutils/opsinewprod.py:442
 msgid "Requirement type is not valid."
 msgstr "Der Typ der Abhängigkeit ist ungültig."
 
-#: ../opsi-newprod:460
+#: opsiutils/opsinewprod.py:456
 msgid ""
 "Property name: Name of the property.\n"
 "Property description: Usage description.\n"
-"Possible values: Comma separated list of possible values for the property. If no possible values are given any values are allowed.\n"
-"Editable: Is it allowed to specify a value which is not in the list of possible values?"
-msgstr "Eigenschafts-Name: Name der Eigenschaft.\nEigenschafts-Beschreibung: Beschreibung der Eigenschaft.\nMögliche Werte: Komma-getrennte Liste der möglichen Werte. Werden keine Werte angegeben, sind alle Werte erlaubt.\nEditierbar: Soll es möglich sein einen Wert außerhalb der Liste der möglichen Werte anzugeben?"
+"Possible values: Comma separated list of possible values for the property. "
+"If no possible values are given any values are allowed.\n"
+"Editable: Is it allowed to specify a value which is not in the list of "
+"possible values?"
+msgstr ""
+"Eigenschafts-Name: Name der Eigenschaft.\n"
+"Eigenschafts-Beschreibung: Beschreibung der Eigenschaft.\n"
+"Mögliche Werte: Komma-getrennte Liste der möglichen Werte. Werden keine "
+"Werte angegeben, sind alle Werte erlaubt.\n"
+"Editierbar: Soll es möglich sein einen Wert außerhalb der Liste der "
+"möglichen Werte anzugeben?"
 
-#: ../opsi-newprod:465
+#: opsiutils/opsinewprod.py:461
 msgid "Create product property?"
 msgstr "Eine Produkt-Eigenschaft anlegen?"
 
-#: ../opsi-newprod:466
+#: opsiutils/opsinewprod.py:462
 msgid "Do you want to create a product property?"
 msgstr "Wollen Sie eine Produkt-Eigenschaft definieren?"
 
-#: ../opsi-newprod:478
+#: opsiutils/opsinewprod.py:474
 msgid "Please select property type"
 msgstr "Bitte den Typ der Produkt-Eigenschaft auswählen"
 
-#: ../opsi-newprod:495
+#: opsiutils/opsinewprod.py:491
 msgid "Property name (identifier)"
 msgstr "Eigenschafts-Name (identifier)"
 
-#: ../opsi-newprod:496
+#: opsiutils/opsinewprod.py:492
 msgid "Property description"
 msgstr "Eigenschafts-Beschreibung"
 
-#: ../opsi-newprod:499
+#: opsiutils/opsinewprod.py:495
 msgid "Possible values"
 msgstr "Mögliche Werte"
 
-#: ../opsi-newprod:500
+#: opsiutils/opsinewprod.py:496
 msgid "Editable"
 msgstr "Editierbar"
 
-#: ../opsi-newprod:503
+#: opsiutils/opsinewprod.py:499
 msgid "Create property for product %s"
 msgstr "Anlegen einer Eigenschaft für das Produkt %s"
 
-#: ../opsi-newprod:516
+#: opsiutils/opsinewprod.py:512
 msgid "Please specify a valid identifier"
 msgstr "Bitte einen gültigen Eigenschafts-Name angeben."
 
-#: ../opsi-newprod:522
+#: opsiutils/opsinewprod.py:518
 msgid "Please specify a valid description"
 msgstr "Bitte eine gültige Beschreibung angeben."
 
-#: ../opsi-newprod:536
+#: opsiutils/opsinewprod.py:532
 msgid "Please specify valid possible values"
 msgstr "Bitte gültige mögliche Werte angeben."
 
-#: ../opsi-newprod:554
+#: opsiutils/opsinewprod.py:550
 msgid "Please select a default value"
 msgstr "Bitte einen Standard-Wert auswählen."
 
-#: ../opsi-newprod:564
+#: opsiutils/opsinewprod.py:560
 msgid "Please set a default value"
 msgstr "Bitte einen Standard-Wert angeben."
 
-#: ../opsi-newprod:573
+#: opsiutils/opsinewprod.py:569
 msgid "Please specify valid default values: %s"
 msgstr "Bitte gültige Stadard-Werte angeben: %s"
 
-#: ../opsi-newprod:588
+#: opsiutils/opsinewprod.py:584
 msgid "Maintainer of this opsi package."
 msgstr "Betreuer dieses opsi-Pakets."
 
-#: ../opsi-newprod:591
+#: opsiutils/opsinewprod.py:587
 msgid "Maintainer name"
 msgstr "Name des Betreuers"
 
-#: ../opsi-newprod:592
+#: opsiutils/opsinewprod.py:588
 msgid "Maintainer e-mail"
 msgstr "E-Mail des Betreuers"
 
-#: ../opsi-newprod:596
+#: opsiutils/opsinewprod.py:592
 msgid "Maintainer info"
 msgstr "Informationen zum Betreuer"
 
-#: ../opsi-newprod:613
+#: opsiutils/opsinewprod.py:609
 msgid "Please enter a valid maintainer name."
 msgstr "Bitte einen gültigen Betreuer-Namen eingeben."
 
-#: ../opsi-newprod:621
+#: opsiutils/opsinewprod.py:617
 msgid "Please enter a valid e-mail address."
 msgstr "Bitte eine gültige E-Mail-Adresse eingeben."
 
-#: ../opsi-package-manager:425
+#: opsiutils/opsipackagemanager.py:432
 msgid "Log messages"
 msgstr "Protokollmeldungen"
 
-#: ../opsi-package-manager:752
+#: opsiutils/opsipackagemanager.py:762
 msgid "%d/%d transfers running"
 msgstr "%d/%d laufende Übertragungen"
 
-#: ../opsi-package-manager:755
+#: opsiutils/opsipackagemanager.py:765
 msgid "%d transfers running"
 msgstr "%d laufende Übertragungen"
 
-#: ../opsi-package-manager:780
+#: opsiutils/opsipackagemanager.py:792
 msgid "Opening package file %s"
 msgstr "Öffne Paket-Datei %s"
 
-#: ../opsi-package-manager:800
+#: opsiutils/opsipackagemanager.py:816
 msgid "Waiting for task queues to finish up"
 msgstr "Warte auf Beendigung der Task-Warteschlangen"
 
-#: ../opsi-package-manager:808
+#: opsiutils/opsipackagemanager.py:824
 msgid "%d/%d task queues running"
 msgstr "%d/%d laufende Task-Warteschlangen"
 
-#: ../opsi-package-manager:823
+#: opsiutils/opsipackagemanager.py:839
 msgid "Setting action setup for product %s where installed"
-msgstr "Setzte Aktion setup für alle Clients auf denen das Produkt %s installiert ist."
+msgstr ""
+"Setzte Aktion setup für alle Clients auf denen das Produkt %s installiert "
+"ist."
 
-#: ../opsi-package-manager:843
+#: opsiutils/opsipackagemanager.py:859
 msgid "Setting action %s with Dependencies for product %s on client: %s"
 msgstr "Setze Aktion %s mit Abhängigkeiten für Produkt %s an Client: %s"
 
-#: ../opsi-package-manager:856
+#: opsiutils/opsipackagemanager.py:872
 msgid "Setting action %s for product %s on client(s): %s"
 msgstr "Setzte Aktion %s für das Produkt %s auf den folgenden Clients: %s"
 
-#: ../opsi-package-manager:860 ../opsi-package-manager:888
-#: ../opsi-package-manager:1158 ../opsi-package-manager:1417
-#: ../opsi-package-manager:1484
+#: opsiutils/opsipackagemanager.py:876 opsiutils/opsipackagemanager.py:904
+#: opsiutils/opsipackagemanager.py:1161 opsiutils/opsipackagemanager.py:1420
+#: opsiutils/opsipackagemanager.py:1487
 msgid "Error: %s"
 msgstr "Fehler: %s"
 
-#: ../opsi-package-manager:866
+#: opsiutils/opsipackagemanager.py:882
 msgid "Purging product property states for product %s"
 msgstr "Entferne Client-spezifische Einstellungen für das Produkt %s"
 
-#: ../opsi-package-manager:883
+#: opsiutils/opsipackagemanager.py:899
 msgid "Purging product property states for product '%s' on client(s): %s"
-msgstr "Entferne Client-spezifische Einstellungen für das Produkt '%s' und die folgend Clients: %s"
+msgstr ""
+"Entferne Client-spezifische Einstellungen für das Produkt '%s' und die "
+"folgend Clients: %s"
 
-#: ../opsi-package-manager:921
+#: opsiutils/opsipackagemanager.py:936
 msgid "Waiting for free upload slot for %s"
 msgstr "Warte auf freien Übertragungs-Kanal für %s"
 
-#: ../opsi-package-manager:930
+#: opsiutils/opsipackagemanager.py:945
 msgid "Processing upload of %s"
 msgstr "Starte Übertragung von %s"
 
-#: ../opsi-package-manager:984
+#: opsiutils/opsipackagemanager.py:999
 msgid "No need to upload, %s is up to date"
 msgstr "Übertragung von %s nicht notwendig, neueste Version vorhanden"
 
-#: ../opsi-package-manager:992
+#: opsiutils/opsipackagemanager.py:1007
 msgid "Overwriting destination %s"
 msgstr "Überschreibe Ziel %s"
 
-#: ../opsi-package-manager:999
+#: opsiutils/opsipackagemanager.py:1014
 msgid "Not enough disk space: %dMB needed, %dMB available"
 msgstr "Nicht genügend freier Specherplatz: %dMB benötigt, %dMB verfügbar."
 
-#: ../opsi-package-manager:1018
+#: opsiutils/opsipackagemanager.py:1033
 msgid "Starting upload"
 msgstr "Starte Übertragung"
 
-#: ../opsi-package-manager:1027
+#: opsiutils/opsipackagemanager.py:1042
 msgid "Getting librsync signature of %s"
 msgstr "Rufe librsyc-Signatur für %s ab"
 
-#: ../opsi-package-manager:1032
+#: opsiutils/opsipackagemanager.py:1047
 msgid "Calculating delta"
 msgstr "Berechne Delta"
 
-#: ../opsi-package-manager:1069
+#: opsiutils/opsipackagemanager.py:1074
 msgid "Starting delta upload of %s"
 msgstr "Starte Delta-Übetragung von %s"
 
-#: ../opsi-package-manager:1088
+#: opsiutils/opsipackagemanager.py:1093
 msgid "Patching %s"
 msgstr "Patche %s"
 
-#: ../opsi-package-manager:1098
+#: opsiutils/opsipackagemanager.py:1103
 msgid "Starting upload of %s"
 msgstr "Starte Übetragung von %s"
 
-#: ../opsi-package-manager:1111
+#: opsiutils/opsipackagemanager.py:1116
 msgid "Upload of %s finished"
 msgstr "Übertragung von %s abgeschlossen"
 
-#: ../opsi-package-manager:1124
+#: opsiutils/opsipackagemanager.py:1129
 msgid "Verifying upload"
 msgstr "Verifiziere übertragene Datei"
 
-#: ../opsi-package-manager:1135
+#: opsiutils/opsipackagemanager.py:1140
 msgid "Warning: %d%% filesystem usage"
 msgstr "Warnung: %d%% des Dateisystems belegt"
 
-#: ../opsi-package-manager:1138
+#: opsiutils/opsipackagemanager.py:1143
 msgid "Upload of %s successful"
 msgstr "Übertragung von %s erfolgreich"
 
-#: ../opsi-package-manager:1228
+#: opsiutils/opsipackagemanager.py:1231
 msgid "Please select product property defaults"
 msgstr "Bitte Standard-Werte für die Produkt-Eigenschaften wählen"
 
-#: ../opsi-package-manager:1229
+#: opsiutils/opsipackagemanager.py:1232
 msgid "Product"
 msgstr "Produkt"
 
-#: ../opsi-package-manager:1229
+#: opsiutils/opsipackagemanager.py:1232
 msgid "Property"
 msgstr "Eigenschaft"
 
-#: ../opsi-package-manager:1230
+#: opsiutils/opsipackagemanager.py:1233
 msgid "Back"
 msgstr "Zurück"
 
-#: ../opsi-package-manager:1246 ../opsi-package-manager:1260
+#: opsiutils/opsipackagemanager.py:1249 opsiutils/opsipackagemanager.py:1263
 msgid "<other value>"
 msgstr "<anderer Wert>"
 
-#: ../opsi-package-manager:1343
+#: opsiutils/opsipackagemanager.py:1345
 msgid "Installing package {filename} as {forcedProductId}"
 msgstr "Installiere Paket {filename} als {forcedProductId}"
 
-#: ../opsi-package-manager:1346
+#: opsiutils/opsipackagemanager.py:1348
 msgid "Installing package %s"
 msgstr "Installiere Paket %s"
 
-#: ../opsi-package-manager:1389
+#: opsiutils/opsipackagemanager.py:1392
 msgid "Installation of package {packageFile} as {forcedProductId} successful"
 msgstr "Installation von {packageFile} als {forcedProductId} erfolgreich"
 
-#: ../opsi-package-manager:1392
+#: opsiutils/opsipackagemanager.py:1395
 msgid "Installation of package %s successful"
 msgstr "Installation von %s erfolgreich"
 
-#: ../opsi-package-manager:1480
+#: opsiutils/opsipackagemanager.py:1483
 msgid "Uninstallation of package {0} successful"
 msgstr "Deinstallation des Pakets {0} erfolgreich"
 
-#: ../opsi-package-manager:1654
+#: opsiutils/opsipackagemanager.py:1656
 msgid "Errors occurred: "
 msgstr "Ein Fehler ist aufgetreten:"
 
-#: ../opsi-package-manager:1657
+#: opsiutils/opsipackagemanager.py:1659
 msgid "Failure while processing %s:"
 msgstr "Fehler beim Bearbeiten von %s:"
 
-#: ../opsi-package-manager:1803
+#: opsiutils/opsipackagemanager.py:1814
 msgid "not installed"
 msgstr "nicht installiert"
 
-#: ../opsi-package-manager:1848
+#: opsiutils/opsipackagemanager.py:1859
 msgid "There are no differences between the depots"
 msgstr "Es existieren keine Unterschiede zwischen den Depots."
+
+#~ msgid "Usage: %s [options] [command] [args...]"
+#~ msgstr "Verwendung: %s [options] [command] [args...]"
+
+#~ msgid "Options:"
+#~ msgstr "Optionen:"
+
+#~ msgid "Display this text"
+#~ msgstr "Diesen Hilfetext anzeigen"
+
+#~ msgid "0=nothing, 1=essential, 2=critical, 3=error, 4=warning"
+#~ msgstr "0=nichts, 1=essenziell, 2=kritisch, 3=Fehler, 4=Warnungen"
+
+#~ msgid "5=notice, 6=info, 7=debug, 8=debug2, 9=confidential"
+#~ msgstr "5=Hinweise, 6=Informationen, 7=debug, 8=debug2, 9=vertraulich"

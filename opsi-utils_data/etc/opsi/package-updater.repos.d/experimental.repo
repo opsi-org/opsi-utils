@@ -1,0 +1,34 @@
+; These repositories point to the experimental branch of opsi.
+
+[repository_uib_linux_experimental]
+description = opsi Linux Support (experimental packages)
+active = false
+baseUrl = http://download.uib.de
+dirs = opsi4.2/experimental/packages/linux/localboot/, opsi4.2/experimental/packages/linux/netboot/
+autoInstall = false
+autoUpdate = true
+autoSetup = false
+; Set Proxy handler like: http://10.10.10.1:8080
+proxy =
+
+[repository_uib_local_image_experimental]
+description = opsi Local Image Backup extension (experimental packages)
+active = false
+baseUrl = http://download.uib.de
+dirs = opsi4.2/experimental/packages/opsi-local-image/localboot/, opsi4.2/experimental/packages/opsi-local-image/netboot/
+autoInstall = false
+autoUpdate = true
+autoSetup = false
+; Set Proxy handler like: http://10.10.10.1:8080
+proxy =
+
+[repository_uib_windows_experimental]
+description = opsi Windows Support (experimental packages)
+active = false
+baseUrl = http://download.uib.de
+dirs = opsi4.2/experimental/packages/windows/localboot/, opsi4.2/experimental/packages/windows/netboot/
+autoInstall = false
+autoUpdate = true
+autoSetup = false
+; Set Proxy handler like: http://10.10.10.1:8080
+proxy =

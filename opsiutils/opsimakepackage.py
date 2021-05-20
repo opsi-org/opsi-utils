@@ -1,0 +1,483 @@
+# -*- coding: utf-8 -*-
+
+# Copyright (c) uib GmbH <info@uib.de>
+# License: AGPL-3.0
+"""
+opsi-makepackage - create opsi-packages for deployment.
+"""
+
+import argparse
+import fcntl
+import gettext
+import os
+import struct
+import sys
+import termios
+import tty
+from contextlib import contextmanager
+
+from opsicommon.logging import logger, init_logging, logging_config, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, DEFAULT_COLORED_FORMAT
+from OPSI import __version__ as python_opsi_version
+import OPSI.Util.File.Archive
+from OPSI.System import execute
+from OPSI.Types import forceFilename, forceUnicode
+from OPSI.Util.Message import ProgressObserver, ProgressSubject
+from OPSI.Util.Product import ProductPackageSource
+from OPSI.Util.File.Opsi import PackageControlFile
+from OPSI.Util.File import ZsyncFile
+from OPSI.Util.Task.Rights import setRights
+from OPSI.Util import md5sum
+
+from opsiutils import __version__
+
+try:
+	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+	if os.path.exists(os.path.join(sp, "site-packages")):
+		sp = os.path.join(sp, "site-packages")
+	sp = os.path.join(sp, 'opsi-utils_data', 'locale')
+	translation = gettext.translation('opsi-utils', sp)
+	_ = translation.gettext
+except Exception as error:
+	logger.debug("Failed to load locale from %s: %s", sp, error)
+
+	def _(string):
+		""" Fallback function """
+		return string
+
+
+class CancelledByUserError(Exception):
+	pass
+
+
+class ProgressNotifier(ProgressObserver):
+	def __init__(self):
+		self.usedWidth = 60
+		try:
+			tty = os.popen('tty').readline().strip()
+			with open(tty) as fd:
+				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+
+			if self.usedWidth > terminalWidth:
+				self.usedWidth = terminalWidth
+		except Exception:
+			pass
+
+	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+		if subject.getEnd() <= 0:
+			return
+
+		barlen = self.usedWidth - 10
+		filledlen = int("%0.0f" % (barlen * percent / 100))
+		bar = '='*filledlen + ' ' * (barlen - filledlen)
+		percent = '%0.2f%%' % percent
+		sys.stderr.write('\r %8s [%s]\r' % (percent, bar))
+		sys.stderr.flush()
+
+	def messageChanged(self, subject, message):
+		sys.stderr.write('\n%s\n' % message)
+		sys.stderr.flush()
+
+@contextmanager
+def raw_tty():
+	fd = sys.stdin.fileno()
+	#fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+	at = termios.tcgetattr(fd)
+	#fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+	tty.setraw(fd)
+	try:
+		yield
+	finally:
+		#fcntl.fcntl(fd, fcntl.F_SETFL, fl)
+		#termios.tcsetattr(fd, termios.TCSADRAIN, at)
+		termios.tcsetattr(fd, termios.TCSANOW, at)
+
+def print_info(product, customName, pcf):
+	print("")
+	print(_("Package info"))
+	print("----------------------------------------------------------------------------")
+	print("   %-20s : %s" % ('version', product.packageVersion))
+	print("   %-20s : %s" % ('custom package name', customName))
+	print("   %-20s : %s" % ('package dependencies', ', '.join('{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies())))
+
+	print("")
+	print(_("Product info"))
+	print("----------------------------------------------------------------------------")
+	print("   %-20s : %s" % ('product id', product.id))
+
+	if product.getType() == 'LocalbootProduct':
+		print("   %-20s : %s" % ('product type', 'localboot'))
+	elif product.getType() == 'NetbootProduct':
+		print("   %-20s : %s" % ('product type', 'netboot'))
+
+	print("   %-20s : %s" % ('version', product.productVersion))
+	print("   %-20s : %s" % ('name', product.name))
+	print("   %-20s : %s" % ('description', product.description))
+	print("   %-20s : %s" % ('advice', product.advice))
+	print("   %-20s : %s" % ('priority', product.priority))
+	print("   %-20s : %s" % ('licenseRequired', product.licenseRequired))
+	print("   %-20s : %s" % ('product classes', ', '.join(product.productClassIds)))
+	print("   %-20s : %s" % ('windows software ids', ', '.join(product.windowsSoftwareIds)))
+
+	if product.getType() == 'NetbootProduct':
+		print("   %-20s : %s" % ('pxe config template', product.pxeConfigTemplate))
+
+	print("")
+	print(_("Product scripts"))
+	print("----------------------------------------------------------------------------")
+	print("   %-20s : %s" % ('setup', product.setupScript))
+	print("   %-20s : %s" % ('uninstall', product.uninstallScript))
+	print("   %-20s : %s" % ('update', product.updateScript))
+	print("   %-20s : %s" % ('always', product.alwaysScript))
+	print("   %-20s : %s" % ('once', product.onceScript))
+	print("   %-20s : %s" % ('custom', product.customScript))
+	if product.getType() == 'LocalbootProduct':
+		print("   %-20s : %s" % ('user login', product.userLoginScript))
+	print("")
+
+def parse_args():
+	parser = argparse.ArgumentParser(add_help=False,
+		description=("Provides an opsi package from a package source directory.\n"
+				"If no source directory is supplied, the current directory will be used.")
+	)
+	parser.add_argument('--help', action='store_true', default=False,
+						help="Show help.")  # Manual implementation because of -h
+	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
+	parser.add_argument('--quiet', '-q', action='store_true', default=False,
+						help="do not show progress")
+	parser.add_argument('--verbose', '-v', default=False, action="store_true",
+						help="verbose")
+	parser.add_argument('--log-level', '-l', dest="logLevel",
+						default=LOG_WARNING,
+						type=int,
+						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+						help="Set log-level (0..9)")
+	parser.add_argument('--no-compression', '-n', dest="compression",
+						default='gzip', action='store_const', const=None,
+						help="Do not compress")
+	parser.add_argument('--archive-format', '-F', dest="format", default='cpio', choices=['cpio', 'tar'],
+						help="Archive format to use. Default: cpio")
+	parser.add_argument('--no-pigz', dest="disablePigz",
+					default=False, action='store_true',
+					help="Disable the usage of pigz")
+	parser.add_argument('--no-set-rights', dest="no_set_rights",
+					default=False, action='store_true',
+					help="Disable the setting of rights while building")
+	parser.add_argument('--follow-symlinks', '-h',
+						dest="dereference", help="follow symlinks",
+						default=False, action='store_true')
+	customGroup = parser.add_mutually_exclusive_group()
+	customGroup.add_argument('--custom-name', '-i', metavar='custom name',
+							dest="customName", default='',
+							help="Add custom files and add custom name to the base package.")
+	customGroup.add_argument('--custom-only', '-c', metavar='custom name',
+							dest="customOnly", default=False,
+							help="Only package custom files and add custom name to base package.")
+	parser.add_argument('--temp-directory', '-t',
+						dest="tempDir", help="temp dir", default='/tmp',
+						metavar='directory')
+	hashSumGroup = parser.add_mutually_exclusive_group()
+	hashSumGroup.add_argument(
+		'--md5', '-m',
+		dest="createMd5SumFile", default=True, action='store_true',
+		help="Create file with md5 checksum.")
+	hashSumGroup.add_argument(
+		'--no-md5', dest="createMd5SumFile", action='store_false',
+		help="Do not create file with md5 checksum.")
+	zsyncGroup = parser.add_mutually_exclusive_group()
+	zsyncGroup.add_argument(
+		'--zsync', '-z', dest="createZsyncFile",
+		default=True, action='store_true',
+		help="Create zsync file.")
+	zsyncGroup.add_argument(
+		'--no-zsync', dest="createZsyncFile", action='store_false',
+		help="Do not create zsync file.")
+	parser.add_argument('packageSourceDir', metavar="source directory",
+						nargs='?', default=os.getcwd())
+
+	vgroup = parser.add_argument_group('Versions',
+		'Set versions for package. Combinations are possible.')
+	vgroup.add_argument('--keep-versions', '-k', action='store_true',
+				help="Keep versions and overwrite package", dest="keepVersions")
+	vgroup.add_argument('--package-version', help="Set new package version ",
+				default='', metavar='packageversion', dest="newPackageVersion")
+	vgroup.add_argument('--product-version', default='',
+				dest="newProductVersion", metavar='productversion',
+				help="Set new product version for package")
+
+	args = parser.parse_args()
+	if args.help:
+		parser.print_help()
+		sys.exit(1)
+	return args
+
+def makepackage_main(argv):
+	os.umask(0o022)
+
+	init_logging(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
+
+	args = parse_args()
+
+	keepVersions = args.keepVersions
+	needOneVersion = False
+	newProductVersion = args.newProductVersion
+	newPackageVersion = args.newPackageVersion
+	if newProductVersion or newPackageVersion:
+		needOneVersion = True
+	doNotUseTerminal = False
+	if keepVersions:
+		doNotUseTerminal = True
+	if newPackageVersion and newProductVersion:
+		doNotUseTerminal = True
+
+	customName = args.customName
+	customOnly = bool(args.customOnly)
+	if customOnly:
+		customName = args.customOnly
+	dereference = args.dereference
+	logLevel = args.logLevel
+	compression = args.compression
+	quiet = args.quiet
+	tempDir = forceFilename(args.tempDir)
+	format = forceUnicode(args.format)
+	createMd5SumFile = args.createMd5SumFile
+	createZsyncFile = args.createZsyncFile
+	packageSourceDir = args.packageSourceDir
+	disablePigz = args.disablePigz
+
+	if args.verbose:
+		logLevel = LOG_DEBUG
+
+	if quiet:
+		logLevel = LOG_NONE
+
+	logging_config(stderr_level=logLevel)
+
+	logger.info("Source dir: %s", packageSourceDir)
+	logger.info("Temp dir: %s", tempDir)
+	logger.info("Custom name: %s", customName)
+	logger.info("Archive format: %s", format)
+
+	if format not in ['tar', 'cpio']:
+		raise ValueError("Unsupported archive format: %s" % format)
+
+	if not os.path.isdir(packageSourceDir):
+		raise OSError("No such directory: %s" % packageSourceDir)
+
+	if customName:
+		packageControlFilePath = os.path.join(packageSourceDir, 'OPSI.%s' % customName, 'control')
+	if not customName or not os.path.exists(packageControlFilePath):
+		packageControlFilePath = os.path.join(packageSourceDir, 'OPSI', 'control')
+		if not os.path.exists(packageControlFilePath):
+			raise OSError("Control file '%s' not found" % packageControlFilePath)
+
+	if not quiet:
+		print("")
+		print(_("Locking package"))
+	pcf = PackageControlFile(packageControlFilePath)
+
+	lockPackage(tempDir, pcf)
+	pps = None
+	try:
+		while True:
+			product = pcf.getProduct()
+
+			if not quiet:
+				print_info(product, customName, pcf)
+			if disablePigz:
+				logger.debug("Disabling pigz")
+				OPSI.Util.File.Archive.PIGZ_ENABLED = False
+
+			pps = ProductPackageSource(
+				packageSourceDir=packageSourceDir,
+				tempDir=tempDir,
+				customName=customName,
+				customOnly=customOnly,
+				packageFileDestDir=os.getcwd(),
+				format=format,
+				compression=compression,
+				dereference=dereference
+			)
+
+			if not quiet and os.path.exists(pps.getPackageFile()):
+				print(_("Package file '%s' already exists.") % pps.getPackageFile())
+				print(_("Press <O> to overwrite, <C> to abort or <N> to specify a new version:"), end=' ')
+				sys.stdout.flush()
+				newVersion = False
+				if keepVersions and needOneVersion:
+					newVersion = True
+				elif keepVersions:
+					if os.path.exists(pps.packageFile):
+						os.remove(pps.packageFile)
+					if os.path.exists(pps.packageFile + '.md5'):
+						os.remove(pps.packageFile + '.md5')
+					if os.path.exists(pps.packageFile + '.zsync'):
+						os.remove(pps.packageFile + '.zsync')
+				elif needOneVersion:
+					newVersion = True
+
+				if not doNotUseTerminal:
+					with raw_tty():
+						try:
+							while True:
+								ch = sys.stdin.read(1)
+								if ch in ('o', 'O'):
+									if os.path.exists(pps.packageFile):
+										os.remove(pps.packageFile)
+									if os.path.exists(pps.packageFile + '.md5'):
+										os.remove(pps.packageFile + '.md5')
+									if os.path.exists(pps.packageFile + '.zsync'):
+										os.remove(pps.packageFile + '.zsync')
+									break
+								elif ch in ('c', 'C'):
+									raise Exception(_("Aborted"))
+								elif ch in ('n', 'N'):
+									newVersion = True
+									break
+						finally:
+							print('\r\033[0K')
+
+				if newVersion:
+					while True:
+						print('\r%s' % _("Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion, end=' ')
+						newVersion = newProductVersion
+						if not keepVersions and not needOneVersion:
+							newVersion = sys.stdin.readline().strip()
+						else:
+							if newProductVersion:
+								newVersion = newProductVersion
+							elif keepVersions:
+								newVersion = product.productVersion
+							else:
+								newVersion = sys.stdin.readline().strip()
+
+						try:
+							if newVersion:
+								product.setProductVersion(newVersion)
+								pcf.generate()
+							break
+						except Exception:
+							print(_("Bad product version: %s") % newVersion)
+
+					while True:
+						print('\r%s' % _("Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion, end=' ')
+						newVersion = newPackageVersion
+						if not keepVersions and not needOneVersion:
+							newVersion = sys.stdin.readline().strip()
+						else:
+							if newPackageVersion:
+								newVersion = newPackageVersion
+							elif keepVersions:
+								newVersion = product.packageVersion
+							else:
+								newVersion = sys.stdin.readline().strip()
+
+						try:
+							if newVersion:
+								product.setPackageVersion(newVersion)
+								pcf.generate()
+							break
+						except Exception:
+							print(_("Bad package version: %s") % newVersion)
+
+					keepVersions = True
+					needOneVersion = False
+					newProductVersion = newPackageVersion = None
+					newVersion = None
+					continue
+
+			# Regenerating to fix encoding
+			pcf.generate()
+
+			progressSubject = None
+			if not quiet:
+				progressSubject = ProgressSubject('packing')
+				progressSubject.attachObserver(ProgressNotifier())
+				print(_("Creating package file '%s'") % pps.getPackageFile())
+			pps.pack(progressSubject=progressSubject)
+			if not args.no_set_rights:
+				try:
+					setRights(pps.getPackageFile())
+				except Exception as e:
+					logger.warning("Failed to set rights: %s", e)
+
+			if not quiet:
+				print("\n")
+			if createMd5SumFile:
+				md5sumFile = '%s.md5' % pps.getPackageFile()
+				if not quiet:
+					print(_("Creating md5sum file '%s'") % md5sumFile)
+				md5 = md5sum(pps.getPackageFile())
+				with open(md5sumFile, 'w') as f:
+					f.write(md5)
+				if not args.no_set_rights:
+					try:
+						setRights(md5sumFile)
+					except Exception as e:
+						logger.warning("Failed to set rights: %s", e)
+
+			if createZsyncFile:
+				zsyncFilePath = '%s.zsync' % pps.getPackageFile()
+				if not quiet:
+					print(_("Creating zsync file '%s'") % zsyncFilePath)
+				zsyncFile = ZsyncFile(zsyncFilePath)
+				zsyncFile.generate(pps.getPackageFile())
+				if not args.no_set_rights:
+					try:
+						setRights(zsyncFilePath)
+					except Exception as e:
+						logger.warning("Failed to set rights: %s", e)
+			break
+	finally:
+		if pps:
+			if not quiet:
+				print(_("Cleaning up"))
+			pps.cleanup()
+		if not quiet:
+			print(_("Unlocking package"))
+		unlockPackage(tempDir, pcf)
+		if not quiet:
+			print("")
+
+
+def lockPackage(tempDir, packageControlFile):
+	lockFile = os.path.join(tempDir, '.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
+	# Test if other processes are accessing same product
+	try:
+		with open(lockFile, 'r') as lf:
+			p = lf.read().strip()
+
+		if p:
+			for line in execute("ps -A"):
+				line = line.strip()
+				if not line:
+					continue
+				if p == line.split()[0].strip():
+					pName = line.split()[-1].strip()
+					# process is running
+					raise RuntimeError("Product '%s' is currently locked by process %s (%s)."
+									% (packageControlFile.getProduct().id, pName, p))
+
+	except IOError:
+		pass
+
+	# Write lock-file
+	with open(lockFile, 'w') as lf:
+		lf.write(str(os.getpid()))
+
+
+def unlockPackage(tempDir, packageControlFile):
+	lockFile = os.path.join(tempDir, '.opsi-makepackage.lock.%s' % packageControlFile.getProduct().id)
+	if os.path.isfile(lockFile):
+		os.unlink(lockFile)
+
+
+def main():
+	try:
+		makepackage_main(sys.argv[1:])
+	except SystemExit:
+		pass
+	except Exception as exception:
+		logging_config(stderr_level=LOG_ERROR)
+		logger.error(exception, exc_info=True)
+		print("ERROR: %s" % exception, file=sys.stderr)
+		sys.exit(1)

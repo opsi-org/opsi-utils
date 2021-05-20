@@ -1,39 +1,64 @@
-image: ubuntu:bionic
+image: python:3.7-stretch
 
 stages:
+  - test
   - build
-  - package
+  - publish
 
-build manpages:
+.install_tools: &install_tools |
+  export DEBIAN_FRONTEND=noninteractive
+  apt update
+  apt -y install debhelper osc
+  pip3 install --trusted-host pypi.uib.gmbh --index-url http://pypi.uib.gmbh:8080/simple opsi-dev-tools
+  pip3 install poetry
+
+test:pytest-pylint:
+  stage: test
+  script:
+    - *install_tools
+    - apt -y install python3-newt gettext gzip asciidoc-base
+    - poetry install
+    - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
+    - poetry run pylint --disable=R,C,W,E1101 opsiutils
+
+build:linux-pyinstaller:
   stage: build
-  before_script:
-    - apt update
-    - DEBIAN_FRONTEND=noninteractive apt install -y tzdata
-    - apt install -y gzip asciidoc-base
   script:
-    - ./recreate_manpages.sh
+    - *install_tools
+    - apt -y install python3-newt gettext gzip asciidoc-base
+    - poetry install
+    - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
+    - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils "$CI_JOB_ID"'
+    - '[ "$CI_COMMIT_TAG" = "" ] || poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils'
+    - mv dist/opsi-utils .
+    # Check if binary is working
+    - opsi-utils/opsi-admin --version
   artifacts:
+    name: 'opsi-utils-linux-pyinstaller'
     paths:
-      - manpages/compiled/*
+      - opsi-utils
     expire_in: 2 days
 
-package for OBS:
-  stage: package
-  before_script:
-    - apt update
-    - apt install -y devscripts debhelper gettext
+package:obs_int:
+  stage: publish
+  dependencies:
+    - build:linux-pyinstaller
   script:
-    - ./create_source.sh
-    - test -f opsi-utils_*.dsc
-    - test -f opsi-utils_*.tar.gz
-    - test -f opsi-utils.spec
-  artifacts:
-    paths:
-      - opsi-utils_*.dsc
-      - opsi-utils_*.tar.gz
-      - opsi-utils.spec
-    expire_in: 2 days
+    - *install_tools
+    - python3 -m opsidevtools -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
   only:
-      - /^release/.*$/i
-      - tags
-      - web
+    - tags
+    # - web
+    # - /^release/.*$/i
+
+package:obs_ext:
+  stage: publish
+  dependencies:
+    - build:linux-pyinstaller
+  script:
+    - *install_tools
+    - python3 -m opsidevtools -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development
+  only:
+    - tags
+    # - web
+    # - /^release/.*$/i

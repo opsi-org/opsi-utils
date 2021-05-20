@@ -1,0 +1,103 @@
+locale:
+  languages:
+    - de
+    - fr
+  source_files:
+    - opsiutils
+  install: opsi-utils_data/locale
+
+pyinstaller-poetry:
+  one_file: no
+  hidden_imports:
+    all:
+      - OPSI.Backend.DHCPD
+      - OPSI.Backend.File
+      - OPSI.Backend.HostControl
+      - OPSI.Backend.HostControlSafe
+      - OPSI.Backend.JSONRPC
+      - OPSI.Backend.MySQL
+      - OPSI.Backend.OpsiPXEConfd
+      - OPSI.Backend.Replicator
+      - OPSI.Backend.SQLite
+      - OPSI.Util.Ping
+      - OPSI.Util.WIM
+      - snack
+      - distro
+    windows: []
+    linux: []
+    darwin: []
+  dirname: opsi-utils
+  scripts:
+    - script: run-opsiutils
+      binaries:
+        - opsi-admin
+        - opsi-backup
+        - opsi-convert
+        - opsi-makepackage
+        - opsi-newprod
+        - opsi-package-manager
+        - opsi-package-updater
+        - opsi-setup
+        - opsi-python
+        - opsi-wakeup-clients
+  data_files:
+    - src: opsi-utils_data/**/*
+      dst: opsi-utils_data
+  before_script: |
+    dpkg -l python3-newt >/dev/null 2>&1 || apt -y install python3-newt
+    pyver1=$(ls -ld .venv/lib/python* | sed s'/.*python//')
+    pyver2=$(echo $pyver1 | sed s'/\.//')
+    src=$(ls /usr/lib/python3/dist-packages/_snack.cpython-*m-x86_64-linux-gnu.so | head -n1)
+    dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}m/g")
+    cp $src $dst
+    cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
+  manpages_install: opsi-utils_data/manpages
+  after_script:
+    linux: |
+      find dist/opsi-utils -iname "*.c" -delete
+      find dist/opsi-utils -iname "*.h" -delete
+      find dist/opsi-utils -iname "*.so" -exec chmod -x "{}" \;
+      find dist/opsi-utils -iname "*.so.*" -exec chmod -x "{}" \;
+    darwin: |
+      find dist/opsi-utils -iname "*.c" -delete
+      find dist/opsi-utils -iname "*.h" -delete
+      find dist/opsi-utils -iname "*.so" -exec chmod -x "{}" \;
+      find dist/opsi-utils -iname "*.so.*" -exec chmod -x "{}" \;
+
+package:
+  name: opsi-utils
+  type: binary
+  architecture: amd64
+  depends:
+    - zsync
+    - librsync | librsync2 | librsync1
+  conflicts:
+    - opsi-server (<< 4.2)
+    - opsi-server-expert (<< 4.2)
+    - opsi-depotserver (<< 4.2)
+    - opsi4ucs (<< 4.2)
+  source_script: |
+    mkdir -p ${DST}/rootfs/usr/bin
+    mkdir -p ${DST}/rootfs/usr/lib
+    mkdir -p ${DST}/rootfs/usr/share/man
+    opsiutils="${SRC}/opsi-utils"
+    [ -e "${opsiutils}" ] || opsiutils="${SRC}/dist/opsi-utils"
+    cp -a ${opsiutils} ${DST}/rootfs/usr/lib/
+    for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients; do
+       echo "#!/bin/sh"                            > ${DST}/rootfs/usr/bin/$i
+       echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
+       chmod 755 ${DST}/rootfs/usr/bin/$i
+    done
+    echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-set-rights
+    echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \"\$@\""  >> ${DST}/rootfs/usr/bin/opsi-set-rights
+    chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
+    mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
+    mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
+  postinst_script: |
+    # workaround for error on openSUSE Leap 15.2:
+    #  /bin/sh: /usr/lib/opsi-utils/libreadline.so.7: no version information available (required by /bin/sh)
+    [ -e /usr/lib/opsi-utils/libreadline.so.7 -a -e /lib64/libreadline.so.7 ] && cp /lib64/libreadline.so.7 /usr/lib/opsi-utils/libreadline.so.7
+    # workaround for error on Red Hat 8
+    # PAM unable to dlopen(/usr/lib64/security/pam_unix.so): /usr/lib/opsi-utils/libcrypto.so.1.1: version `OPENSSL_1_1_1b' not found (required by /lib64/libk5crypto.so.3)
+    [ -e /usr/lib/opsi-utils/libcrypto.so.1.1 -a -e /usr/lib64/libcrypto.so.1.1 ] && cp /usr/lib64/libcrypto.so.1.1 /usr/lib/opsi-utils/libcrypto.so.1.1
+    exit 0
