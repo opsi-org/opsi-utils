@@ -17,6 +17,7 @@ test:pytest-pylint:
   script:
     - *install_tools
     - apt -y install python3-newt gettext gzip asciidoc-base
+    - poetry config experimental.new-installer false
     - poetry install
     - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
     - poetry run pylint --disable=R,C,W,E1101 opsiutils
@@ -26,6 +27,7 @@ build:linux-pyinstaller:
   script:
     - *install_tools
     - apt -y install python3-newt gettext gzip asciidoc-base
+    - poetry config experimental.new-installer false
     - poetry install
     - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
     - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils "$CI_JOB_ID"'
