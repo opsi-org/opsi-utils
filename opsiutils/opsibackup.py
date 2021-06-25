@@ -134,6 +134,10 @@ def backup_main():  # pylint: disable=too-many-branches,too-many-statements
 			logging_config(stderr_level=LOG_NOTICE)
 		backup.list(args.file)
 	elif args.command == 'create':
+		if os.geteuid() != 0:
+			logger.error("Only users with root access can create a backup.")
+			raise PermissionError("Permission denied")
+
 		if not args.backends:
 			logger.debug("No backends given, assuming 'auto'")
 			args.backends = ['auto']
