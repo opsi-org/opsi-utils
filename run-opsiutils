@@ -6,12 +6,12 @@ import traceback
 try:
 	from opsiutils.__main__ import main
 	main()
-except SystemExit:
-	pass
+except SystemExit as err:
+	sys.exit(err.code)
 except KeyboardInterrupt:
 	print("Interrupted", file=sys.stderr)
 	sys.exit(1)
-except Exception as e:
+except Exception as err:  # pylint: disable=broad-except
 	# Do not let pyinstaller handle exceptions and print:
 	# "Failed to execute script run-opsiutils"
 	traceback.print_exc()
