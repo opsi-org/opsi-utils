@@ -310,9 +310,9 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 			if i == 0:
 				cmdline = argument
 			elif ' ' in argument or len(argument) == 0:
-				cmdline = "{cmdline} '{argument}'"
+				cmdline = f"{cmdline} '{argument}'"
 			else:
-				cmdline = "{cmdline} {argument}"
+				cmdline = f"{cmdline} {argument}"
 
 		if not sys.stdin.isatty():
 			read = sys.stdin.read().replace('\r', '').replace('\n', '')
