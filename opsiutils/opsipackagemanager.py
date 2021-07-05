@@ -24,8 +24,6 @@ import glob
 from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from argparse import ArgumentParser
-from OPSI.Backend.Base.Backend import Backend
-from OPSI.Exceptions import BackendTemporaryError
 
 from opsicommon.logging import logger, logging_config, LOG_NONE, LOG_WARNING, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
@@ -1516,8 +1514,8 @@ class OpsiPackageManagerControl:
 		parser.add_argument("-i", "--install", action="store_true", dest="COMMAND_INSTALL")
 		parser.add_argument("-u", "--upload", action="store_true", dest="COMMAND_UPLOAD")
 		parser.add_argument("-p", "--properties", action="store", dest="properties", default="keep", choices=['ask', 'package', 'keep'])
-		parser.add_argument("--max-transfers", action="store", dest="maxTransfers", default=0, type="int")
-		parser.add_argument("--max-bandwidth", action="store", dest="maxBandwidth", default=0, type="int")
+		parser.add_argument("--max-transfers", action="store", dest="maxTransfers", default=0, type=int)
+		parser.add_argument("--max-bandwidth", action="store", dest="maxBandwidth", default=0, type=int)
 		parser.add_argument("-l", "--list", action="store_true", dest="COMMAND_LIST")
 		parser.add_argument("-D", "--differences", action="store_true", dest="COMMAND_DIFFERENCES")
 		parser.add_argument("-r", "--remove", action="store_true", dest="COMMAND_REMOVE")
