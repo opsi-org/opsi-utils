@@ -26,7 +26,7 @@ import OPSI.System.Posix as Posix
 import OPSI.Util.Task.ConfigureBackend as backendUtils
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
-from OPSI.Config import DEFAULT_DEPOT_USER as CLIENT_USER
+from OPSI.Config import DEFAULT_DEPOT_USER as CLIENT_USER, OPSI_ADMIN_GROUP
 from OPSI.Object import OpsiDepotserver
 from OPSI.System.Posix import (
 	execute, getLocalFqdn, getNetworkConfiguration, which, Distribution)
@@ -591,8 +591,7 @@ def _getConfiguredDepot(jsonrpcBackend, depotConfig=None):  # pylint: disable=to
 		logger.debug("Depot config holds no 'masterDepotId'.")
 		depot.masterDepotId = None
 
-	if depot.maxBandwidth < 0:
-		depot.maxBandwidth = 0
+	depot.maxBandwidth = max(depot.maxBandwidth, 0)
 
 	return depot
 
@@ -703,8 +702,7 @@ def _getBackendConfigViaGUI(config):  # pylint: disable=too-many-locals,too-many
 			depot = OpsiDepotserver(**serverConfig)
 
 		while True:
-			if depot.maxBandwidth < 0:
-				depot.maxBandwidth = 0
+			depot.maxBandwidth = max(depot.maxBandwidth, 0)
 			if depot.maxBandwidth > 0:
 				depot.maxBandwidth = int(depot.maxBandwidth / 1000)
 
@@ -1020,6 +1018,10 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 
 def main():
 	logging_config(log_file=LOG_FILE, file_level=LOG_INFO, stderr_format=DEFAULT_COLORED_FORMAT)
+	if not os.path.exists(LOG_FILE):
+		open(LOG_FILE).close()
+	shutil.chown(LOG_FILE, group=OPSI_ADMIN_GROUP)
+	os.chmod(LOG_FILE, 0o660)
 
 	try:
 		opsisetup_main()
