@@ -24,6 +24,8 @@ import glob
 from contextlib import contextmanager
 from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from argparse import ArgumentParser
+from OPSI.Backend.Base.Backend import Backend
+from OPSI.Exceptions import BackendTemporaryError
 
 from opsicommon.logging import logger, logging_config, LOG_NONE, LOG_WARNING, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
@@ -31,7 +33,8 @@ from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Types import (
 	forceActionRequest, forceBool, forceHostId, forceInt,
-	forceList, forceProductId, forceUnicode, forceUnicodeList)
+	forceList, forceProductId, forceUnicode, forceUnicodeList
+)
 from OPSI.UI import SnackUI
 from OPSI.Util import md5sum, getfqdn
 from OPSI.Util.File.Opsi import parseFilename
@@ -1452,8 +1455,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		self.waitForTaskQueues()
 		if packageNotInstalled:
 			raise ValueError(
-				'At least one package failed to uninstall, please check '
-				'{} for more information'.format(self.config['logFile'])
+				f"At least one package failed to uninstall, please check {self.config['logFile']} for more information"
 			)
 
 	def uninstallPackage(self, productId, depotId):
@@ -1478,16 +1480,18 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				repository.delete(destination)
 
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_uninstallPackage(productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall'])
+			depotConnection.depot_uninstallPackage(
+				productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall']
+			)
 
 			set_product_cache_outdated(depotId, self.backend)
 
 			logger.notice("Uninstall of package '%s' on depot '%s' finished", productId, depotId)
 			subject.setMessage(_("Uninstallation of package {0} successful").format(productId), severity=4)
 
-		except Exception as uninstallError:
-			logger.error(uninstallError)
-			subject.setMessage(_("Error: %s") % uninstallError, severity=2)
+		except Exception as err:
+			logger.error(err)
+			subject.setMessage(_("Error: %s") % err, severity=2)
 			raise
 
 

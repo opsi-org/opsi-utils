@@ -8,7 +8,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -26,7 +26,7 @@ wrapt = ">=1.11,<1.13"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -45,7 +45,7 @@ tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -65,7 +65,7 @@ visualize = ["graphviz (>0.5.1)", "Twisted (>=16.1.1)"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -86,7 +86,7 @@ typecheck = ["mypy"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -106,7 +106,7 @@ lxml = ["lxml"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -122,7 +122,7 @@ beautifulsoup4 = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -135,7 +135,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -151,7 +151,7 @@ pycparser = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -164,7 +164,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -177,7 +177,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -193,7 +193,7 @@ colorama = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -209,7 +209,7 @@ yaml = ["pyyaml"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -222,7 +222,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -246,7 +246,7 @@ test = ["pytest (>=6.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pret
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -259,7 +259,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -272,7 +272,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -288,7 +288,7 @@ docs = ["sphinx"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -304,7 +304,7 @@ idna = ">=2.5"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -317,7 +317,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -338,7 +338,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -354,7 +354,7 @@ scripts = ["click (>=6.0)", "twisted (>=16.4.0)"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -372,7 +372,7 @@ pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -385,7 +385,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -401,7 +401,7 @@ pyasn1 = ">=0.4.6"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -419,7 +419,7 @@ tests = ["pytest (!=3.3.0)", "psutil", "pytest-cov"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -435,7 +435,7 @@ altgraph = ">=0.15"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -448,7 +448,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -461,7 +461,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -474,7 +474,7 @@ python-versions = ">=3.5"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -500,7 +500,7 @@ virustotal3 = ">=1.0.8,<2.0.0"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -513,7 +513,7 @@ python-versions = ">=3.6"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -529,7 +529,7 @@ pyparsing = ">=2.0.2"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -553,7 +553,7 @@ invoke = ["invoke (>=1.3)"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -569,7 +569,7 @@ future = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -585,7 +585,7 @@ test = ["ipaddress", "mock", "unittest2", "enum34", "pywin32", "wmi"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -598,7 +598,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -614,7 +614,7 @@ pyasn1 = ">=0.4.6,<0.5.0"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -627,7 +627,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -640,7 +640,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -665,7 +665,7 @@ hook_testing = ["pytest (>=2.7.3)", "execnet (>=1.5.0)", "psutil"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -678,7 +678,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -698,7 +698,7 @@ toml = ">=0.7.1"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -719,7 +719,7 @@ tests = ["pytest (>=3.2.1,!=3.3.0)", "hypothesis (>=3.27.0)"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -740,7 +740,7 @@ test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -753,7 +753,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -772,7 +772,7 @@ six = ">=1.4,<2.0"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -785,7 +785,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -798,12 +798,12 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.209"
+version = "4.2.0.212"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -831,7 +831,7 @@ wmi = {version = ">=1.5.1,<2.0.0", markers = "sys_platform == \"win32\""}
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -844,7 +844,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -857,7 +857,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -870,7 +870,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -883,7 +883,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -896,7 +896,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -919,7 +919,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -938,7 +938,7 @@ docs = ["ryd", "sphinx"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -963,7 +963,7 @@ tests = ["coverage (>=4.2.0)", "pytest"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -976,7 +976,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -989,7 +989,7 @@ python-versions = ">=3.6"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1026,7 +1026,7 @@ sqlcipher = ["sqlcipher3-binary"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1039,7 +1039,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1078,7 +1078,7 @@ windows_platform = ["pywin32 (!=226)", "cython-test-exception-raiser (>=1.0,<2.0
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1091,7 +1091,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1104,7 +1104,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1117,7 +1117,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1135,7 +1135,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1151,7 +1151,7 @@ requests = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1174,7 +1174,7 @@ tests = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1187,7 +1187,7 @@ python-versions = "*"
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1204,7 +1204,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
@@ -1222,13 +1222,13 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [package.source]
 type = "legacy"
-url = "http://pypi.uib.gmbh:8080/simple"
+url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "1fd0b3e1df06e51e2e47a063cf942881a4dca756342eef6429b3ee18f34a9cc7"
+content-hash = "f696a95e5b2b109550e22d7b9ba798191e3db17bad18da089a30d4ba531b90c9"
 
 [metadata.files]
 altgraph = [
@@ -1700,8 +1700,8 @@ python-magic = [
     {file = "python_magic-0.4.24-py2.py3-none-any.whl", hash = "sha256:4fec8ee805fea30c07afccd1592c0f17977089895bdfaae5fec870a84e997626"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.209.tar.gz", hash = "md5:4c93d8f7f55b13b4d26f3c75790a3131"},
-    {file = "python_opsi-4.2.0.209-py3-none-any.whl", hash = "md5:4167ec4550dba3a12cfec9acde842fbc"},
+    {file = "python-opsi-4.2.0.212.tar.gz", hash = "md5:b674aee6e4bbe4356192b06e7289c386"},
+    {file = "python_opsi-4.2.0.212-py3-none-any.whl", hash = "md5:b907daa37e04926f828682cb7cb5b603"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
