@@ -37,7 +37,8 @@ from OPSI.UI import SnackUI
 from OPSI.Util import md5sum, getfqdn
 from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Message import (
-	MessageSubject, ProgressObserver, ProgressSubject, SubjectsObserver)
+	MessageSubject, ProgressObserver, ProgressSubject, SubjectsObserver
+)
 from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
 try:
