@@ -1535,11 +1535,13 @@ class OpsiPackageManagerControl:
 		parser.add_argument("--log-file-level", action="store", dest="fileLogLevel")
 		parser.add_argument("--purge-client-properties", action="store_true", dest="purgeClientProperties")
 		parser.add_argument("--suppress-pcf-generation", action="store_true", dest="suppressPackageContentFileGeneration")
-
+		parser.add_argument("args", nargs="*")
 		# Get commandline options and arguments
 		try:
-			(self.opts, self.args) = parser.parse_args()
-		except Exception:  # pylint: disable=broad-except
+			self.opts = parser.parse_args()
+			self.args = self.opts.args
+		except Exception as err:  # pylint: disable=broad-except
+			print(err, file=sys.stderr)
 			self.usage()
 			sys.exit(1)
 
@@ -1551,11 +1553,13 @@ class OpsiPackageManagerControl:
 			print(f"{__version__} [python-opsi={python_opsi_version}]")
 			sys.exit(0)
 
-		need_opsi_server = (self.opts.COMMAND_INSTALL
-						or self.opts.COMMAND_UPLOAD
-						or self.opts.COMMAND_REMOVE
-						or self.opts.COMMAND_LIST
-						or self.opts.COMMAND_DIFFERENCES)
+		need_opsi_server = (
+			self.opts.COMMAND_INSTALL or
+			self.opts.COMMAND_UPLOAD or
+			self.opts.COMMAND_REMOVE or
+			self.opts.COMMAND_LIST or
+			self.opts.COMMAND_DIFFERENCES
+		)
 
 		self.setDefaultConfig(opsi_server=need_opsi_server)
 		self.setCommandlineConfig()
