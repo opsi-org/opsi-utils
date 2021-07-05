@@ -17,7 +17,6 @@ import locale
 import os
 import os.path
 import pwd
-import select
 import subprocess
 import sys
 import time
@@ -298,26 +297,25 @@ def shell_main():
 			if sessionId and sessionFile:
 				try:
 					with codecs.open(sessionFile, 'w', 'utf-8') as session:
-						session.write("%s\n" % sessionId)
+						session.write(f"{sessionId}\n" % sessionId)
 				except Exception as err:  # pylint: disable=broad-except
 					logger.error("Failed to write session file '%s': %s", sessionFile, err)
 
 		cmdline = ''
 		for i, argument in enumerate(options.command, start=0):
-			logger.info("arg[%s]: %s", i, argument)
+			logger.info("arg[%d]: %s", i, argument)
 			if i == 0:
 				cmdline = argument
 			elif ' ' in argument or len(argument) == 0:
-				cmdline += " '%s'" % argument
+				cmdline = "{cmdline} '{argument}'"
 			else:
-				cmdline += " %s" % argument
+				cmdline = "{cmdline} {argument}"
 
-		(readSelection, _unused, _unused) = select.select([sys.stdin], [], [], 0.2)
-		if sys.stdin in readSelection:
-			read = sys.stdin.read()
-			read = read.replace('\r', '').replace('\n', '')
+		if not sys.stdin.isatty():
+			read = sys.stdin.read().replace('\r', '').replace('\n', '')
 			if read:
-				cmdline += " '%s'" % read
+				logger.trace("Read %s from stdin", read)
+				cmdline = f"{cmdline} '{read}'"
 
 		logger.debug("cmdline: '%s'", cmdline)
 
