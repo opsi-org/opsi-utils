@@ -21,6 +21,7 @@ import os.path
 import pwd
 import subprocess
 import sys
+import stat
 import time
 from contextlib import closing, contextmanager
 
@@ -314,7 +315,9 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 			else:
 				cmdline = f"{cmdline} {argument}"
 
-		if not sys.stdin.isatty():
+		mode = os.fstat(sys.stdin.fileno()).st_mode
+		if stat.S_ISFIFO(mode) or stat.S_ISREG(mode):
+			# pipe or redirected file
 			read = sys.stdin.read().replace('\r', '').replace('\n', '')
 			if read:
 				logger.trace("Read %s from stdin", read)
