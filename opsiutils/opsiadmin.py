@@ -23,6 +23,7 @@ import subprocess
 import sys
 import stat
 import time
+import select
 from contextlib import closing, contextmanager
 
 from opsicommon.logging import logger, logging_config, secret_filter, LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING, DEFAULT_COLORED_FORMAT
@@ -318,10 +319,17 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		mode = os.fstat(sys.stdin.fileno()).st_mode
 		if stat.S_ISFIFO(mode) or stat.S_ISREG(mode):
 			# pipe or redirected file
-			read = sys.stdin.read().replace('\r', '').replace('\n', '')
-			if read:
-				logger.trace("Read %s from stdin", read)
-				cmdline = f"{cmdline} '{read}'"
+			data = ""
+			timeout = 15.0
+			while sys.stdin in select.select([sys.stdin], [], [], timeout)[0]:
+				dat = sys.stdin.read()
+				if not dat:
+					break
+				data += dat
+			data = data.replace('\r', '').replace('\n', '')
+			if data:
+				logger.trace("Read %s from stdin", data)
+				cmdline = f"{cmdline} '{data}'"
 
 		logger.debug("cmdline: '%s'", cmdline)
 
