@@ -302,7 +302,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 			if sessionId and sessionFile:
 				try:
 					with codecs.open(sessionFile, 'w', 'utf-8') as session:
-						session.write(f"{sessionId}\n" % sessionId)
+						session.write(f"{sessionId}\n")
 				except Exception as err:  # pylint: disable=broad-except
 					logger.error("Failed to write session file '%s': %s", sessionFile, err)
 
@@ -1518,7 +1518,7 @@ class CommandTask(Command):
 		return completions
 
 	def execute(self, shell, params):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-		tasknames = {[task[0] for task in self._tasks]}
+		tasknames = {task[0] for task in self._tasks}
 
 		if len(params) <= 0:
 			return
