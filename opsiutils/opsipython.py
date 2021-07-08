@@ -37,7 +37,7 @@ def main():
 			traceback.print_exc()
 			sys.exit(1)
 	else:
-		# nothing given so trying to start first ipython and fallback to standard repl
+		# nothing given so try to start standard repl
 		try:
 			load_systempackages_to_path()
 			import code
