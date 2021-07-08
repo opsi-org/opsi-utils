@@ -13,7 +13,7 @@ import traceback
 # paramiko is needed for opsi-deploy-client-agent
 import paramiko  # pylint: disable=unused-import
 
-def loadSystemPackagesToPath():
+def load_systempackages_to_path():
 	for path in ("/usr/lib/python3/dist-packages",):
 		if os.path.exists(path):
 			sys.path.append(path)
@@ -31,7 +31,7 @@ def main():
 		with codecs.open(script, "r", "utf-8") as file:
 			code = file.read()
 		try:
-			loadSystemPackagesToPath()
+			load_systempackages_to_path()
 			exec(code, new_module.__dict__)  # pylint: disable=exec-used
 		except Exception:  # pylint: disable=broad-except
 			traceback.print_exc()
@@ -39,16 +39,9 @@ def main():
 	else:
 		# nothing given so trying to start first ipython and fallback to standard repl
 		try:
-			loadSystemPackagesToPath()
-			# try jupyter first
-			from jupyter_console import app
-			app.launch_new_instance()
-		except ImportError:
-			try:
-				# maybe ipython
-				from IPython import InteractiveShell
-				InteractiveShell()
-			except ImportError:
-				# this should work everytime, hopefully
-				import code
-				code.interact(local=locals())
+			load_systempackages_to_path()
+			import code
+			code.interact(local=locals())
+		except Exception:
+			traceback.print_exc()
+			sys.exit(1)
