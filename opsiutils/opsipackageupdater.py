@@ -143,8 +143,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			logger.notice("No updates found.")
 
 parser = argparse.ArgumentParser(
-	description="Updater for local opsi products.",
-	epilog="Modes have their own options that can be viewed with MODE -h."
+	description="Updater for local opsi products.\nOperates in different MODEs: install, update, download and list.\nEach mode has their own options that can be viewed with MODE -h",
 )
 def parse_args():
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
