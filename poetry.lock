@@ -825,7 +825,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.224"
+version = "4.2.0.227"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -1734,8 +1734,8 @@ python-magic = [
     {file = "python_magic-0.4.24-py2.py3-none-any.whl", hash = "sha256:4fec8ee805fea30c07afccd1592c0f17977089895bdfaae5fec870a84e997626"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.224.tar.gz", hash = "md5:c9f3deb384d6160c2ad53558fdfd6ba4"},
-    {file = "python_opsi-4.2.0.224-py3-none-any.whl", hash = "md5:17b853dea9e6344ca0a1860d8d21fc01"},
+    {file = "python-opsi-4.2.0.227.tar.gz", hash = "md5:2c3a8325d286e8c214ceb1f00663c0eb"},
+    {file = "python_opsi-4.2.0.227-py3-none-any.whl", hash = "md5:393ba61f206891d0d926da3ae56a5b92"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},

@@ -14,7 +14,13 @@ import traceback
 import paramiko  # pylint: disable=unused-import
 
 def add_systempackages_to_path():
-	for path in ("/usr/lib/python3/dist-packages",):
+	ver = sys.version_info
+	for path in (
+		f"/usr/lib/python{ver.major}.{ver.minor}",
+		f"/usr/lib/python{ver.major}.{ver.minor}/lib-dynload"
+		f"/usr/local/lib/python{ver.major}/dist-packages",
+		f"/usr/lib/python{ver.major}/dist-packages",
+	):
 		if os.path.exists(path):
 			sys.path.append(path)
 
