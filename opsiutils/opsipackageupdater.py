@@ -177,6 +177,10 @@ def parse_args():
 							"--repo."
 						)
 	)
+	parser.add_argument('--ignore-errors',
+								action="store_true", dest="ignoreErrors",
+								help='Continue working even after download or installation of a package failed.')
+
 	parser.add_argument('--no-zsync',
 		dest='no_zsync', action="store_true", default=False,
 		help=("Forces to not use zsync. Instead the fallback command is used.")
@@ -261,6 +265,8 @@ def updater_main():  # pylint: disable=too-many-branches,too-many-statements
 
 	if args.mode == 'download':
 		config["forceDownload"] = args.forceDownload
+
+	config["ignoreErrors"] = args.ignoreErrors
 
 	if args.no_zsync:
 		config["zsyncCommand"] = None
