@@ -1657,29 +1657,34 @@ class CommandTask(Command):
 
 			try:
 				udm = which('univention-admin')
-				# We are on Univention Corporate Server (UCS)
-				dn = None
-				command = '{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=udm)
-				logger.debug("Filtering for pcpatch: %s", command)
-				with closing(os.popen(command, 'r')) as process:
-					for line in process.readlines():
-						if line.startswith('DN'):
-							dn = line.strip().split(' ')[1]
-							break
+				server_role = sys_execute("ucr get server/role")
+				if server_role in ("domaincontroller_master", "domaincontroller_backup"):
+					# We are on Univention Corporate Server (UCS)
+					dn = None
+					command = '{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=udm)
+					logger.debug("Filtering for pcpatch: %s", command)
+					with closing(os.popen(command, 'r')) as process:
+						for line in process.readlines():
+							if line.startswith('DN'):
+								dn = line.strip().split(' ')[1]
+								break
 
-				if not dn:
-					raise RuntimeError("Failed to get DN for user pcpatch")
+					if not dn:
+						raise RuntimeError("Failed to get DN for user pcpatch")
 
-				command = (
-					f"{udm} users/user modify --dn {dn} "
-					f"--set password='{password}' "
-					"--set overridePWLength=1 --set overridePWHistory=1 "
-					"1>/dev/null 2>/dev/null"
-				)
-				logger.debug("Setting password with: %s", command)
-				sys_execute(command)
-				# Done with UCS
-				return
+					command = (
+						f"{udm} users/user modify --dn {dn} "
+						f"--set password='{password}' "
+						"--set overridePWLength=1 --set overridePWHistory=1 "
+						"1>/dev/null 2>/dev/null"
+					)
+					logger.debug("Setting password with: %s", command)
+					sys_execute(command)
+					# Done with UCS
+					return
+				else:
+					logger.warning("Did not change the password for 'pcpatch', please change it on the master server.")
+
 			except CommandNotFoundException:
 				# Not on UCS
 				pass
