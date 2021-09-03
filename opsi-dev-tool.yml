@@ -80,6 +80,7 @@ package:
     mkdir -p ${DST}/rootfs/usr/bin
     mkdir -p ${DST}/rootfs/usr/lib
     mkdir -p ${DST}/rootfs/usr/share/man
+    mkdir -p "${DST}/rootfs/usr/share/opsi-utils"
     opsiutils="${SRC}/opsi-utils"
     [ -e "${opsiutils}" ] || opsiutils="${SRC}/dist/opsi-utils"
     cp -a ${opsiutils} ${DST}/rootfs/usr/lib/
@@ -93,6 +94,7 @@ package:
     chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
     mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
     mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
+    cp -a "${SRC}/opsi-utils_data/opsi-python-examples" "${DST}/rootfs/usr/share/opsi-utils/"
   postinst_script: |
     # Patch opsi-package-updater repo files
     [ -e /etc/opsi/package-updater.repos.d/uib-linux.repo ]       && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-linux.repo
