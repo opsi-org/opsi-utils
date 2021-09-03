@@ -143,8 +143,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			logger.notice("No updates found.")
 
 parser = argparse.ArgumentParser(
-	description="Updater for local opsi products.",
-	epilog="Modes have their own options that can be viewed with MODE -h."
+	description="Updater for local opsi products.\nOperates in different MODEs: install, update, download and list.\nEach mode has their own options that can be viewed with MODE -h",
 )
 def parse_args():
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
@@ -178,6 +177,10 @@ def parse_args():
 							"--repo."
 						)
 	)
+	parser.add_argument('--ignore-errors',
+								action="store_true", dest="ignoreErrors",
+								help='Continue working even after download or installation of a package failed.')
+
 	parser.add_argument('--no-zsync',
 		dest='no_zsync', action="store_true", default=False,
 		help=("Forces to not use zsync. Instead the fallback command is used.")
@@ -262,6 +265,8 @@ def updater_main():  # pylint: disable=too-many-branches,too-many-statements
 
 	if args.mode == 'download':
 		config["forceDownload"] = args.forceDownload
+
+	config["ignoreErrors"] = args.ignoreErrors
 
 	if args.no_zsync:
 		config["zsyncCommand"] = None

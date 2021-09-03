@@ -825,7 +825,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.232"
+version = "4.2.0.229"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -1679,6 +1679,7 @@ pyelftools = [
 ]
 pyinstaller = [
     {file = "pyinstaller-4.4-py3-none-macosx_10_13_universal2.whl", hash = "sha256:0e802c082487719aab6b2a93575819944c008e6e1ba44c7836fc45660a9586c0"},
+    {file = "pyinstaller-4.4-py3-none-manylinux2014_aarch64.whl", hash = "sha256:2ef691eeb360073075b6c355535a15dcdedac28d2ecc8448d34bce671ec2dff4"},
     {file = "pyinstaller-4.4-py3-none-manylinux2014_i686.whl", hash = "sha256:2cfef29a878fc54040e2287c19ea4bdc667f473b59918fcb51a1e68366ecb814"},
     {file = "pyinstaller-4.4-py3-none-manylinux2014_x86_64.whl", hash = "sha256:b0f13d0a33b9a21659967db65b475c14645b456dc70ba68fa9cebf4bc29ef58e"},
     {file = "pyinstaller-4.4-py3-none-win32.whl", hash = "sha256:d0b35f885650b9dc69072adf948b608bcb506c5256dd7f0d0967c1f177bb41b1"},
@@ -1733,8 +1734,8 @@ python-magic = [
     {file = "python_magic-0.4.24-py2.py3-none-any.whl", hash = "sha256:4fec8ee805fea30c07afccd1592c0f17977089895bdfaae5fec870a84e997626"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.232.tar.gz", hash = "md5:ae2ae97800133565827cd2aee737fae5"},
-    {file = "python_opsi-4.2.0.232-py3-none-any.whl", hash = "md5:0e7927b79f5af0730ef63d4c1f30fa87"},
+    {file = "python-opsi-4.2.0.229.tar.gz", hash = "md5:3ae3eec45ea479b016bf1c83e38cb5d2"},
+    {file = "python_opsi-4.2.0.229-py3-none-any.whl", hash = "md5:2f6a1dbff19817dd84e6a7cdbf9bacb2"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
