@@ -1656,9 +1656,9 @@ class CommandTask(Command):
 			backend.user_setCredentials(username='pcpatch', password=password)  # pylint: disable=no-member
 
 			try:
+				udm = which('univention-admin')
 				server_role = sys_execute("ucr get server/role")
 				if server_role in ("domaincontroller_master", "domaincontroller_backup"):
-					udm = which('univention-admin')
 					# We are on Univention Corporate Server (UCS)
 					dn = None
 					command = '{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=udm)
