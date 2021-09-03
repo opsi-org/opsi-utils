@@ -42,7 +42,7 @@ def main():
 		"dispatchConfigFile": "/etc/opsi/backendManager/dispatch.conf",
 		"backendConfigDir": "/etc/opsi/backends",
 		"extensionConfigDir": "/etc/opsi/backendManager/extend.d",
-		"depotBackend": False,
+		"depotBackend": True,
 		"hostControlBackend": True,
 		"hostControlSafeBackend": True
 	}
@@ -54,17 +54,11 @@ def main():
 def parse_options():
 	parser = argparse.ArgumentParser(description="Some opsi script.")
 	parser.add_argument("--version", action='version', version=__version__)
-
-	log_group = parser.add_mutually_exclusive_group()
-	log_group.add_argument("--verbose", "-v", dest="log_level",
-						default=LOG_WARNING, action="count",
-						help="increase verbosity (can be used multiple times)")
-	log_group.add_argument("--log-level", "-l", dest="log_level", type=int,
+	parser.add_argument("--log-level", "-l", dest="log_level", type=int,
+						default=LOG_WARNING,
 						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 						help="Set the desired loglevel.")
-
 	parser.add_argument("--filename", "-f",  help='Required file.')
-
 	args = parser.parse_args()
 
 	return args
@@ -104,5 +98,4 @@ def do_something(backend):
 
 
 if __name__ == '__main__':
-	logger.setConsoleColor(True)
 	main()
