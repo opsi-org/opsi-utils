@@ -1657,7 +1657,7 @@ class CommandTask(Command):
 
 			try:
 				server_role = sys_execute("ucr get server/role")
-				if server_role == "domaincontroller_master" or server_role == "domaincontroller_backup":
+				if server_role in ("domaincontroller_master", "domaincontroller_backup"):
 					udm = which('univention-admin')
 					# We are on Univention Corporate Server (UCS)
 					dn = None
