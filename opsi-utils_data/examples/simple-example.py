@@ -1,7 +1,7 @@
 #! /usr/bin/opsi-python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2019 uib GmbH <info@uib.de>
+# Copyright (C) 2021 uib GmbH <info@uib.de>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
