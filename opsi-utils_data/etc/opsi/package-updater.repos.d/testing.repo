@@ -8,7 +8,6 @@ dirs = opsi4.2/testing/packages/linux/localboot/, opsi4.2/testing/packages/linux
 autoInstall = false
 autoUpdate = true
 autoSetup = false
-; Set Proxy handler like: http://10.10.10.1:8080
 proxy =
 
 [repository_uib_local_image_testing]
@@ -19,7 +18,6 @@ dirs = opsi4.2/testing/packages/opsi-local-image/localboot/, opsi4.2/testing/pac
 autoInstall = false
 autoUpdate = true
 autoSetup = false
-; Set Proxy handler like: http://10.10.10.1:8080
 proxy =
 
 [repository_uib_windows_testing]
@@ -30,5 +28,4 @@ dirs = opsi4.2/testing/packages/windows/localboot/, opsi4.2/testing/packages/win
 autoInstall = false
 autoUpdate = true
 autoSetup = false
-; Set Proxy handler like: http://10.10.10.1:8080
 proxy =

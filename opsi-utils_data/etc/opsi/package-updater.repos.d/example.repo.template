@@ -33,8 +33,9 @@ autoUpdate = true
 autoSetup = false
 ; Set True if you want only download packages without installation
 onlyDownload = false
-; Proxy to use for the connection.
-; Set Proxy handler like: http://10.10.10.1:8080
+; Proxy to use for this repository.
+; Either set an explicit proxy url like http://10.10.10.1:8080
+; or set "proxy = system" to use system proxy settings.
 proxy =
 ; Inherit ProductProperty defaults from given repository
 ; This feature only works when updating from another opsi-depot.
