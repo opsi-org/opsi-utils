@@ -70,6 +70,7 @@ package:
   architecture: amd64
   depends:
     - zsync
+    - pigz
     - librsync | librsync2 | librsync1
   conflicts:
     - opsi-server (<< 4.2)
