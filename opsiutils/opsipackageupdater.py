@@ -17,7 +17,6 @@ from opsicommon.logging import logger, init_logging, logging_config, DEFAULT_COL
 from opsicommon.system import ensure_not_already_running
 
 from OPSI import __version__ as python_opsi_version
-from OPSI import System
 from OPSI.Types import forceProductId
 from OPSI.Util import compareVersions
 from OPSI.Util.Task.UpdatePackages.Config import DEFAULT_CONFIG
@@ -143,7 +142,11 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			logger.notice("No updates found.")
 
 parser = argparse.ArgumentParser(
-	description="Updater for local opsi products.\nOperates in different MODEs: install, update, download and list.\nEach mode has their own options that can be viewed with MODE -h",
+	description=(
+		"Updater for local opsi products.\n"
+		"Operates in different MODEs: install, update, download and list.\n"
+		"Each mode has their own options that can be viewed with MODE -h"
+	)
 )
 def parse_args():
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
@@ -267,16 +270,7 @@ def updater_main():  # pylint: disable=too-many-branches,too-many-statements
 		config["forceDownload"] = args.forceDownload
 
 	config["ignoreErrors"] = args.ignoreErrors
-
-	if args.no_zsync:
-		config["zsyncCommand"] = None
-		logger.info("Not using zsync, instead using fallback")
-	else:
-		try:
-			config["zsyncCommand"] = System.which("zsync")
-			logger.info("Zsync command found: %s", config["zsyncCommand"])
-		except Exception:  # pylint: disable=broad-except
-			logger.warning("Zsync command not found")
+	config["useZsync"] = not args.no_zsync
 
 	ensure_not_already_running("opsi-package-updater")
 
