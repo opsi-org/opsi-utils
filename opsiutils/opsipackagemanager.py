@@ -92,9 +92,9 @@ class Task:
 			logger.trace("Method: %s", self.method)
 			logger.trace("Params: %s", self.params)
 			self.method(*self.params)
-		except Exception as error:
-			logger.error(error, exc_info=True)
-			self.exception = error
+		except Exception as err:
+			logger.error(err, exc_info=True)
+			self.exception = err
 			raise
 		finally:
 			self.ended = True
@@ -308,13 +308,12 @@ class CursesTextWindow(CursesWindow):
 		if len(self.lines) > self.height:
 			self.lines = self.lines[-1 * self.height:]
 
-		for i in range(len(self.lines)):
-			if i >= len(self.lines) or i >= self.height:
+		for idx, (line, params) in enumerate(self.lines):
+			if idx >= self.height:
 				return
-			self.move(i, 0)
+			self.move(idx, 0)
 			self.clrtoeol()
 
-			(line, params) = self.lines[i]
 			if params:
 				self.addstr(line, *params)
 			else:
@@ -323,8 +322,7 @@ class CursesTextWindow(CursesWindow):
 	def resize(self, height, width, y, x):
 		CursesWindow.resize(self, height, width, y, x)
 		newLines = []
-		for i in range(len(self.lines)):
-			(line, params) = self.lines[i]
+		for (line, params) in self.lines:
 			if len(line) > self.width:
 				line = line[:self.width - 1]
 			newLines.append((line, params))
@@ -1798,7 +1796,7 @@ class OpsiPackageManagerControl:
 			productIds.sort()
 
 			for productId in productIds:
-				productOnDepot = productOnDepotInfo[depotId][productId]
+				productOnDepot = values[productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
 				print(
 					"%s%*s %*s %*s" % (
