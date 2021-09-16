@@ -38,7 +38,7 @@ build:linux-pyinstaller:
   artifacts:
     name: 'opsi-utils-linux-pyinstaller'
     paths:
-      - opsi-utils
+      - opsi-utils-amd64
     expire_in: 2 days
 
 build:arm64-pyinstaller:
@@ -59,7 +59,7 @@ build:arm64-pyinstaller:
   artifacts:
     name: 'opsi-utils-arm64-pyinstaller'
     paths:
-      - opsi-utils
+      - opsi-utils-arm64
     expire_in: 2 days
 
 package:obs_int:
