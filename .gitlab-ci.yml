@@ -12,15 +12,15 @@ stages:
   pip3 install --trusted-host pypi.uib.gmbh --index-url http://pypi.uib.gmbh:8080/simple opsi-dev-tools
   pip3 install poetry
 
-test:pytest-pylint:
-  stage: test
-  script:
-    - *install_tools
-    - apt -y install python3-newt gettext gzip asciidoc-base
-    - poetry config experimental.new-installer false
-    - poetry install
-    - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
-    - poetry run pylint --disable=R,C,W,E1101 opsiutils
+# test:pytest-pylint:
+#   stage: test
+#   script:
+#     - *install_tools
+#     - apt -y install python3-newt gettext gzip asciidoc-base
+#     - poetry config experimental.new-installer false
+#     - poetry install
+#     - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
+#     - poetry run pylint --disable=R,C,W,E1101 opsiutils
 
 build:linux-pyinstaller:
   stage: build
@@ -34,7 +34,7 @@ build:linux-pyinstaller:
     - '[ "$CI_COMMIT_TAG" = "" ] || poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils'
     - mv dist/opsi-utils ./opsi-utils-amd64
     # Check if binary is working
-    - opsi-utils/opsi-admin --version
+    - opsi-utils-amd64/opsi-admin --version
   artifacts:
     name: 'opsi-utils-linux-pyinstaller'
     paths:
