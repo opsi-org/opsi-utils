@@ -67,7 +67,6 @@ pyinstaller-poetry:
 package:
   name: opsi-utils
   type: binary
-  architecture: amd64
   depends:
     - zsync
     - zsync2

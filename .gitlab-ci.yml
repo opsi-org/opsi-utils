@@ -43,6 +43,8 @@ build:linux-pyinstaller:
 
 build:arm64-pyinstaller:
   stage: build
+  tags:
+    - arm64
   script:
     - *install_tools
     - apt -y install python3-newt gettext gzip asciidoc-base
