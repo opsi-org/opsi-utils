@@ -32,7 +32,7 @@ build:linux-pyinstaller:
     - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
     - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils "$CI_JOB_ID"'
     - '[ "$CI_COMMIT_TAG" = "" ] || poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils'
-    - mv dist/opsi-utils .
+    - mv dist/opsi-utils ./opsi-utils-amd64
     # Check if binary is working
     - opsi-utils/opsi-admin --version
   artifacts:
@@ -41,10 +41,30 @@ build:linux-pyinstaller:
       - opsi-utils
     expire_in: 2 days
 
+build:arm64-pyinstaller:
+  stage: build
+  script:
+    - *install_tools
+    - apt -y install python3-newt gettext gzip asciidoc-base
+    - poetry config experimental.new-installer false
+    - poetry install
+    - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
+    - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils "$CI_JOB_ID"'
+    - '[ "$CI_COMMIT_TAG" = "" ] || poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils'
+    - mv dist/opsi-utils ./opsi-utils-arm64
+    # Check if binary is working
+    - OPSI_HOSTNAME=test.uib.local opsi-utils-arm64/opsi-admin --version
+  artifacts:
+    name: 'opsi-utils-arm64-pyinstaller'
+    paths:
+      - opsi-utils
+    expire_in: 2 days
+
 package:obs_int:
   stage: publish
   dependencies:
     - build:linux-pyinstaller
+    - build:arm64-pyinstaller
   script:
     - *install_tools
     - python3 -m opsidevtools -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
@@ -57,10 +77,12 @@ package:obs_ext:
   stage: publish
   dependencies:
     - build:linux-pyinstaller
+    - build:arm64-pyinstaller
   script:
     - *install_tools
     - python3 -m opsidevtools -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development
-  only:
-    - tags
+  when: manual
+  # only:
+  #   - tags
     # - web
     # - /^release/.*$/i

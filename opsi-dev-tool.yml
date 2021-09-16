@@ -86,6 +86,14 @@ package:
     opsiutils="${SRC}/opsi-utils"
     [ -e "${opsiutils}" ] || opsiutils="${SRC}/dist/opsi-utils"
     cp -a ${opsiutils} ${DST}/rootfs/usr/lib/
+    if [ -d ${SRC}/opsi-utils-amd64 ]; then
+      mkdir -p ${DST}/rootfs-amd64/usr/lib
+      cp -a ${SRC}/opsi-utils-amd64 ${DST}/rootfs-amd64/usr/lib/opsi-utils
+    fi;
+    if [ -d ${SRC}/opsi-utils-arm64 ]; then
+      mkdir -p ${DST}/rootfs-arm64/usr/lib
+      cp -a ${SRC}/opsi-utils-arm64 ${DST}/rootfs-arm64/usr/lib/opsi-utils
+    fi;
     for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients; do
        echo "#!/bin/sh"                            > ${DST}/rootfs/usr/bin/$i
        echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
