@@ -51,8 +51,6 @@ build:arm64-pyinstaller:
     - poetry config experimental.new-installer false
     - poetry install
     - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
-    - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils "$CI_JOB_ID"'
-    - '[ "$CI_COMMIT_TAG" = "" ] || poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils'
     - mv dist/opsi-utils ./opsi-utils-arm64
     # Check if binary is working
     - OPSI_HOSTNAME=test.uib.local opsi-utils-arm64/opsi-admin --version
