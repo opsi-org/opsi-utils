@@ -87,9 +87,12 @@ package:
     mkdir -p ${DST}/rootfs/usr/lib
     mkdir -p ${DST}/rootfs/usr/share/man
     mkdir -p "${DST}/rootfs/usr/share/opsi-utils"
-    opsiutils="${SRC}/opsi-utils"
-    [ -e "${opsiutils}" ] || opsiutils="${SRC}/dist/opsi-utils"
-    cp -a ${opsiutils} ${DST}/rootfs/usr/lib/
+    # opsiutils="${SRC}/opsi-utils"
+    # [ -e "${opsiutils}" ] || opsiutils="${SRC}/dist/opsi-utils"
+    # cp -a ${opsiutils} ${DST}/rootfs/usr/lib/
+    if [ -d ${SRC}/opsi-utils ]; then
+      cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
+    fi;
     if [ -d ${SRC}/opsi-utils-amd64 ]; then
       mkdir -p ${DST}/rootfs-amd64/usr/lib
       cp -a ${SRC}/opsi-utils-amd64 ${DST}/rootfs-amd64/usr/lib/opsi-utils
