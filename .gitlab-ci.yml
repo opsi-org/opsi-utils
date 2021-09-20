@@ -12,15 +12,15 @@ stages:
   pip3 install --trusted-host pypi.uib.gmbh --index-url http://pypi.uib.gmbh:8080/simple opsi-dev-tools
   pip3 install poetry
 
-# test:pytest-pylint:
-#   stage: test
-#   script:
-#     - *install_tools
-#     - apt -y install python3-newt gettext gzip asciidoc-base
-#     - poetry config experimental.new-installer false
-#     - poetry install
-#     - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
-#     - poetry run pylint --disable=R,C,W,E1101 opsiutils
+test:pytest-pylint:
+  stage: test
+  script:
+    - *install_tools
+    - apt -y install python3-newt gettext gzip asciidoc-base
+    - poetry config experimental.new-installer false
+    - poetry install
+    - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
+    - poetry run pylint --disable=R,C,W,E1101 opsiutils
 
 build:linux-pyinstaller:
   stage: build
@@ -81,8 +81,7 @@ package:obs_ext:
   script:
     - *install_tools
     - python3 -m opsidevtools -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development
-  when: manual
-  # only:
-  #   - tags
+  only:
+    - tags
     # - web
     # - /^release/.*$/i
