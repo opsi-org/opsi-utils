@@ -93,10 +93,12 @@ package:
     if [ -d ${SRC}/opsi-utils-amd64 ]; then
       mkdir -p ${DST}/rootfs-amd64/usr/lib
       cp -a ${SRC}/opsi-utils-amd64 ${DST}/rootfs-amd64/usr/lib/opsi-utils
+      cp -a ${SRC}/opsi-utils-amd64/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
     fi;
     if [ -d ${SRC}/opsi-utils-arm64 ]; then
       mkdir -p ${DST}/rootfs-arm64/usr/lib
       cp -a ${SRC}/opsi-utils-arm64 ${DST}/rootfs-arm64/usr/lib/opsi-utils
+      cp -a ${SRC}/opsi-utils-arm64/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
     fi;
     for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients; do
        echo "#!/bin/sh"                            > ${DST}/rootfs/usr/bin/$i
@@ -109,7 +111,6 @@ package:
     # mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
     cp -a "${SRC}/opsi-utils_data/etc"  ${DST}/rootfs/etc
     # mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
-    cp -a "${SRC}/opsi-utils_data/manpages" ${DST}/rootfs/usr/share/man/man1
     cp -a "${SRC}/opsi-utils_data/opsi-python-examples" "${DST}/rootfs/usr/share/opsi-utils/"
   postinst_script: |
     # Patch opsi-package-updater repo files
