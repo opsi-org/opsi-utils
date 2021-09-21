@@ -109,7 +109,7 @@ package:
     # mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/etc ${DST}/rootfs/etc
     cp -a "${SRC}/opsi-utils_data/etc"  ${DST}/rootfs/etc
     # mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
-    cp -a "${SRC}/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
+    cp -a "${SRC}/opsi-utils_data/manpages" ${DST}/rootfs/usr/share/man/man1
     cp -a "${SRC}/opsi-utils_data/opsi-python-examples" "${DST}/rootfs/usr/share/opsi-utils/"
   postinst_script: |
     # Patch opsi-package-updater repo files
