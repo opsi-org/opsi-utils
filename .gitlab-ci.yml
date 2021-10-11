@@ -85,6 +85,6 @@ package:obs_ext:
     - *install_tools
     - python3 -m opsidevtools -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development
   only:
-    - tags
+    # - tags
     # - web
     # - /^release/.*$/i
