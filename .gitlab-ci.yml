@@ -1,7 +1,6 @@
 image: python:3.7-stretch
 
 stages:
-  - test
   - build
   - publish
 
@@ -72,7 +71,7 @@ package:obs_int:
     - *install_tools
     - python3 -m opsidevtools -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
   only:
-    - tags
+    # - tags
     # - web
     # - /^release/.*$/i
 
