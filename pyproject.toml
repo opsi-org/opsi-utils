@@ -26,7 +26,7 @@ orjson = "^3.5.1"
 mysqlclient = "^2.0.3"
 distro = {platform = "linux", version = "^1.5.0"}
 paramiko = "^2.7.2"
-urllib3 = "1.23"
+urllib3 = "1.23"    #fixed to mitigate SSL WRONG VERSION NUMBER bug in urllib3
 
 [tool.poetry.dev-dependencies]
 opsi-dev-tools = "^1.0.62"
