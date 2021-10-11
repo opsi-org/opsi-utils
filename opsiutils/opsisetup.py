@@ -273,7 +273,6 @@ def configureMySQLBackend(unattendedConfiguration=None):
 		)
 		return
 
-	log_level = logger.level
 	logging_config(stderr_level=LOG_NONE)
 	ui = UIFactory(type='snack')
 	try:
@@ -323,7 +322,7 @@ def configureMySQLBackend(unattendedConfiguration=None):
 			messageBox.hide()
 
 		ui.exit()
-		logging_config(stderr_level=log_level)
+		logging_config()
 
 
 def registerDepot(unattendedConfiguration=None):
@@ -597,7 +596,6 @@ def _getConfiguredDepot(jsonrpcBackend, depotConfig=None):  # pylint: disable=to
 
 
 def _getBackendConfigViaGUI(config):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-	log_level = logger.level
 	logging_config(stderr_level=LOG_NONE)
 
 	ui = UIFactory(type='snack')
@@ -838,7 +836,7 @@ def _getBackendConfigViaGUI(config):  # pylint: disable=too-many-locals,too-many
 			break
 	finally:
 		ui.exit()
-		logging_config(stderr_level=log_level)
+		logging_config()
 
 	return jsonrpcBackend, depot
 
