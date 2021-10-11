@@ -873,7 +873,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.247"
+version = "4.2.0.248"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -1197,15 +1197,14 @@ reference = "uibpypi"
 
 [[package]]
 name = "urllib3"
-version = "1.26.7"
+version = "1.23"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
-category = "dev"
+category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
 
 [package.extras]
-brotli = ["brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+secure = ["pyOpenSSL (>=0.14,<18.0.0)", "pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [package.source]
@@ -1303,7 +1302,7 @@ reference = "uibpypi"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "f696a95e5b2b109550e22d7b9ba798191e3db17bad18da089a30d4ba531b90c9"
+content-hash = "9937deba811cc92624f5e260693ad5d64865dfb328e69eee2167c7046a2c39fd"
 
 [metadata.files]
 altgraph = [
@@ -1801,8 +1800,8 @@ python-magic = [
     {file = "python_magic-0.4.24-py2.py3-none-any.whl", hash = "sha256:4fec8ee805fea30c07afccd1592c0f17977089895bdfaae5fec870a84e997626"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.247.tar.gz", hash = "sha256:23297b228bf46d977e84c55a3c5291431833d35cfc4b384e6031b6e57ac1192c"},
-    {file = "python_opsi-4.2.0.247-py3-none-any.whl", hash = "sha256:5a31faccd81de4fb61bd09dc8f525c74329c9d75e99e26da50286ae2eedc7d47"},
+    {file = "python-opsi-4.2.0.248.tar.gz", hash = "sha256:8e841d85eb258d8f3b875b3a5d2bc2fe907a487b8b3fdafa7b4c78a93290792a"},
+    {file = "python_opsi-4.2.0.248-py3-none-any.whl", hash = "sha256:919a9145d787fee4e34a19a0510adb628f16614363f9d6fe6e7a65eaa4b7fd52"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
@@ -1973,8 +1972,8 @@ typing-extensions = [
     {file = "typing_extensions-3.10.0.2.tar.gz", hash = "sha256:49f75d16ff11f1cd258e1b988ccff82a3ca5570217d7ad8c5f48205dd99a677e"},
 ]
 urllib3 = [
-    {file = "urllib3-1.26.7-py2.py3-none-any.whl", hash = "sha256:c4fdf4019605b6e5423637e01bc9fe4daef873709a7973e195ceba0a62bbc844"},
-    {file = "urllib3-1.26.7.tar.gz", hash = "sha256:4987c65554f7a2dbf30c18fd48778ef124af6fab771a377103da0585e2336ece"},
+    {file = "urllib3-1.23-py2.py3-none-any.whl", hash = "sha256:b5725a0bd4ba422ab0e66e89e030c806576753ea3ee08554382c14e685d117b5"},
+    {file = "urllib3-1.23.tar.gz", hash = "sha256:a68ac5e15e76e7e5dd2b8f94007233e01effe3e50e8daddf69acfd81cb686baf"},
 ]
 virustotal3 = [
     {file = "virustotal3-1.0.8.tar.gz", hash = "sha256:84354b7ac806dcc15908baf57561a76a1bdf10973538e3ae233363a7ad6c41bb"},
