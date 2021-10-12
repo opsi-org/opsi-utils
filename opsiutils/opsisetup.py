@@ -388,6 +388,8 @@ def registerDepot(unattendedConfiguration=None):
 	else:
 		jsonrpcBackend, depot = _getBackendConfigViaGUI(config)
 
+	if config["address"] in [depot.id, depot.ipAddress]:
+		raise ValueError("Cannot register depot to itself. This should not be executed on the confserver.")
 	logger.notice("Creating depot '%s'", depot.id)
 	jsonrpcBackend.host_createObjects([depot])
 
