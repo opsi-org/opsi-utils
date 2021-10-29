@@ -93,6 +93,9 @@ def parseOptions():
 		'--reboot', '-X', dest='reboot', default=False, action='store_true',
 		help="Triggering reboot on the clients")
 	parser.add_argument(
+		'--shutdownwanted', '-s', dest='shutdownwanted', default=False, action='store_true',
+		help="Triggering shutdown as last action (via Product shutdownwanted)")
+	parser.add_argument(
 		'--no-auto-update', '-N', dest='noAutoUpdate', default=False, action='store_true',
 		help="Do not use opsi-auto-update product.")
 	parser.add_argument(
@@ -105,8 +108,8 @@ def parseOptions():
 
 
 def wakeClientsForUpdate(
-	backend, depotId, inputFile, noAutoUpdate, reboot, rebootTimeout, hostGroupId, productGroupId, eventName,
-	wolTimeout, eventTimeout, connectTimeout, pingTimeout, maxConcurrent
+	backend, depotId, inputFile, noAutoUpdate, shutdownwanted, reboot, rebootTimeout, hostGroupId, productGroupId,
+	eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout, maxConcurrent
 ):
 	logger.info(
 		"Using params: depotId=%s, inputFile=%s, noAutoUpdate=%s, reboot=%s, rebootTimeout=%s, "
@@ -144,6 +147,10 @@ def wakeClientsForUpdate(
 	if not noAutoUpdate:
 		logger.notice("Configuring opsi-auto-update product")
 		configureOpsiAutoUpdate(backend, clientsToWake)
+
+	if shutdownwanted:
+		logger.notice("Setting shutdownwanted for clients")
+		setShutdownwanted(backend, clientsToWake)
 
 	productIds = set()
 	if productGroupId:
@@ -248,6 +255,11 @@ def getClientIDsFromGroup(backend, groupName):
 def configureOpsiAutoUpdate(backend, clientIds):
 	for clientId in clientIds:
 		backend.setProductProperty('opsi-auto-update', 'rebootflag', 0, clientId)
+
+
+def setShutdownwanted(backend, clientIds):
+	for clientId in clientIds:
+		backend.setProductActionRequest("shutdownwanted", clientId, 'setup')
 
 
 def getProductsFromProductGroup(backend, productGroupId):
@@ -473,6 +485,7 @@ def opsiwakeupclients_main():
 			backend,
 			options.depotId,
 			options.inputFile, options.noAutoUpdate,
+			options.shutdownwanted,
 			options.reboot, options.rebootTimeout,
 			options.hostGroupId, options.productGroupId,
 			options.eventName,
