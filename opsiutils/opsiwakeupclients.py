@@ -387,7 +387,7 @@ class ClientMonitoringThread(threading.Thread):
 						connectTimeout=self.connectTimeout,
 						socketTimeout=self.connectTimeout,
 					)
-					if not backend.isConnected():
+					if not backend.jsonrpc_getSessionId():
 						continue
 
 					self.opsiclientdbackend = backend
