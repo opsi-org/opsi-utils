@@ -23,6 +23,7 @@ pyinstaller-poetry:
       - OPSI.Util.WIM
       - snack
       - distro
+      - OPSI.Logger
     windows: []
     linux: []
     darwin: []

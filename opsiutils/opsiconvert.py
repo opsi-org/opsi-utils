@@ -36,10 +36,11 @@ class ProgressNotifier(ProgressObserver):
 		self.overallProgressSubject = backendReplicator.getOverallProgressSubject()
 		self.currentProgressSubject.attachObserver(self)
 		self.overallProgressSubject.attachObserver(self)
-		self.logSubject = logger.getMessageSubject()
-		self.logSubject.attachObserver(self)
-		logger.setMessageSubjectLevel(LOG_ERROR)
-		self.error = None
+		#disabled loggerwindow subject
+		#self.logSubject = logger.getMessageSubject()
+		#self.logSubject.attachObserver(self)
+		#logger.setMessageSubjectLevel(LOG_ERROR)
+		#self.error = None
 
 	def displayProgress(self):
 		usedWidth = self.usedWidth
@@ -56,10 +57,10 @@ class ProgressNotifier(ProgressObserver):
 		if logLevel <= LOG_NONE:
 			sys.stdout.write("\033[2A")
 
-		if self.error:
-			sys.stdout.write("\033[K")
-			print(u"Error occurred: %s" % self.error)
-			sys.stdout.write("\033[K")
+		#if self.error:
+		#	sys.stdout.write("\033[K")
+		#	print(u"Error occurred: %s" % self.error)
+		#	sys.stdout.write("\033[K")
 		self.error = None
 		for subject in self.overallProgressSubject, self.currentProgressSubject:
 			text = u''
@@ -77,8 +78,8 @@ class ProgressNotifier(ProgressObserver):
 		self.displayProgress()
 
 	def messageChanged(self, subject, message):
-		if subject == self.logSubject:
-			self.error = message
+		#if subject == self.logSubject:
+		#	self.error = message
 		self.displayProgress()
 
 

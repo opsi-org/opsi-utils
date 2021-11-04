@@ -18,9 +18,10 @@ import shutil
 import sys
 import time
 
+import logging
 from opsicommon.logging import (
-	logger, init_logging, logging_config, secret_filter,
-	DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_NONE, LOG_INFO, LOG_NOTICE
+	logger, init_logging, logging_config, secret_filter, DEFAULT_COLORED_FORMAT,
+	LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_CONFIDENTIAL, LOG_CRITICAL, OPSI_LEVEL_TO_LEVEL
 )
 import OPSI.System.Posix as Posix
 import OPSI.Util.Task.ConfigureBackend as backendUtils
@@ -273,8 +274,7 @@ def configureMySQLBackend(unattendedConfiguration=None):
 		)
 		return
 
-	log_level = logger.level
-	logging_config(stderr_level=LOG_NONE)
+	logging.disable(OPSI_LEVEL_TO_LEVEL[LOG_CRITICAL])
 	ui = UIFactory(type='snack')
 	try:
 		while True:
@@ -323,7 +323,7 @@ def configureMySQLBackend(unattendedConfiguration=None):
 			messageBox.hide()
 
 		ui.exit()
-		logging_config(stderr_level=log_level)
+		logging.disable(OPSI_LEVEL_TO_LEVEL[LOG_CONFIDENTIAL])
 
 
 def registerDepot(unattendedConfiguration=None):
@@ -388,6 +388,8 @@ def registerDepot(unattendedConfiguration=None):
 	else:
 		jsonrpcBackend, depot = _getBackendConfigViaGUI(config)
 
+	if config["address"] in [depot.id, depot.ipAddress]:
+		raise ValueError("Cannot register depot to itself. This should not be executed on the confserver.")
 	logger.notice("Creating depot '%s'", depot.id)
 	jsonrpcBackend.host_createObjects([depot])
 
@@ -597,8 +599,7 @@ def _getConfiguredDepot(jsonrpcBackend, depotConfig=None):  # pylint: disable=to
 
 
 def _getBackendConfigViaGUI(config):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-	log_level = logger.level
-	logging_config(stderr_level=LOG_NONE)
+	logging.disable(OPSI_LEVEL_TO_LEVEL[LOG_CRITICAL])
 
 	ui = UIFactory(type='snack')
 	try:
@@ -838,7 +839,7 @@ def _getBackendConfigViaGUI(config):  # pylint: disable=too-many-locals,too-many
 			break
 	finally:
 		ui.exit()
-		logging_config(stderr_level=log_level)
+		logging.disable(OPSI_LEVEL_TO_LEVEL[LOG_CONFIDENTIAL])
 
 	return jsonrpcBackend, depot
 
