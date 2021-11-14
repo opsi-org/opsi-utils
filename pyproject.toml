@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opsi-utils"
-version = "4.2.0.137"
+version = "4.2.0.138"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
@@ -18,7 +18,7 @@ name = "uibpypi"
 url = "https://pypi.uib.gmbh/simple"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = ">=3.7,<3.10"
 #python-opsi = {path = "python-opsi"}
 python-opsi = "^4.2.0.177"
 python-magic = "^0.4.22"
@@ -30,7 +30,7 @@ urllib3 = "1.23"    #fixed to mitigate SSL WRONG VERSION NUMBER bug in urllib3
 
 [tool.poetry.dev-dependencies]
 opsi-dev-tools = "^1.0.62"
-pyinstaller = "^4.2"
+pyinstaller = "^4.4"
 pylint = "^2.7.4"
 
 [tool.poetry.scripts]
