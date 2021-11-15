@@ -54,7 +54,7 @@ pyinstaller-poetry:
     if [ -f /usr/lib/python3/dist-packages/_snack.cpython-*m-x86_64-linux-gnu.so ]; then
       src=$(ls /usr/lib/python3/dist-packages/_snack.cpython-*m-x86_64-linux-gnu.so | head -n1)
     fi
-    dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}m/g")
+    dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}/g")
     cp $src $dst
     cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
   manpages_install: opsi-utils_data/manpages
