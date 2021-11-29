@@ -10,6 +10,7 @@ import os
 import sys
 import codecs
 import traceback
+import argparse
 # paramiko is needed for opsi-deploy-client-agent
 import paramiko  # pylint: disable=unused-import
 
@@ -44,12 +45,32 @@ def run_interactive():
 	add_systempackages_to_path()
 	code.interact(local=locals())
 
-def main():
+def main():  # pylint: disable=inconsistent-return-statements
 	try:
-		if len(sys.argv) > 1:
-			run_script()
-		else:
-			run_interactive()
+		parser = argparse.ArgumentParser(add_help=False)
+		parser.add_argument("-V", "--version", action="store_true", help="print the Python version number and exit")
+		parser.add_argument("-h", "--help", action="store_true", help="print this help message and exit")
+		group = parser.add_mutually_exclusive_group()
+		group.add_argument("-c", metavar="cmd", required=False, help="program passed in as string")
+		group.add_argument("file", nargs="?", help="program read from script file")
+		parser.add_argument("arg", nargs="*", help="arguments passed to program in sys.argv[1:]")
+		args, _ = parser.parse_known_args()
+
+		if args.file:
+			return run_script()
+
+		if args.help:
+			return parser.print_help()
+
+		if args.version:
+			print(f"Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+			return
+
+		if args.c:
+			add_systempackages_to_path()
+			return exec(args.c)  # pylint: disable=exec-used
+
+		return run_interactive()
 	except Exception:  # pylint: disable=broad-except
 		traceback.print_exc()
 		sys.exit(1)
