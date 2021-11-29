@@ -48,6 +48,22 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			status = 'active' if repository.active else 'inactive'
 			print(f"{repository.name} ({status}): {repository.baseUrl} {descr}")
 
+	def listPackagesUniqueInRepositories(self):
+		"""
+		Lists the products available at the actives repositories.
+		Only display the newest version and where to get it.
+		"""
+
+		data = {}
+		for repository in self.getActiveRepositories():
+			for package in self.getDownloadablePackagesFromRepository(repository):
+				name = package.get("productId")
+				if not name in data or compareVersions(package.get("version"), ">" , data[name].get("version")):
+					data[name] = {"version" : package.get("version"), "repository" : repository.name}
+
+		for name in sorted(data.keys()):
+			print(f"\t{name} (Version {data[name].get('version')} in {data[name].get('repository')})")
+
 	def listProductsInRepositories(self, withLocalInstallationStatus=False, productId=None):
 		"""
 		Lists the products available at the actives repositories.
@@ -222,6 +238,9 @@ def parse_args():
 	listmgroup.add_argument('--packages', '--products',
 							action="store_true", dest="listAvailableProducts",
 							help='Lists the repositories and the packages they provide.')
+	listmgroup.add_argument('--packages-unique',
+							action="store_true", dest="listAvailablePackagesUnique",
+							help='Lists the repositories and the packages they provide.')
 	listmgroup.add_argument('--packages-and-installationstatus', '--products-and-installationstatus',
 							action="store_true", dest="listProductsWithInstallationStatus",
 							help='Lists the repositories with their provided packages and information about the local installation status.')
@@ -286,6 +305,8 @@ def updater_main():  # pylint: disable=too-many-branches,too-many-statements
 				opu.listRepos()
 			elif args.listAvailableProducts:
 				opu.listProductsInRepositories()
+			elif args.listAvailablePackagesUnique:
+				opu.listPackagesUniqueInRepositories()
 			elif args.listProductsWithInstallationStatus:
 				opu.listProductsInRepositories(withLocalInstallationStatus=True)
 			elif args.listUpdatableProducts:
