@@ -25,7 +25,7 @@ pyinstaller-poetry:
       - distro
       - OPSI.Logger
       # make crypt available in opsi-python
-      - crpypt
+      - crypt
     windows: []
     linux: []
     darwin: []
