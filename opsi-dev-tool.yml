@@ -108,7 +108,10 @@ package:
        echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
        chmod 755 ${DST}/rootfs/usr/bin/$i
     done
-    echo "#!/bin/sh"                                valuesrootfs/etc
+    echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-set-rights
+    echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \"\$@\""  >> ${DST}/rootfs/usr/bin/opsi-set-rights
+    chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
+    cp -a "${SRC}/opsi-utils_data/etc"  ${DST}/rootfs/etc
     # mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
     cp -a "${SRC}/opsi-utils_data/opsi-python-examples" "${DST}/rootfs/usr/share/opsi-utils/"
   postinst_script: |
