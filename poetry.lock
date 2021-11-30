@@ -876,7 +876,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.256"
+version = "4.2.0.257"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -1625,10 +1625,8 @@ opsi-dev-tools = [
     {file = "opsi_dev_tools-1.0.79-py3-none-any.whl", hash = "sha256:b9af9562dc14f08f5562ecf20660bfe7bf78b9c2cd27a4233b208ca5873e1c54"},
 ]
 orjson = [
-    {file = "orjson-3.6.4-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:fc01a15f3101628fd619158daec79b30d7461149735e73542ca8c13be6b835be"},
     {file = "orjson-3.6.4-cp310-cp310-manylinux_2_24_aarch64.whl", hash = "sha256:48a69fed90f551bf9e9bb7a63e363fed4f67fc7c6e6bfb057054dc78f6721e9e"},
     {file = "orjson-3.6.4-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:3722f02f50861d5e2a6be9d50bfe8da27a5155bb60043118a4e1ceb8c7040cf7"},
-    {file = "orjson-3.6.4-cp310-none-win_amd64.whl", hash = "sha256:231a99a728322d0271e970b149c57deb67315e6837e6cd4166cf51d30161700c"},
     {file = "orjson-3.6.4-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:6cd300421b41f7e84e388b1792a18c3fc4c440ae3039434b9320956be05f0102"},
     {file = "orjson-3.6.4-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:e55ef66ee1d35b1c43db275aff3a1ba7e0408b31e624912a612bd799df14e73e"},
     {file = "orjson-3.6.4-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eef8d332af8e6f7d6d2c1f3b5384c8d239800c1405b136da5f1710e802918d57"},
@@ -1809,8 +1807,8 @@ python-magic = [
     {file = "python_magic-0.4.24-py2.py3-none-any.whl", hash = "sha256:4fec8ee805fea30c07afccd1592c0f17977089895bdfaae5fec870a84e997626"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.256.tar.gz", hash = "sha256:be21bec8debc7ddb9f0303e852dd02cf6ab99277ec48aab8856265905d866318"},
-    {file = "python_opsi-4.2.0.256-py3-none-any.whl", hash = "sha256:e6c4220f382d521fa19632e32a59f3328b65b69814545058ecd3d976f076c2fe"},
+    {file = "python-opsi-4.2.0.257.tar.gz", hash = "sha256:5ce8ebdd8ae44913230d5cf0207f1a93ef5de2ab354e7d76ae454def8c2ef35c"},
+    {file = "python_opsi-4.2.0.257-py3-none-any.whl", hash = "sha256:e99242125d20d3a54f3a502a8ec386a27b38bfc6a3bcc1e53d0f484999a28887"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
@@ -1972,6 +1970,7 @@ typed-ast = [
 ]
 typing-extensions = [
     {file = "typing_extensions-4.0.0-py3-none-any.whl", hash = "sha256:829704698b22e13ec9eaf959122315eabb370b0884400e9818334d8b677023d9"},
+    {file = "typing_extensions-4.0.0.tar.gz", hash = "sha256:2cdf80e4e04866a9b3689a51869016d36db0814d84b8d8a568d22781d45d27ed"},
 ]
 urllib3 = [
     {file = "urllib3-1.23-py2.py3-none-any.whl", hash = "sha256:b5725a0bd4ba422ab0e66e89e030c806576753ea3ee08554382c14e685d117b5"},
