@@ -241,8 +241,11 @@ def configureMySQLBackend(unattendedConfiguration=None):
 		logger.notice(message)
 		messageBox.addText("{0}\n".format(message))
 
-	def errorFunction(message):
-		logger.error(message)
+	def errorFunction(*args):
+		logger.error(*args)
+		message = args[0]
+		if len(args) > 1:
+			message = message % args[1:]
 		ui.showError(
 			text=message, width=70, height=6,
 			title='Problem configuring MySQL backend'
