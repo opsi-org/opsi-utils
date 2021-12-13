@@ -80,6 +80,7 @@ package:
     - zsync2
     - pigz
     - librsync | librsync2 | librsync1
+    - cpio
   conflicts:
     - opsi-server (<< 4.2)
     - opsi-server-expert (<< 4.2)
