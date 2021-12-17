@@ -48,7 +48,7 @@ except ImportError:
 
 from opsiutils import __version__
 
-USER_AGENT = "opsi-package-manager/%s" % __version__
+USER_AGENT = f"opsi-package-manager/{__version__}"
 
 try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -125,7 +125,7 @@ class UninstallTask(Task):
 
 
 class CursesWindow:  # pylint: disable=too-many-instance-attributes
-	def __init__(self, height, width, y, x, title='', border=False):  # pylint: disable=too-many-arguments
+	def __init__(self, height, width, y, x, title='', border=False):  # pylint: disable=too-many-arguments,invalid-name
 		self.height = forceInt(height)
 		self.width = forceInt(width)
 		self.y = forceInt(y)  # pylint: disable=invalid-name
@@ -158,7 +158,7 @@ class CursesWindow:  # pylint: disable=too-many-instance-attributes
 			return
 		if len(self.title) > self.width - 4:
 			self.title = self.title[:self.width - 4]
-		self.title = '| %s |' % self.title
+		self.title = f'| {self.title} |'
 		attr = curses.A_NORMAL
 		if self.color:
 			attr |= self.color
@@ -167,7 +167,8 @@ class CursesWindow:  # pylint: disable=too-many-instance-attributes
 				0,
 				int((self.width - len(self.title)) / 2),
 				self.title,
-				attr)
+				attr
+			)
 		except Exception:  # pylint: disable=broad-except
 			pass
 
@@ -542,13 +543,13 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 				subject = subjects[currentID]
 				if y >= self.progressWindow.height:
 					# Screen full
-					logger.info("Screen to small to display all progresses")
+					logger.debug("Screen to small to display all progresses")
 					break
 
 				x = 0  # pylint: disable=invalid-name
 				self.progressWindow.move(y, x)
 
-				idString = '%-*s | ' % (maxIdLength, subject.getId())
+				idString = f"{subject.getId():{maxIdLength}} | "
 				if len(idString) > self.progressWindow.width:
 					idString = idString[:self.progressWindow.width]
 				self.progressWindow.addstr(idString, curses.A_BOLD)
@@ -564,21 +565,14 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 						color = self._colors[severity]
 
 					if subject.getClass() == 'ProgressSubject':
-						minutesLeft = str(int(subject.getTimeLeft() / 60))
-						secondsLeft = str(int(subject.getTimeLeft() % 60))
-						if len(minutesLeft) < 2:
-							minutesLeft = '0' + minutesLeft
-						if len(secondsLeft) < 2:
-							secondsLeft = '0' + secondsLeft
-
-						progress = ' %6s%% %8s KB%6s KB/s%6s:%s ETA' % (
-							"%.2f" % subject.getPercent(),
-							(subject.getState() / 1000),
-							int(subject.getSpeed() / 1000),
-							minutesLeft,
-							secondsLeft
+						minutes_left = f"{int(subject.getTimeLeft() / 60):02}"
+						seconds_left = f"{int(subject.getTimeLeft() % 60):02}"
+						percent = f"{subject.getPercent():.2f}"
+						progress = (
+							f" {percent:>6}% {(subject.getState() / 1000):>8} "
+							f"KB{(int(subject.getSpeed() / 1000)):>6} KB/s"
+							f"{minutes_left:>6}:{seconds_left} ETA"
 						)
-
 						free = max(maxSize - len(message) - len(progress), 0)
 						message = message + ' ' * free + progress
 
@@ -652,7 +646,7 @@ class TaskQueue(threading.Thread):
 
 	def addTask(self, task):
 		if not isinstance(task, Task):
-			raise ValueError("Task wanted, '%s' passed" % task)
+			raise ValueError(f"Task wanted, '{task}' passed")
 		self.tasks.append(task)
 
 
@@ -896,11 +890,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			self.openProductPackageFile(packageFile)
 
 		for depotId in self.config['depotIds']:
-			tq = TaskQueue(name="Upload of package(s) %s to repository '%s'" % (', '.join(self.config['packageFiles']), depotId))
+			tq = TaskQueue(name=f"Upload of package(s) {', '.join(self.config['packageFiles'])} to repository '{depotId}'")
 			for packageFile in self.config['packageFiles']:
 				tq.addTask(
 					UploadTask(
-						name="Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+						name=f"Upload of package '{packageFile}' to repository '{depotId}'",
 						opsiPackageManager=self,
 						method=self.uploadToRepository,
 						params=[packageFile, depotId]
@@ -937,13 +931,13 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			if "~" in destination:
 				logger.notice("Custom-package detected, try to fix that.")
-				destination = "%s%s" % (destination.split("~")[0], ".opsi")
+				destination = f"{destination.split('~')[0]}.opsi"
 
 			productId = self.getPackageControlFile(packageFile).getProduct().getId()
 
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			if not depot.repositoryLocalUrl.startswith('file://'):
-				raise ValueError("Repository local url '%s' not supported" % depot.repositoryLocalUrl)
+				raise ValueError(f"Repository local url '{depot.repositoryLocalUrl}' not supported")
 			depotRepositoryPath = depot.repositoryLocalUrl[7:]
 			if depotRepositoryPath.endswith('/'):
 				depotRepositoryPath = depotRepositoryPath[:-1]
@@ -1001,8 +995,8 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				)
 
 				raise OSError(
-					"Not enough disk space on depot '%s': %dMB needed, %dMB available"
-					% (depotId, (packageSize / (1024 * 1024)), (info['available'] / (1024 * 1024)))
+					f"Not enough disk space on depot '{depotId}': "
+					f"{(packageSize / (1024 * 1024))}MB needed, {(info['available'] / (1024 * 1024))}MB available"
 				)
 
 			oldPackages = []
@@ -1034,7 +1028,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 						logger.notice("Calculating delta for depot '%s'", depotId)
 						subject.setMessage(_("Calculating delta"))
 
-						deltaFilename = '%s_%s.delta' % (productId, depotId)
+						deltaFilename = f'{productId}_{depotId}.delta'
 
 						if deltaFilename in oldPackages:
 							newDeltaFilename = deltaFilename
@@ -1059,8 +1053,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 						progressSubject = ProgressSubject(id=depotId, type='upload')
 						progressSubject.setMessage(
-							"Uploading %s (delta upload, speedup %.1f%%)"
-							% (os.path.basename(packageFile), speedup * 100)
+							f"Uploading {os.path.basename(packageFile)} (delta upload, speedup {(speedup * 100):.1f}%)"
 						)
 						if self.userInterface:
 							self.userInterface.addSubject(progressSubject)
@@ -1089,7 +1082,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					subject.setMessage(_("Starting upload of %s") % os.path.basename(packageFile))
 
 					progressSubject = ProgressSubject(id=depotId, type='upload')
-					progressSubject.setMessage("Uploading %s" % os.path.basename(packageFile))
+					progressSubject.setMessage(f"Uploading {os.path.basename(packageFile)}")
 					if self.userInterface:
 						self.userInterface.addSubject(progressSubject)
 					try:
@@ -1197,7 +1190,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			if lockedProductsOnDepot:
 				errors = [
-					"Product '%s' currently locked on depot '%s'" % (productOnDepot.productId, productOnDepot.depotId)
+					f"Product '{productOnDepot.productId}' currently locked on depot '{productOnDepot.depotId}'"
 					for productOnDepot in lockedProductsOnDepot
 				]
 				nwl = "\n"
@@ -1290,12 +1283,12 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				self.userInterface.initScreen()
 
 		for depotId in self.config['depotIds']:
-			tq = TaskQueue(name="Install of package(s) %s on depot '%s'" % (', '.join(self.config['packageFiles']), depotId))
+			tq = TaskQueue(name=f"Install of package(s) {', '.join(self.config['packageFiles'])} on depot '{depotId}'")
 			for packageFile in self.config['packageFiles']:
 				if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
 					tq.addTask(
 						UploadTask(
-							name="Upload of package '%s' to repository '%s'" % (packageFile, depotId),
+							name=f"Upload of package '{packageFile}' to repository '{depotId}'",
 							opsiPackageManager=self,
 							method=self.uploadToRepository,
 							params=[packageFile, depotId]
@@ -1303,7 +1296,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					)
 				tq.addTask(
 					InstallTask(
-						name="Install of package '%s' on depot '%s'" % (os.path.basename(packageFile), depotId),
+						name=f"Install of package '{os.path.basename(packageFile)}' on depot '{depotId}'",
 						opsiPackageManager=self,
 						method=self.installPackage,
 						params=[packageFile, depotId]
@@ -1323,7 +1316,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
 				if not depot.repositoryLocalUrl.startswith('file://'):
-					raise ValueError("Repository local url '%s' not supported" % depot.repositoryLocalUrl)
+					raise ValueError(f"Repository local url '{depot.repositoryLocalUrl}' not supported")
 				depotPackageFile = depot.repositoryLocalUrl[7:]
 				if depotPackageFile.endswith('/'):
 					depotPackageFile = depotPackageFile[:-1]
@@ -1431,9 +1424,9 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			packageNotInstalled = False
 			productIds = []
 			for product in self.config['productIds']:
-				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId='%s' % product)
+				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId=str(product))
 				if not package:
-					subject.setMessage(_("WARNING: Product {0} not installed on depot {1}.".format(product, depotId)), severity=3)
+					subject.setMessage(_("WARNING: Product {0} not installed on depot {1}.".format(product, depotId)), severity=3)  # pylint: disable=consider-using-f-string
 					logger.warning("WARNING: Product %s not installed on depot %s.", product, depotId)
 					packageNotInstalled = True
 
@@ -1441,11 +1434,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				productIds.append(productOnDepot.productId)
 			if not productIds:
 				continue
-			tq = TaskQueue(name="Uninstall of package(s) {0} on depot {1!r}".format(', '.join(productIds), depotId))
+			tq = TaskQueue(name=f"Uninstall of package(s) {', '.join(productIds)} on depot '{depotId}'")
 			for productId in productIds:
 				tq.addTask(
 					UninstallTask(
-						name="Uninstall of package {0!r} on depot {1!r}".format(productId, depotId),
+						name=f"Uninstall of package '{productId}' on depot '{depotId}'",
 						opsiPackageManager=self,
 						method=self.uninstallPackage,
 						params=[productId, depotId]
@@ -1465,7 +1458,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 		try:
 			logger.notice("Uninstalling package '%s' on depot '%s'", productId, depotId)
-			subject.setMessage(_("Uninstalling package {0}".format(productId)))
+			subject.setMessage(_(f"Uninstalling package {productId}"))
 
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 			logger.info("Using '%s' as repository url", depot.getRepositoryRemoteUrl())
@@ -1619,7 +1612,7 @@ class OpsiPackageManagerControl:
 					for i in range(len(self.config['packageFiles'])):
 						self.config['packageFiles'][i] = os.path.abspath(self.config['packageFiles'][i])
 						if not os.path.exists(self.config['packageFiles'][i]):
-							raise OSError("Package file '%s' does not exist or access denied" % self.config['packageFiles'][i])
+							raise OSError(f"Package file '{self.config['packageFiles'][i]}' does not exist or access denied")
 				if self.config['command'] == 'extract' and self.config['newProductId'] and len(self.config['packageFiles']) > 1:
 					raise ValueError("Cannot use new product id with multiple package files")
 
@@ -1686,9 +1679,9 @@ class OpsiPackageManagerControl:
 					print("   " + (_("Failure while processing %s:") % name), file=sys.stderr)
 					for err in errs:
 						logger.error("      %s", err)
-						print(("      %s" % err), file=sys.stderr)
+						print(f"      {err}", file=sys.stderr)
 
-				raise TaskError("{} errors during the processing of tasks.".format(len(errors)))
+				raise TaskError(f"{len(errors)} errors during the processing of tasks.")
 
 	def processExtractCommand(self):
 		progressSubject = ProgressSubject(id='extract', title='extracting')
@@ -1698,7 +1691,7 @@ class OpsiPackageManagerControl:
 				self.usedWidth = 60
 				try:
 					tty = os.popen('tty').readline().strip()
-					with open(tty) as fd:
+					with open(tty, encoding="utf-8") as fd:
 						terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
 						self.usedWidth = min(self.usedWidth, terminalWidth)
 				except Exception:  # pylint: disable=broad-except
@@ -1706,14 +1699,14 @@ class OpsiPackageManagerControl:
 
 			def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):  # pylint: disable=too-many-arguments
 				barlen = self.usedWidth - 10
-				filledlen = int("%0.0f" % (barlen * percent / 100))
+				filledlen = int(round((barlen * percent / 100)))
 				barstr = '=' * filledlen + ' ' * (barlen - filledlen)
-				percent = '%0.2f%%' % percent
-				sys.stderr.write('\r %8s [%s]\r' % (percent, barstr))
+				percent = f'{percent:0.2f}%'
+				sys.stderr.write(f'\r {percent:>8} [{barstr}]\r')
 				sys.stderr.flush()
 
 			def messageChanged(self, subject, message):
-				sys.stderr.write('\n%s\n' % message)
+				sys.stderr.write(f'\n{message}\n')
 				sys.stderr.flush()
 
 		if not self.config['quiet']:
@@ -1732,14 +1725,16 @@ class OpsiPackageManagerControl:
 
 			productId = ppf.getMetaData().getProduct().getId()
 			if not productId:
-				raise ValueError("Failed to extract source from package '%s': product id not found in meta data" % (packageFile))
+				raise ValueError(
+					f"Failed to extract source from package '{packageFile}': product id not found in meta data"
+				)
 			newProductId = None
 			if self.config['newProductId']:
 				productId = forceProductId(self.config['newProductId'])
 				newProductId = productId
 			packageDestinationDir = os.path.join(destinationDir, productId)
 			if os.path.exists(packageDestinationDir):
-				raise OSError("Destination directory '%s' already exists" % packageDestinationDir)
+				raise OSError(f"Destination directory '{packageDestinationDir}' already exists")
 			os.mkdir(packageDestinationDir)
 			ppf.unpackSource(destinationDir=packageDestinationDir, newProductId=newProductId, progressSubject=progressSubject)
 			if not self.config['quiet']:
@@ -1750,7 +1745,7 @@ class OpsiPackageManagerControl:
 		terminalWidth = 60
 		try:
 			tty = os.popen('tty').readline().strip()
-			with open(tty) as fd:
+			with open(tty, encoding="utf-8") as fd:
 				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
 		except Exception:  # pylint: disable=broad-except
 			pass
@@ -1789,14 +1784,15 @@ class OpsiPackageManagerControl:
 
 		for (depotId, values) in productOnDepotInfo.items():
 			print("-" * (len(depotId) + 4))
-			print("- %s -" % depotId)
+			print(f"- {depotId} -")
 			print("-" * (len(depotId) + 4))
-			print("%s%*s %*s %*s" % (
+			print("%s%*s %*s %*s" % (  # pylint: disable=consider-using-f-string
 				indent, -1 * idWidth,
 				'Product ID',
 				-1 * versionWidth, 'Version',
-				-1 * nameWidth, 'Name'))
-			print("%s%s" % (indent, "=" * (terminalWidth - len(indent) - 2)))
+				-1 * nameWidth, 'Name'
+			))
+			print(f"{indent}{'=' * (terminalWidth - len(indent) - 2)}")
 			productIds = list(values.keys())
 			productIds.sort()
 
@@ -1844,13 +1840,7 @@ class OpsiPackageManagerControl:
 				try:
 					productOnDepot = productOnDepotInfo[depotId][productId]
 				except KeyError:
-					lines.append(
-						"    {depotId:<{width}}: {text}".format(
-							depotId=depotId,
-							width=maxWidth,
-							text=notInstalledText
-						)
-					)
+					lines.append(f"    {depotId:<{maxWidth}}: {notInstalledText}")
 					differs = True
 					continue
 
@@ -1864,13 +1854,7 @@ class OpsiPackageManagerControl:
 				elif packageVersion != productOnDepot.packageVersion:
 					differs = True
 
-				lines.append(
-					"    {depotId:<{width}}: {product.version}".format(
-						depotId=depotId,
-						width=maxWidth,
-						product=productOnDepot
-					)
-				)
+				lines.append(f"    {depotId:<{maxWidth}}: {productOnDepot.version}")
 
 			if differs:
 				depotsInSync = False
@@ -2054,7 +2038,7 @@ class OpsiPackageManagerControl:
 			logger.debug("Running thread after signal: %s", thread)
 
 	def usage(self):  # pylint: disable=no-self-use
-		print("\nUsage: %s [options] <command>" % os.path.basename(sys.argv[0]))
+		print(f"\nUsage: {os.path.basename(sys.argv[0])} [options] <command>")
 		print("")
 		print("Manage opsi packages")
 		print("")
@@ -2123,10 +2107,10 @@ def main():
 		pass
 	except Exception as err:  # pylint: disable=broad-except
 		logger.error(err, exc_info=True)
-		print("\nERROR: %s\n" % err, file=sys.stderr)
+		print(f"\nERROR: {err}\n", file=sys.stderr)
 		sys.exit(1)
 
-def set_product_cache_outdated(debotId, backend):
-	logger.debug("mark redis product cache as dirty for depot: %s", debotId)
-	config_id = "opsiconfd.{}.product.cache.outdated".format(debotId)
+def set_product_cache_outdated(depotId, backend):
+	logger.debug("mark redis product cache as dirty for depot: %s", depotId)
+	config_id = f"opsiconfd.{depotId}.product.cache.outdated"
 	backend.config_createBool(id=config_id, description="", defaultValues=[True])
