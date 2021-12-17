@@ -742,11 +742,15 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 	def updateRunningTransfersSubject(self):
 		if self.config['maxTransfers']:
-			self.transferSubject.setMessage(_("%d/%d transfers running")
-				% (self.runningTransfers, self.config['maxTransfers']))
+			self.transferSubject.setMessage(
+				_("%d/%d transfers running")
+				% (self.runningTransfers, self.config['maxTransfers'])
+			)
 		else:
-			self.transferSubject.setMessage(_("%d transfers running")
-				% self.runningTransfers)
+			self.transferSubject.setMessage(
+				_("%d transfers running")
+				% self.runningTransfers
+			)
 
 	def maxTransfersReached(self):
 		if self.config['maxTransfers'] and (self.getRunningTransfers() >= self.config['maxTransfers']):
@@ -755,7 +759,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 	def createDepotSubjects(self):
 		if self.depotSubjects and self.userInterface:
-			for subject in self.depotSubjects.values():
+			for subject in list(self.depotSubjects.values()):
 				self.userInterface.removeSubject(subject)
 
 		for depotId in self.config['depotIds']:
