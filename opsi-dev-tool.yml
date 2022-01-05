@@ -122,20 +122,24 @@ package:
     [ -e /etc/opsi/package-updater.repos.d/uib-windows.repo ]     && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-windows.repo
     [ -e /etc/opsi/package-updater.repos.d/testing.repo ]         && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/testing.repo
     [ -e /etc/opsi/package-updater.repos.d/experimental.repo ]    && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/experimental.repo
-    # workaround for error on openSUSE Leap 15.2:
-    #  /bin/sh: /usr/lib/opsi-utils/libreadline.so.7: no version information available (required by /bin/sh)
-    [ -e /usr/lib/opsi-utils/libreadline.so.7 -a -e /lib64/libreadline.so.7 ] && cp /lib64/libreadline.so.7 /usr/lib/opsi-utils/libreadline.so.7
-    # workaround for error on Red Hat 8
-    #  PAM unable to dlopen(/usr/lib64/security/pam_unix.so): /usr/lib/opsi-utils/libcrypto.so.1.1: version `OPENSSL_1_1_1b' not found (required by /lib64/libk5crypto.so.3)
-    [ -e /usr/lib/opsi-utils/libcrypto.so.1.1 -a -e /usr/lib64/libcrypto.so.1.1 ] && cp /usr/lib64/libcrypto.so.1.1 /usr/lib/opsi-utils/libcrypto.so.1.1
-    #  SLES15-2 similar issue: /usr/lib/opsi-utils/libssl.so.1.1: symbol EVP_idea_cbc, version OPENSSL_1_1_0 not defined in file libcrypto.so.1.1
-    [ -e /usr/lib/opsi-utils/libssl.so.1.1 -a -e /usr/lib64/libssl.so.1.1 ] && cp /usr/lib64/libssl.so.1.1 /usr/lib/opsi-utils/libssl.so.1.1
-    # workaround for debian 11
-    #  PAM unable to dlopen(pam_unix.so): /lib/security/pam_unix.so: cannot open shared object file: No such file or directory
-    [ -e /usr/lib/opsi-utils/libpam.so.0 -a -e /usr/lib/x86_64-linux-gnu/libpam.so.0 ] && cp /usr/lib/x86_64-linux-gnu/libpam.so.0 /usr/lib/opsi-utils/libpam.so.0
-    # Workaround for Ubuntu 20.04
-    #  PAM unable to dlopen(pam_unix.so): /lib/security/pam_unix.so: cannot open shared object file: No such file or directory
-    [ -e /usr/lib/opsi-utils/libpam.so.0 -a -e /lib/x86_64-linux-gnu/libpam.so.0 ] && cp /lib/x86_64-linux-gnu/libpam.so.0 /usr/lib/opsi-utils/libpam.so.0
-    # Workaround for opsi-admin authentification error on SLES15 SP3
-    [ -e /usr/lib/opsi-utils/libpam.so.0 -a -e /lib64/libpam.so.0 ] && cp /lib64/libpam.so.0 /usr/lib/opsi-utils/libpam.so.0
-    exit 0
+
+    dist=$(lsb_release -d | sed -e 's/Description:\s*//')
+
+    # Distribution specific workarounds
+    if [[ "$dist" =~ "openSUSE Leap 15.2" ]]; then
+      # /bin/sh: /usr/lib/opsiconfd/libreadline.so.7: no version information available (required by /bin/sh)
+      cp /lib64/libreadline.so.7 /usr/lib/opsiconfd/libreadline.so.7
+    elif [[ "$dist" =~ "Red Hat Enterprise Linux release 8" ]]; then
+      # PAM unable to dlopen(/usr/lib64/security/pam_unix.so): /usr/lib/opsiconfd/libcrypto.so.1.1: version `OPENSSL_1_1_1b' not found (required by /lib64/libk5crypto.so.3)
+      cp /usr/lib64/libcrypto.so.1.1 /usr/lib/opsiconfd/libcrypto.so.1.1
+    elif [[ "$dist" =~ "SUSE Linux Enterprise Server 15 SP2" ]]; then
+      # /usr/lib/opsiconfd/libssl.so.1.1: symbol EVP_idea_cbc, version OPENSSL_1_1_0 not defined in file libcrypto.so.1.1
+      cp /usr/lib64/libssl.so.1.1 /usr/lib/opsiconfd/libssl.so.1.1
+    fi
+
+    # Use pam_unix.so from system
+    # Authentication failure (auth_type=auth-module)...
+    # ARM64: ubuntu: /usr/lib/aarch64-linux-gnu, debian: /lib/aarch64-linux-gnu
+    for libdir in /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu /lib64  /usr/lib/aarch64-linux-gnu /lib/aarch64-linux-gnu; do
+      [ -e ${libdir}/libpam.so.0 ] && cp ${libdir}/libpam.so.0 /usr/lib/opsiconfd/libpam.so.0
+    done
