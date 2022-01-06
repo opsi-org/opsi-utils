@@ -23,7 +23,7 @@ from opsicommon.logging import (
 	logger, init_logging, logging_config, secret_filter, DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_CONFIDENTIAL, LOG_CRITICAL, OPSI_LEVEL_TO_LEVEL
 )
-import OPSI.System.Posix as Posix
+from OPSI.System import Posix
 import OPSI.Util.Task.ConfigureBackend as backendUtils
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -89,7 +89,6 @@ def getDistribution():
 # TODO: use OPSI.System.Posix.Sysconfig for a more standardized approach
 def getSysConfig():
 	"""Get the current system config"""
-	global sysConfig  # pylint: disable=global-statement,invalid-name
 	if sysConfig:
 		return sysConfig
 
@@ -169,9 +168,9 @@ def setPasswordForClientUser():
 
 	try:
 		with BackendManager(**backend_config) as backend:
-			depot = backend.host_getObjects(type='OpsiDepotserver', id=fqdn)[0]
+			depot = backend.host_getObjects(type='OpsiDepotserver', id=fqdn)[0]  # pylint: disable=no-member
 
-			for configserver in backend.host_getObjects(type='OpsiConfigserver'):
+			for configserver in backend.host_getObjects(type='OpsiConfigserver'):  # pylint: disable=no-member
 				if configserver.id == fqdn:
 					break  # we are on the configserver - nothing to do
 
@@ -179,7 +178,7 @@ def setPasswordForClientUser():
 					with JSONRPCBackend(address=configserver.id, username=depot.id, password=depot.opsiHostKey) as jsonrpcBackend:
 						password = blowfishDecrypt(
 							depot.opsiHostKey,
-							jsonrpcBackend.user_getCredentials(username=CLIENT_USER, hostId=depot.id)['password']
+							jsonrpcBackend.user_getCredentials(username=CLIENT_USER, hostId=depot.id)['password']  # pylint: disable=no-member
 						)
 				except Exception as err:  # pylint: disable=broad-except
 					logger.info("Failed to get client user (%s) password from configserver: %s", CLIENT_USER, err)
@@ -187,7 +186,7 @@ def setPasswordForClientUser():
 			if not password:
 				password = blowfishDecrypt(
 					depot.opsiHostKey,
-					backend.user_getCredentials(username=CLIENT_USER, hostId=depot.id)['password']
+					backend.user_getCredentials(username=CLIENT_USER, hostId=depot.id)['password']  # pylint: disable=no-member
 				)
 	except Exception as err:  # pylint: disable=broad-except
 		logger.info("Failed to get client user (%s) password: %s", CLIENT_USER, err)
@@ -197,7 +196,7 @@ def setPasswordForClientUser():
 		password = randomString(12)
 
 	secret_filter.add_secrets(password)
-	execute('opsi-admin -d task setPcpatchPassword "%s"' % password)
+	execute(f'opsi-admin -d task setPcpatchPassword "{password}"')
 
 
 def update(fromVersion=None):  # pylint: disable=unused-argument
@@ -239,7 +238,7 @@ def update(fromVersion=None):  # pylint: disable=unused-argument
 def configureMySQLBackend(unattendedConfiguration=None):
 	def notifyFunction(message):
 		logger.notice(message)
-		messageBox.addText("{0}\n".format(message))
+		messageBox.addText(f"{message}\n")
 
 	def errorFunction(*args):
 		logger.error(*args)
@@ -394,10 +393,10 @@ def registerDepot(unattendedConfiguration=None):
 	if config["address"] in [depot.id, depot.ipAddress]:
 		raise ValueError("Cannot register depot to itself. This should not be executed on the confserver.")
 	logger.notice("Creating depot '%s'", depot.id)
-	jsonrpcBackend.host_createObjects([depot])
+	jsonrpcBackend.host_createObjects([depot])  # pylint: disable=no-member
 
 	logger.notice("Getting depot '%s'", depot.id)
-	depots = jsonrpcBackend.host_getObjects(id=depot.id)
+	depots = jsonrpcBackend.host_getObjects(id=depot.id)  # pylint: disable=no-member
 	if not depots:
 		raise Exception("Failed to create depot")
 	depot = depots[0]
@@ -626,7 +625,7 @@ def _getBackendConfigViaGUI(config):  # pylint: disable=too-many-locals,too-many
 			messageBox = ui.createMessageBox(width=70, height=20, title='Register depot', text='')
 			# Connect to config server
 			logger.notice("Connecting to config server '%s' as user '%s'", config['address'], adminUser)
-			messageBox.addText("Connecting to config server '%s' as user '%s'\n" % (config['address'], adminUser))
+			messageBox.addText(f"Connecting to config server '{config['address']}' as user '{adminUser}'\n")
 
 			try:
 				jsonrpcBackend = _getJSONRPCBackendFromConfig({
@@ -683,16 +682,16 @@ def _getBackendConfigViaGUI(config):  # pylint: disable=too-many-locals,too-many
 			if not depot.ipAddress:
 				depot.ipAddress = getSysConfig()['ipAddress'] or ''
 			if not depot.networkAddress:
-				depot.ipAddress = '%s/%s' % (getSysConfig()['subnet'], getSysConfig()['netmask'])
+				depot.ipAddress = f"{getSysConfig()['subnet']}/{getSysConfig()['netmask']}"
 			if not depot.depotWebdavUrl:
-				depot.depotWebdavUrl = 'webdavs://%s:4447/depot' % fqdn
+				depot.depotWebdavUrl = f"webdavs://{fqdn}:4447/depot"
 
 			if not depot.workbenchLocalUrl:
 				depot.workbenchLocalUrl = 'file:///var/lib/opsi/workbench'
 
 			if not depot.workbenchRemoteUrl:
 				depotAddress = getServerAddress(depot.depotRemoteUrl)
-				remoteWorkbenchPath = 'smb://{}/opsi_workbench'.format(depotAddress)
+				remoteWorkbenchPath = f'smb://{depotAddress}/opsi_workbench'
 				depot.workbenchRemoteUrl = remoteWorkbenchPath
 		except (IndexError, ValueError):
 			serverConfig = getServerConfig(fqdn, getSysConfig())
@@ -856,7 +855,7 @@ def restartServices():
 
 
 def usage():
-	print("\nUsage: %s [options]" % os.path.basename(sys.argv[0]))
+	print(f"\nUsage: {os.path.basename(sys.argv[0])} [options]")
 	print("")
 	print("Options:")
 	print("   -h, --help     show this help")
@@ -1023,7 +1022,8 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 def main():
 	logging_config(log_file=LOG_FILE, file_level=LOG_INFO, stderr_format=DEFAULT_COLORED_FORMAT)
 	if not os.path.exists(LOG_FILE):
-		open(LOG_FILE).close()
+		with open(LOG_FILE, "wb"):
+			pass
 	shutil.chown(LOG_FILE, group=OPSI_ADMIN_GROUP)
 	os.chmod(LOG_FILE, 0o660)
 

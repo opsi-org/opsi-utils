@@ -18,11 +18,12 @@ from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI import __version__ as python_opsi_version
 from opsiutils import __version__
 
-USAGE = '''
-Usage: %s [common-options] <command> [command-options]
+
+USAGE = f'''
+Usage: {os.path.basename(sys.argv[0])} [common-options] <command> [command-options]
 
 Creates and restores opsi backups.
-Version %s.
+Version {__version__}.
 
 Common options:
    -h, --help                          Show this help message and exit.
@@ -56,9 +57,9 @@ Commands:
                                           of used backends or 'all' for all backends.
                                           Can be given multiple times.
       --no-configuration               Do not backup opsi configuration.
-      -c, --compression {gz|bz2|none}  Sets the compression format for the archive (default: bz2).
+      -c, --compression {{gz|bz2|none}}  Sets the compression format for the archive (default: bz2).
 
-''' % (os.path.basename(sys.argv[0]), __version__)
+'''
 
 
 class HelpFormatter(argparse.HelpFormatter):

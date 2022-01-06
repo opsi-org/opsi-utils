@@ -26,11 +26,11 @@ from OPSI.Backend.Replicator import BackendReplicator
 
 from opsiutils import __version__
 
-logLevel = LOG_NONE
-init_logging(stderr_level=logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
+log_level = LOG_NONE  # pylint: disable=invalid-name
+init_logging(stderr_level=log_level, stderr_format=DEFAULT_COLORED_FORMAT)
 
 class ProgressNotifier(ProgressObserver):
-	def __init__(self, backendReplicator):
+	def __init__(self, backendReplicator):  # pylint: disable=super-init-not-called
 		self.usedWidth = 120
 		self.currentProgressSubject = backendReplicator.getCurrentProgressSubject()
 		self.overallProgressSubject = backendReplicator.getOverallProgressSubject()
@@ -40,41 +40,39 @@ class ProgressNotifier(ProgressObserver):
 		#self.logSubject = logger.getMessageSubject()
 		#self.logSubject.attachObserver(self)
 		#logger.setMessageSubjectLevel(LOG_ERROR)
-		#self.error = None
+		self.error = None
 
 	def displayProgress(self):
 		usedWidth = self.usedWidth
 		try:
 			tty = os.popen('tty').readline().strip()
-			fd = open(tty)
-			terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
-			if usedWidth > terminalWidth:
-				usedWidth = terminalWidth
-			fd.close()
-		except Exception:
+			with open(tty, "wb") as fd:
+				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+				usedWidth = min(usedWidth, terminalWidth)
+		except Exception:  # pylint: disable=broad-except
 			pass
 
-		if logLevel <= LOG_NONE:
+		if log_level <= LOG_NONE:
 			sys.stdout.write("\033[2A")
 
 		#if self.error:
 		#	sys.stdout.write("\033[K")
-		#	print(u"Error occurred: %s" % self.error)
+		#	print("Error occurred: %s" % self.error)
 		#	sys.stdout.write("\033[K")
 		self.error = None
 		for subject in self.overallProgressSubject, self.currentProgressSubject:
-			text = u''
+			text = ''
 			if subject is self.overallProgressSubject:
-				text = u'Overall progress'
+				text = 'Overall progress'
 			else:
 				text = subject.getTitle()
 			barlen = usedWidth - 62
-			filledlen = int("%0.0f" % (barlen * subject.getPercent() / 100))
-			bar = u'=' * filledlen + u' ' * (barlen - filledlen)
-			percent = '%0.2f%%' % subject.getPercent()
-			print('%35s : %8s [%s] %5s/%-5s' % (text, percent, bar, subject.getState(), subject.getEnd()))
+			filledlen = round(barlen * subject.getPercent() / 100)
+			_bar = '=' * filledlen + ' ' * (barlen - filledlen)
+			percent = f"{subject.getPercent():0.2f}%"
+			print('%35s : %8s [%s] %5s/%-5s' % (text, percent, _bar, subject.getState(), subject.getEnd()))  # pylint: disable=consider-using-f-string
 
-	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):
+	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):  # pylint: disable=too-many-arguments
 		self.displayProgress()
 
 	def messageChanged(self, subject, message):
@@ -83,8 +81,8 @@ class ProgressNotifier(ProgressObserver):
 		self.displayProgress()
 
 
-def opsiconvert_main():
-	global logLevel
+def opsiconvert_main():  # pylint: disable=too-many-locals,too-many-statements
+	global log_level  # pylint: disable=global-statement,invalid-name
 
 	parser = argparse.ArgumentParser(
 		description="Convert an opsi database into an other.",
@@ -116,10 +114,10 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 
 	args = parser.parse_args()
 
-	logLevel = args.logLevel
-	init_logging(stderr_level=logLevel)
+	log_level = args.logLevel
+	init_logging(stderr_level=log_level)
 	if args.logFile:
-		logging_config(log_file=args.logFile, file_level=logLevel)
+		logging_config(log_file=args.logFile, file_level=log_level)
 
 	cleanupFirst = args.cleanupFirst
 	progress = not args.quiet
@@ -137,16 +135,16 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 
 	# Define read/write backend
 	read = {
-		'username': u'',
-		'password': u'',
-		'address': u'',
-		'backend': u''
+		'username': '',
+		'password': '',
+		'address': '',
+		'backend': ''
 	}
 	write = {
-		'username': u'',
-		'password': u'',
-		'address': u'',
-		'backend': u''
+		'username': '',
+		'password': '',
+		'address': '',
+		'backend': ''
 	}
 
 	logger.comment("Converting from backend '%s' to backend '%s'.", readBackend, writeBackend)
@@ -159,19 +157,19 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	parseBackend(write, writeBackend)
 	logger.debug("Settings for write-backend: %s", write)
 	if write['address'] and write['username'] and newServerId:
-		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
+		match = re.search(r'^(\w+://)([^@]+)@([^:]+:\d+/.*)$', writeBackend)
 		newServerId = match.group(3).split(':')[0]
-		if re.search('^[\d\.]+$', newServerId):
+		if re.search(r'^[\d\.]+$', newServerId):
 			# Is an ip address
 			newServerId = getfqdn(name=newServerId)
-			if re.search('^[\d\.]+$', newServerId):
-				raise ValueError(u"Cannot resolve '%s'" % newServerId)
+			if re.search(r'^[\d\.]+$', newServerId):
+				raise ValueError(f"Cannot resolve '{newServerId}'")
 
 	if newServerId:
 		try:
 			newServerId = forceHostId(newServerId)
-		except Exception:
-			raise ValueError(u"Bad server-id '%s' for new server" % newServerId)
+		except Exception as err:
+			raise ValueError(f"Bad server-id '{newServerId}' for new server") from err
 
 	sanityCheck(read, write)
 
@@ -197,16 +195,16 @@ configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 def parseBackend(config, backendString):
 	"Parse the string and write the results into config."
 
-	match = re.search('^(\w+://)', backendString)
+	match = re.search(r'^(\w+://)', backendString)
 	if match:
 		logger.debug("Read-backend seems to be an URL")
-		match = re.search('^(\w+://)([^@]+)@([^:]+:\d+/.*)$', backendString)
+		match = re.search(r'^(\w+://)([^@]+)@([^:]+:\d+/.*)$', backendString)
 		if match:
 			config['backend'] = 'JSONRPC'
 			config['address'] = match.group(1) + match.group(3)
 			config['username'] = match.group(2)
 		else:
-			raise ValueError(u"Bad source URL '%s'" % backendString)
+			raise ValueError(f"Bad source URL '{backendString}'")
 	else:
 		logger.debug("Assuming '%s' is a backend name.", backendString)
 		config['backend'] = backendString
@@ -217,9 +215,9 @@ def sanityCheck(read, write):
 		if read['backend'] == write['backend']:
 			if read['backend'] == 'JSONRPC':
 				if read['address'] == write['address']:
-					raise ValueError(u"Source and destination backend are the same.")
+					raise ValueError("Source and destination backend are the same.")
 			else:
-				raise ValueError(u"Source and destination backend are the same.")
+				raise ValueError("Source and destination backend are the same.")
 
 
 def createBackend(config):
@@ -231,15 +229,15 @@ def createBackend(config):
 	config = cleanBackendConfig(config)
 
 	try:
-		backend = BackendManager(backendConfigDir=u'/etc/opsi/backends', **config)
-	except Exception as error:
-		logger.error(error, exc_info=True)
-		if forceUnicodeLower(config['backend']) == u'jsonrpc':
+		backend = BackendManager(backendConfigDir='/etc/opsi/backends', **config)
+	except Exception as err:  # pylint: disable=broad-except
+		logger.error(err, exc_info=True)
+		if forceUnicodeLower(config['backend']) == 'jsonrpc':
 			logger.debug("Creating a JSONRPC backend through BackendManager failed.")
 			logger.debug("Trying with a direct connection.")
 			backend = JSONRPCBackend(
 				deflate=True,
-				application='opsi-convert/%s' % __version__,
+				application=f"opsi-convert/{__version__}",
 				**config
 			)
 		else:
@@ -266,8 +264,8 @@ def main():
 		opsiconvert_main()
 	except SystemExit:
 		pass
-	except Exception as e:
+	except Exception as err:  # pylint: disable=broad-except
 		logging_config(stderr_level=LOG_ERROR)
-		logger.error(e, exc_info=True)
-		print(u"ERROR: %s" % e, file=sys.stderr)
+		logger.error(err, exc_info=True)
+		print(f"ERROR: {err}", file=sys.stderr)
 		sys.exit(1)

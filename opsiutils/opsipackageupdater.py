@@ -34,7 +34,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		for repository in sorted(self.getActiveRepositories(), key=lambda repo: repo.name.lower()):
 			descr = ''
 			if repository.description:
-				descr = "- {description}".format(description=repository.description)
+				descr = f"- {repository.description}"
 
 			print(f"{repository.name}: {repository.baseUrl} {descr}")
 
@@ -43,7 +43,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		for repository in sorted(self.getRepositories(), key=lambda repo: repo.name.lower()):
 			descr = ''
 			if repository.description:
-				descr = "- {description}".format(description=repository.description)
+				descr = f"- {repository.description}"
 
 			status = 'active' if repository.active else 'inactive'
 			print(f"{repository.name} ({status}): {repository.baseUrl} {descr}")
@@ -104,7 +104,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, not installed)")
 						continue
 
-					localVersion = '%s-%s' % (localProduct.get("productVersion"), localProduct.get("packageVersion"))
+					localVersion = f"{localProduct.get('productVersion')}-{localProduct.get('packageVersion')}"
 					if compareVersions(package['version'], '==', localVersion):
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, installed)")
 					else:
@@ -135,7 +135,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 				except KeyError:
 					continue  # Not installed locally
 
-				localVersion = '{productVersion}-{packageVersion}'.format(**localProduct)
+				localVersion = f"{localProduct['productVersion']}-{localProduct['packageVersion']}"
 				if not compareVersions(package['version'], '==', localVersion):
 					if not repoMessageShown:
 						print(f"Packages in {repository.name}:")
@@ -147,7 +147,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		try:
 			updates = getUpdatablePackages(self)
 		except NoActiveRepositoryError:
-			logger.warning(u"No repositories configured, nothing to do")
+			logger.warning("No repositories configured, nothing to do")
 			return
 
 		if updates:

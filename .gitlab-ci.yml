@@ -20,8 +20,7 @@ test:pytest-pylint:
     - poetry config experimental.new-installer false
     - poetry lock --no-update
     - poetry install
-    - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
-    - poetry run pylint --disable=R,C,W,E1101 opsiutils
+    - poetry run pylint --disable=R,fixme opsiutils
 
 build:linux-pyinstaller:
   stage: build

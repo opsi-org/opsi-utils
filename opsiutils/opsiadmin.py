@@ -81,7 +81,7 @@ if not outEncoding or outEncoding == 'ascii':
 if not inEncoding or (inEncoding == 'ascii'):
 	inEncoding = outEncoding
 
-UNCOLORED_LOGO = """\
+UNCOLORED_LOGO = f"""\
                                    .:.:::::.
                                    ;      ::
                                    ;      ;.
@@ -107,8 +107,8 @@ UNCOLORED_LOGO = """\
                            -=|=_...---~~-~--  _=i:
                              -~||=__:.-..:__|||~ .
                                 -~+++||||++~--
-          opsi-admin {version}
-""".format(version=__version__).split('\n')
+          opsi-admin {__version__}
+""".split('\n')
 
 LOGO = [{"color": COLOR_CYAN, "text": line} for line in UNCOLORED_LOGO]
 
@@ -119,8 +119,8 @@ try:
 	sp = os.path.join(sp, 'opsi-utils_data', 'locale')
 	translation = gettext.translation('opsi-utils', sp)
 	_ = translation.gettext
-except Exception as err:  # pylint: disable=broad-except
-	logger.debug("Failed to load locale from %s: %s", sp, err)
+except Exception as loc_err:  # pylint: disable=broad-except
+	logger.debug("Failed to load locale from %s: %s", sp, loc_err)
 
 	def _(string):
 		""" Fallback function """
@@ -270,8 +270,8 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 				if not os.path.exists(opsiadminUserDir):
 					try:
 						os.mkdir(opsiadminUserDir)
-					except OSError as error:
-						logger.info("Could not create %s.", opsiadminUserDir)
+					except OSError as err:
+						logger.info("Could not create %s: %s", opsiadminUserDir, err)
 
 				sessionFile = os.path.join(opsiadminUserDir, 'session')
 				try:
@@ -292,7 +292,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 				address=address,
 				username=username,
 				password=password,
-				application='opsi-admin/%s' % __version__,
+				application=f"opsi-admin/{ __version__}",
 				sessionId=sessionId,
 				compression=True
 			)
@@ -337,8 +337,8 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		if interactive:
 			try:
 				logger.notice("Starting interactive mode")
-				global_shell = Shell(prompt='%s@opsi-admin>' % username, output=output, color=color, cmdline=cmdline)
-				global_shell.setInfoline("Connected to %s" % address)
+				global_shell = Shell(prompt=f"{username}@opsi-admin>", output=output, color=color, cmdline=cmdline)
+				global_shell.setInfoline(f"Connected to {address}")
 
 				for line in LOGO:
 					global_shell.appendLine(line.get('text'), line.get('color'))
@@ -368,7 +368,7 @@ To exit opsi-admin please type 'exit'."""
 						searchForError(element)
 
 			try:
-				global_shell = Shell(prompt='%s@opsi-admin>' % username, output=output, color=color)
+				global_shell = Shell(prompt=f"{username}@opsi-admin>", output=output, color=color)
 				for cmd in cmdline.split('\n'):
 					if cmd:
 						global_shell.cmdline = cmd
@@ -519,7 +519,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		if self.cmdline:
 			for cmd in self.cmdline.split('\n'):
 				self.cmdline = cmd
-				self.appendLine("%s %s" % (self.prompt, self.cmdline))
+				self.appendLine(f"{self.prompt} {self.cmdline}")
 				if self.cmdline:
 					try:
 						self.execute()
@@ -551,7 +551,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 				for line in self.cmdList:
 					if not line or line in ('quit', 'exit'):
 						continue
-					history.write("%s\n" % line)
+					history.write(f"{line}\n")
 		except Exception as err:  # pylint: disable=broad-except
 			logger.error("Failed to write history file '%s': %s", historyFilePath, err)
 
@@ -578,7 +578,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		self.linesMax = self.yMax - height - 1
 		self.screen.move(self.yMax - height, 0)
 		self.screen.clrtoeol()
-		shellLine = "%s %s%s" % (self.prompt, self.cmdline, ' ' * clear)
+		shellLine = f"{self.prompt} {self.cmdline}{' ' * clear}"
 		try:
 			self.screen.addstr(shellLine, curses.A_BOLD)
 		except Exception as err:  # pylint: disable=broad-except
@@ -981,12 +981,8 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 						self.currentParam = ""
 
 					text = (
-						"%s %s%s%s" % (
-							self.prompt,
-							self.cmdline[:self.pos - len(self.currentParam)],
-							match.strip(),
-							self.cmdline[self.pos:]
-						)
+						f"{self.prompt} {self.cmdline[:self.pos - len(self.currentParam)]}"
+						f"{match.strip()}{self.cmdline[self.pos:]}"
 					)
 					self.lines.append({"text": text, "color": None})
 
@@ -1009,7 +1005,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 					# backspace	<--
 					if self.reverseSearch is not None:
 						self.reverseSearch = self.reverseSearch[:-1]
-						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
+						self.setInfoline(f"reverse-i-search: {self.reverseSearch}")
 					elif self.pos > 0:
 						newPos = self.pos - 1
 						newCmdline = self.cmdline[:newPos] + self.cmdline[self.pos:]
@@ -1043,7 +1039,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 
 				try:
 					if self.reverseSearch is not None:
-						self.setInfoline('reverse-i-search: %s' % self.reverseSearch)
+						self.setInfoline(f"reverse-i-search: {self.reverseSearch}")
 						found = False
 						for i in range(len(self.cmdList) - 1, -1, -1):
 							if self.reverseSearch in self.cmdList[i]:
@@ -1110,10 +1106,10 @@ class CommandMethod(Command):
 		return _("Execute a config-interface-method")
 
 	def help(self, shell):  # pylint: disable=redefined-outer-name
-		shell.appendLine("\r{0}\n".format(_("Methods are:")))
+		shell.appendLine(f'\r{_("Methods are:")}\n')
 		for method in backend.backend_getInterface():
 			logger.debug(method)
-			shell.appendLine("\r%s\n" % method.get('name'))
+			shell.appendLine(f"\r{method.get('name')}\n")
 
 	def completion(self, params, paramPos):
 		completions = []
@@ -1148,7 +1144,7 @@ class CommandMethod(Command):
 
 		if methodName == 'list':
 			for methodDescription in self.interface:
-				shell.appendLine("%s%s" % (methodDescription.get('name'), tuple(methodDescription.get('params'))), refresh=False)
+				shell.appendLine(f"{methodDescription.get('name')}{tuple(methodDescription.get('params'))}", refresh=False)
 			shell.display()
 			return
 
@@ -1157,7 +1153,7 @@ class CommandMethod(Command):
 				methodInterface = methodDescription
 				break
 		else:
-			raise OpsiRpcError("Method '%s' is not valid" % methodName)
+			raise OpsiRpcError(f"Method '{methodName}' is not valid")
 
 		params = params[1:]
 		keywords = {}
@@ -1172,7 +1168,7 @@ class CommandMethod(Command):
 				# Do not create Object instances!
 				params[-1] = fromJson(params[-1], preventObjectCreation=True)
 				if not isinstance(params[-1], dict):
-					raise ValueError("kwargs param is not a dict: %s" % params[-1])
+					raise ValueError(f"kwargs param is not a dict: {params[-1]}")
 
 				for (key, value) in params.pop(-1).items():
 					keywords[str(key)] = deserialize(value)
@@ -1196,7 +1192,7 @@ class CommandMethod(Command):
 		result = None
 
 		logger.info("Executing:  %s(%s)", methodName, pString)
-		shell.setInfoline("Executing:  %s(%s)" % (methodName, pString))
+		shell.setInfoline(f"Executing:  {methodName}({pString})")
 		start = time.time()
 
 		method = getattr(backend, methodName)
@@ -1225,23 +1221,23 @@ class CommandMethod(Command):
 					if index == -1:
 						index = ''
 
-					value = bashVars.get('RESULT%s' % index)
+					value = bashVars.get(f"RESULT{index}")
 					if value:
-						lines.append('RESULT%s=%s' % (index, value))
+						lines.append(f"RESULT{index}={value}")
 
 			elif shell.output == 'SIMPLE':
 				if isinstance(result, dict):
 					for (key, value) in result.items():
 						if isinstance(value, bool):
 							value = forceUnicodeLower(value)
-						lines.append('%s=%s' % (key, value))
+						lines.append(f"{key}={value}")
 				elif isinstance(result, (tuple, list, set)):
 					for resultElement in result:
 						if isinstance(resultElement, dict):
 							for (key, value) in resultElement.items():
 								if isinstance(value, bool):
 									value = forceUnicodeLower(value)
-								lines.append('%s=%s' % (key, value))
+								lines.append(f"{key}={value}")
 							lines.append('')
 						elif isinstance(resultElement, (tuple, list)):
 							raise ValueError("Simple output not possible for list of lists")
@@ -1384,7 +1380,7 @@ class CommandHelp(Command):
 	def execute(self, shell, params):
 		shell.appendLine('\r' + _("Commands are:") + '\n', refresh=False)
 		for cmd in shell.commands:
-			shell.appendLine("\r\t%-20s%s\n" % (cmd.getName() + ':', cmd.getDescription()), refresh=False)
+			shell.appendLine(f"\r\t{(cmd.getName() + ':'):<20)}{cmd.getDescription()}\n", refresh=False)
 		shell.display()
 
 
@@ -1471,7 +1467,7 @@ class CommandLog(Command):
 			if not logFile:
 				raise RuntimeError(_('File logging is not activated'))
 
-			with open(logFile) as log:
+			with open(logFile, encoding='utf-8') as log:
 				for line in log:
 					shell.appendLine(line, refresh=False)
 			shell.display()
@@ -1661,7 +1657,7 @@ class CommandTask(Command):
 				if server_role in ("domaincontroller_master", "domaincontroller_backup"):
 					# We are on Univention Corporate Server (UCS)
 					dn = None
-					command = '{udm} users/user list --filter "(uid=pcpatch)"'.format(udm=udm)
+					command = f'{udm} users/user list --filter "(uid=pcpatch)"'
 					logger.debug("Filtering for pcpatch: %s", command)
 					with closing(os.popen(command, 'r')) as process:
 						for line in process.readlines():
@@ -1682,8 +1678,7 @@ class CommandTask(Command):
 					sys_execute(command)
 					# Done with UCS
 					return
-				else:
-					logger.warning("Did not change the password for 'pcpatch', please change it on the master server.")
+				logger.warning("Did not change the password for 'pcpatch', please change it on the master server.")
 
 			except CommandNotFoundException:
 				# Not on UCS
