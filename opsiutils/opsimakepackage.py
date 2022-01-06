@@ -67,7 +67,7 @@ class ProgressNotifier(ProgressObserver):
 		barlen = self.usedWidth - 10
 		filledlen = round(barlen * percent / 100)
 		_bar = '='*filledlen + ' ' * (barlen - filledlen)
-		percent = f'{percent:0.2}%'
+		percent = f'{percent:0.2f}%'
 		sys.stderr.write(f'\r {percent:>8} [{_bar}]\r')
 		sys.stderr.flush()
 
