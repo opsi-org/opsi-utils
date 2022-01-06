@@ -117,17 +117,10 @@ package:
     # mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
     cp -a "${SRC}/opsi-utils_data/opsi-python-examples" "${DST}/rootfs/usr/share/opsi-utils/"
   postinst_script: |
-    # Patch opsi-package-updater repo files
-    [ -e /etc/opsi/package-updater.repos.d/uib-linux.repo ]       && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-linux.repo
-    [ -e /etc/opsi/package-updater.repos.d/uib-local_image.repo ] && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-local_image.repo
-    [ -e /etc/opsi/package-updater.repos.d/uib-windows.repo ]     && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-windows.repo
-    [ -e /etc/opsi/package-updater.repos.d/testing.repo ]         && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/testing.repo
-    [ -e /etc/opsi/package-updater.repos.d/experimental.repo ]    && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/experimental.repo
-
-    dist=$(lsb_release -d || echo "Unknown" | sed -e 's/Description:\s*//')
+    dist=$(lsb_release -d | sed -e 's/Description:\s*//')
 
     # Distribution specific workarounds
-    if [[ "$dist" =~ "Red Hat Enterprise Linux release 8" ]] || [[ "$dist" =~ "CentOS Linux release 8" ]] || [[ "$dist" =~ "AlmaLinux release 8" ]] || [[ "$dist" =~ "Rocky Linux release 8" ]] ; then
+    if [[ "$dist" =~ "Red Hat Enterprise Linux release 8" ]] || [[ "$dist" =~ "CentOS Linux release 8" ]] || [[ "$dist" =~ "AlmaLinux release 8" ]] || [[ "$dist" =~ "Rocky Linux release 8" ]]; then
       # PAM unable to dlopen(/usr/lib64/security/pam_unix.so): /usr/lib/opsi-utils/libcrypto.so.1.1: version `OPENSSL_1_1_1b' not found (required by /lib64/libk5crypto.so.3)
       cp /usr/lib64/libcrypto.so.1.1 /usr/lib/opsi-utils/libcrypto.so.1.1
     elif [[ "$dist" =~ "SUSE Linux Enterprise Server 15 SP1" ]]; then
@@ -144,3 +137,10 @@ package:
     for libdir in /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu /lib64  /usr/lib/aarch64-linux-gnu /lib/aarch64-linux-gnu; do
       [ -e ${libdir}/libpam.so.0 ] && cp ${libdir}/libpam.so.0 /usr/lib/opsi-utils/libpam.so.0
     done
+
+    # Patch opsi-package-updater repo files
+    [ -e /etc/opsi/package-updater.repos.d/uib-linux.repo ]       && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-linux.repo
+    [ -e /etc/opsi/package-updater.repos.d/uib-local_image.repo ] && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-local_image.repo
+    [ -e /etc/opsi/package-updater.repos.d/uib-windows.repo ]     && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-windows.repo
+    [ -e /etc/opsi/package-updater.repos.d/testing.repo ]         && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/testing.repo
+    [ -e /etc/opsi/package-updater.repos.d/experimental.repo ]    && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/experimental.repo
