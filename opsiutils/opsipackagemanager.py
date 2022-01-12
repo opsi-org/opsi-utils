@@ -1913,7 +1913,7 @@ class OpsiPackageManagerControl:
 			'packageFiles': [],
 			'productIds': [],
 			'properties': 'keep',
-			'maxTransfers': 0,
+			'maxTransfers': 20,
 			'maxBandwidth': 0,  # Kbyte/s
 			'deltaUpload': False,
 			'newProductId': None,
@@ -2074,9 +2074,9 @@ class OpsiPackageManagerControl:
 		print("  -k, --keep-files                        do not delete client data dir on uninstall")
 		print("  -t, --temp-dir     <path>               tempory directory for package install")
 		print("  --max-transfers    <num>                maximum number of simultaneous uploads")
-		print("                                             0 = unlimited (default)")
+		print("                                             0 = unlimited (default = 20)")
 		print("  --max-bandwidth    <kbps>               maximum transfer rate for each transfer (in kilobytes per second)")
-		print("                                             0 = unlimited (default)")
+		print("                                             0 = unlimited (default = 0)")
 		print("  --new-product-id   <product-id>         Set a new product id when extracting opsi package or")
 		print("                                          set a specific product ID during installation.")
 		print("  --suppress-pcf-generation               Suppress the generation of a package content file during package")
