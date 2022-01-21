@@ -19,7 +19,7 @@ def add_systempackages_to_path():
 	for path in (
 		f"/usr/lib/python{ver.major}.{ver.minor}",
 		f"/usr/lib/python{ver.major}.{ver.minor}/lib-dynload"
-		f"/usr/local/lib/python{ver.major}/dist-packages",
+		f"/usr/local/lib/python{ver.major}.{ver.minor}/dist-packages",
 		f"/usr/lib/python{ver.major}/dist-packages",
 	):
 		if os.path.exists(path):
