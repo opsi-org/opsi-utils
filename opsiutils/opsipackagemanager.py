@@ -956,6 +956,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				password=depot.opsiHostKey,
 				maxBandwidth=maxBandwidth * 1000,
 				application=USER_AGENT,
+				readTimeout=24*3600  # Upload can take a long time
 			)
 
 			for dest in repository.content():
