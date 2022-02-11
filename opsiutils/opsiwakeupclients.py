@@ -52,9 +52,11 @@ def parseOptions():
 		'--verbose', '-v', dest="consoleLogLevel", default=4,
 		action="count", help="increase verbosity on console (can be used multiple times)")
 	logGroup.add_argument(
-		'--log-file', action="store", dest="logFile", help="Set log file path")
+		'--log-file', action="store", dest="logFile", default="var/log/opsi/opsi-wakeup-clients.log",
+		help="Set log file path"
+	)
 	logGroup.add_argument(
-		'--log-level', '-l', dest="fileLogLevel", type=int, default=0,
+		'--log-level', '-l', dest="fileLogLevel", type=int, default=4,
 		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], help="Set the desired loglevel for the logfile.")
 
 	timeoutGroup = parser.add_argument_group(title="Timeouts")
@@ -104,6 +106,8 @@ def parseOptions():
 
 	args = parser.parse_args()
 
+	if args.log_level and not args.log_file:
+		raise ValueError(f"log-level set to {args.log_level} but no log-file not set")
 	return args
 
 
