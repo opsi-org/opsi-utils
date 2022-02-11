@@ -483,6 +483,8 @@ def opsiwakeupclients_main():
 	if options.consoleLogLevel:
 		init_logging(stderr_level=options.consoleLogLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 	if options.fileLogLevel and options.logFile:
+		if os.path.exists(options.logFile):
+			os.remove(options.logFile)
 		init_logging(log_file=options.logFile, file_level=options.fileLogLevel)
 
 	with BackendManager() as backend:
