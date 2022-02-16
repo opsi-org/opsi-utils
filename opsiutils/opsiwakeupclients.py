@@ -427,7 +427,10 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 
 				if runs % 3 == 0:
 					logger.debug("Triggering event '%s' on '%s'", self.eventName, self.clientId)
-					self.opsiclientdbackend.fireEvent(self.eventName)  # pylint: disable=no-member
+					try:
+						self.opsiclientdbackend.fireEvent(self.eventName)  # pylint: disable=no-member
+					except Exception as exc:  # pylint: disable=broad-except
+						logger.debug("Failed to trigger event on '%s': %s", self.clientId, exc)
 
 				try:
 					if self.opsiclientdbackend.isEventRunning(self.eventName):  # pylint: disable=no-member
