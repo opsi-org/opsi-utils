@@ -106,8 +106,8 @@ def parseOptions():
 
 	args = parser.parse_args()
 
-	if args.log_level and not args.log_file:
-		raise ValueError(f"log-level set to {args.log_level} but no log-file not set")
+	if args.fileLogLevel and not args.logFile:
+		raise ValueError(f"log-level set to {args.fileLogLevel} but no log-file not set")
 	return args
 
 
