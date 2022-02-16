@@ -52,7 +52,7 @@ def parseOptions():
 		'--verbose', '-v', dest="consoleLogLevel", default=4,
 		action="count", help="increase verbosity on console (can be used multiple times)")
 	logGroup.add_argument(
-		'--log-file', action="store", dest="logFile", default="var/log/opsi/opsi-wakeup-clients.log",
+		'--log-file', action="store", dest="logFile", default="/var/log/opsi/opsi-wakeup-clients.log",
 		help="Set log file path"
 	)
 	logGroup.add_argument(
