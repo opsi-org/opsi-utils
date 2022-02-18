@@ -1,4 +1,4 @@
-image: docker.uib.gmbh/opsi/dev/pybuilder:uib-python-3.9
+image: docker.uib.gmbh/opsi/dev/pybuilder:uib-python-3.10
 
 stages:
   - test
@@ -8,9 +8,14 @@ stages:
 .install_tools: &install_tools |
   export DEBIAN_FRONTEND=noninteractive
   apt update
-  apt -y install debhelper osc
-  pip3 install --trusted-host pypi.uib.gmbh --index-url http://pypi.uib.gmbh:8080/simple opsi-dev-tools
-  pip3 install poetry
+  apt -y install debhelper osc tar wget
+  if [ "$(dpkg --print-architecture)" = "amd64" ]; then
+    wget "$OPSIDEVTOOLS_URL_LINUX_X64" -O opsi-dev-tools.tar.gz
+  else
+    wget "$OPSIDEVTOOLS_URL_LINUX_ARM64" -O opsi-dev-tools.tar.gz
+  fi
+  tar -xvf opsi-dev-tools.tar.gz
+
 
 test:pytest-pylint:
   stage: test
@@ -69,11 +74,9 @@ package:obs_int:
     - build:arm64-pyinstaller
   script:
     - *install_tools
-    - python3 -m opsidevtools -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
+    - ./opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
   only:
     - tags
-    # - web
-    # - /^release/.*$/i
 
 package:obs_ext:
   stage: publish
@@ -82,8 +85,7 @@ package:obs_ext:
     - build:arm64-pyinstaller
   script:
     - *install_tools
-    - python3 -m opsidevtools -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development
+    - ./opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development
   only:
     - tags
-    # - web
-    # - /^release/.*$/i
+
