@@ -275,11 +275,11 @@ reference = "uibpypi"
 
 [[package]]
 name = "distro"
-version = "1.6.0"
+version = "1.7.0"
 description = "Distro - an OS platform information API"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.source]
 type = "legacy"
@@ -505,7 +505,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "opsi-dev-tools"
-version = "1.1.2"
+version = "1.1.3"
 description = "opsi development tools"
 category = "dev"
 optional = false
@@ -771,7 +771,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "pyinstaller-hooks-contrib"
-version = "2022.1"
+version = "2022.2"
 description = "Community maintained hooks for PyInstaller"
 category = "dev"
 optional = false
@@ -1383,8 +1383,8 @@ reference = "uibpypi"
 
 [metadata]
 lock-version = "1.1"
-python-versions = ">=3.7,<3.10"
-content-hash = "7eb66c7476b1c805db4f921c7fb70ca0440b9382cf2ecb6ccbfad84340796bb5"
+python-versions = ">=3.7,<3.11"
+content-hash = "bd6b205da45f0e9eec440250383dd63f82f19fdb8aa85c176aa2a521cd7d98ab"
 
 [metadata.files]
 altgraph = [
@@ -1525,8 +1525,8 @@ cryptography = [
     {file = "cryptography-36.0.1.tar.gz", hash = "sha256:53e5c1dc3d7a953de055d77bef2ff607ceef7a2aac0353b5d630ab67f7423638"},
 ]
 distro = [
-    {file = "distro-1.6.0-py2.py3-none-any.whl", hash = "sha256:c8713330ab31a034623a9515663ed87696700b55f04556b97c39cd261aa70dc7"},
-    {file = "distro-1.6.0.tar.gz", hash = "sha256:83f5e5a09f9c5f68f60173de572930effbcc0287bb84fdc4426cb4168c088424"},
+    {file = "distro-1.7.0-py3-none-any.whl", hash = "sha256:d596311d707e692c2160c37807f83e3820c5d539d5a83e87cfb6babd8ba3a06b"},
+    {file = "distro-1.7.0.tar.gz", hash = "sha256:151aeccf60c216402932b52e40ee477a939f8d58898927378a02abbe852c1c39"},
 ]
 future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
@@ -1726,8 +1726,8 @@ mysqlclient = [
     {file = "mysqlclient-2.1.0.tar.gz", hash = "sha256:973235686f1b720536d417bf0a0d39b4ab3d5086b2b6ad5e6752393428c02b12"},
 ]
 opsi-dev-tools = [
-    {file = "opsi-dev-tools-1.1.2.tar.gz", hash = "sha256:84a595d9f93ab76181beca92ad71228282947770e647f7022ed638e17c9d017e"},
-    {file = "opsi_dev_tools-1.1.2-py3-none-any.whl", hash = "sha256:65c2781b17f24983c5fc678b49982fcedc02ec0036bcef11eda387652913c1fd"},
+    {file = "opsi-dev-tools-1.1.3.tar.gz", hash = "sha256:7604e6902e1b038f22be3404df8be8ef433d47b8abd973c979878600a2725085"},
+    {file = "opsi_dev_tools-1.1.3-py3-none-any.whl", hash = "sha256:11ef5466e1d10adbc2ef00fad9a3444334fc7e1acf5bb9029bb6a2da3be09ce0"},
 ]
 orjson = [
     {file = "orjson-3.6.5-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:6c444edc073eb69cf85b28851a7a957807a41ce9bb3a9c14eefa8b33030cf050"},
@@ -1878,8 +1878,8 @@ pyinstaller = [
     {file = "pyinstaller-4.9.tar.gz", hash = "sha256:75a180a658871bc41f9cf94b6f90ffa54e98f5d6a7cdb02d7530f0360afe24f9"},
 ]
 pyinstaller-hooks-contrib = [
-    {file = "pyinstaller-hooks-contrib-2022.1.tar.gz", hash = "sha256:f0a40fbe1842598a7066f785da5ac103ae2a86b4cebf478e530e1df57464814e"},
-    {file = "pyinstaller_hooks_contrib-2022.1-py2.py3-none-any.whl", hash = "sha256:37f0a16df336c69c8c7bf76105a6c4a53a270d648920fa21de654a6649e70404"},
+    {file = "pyinstaller-hooks-contrib-2022.2.tar.gz", hash = "sha256:ab1d14fe053016fff7b0c6aea51d980bac6d02114b04063b46ef7dac70c70e1e"},
+    {file = "pyinstaller_hooks_contrib-2022.2-py2.py3-none-any.whl", hash = "sha256:7605e440ccb55904cb2a87d72e83642ef176fb7030c77e52ac4d9679bb3d1537"},
 ]
 pylint = [
     {file = "pylint-2.12.2-py3-none-any.whl", hash = "sha256:daabda3f7ed9d1c60f52d563b1b854632fd90035bcf01443e234d3dc794e3b74"},
@@ -1917,8 +1917,8 @@ python-magic = [
     {file = "python_magic-0.4.25-py2.py3-none-any.whl", hash = "sha256:1a2c81e8f395c744536369790bd75094665e9644110a6623bcc3bbea30f03973"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.272.tar.gz", hash = "sha256:0d9efe709f35430e439c32548cc5a887dfa690435f2953251fe7ba295a525863"},
-    {file = "python_opsi-4.2.0.272-py3-none-any.whl", hash = "sha256:10b3ab547e744d237d6c19d976014f2f789e969c6f781ecabffafd84f7c7cab2"},
+    {file = "python-opsi-4.2.0.272.tar.gz", hash = "sha256:823c2845411460a43a05ed7fabe1c5f6966ecc62cf050e0ede4d42727ea947e1"},
+    {file = "python_opsi-4.2.0.272-py3-none-any.whl", hash = "sha256:6e1ce05ceb99543202b031515c0ff7cc0ad88c51df1d4188ebd620bc2035ec44"},
 ]
 python-opsi-common = [
     {file = "python-opsi-common-4.2.0.272.tar.gz", hash = "sha256:1d840469c17dec71fc1e7b17db4a9a16556a511c14814676a4b05600843f934f"},
