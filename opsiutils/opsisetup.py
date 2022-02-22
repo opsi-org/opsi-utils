@@ -21,13 +21,13 @@ import time
 import logging
 from opsicommon.logging import (
 	logger, init_logging, logging_config, secret_filter, DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_CONFIDENTIAL, LOG_CRITICAL, OPSI_LEVEL_TO_LEVEL
+	LOG_DEBUG, LOG_NOTICE, LOG_CONFIDENTIAL, LOG_CRITICAL, OPSI_LEVEL_TO_LEVEL
 )
 from OPSI.System import Posix
 import OPSI.Util.Task.ConfigureBackend as backendUtils
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
-from OPSI.Config import DEFAULT_DEPOT_USER as CLIENT_USER, OPSI_ADMIN_GROUP
+from OPSI.Config import DEFAULT_DEPOT_USER as CLIENT_USER
 from OPSI.Object import OpsiDepotserver
 from OPSI.System.Posix import (
 	execute, getLocalFqdn, getNetworkConfiguration, which, Distribution)
@@ -64,7 +64,6 @@ from opsiutils import __version__
 
 init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
-LOG_FILE = '/tmp/opsi-setup.log'
 DHCPD_CONF = Posix.locateDHCPDConfig('/etc/dhcp3/dhcpd.conf')
 
 backendConfig = {}  # pylint: disable=invalid-name
@@ -1020,13 +1019,6 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 
 
 def main():
-	logging_config(log_file=LOG_FILE, file_level=LOG_INFO, stderr_format=DEFAULT_COLORED_FORMAT)
-	if not os.path.exists(LOG_FILE):
-		with open(LOG_FILE, "wb"):
-			pass
-	shutil.chown(LOG_FILE, group=OPSI_ADMIN_GROUP)
-	os.chmod(LOG_FILE, 0o660)
-
 	try:
 		opsisetup_main()
 	except SystemExit:
