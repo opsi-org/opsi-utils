@@ -619,7 +619,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "platformdirs"
-version = "2.5.0"
+version = "2.5.1"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
 optional = false
@@ -906,7 +906,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.273"
+version = "4.2.0.275"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -926,7 +926,7 @@ psutil = ">=5.8,<6.0"
 pyasn1 = ">=0.4,<0.5"
 pycryptodome = ">=3.10,<4.0"
 pyopenssl = ">=22.0,<23.0"
-python-opsi-common = ">=4.2.0.272,<5.0.0.0"
+python-opsi-common = ">=4.2.0.275,<5.0.0.0"
 python-pam = ">=1.8,<2.0"
 pywin32 = {version = ">=303,<304", markers = "sys_platform == \"win32\""}
 ruyaml = ">=0.91,<0.92"
@@ -942,7 +942,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi-common"
-version = "4.2.0.273"
+version = "4.2.0.275"
 description = "The opsi python common library"
 category = "main"
 optional = false
@@ -1771,8 +1771,8 @@ pexpect = [
     {file = "pexpect-4.8.0.tar.gz", hash = "sha256:fc65a43959d153d0114afe13997d439c22823a27cefceb5ff35c2178c6784c0c"},
 ]
 platformdirs = [
-    {file = "platformdirs-2.5.0-py3-none-any.whl", hash = "sha256:30671902352e97b1eafd74ade8e4a694782bd3471685e78c32d0fdfd3aa7e7bb"},
-    {file = "platformdirs-2.5.0.tar.gz", hash = "sha256:8ec11dfba28ecc0715eb5fb0147a87b1bf325f349f3da9aab2cd6b50b96b692b"},
+    {file = "platformdirs-2.5.1-py3-none-any.whl", hash = "sha256:bcae7cab893c2d310a711b70b24efb93334febe65f8de776ee320b517471e227"},
+    {file = "platformdirs-2.5.1.tar.gz", hash = "sha256:7535e70dfa32e84d4b34996ea99c5e432fa29a708d0f4e394bbcb2a8faa4f16d"},
 ]
 psutil = [
     {file = "psutil-5.9.0-cp27-cp27m-manylinux2010_i686.whl", hash = "sha256:55ce319452e3d139e25d6c3f85a1acf12d1607ddedea5e35fb47a552c051161b"},
@@ -1917,12 +1917,12 @@ python-magic = [
     {file = "python_magic-0.4.25-py2.py3-none-any.whl", hash = "sha256:1a2c81e8f395c744536369790bd75094665e9644110a6623bcc3bbea30f03973"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.273.tar.gz", hash = "sha256:1f99602aed46fdbd54746aba3100277f8f5d0df7bb969a969fb34a508a902162"},
-    {file = "python_opsi-4.2.0.273-py3-none-any.whl", hash = "sha256:407ad26add78194ce250878f42f9cd17190ad0f657eb22a78488d328103abe8f"},
+    {file = "python-opsi-4.2.0.275.tar.gz", hash = "sha256:ce06927b50d58eca6f4cfd99ea603a924825c413b75f8f5f0049551eda53e6a0"},
+    {file = "python_opsi-4.2.0.275-py3-none-any.whl", hash = "sha256:3c307dab0b786e4d1b9bbc89da0319113a83e9de7c56f40b20c0d251700d3f04"},
 ]
 python-opsi-common = [
-    {file = "python-opsi-common-4.2.0.273.tar.gz", hash = "sha256:dab8fbaad32f04e7e5f095532772f1e5766228e99926745afb16bb674551a8ff"},
-    {file = "python_opsi_common-4.2.0.273-py3-none-any.whl", hash = "sha256:d9d311fbe178bd24cf4ae110572c5c187df3c890cef0cf8d2119aff3558b5597"},
+    {file = "python-opsi-common-4.2.0.275.tar.gz", hash = "sha256:8d5c86aa28d58032777684cd9dbb366eb2a6678ed2e1e7a5c4b23a722601b0b5"},
+    {file = "python_opsi_common-4.2.0.275-py3-none-any.whl", hash = "sha256:e8f67b794bfbe9c9f41ee4e5408632166882084cb3b6a42db5781b28e9255ff5"},
 ]
 python-pam = [
     {file = "python-pam-1.8.4.tar.gz", hash = "sha256:c856d9c89fedb33951dd8a95727ae57c6887b02d065bbdffd2fd9dbc0183909b"},
