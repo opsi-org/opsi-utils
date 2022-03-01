@@ -11,8 +11,6 @@ import sys
 import codecs
 import traceback
 import argparse
-# paramiko is needed for opsi-deploy-client-agent
-import paramiko  # pylint: disable=unused-import
 
 def add_systempackages_to_path():
 	ver = sys.version_info
