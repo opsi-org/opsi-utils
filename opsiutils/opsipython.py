@@ -12,6 +12,10 @@ import codecs
 import traceback
 import argparse
 
+# import modules to trigger pyinstaller import hook -> available (non-pruned) in opsi-python
+import pyasn1_modules  # pylint: disable=unused-import
+
+
 def add_systempackages_to_path():
 	ver = sys.version_info
 	for path in (
@@ -22,6 +26,7 @@ def add_systempackages_to_path():
 	):
 		if os.path.exists(path):
 			sys.path.append(path)
+
 
 def run_script():
 	script = sys.argv[1]
@@ -38,10 +43,12 @@ def run_script():
 	add_systempackages_to_path()
 	exec(code, new_module.__dict__)  # pylint: disable=exec-used
 
+
 def run_interactive():
 	import code  # pylint: disable=import-outside-toplevel
 	add_systempackages_to_path()
 	code.interact(local=locals())
+
 
 def main():  # pylint: disable=inconsistent-return-statements
 	try:
