@@ -5,32 +5,20 @@ stages:
   - build
   - publish
 
-.install_tools: &install_tools |
-  export DEBIAN_FRONTEND=noninteractive
-  apt update
-  apt -y install debhelper osc tar wget
-  if [ "$(dpkg --print-architecture)" = "amd64" ]; then
-    wget "$OPSIDEVTOOLS_URL_LINUX_X64" -O opsi-dev-tools.tar.gz
-  else
-    wget "$OPSIDEVTOOLS_URL_LINUX_ARM64" -O opsi-dev-tools.tar.gz
-  fi
-  tar -xvf opsi-dev-tools.tar.gz
-
 
 test:pytest-pylint:
   stage: test
   script:
-    - *install_tools
     - apt -y install python3-newt gettext gzip asciidoc-base
     - poetry config experimental.new-installer false
     - poetry lock --no-update
     - poetry install
     - poetry run pylint --disable=R,fixme opsiutils
 
+
 build:linux-pyinstaller:
   stage: build
   script:
-    - *install_tools
     - apt -y install python3-newt gettext gzip asciidoc-base
     - poetry config experimental.new-installer false
     - poetry lock --no-update
@@ -47,12 +35,12 @@ build:linux-pyinstaller:
       - opsi-utils-amd64
     expire_in: 2 days
 
+
 build:arm64-pyinstaller:
   stage: build
   tags:
     - arm64
   script:
-    - *install_tools
     - apt -y install python3-newt gettext gzip asciidoc-base
     - poetry config experimental.new-installer false
     - poetry lock --no-update
@@ -67,25 +55,18 @@ build:arm64-pyinstaller:
       - opsi-utils-arm64
     expire_in: 2 days
 
+
 package:obs_int:
   stage: publish
-  dependencies:
-    - build:linux-pyinstaller
-    - build:arm64-pyinstaller
   script:
-    - *install_tools
-    - ./opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
+    - opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
   only:
     - tags
+
 
 package:obs_ext:
   stage: publish
-  dependencies:
-    - build:linux-pyinstaller
-    - build:arm64-pyinstaller
   script:
-    - *install_tools
-    - ./opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development
+    - opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development
   only:
     - tags
-
