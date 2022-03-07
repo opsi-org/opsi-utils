@@ -1562,10 +1562,12 @@ class OpsiPackageManagerControl:
 		self.setDefaultConfig(opsi_server=need_opsi_server)
 		self.setCommandlineConfig()
 
-		if self.opts.logFile:
-			logging_config(log_file=self.config['logFile'], file_level=self.config['fileLogLevel'])
-
-		logging_config(stderr_level=self.config['consoleLogLevel'], stderr_format=DEFAULT_COLORED_FORMAT)
+		logging_config(
+			log_file=self.config['logFile'],
+			file_level=self.config['fileLogLevel'],
+			stderr_level=self.config['consoleLogLevel'],
+			stderr_format=DEFAULT_COLORED_FORMAT
+		)
 
 		self.backend = None
 		if need_opsi_server:
