@@ -46,7 +46,7 @@ msgstr "Passwort (standard: Passwort interaktiv abfragen)"
 
 #: opsiutils/opsiadmin.py:180
 msgid "Path to the opsirc file to use (default: ~/.opsi.org/opsirc)"
-msgstr "Pfad zur zu verwendende opsirc-Datei (Standard: ~/.opsi.org/opsirc)"
+msgstr "Pfad zur zu verwendenden opsirc-Datei (Standard: ~/.opsi.org/opsirc)"
 
 #: opsiutils/opsiadmin.py:181
 msgid "An opsirc file contains login credentials to the web API."
@@ -91,7 +91,7 @@ msgstr "Rohdaten-Ausgabe"
 
 #: opsiutils/opsiadmin.py:209
 msgid "Command to execute."
-msgstr ""
+msgstr "Auszuführender Befehl."
 
 #: opsiutils/opsiadmin.py:539
 msgid "Delete log-file '%s'?"
@@ -735,7 +735,7 @@ msgstr "%d/%d laufende Task-Warteschlangen"
 #: opsiutils/opsipackagemanager.py:839
 msgid "Setting action setup for product %s where installed"
 msgstr ""
-"Setzte Aktion setup für alle Clients auf denen das Produkt %s installiert "
+"Setze Aktion setup für alle Clients auf denen das Produkt %s installiert "
 "ist."
 
 #: opsiutils/opsipackagemanager.py:859
@@ -744,7 +744,7 @@ msgstr "Setze Aktion %s mit Abhängigkeiten für Produkt %s an Client: %s"
 
 #: opsiutils/opsipackagemanager.py:872
 msgid "Setting action %s for product %s on client(s): %s"
-msgstr "Setzte Aktion %s für das Produkt %s auf den folgenden Clients: %s"
+msgstr "Setze Aktion %s für das Produkt %s auf den folgenden Clients: %s"
 
 #: opsiutils/opsipackagemanager.py:876 opsiutils/opsipackagemanager.py:904
 #: opsiutils/opsipackagemanager.py:1161 opsiutils/opsipackagemanager.py:1420
@@ -788,7 +788,7 @@ msgstr "Starte Übertragung"
 
 #: opsiutils/opsipackagemanager.py:1042
 msgid "Getting librsync signature of %s"
-msgstr "Rufe librsyc-Signatur für %s ab"
+msgstr "Rufe librsync-Signatur für %s ab"
 
 #: opsiutils/opsipackagemanager.py:1047
 msgid "Calculating delta"
