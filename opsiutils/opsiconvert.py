@@ -227,6 +227,8 @@ def createBackend(config):
 		config['password'] = getpass.getpass()
 
 	config = cleanBackendConfig(config)
+	# Allow duplicate hardware addresses
+	config["unique_hardware_addresses"] = False
 
 	try:
 		backend = BackendManager(backendConfigDir='/etc/opsi/backends', **config)
