@@ -1729,7 +1729,7 @@ reference = "uibpypi"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "1cc33815db9a4515684da613c0e5230042cc207186b7d6f4a52b5ed83d3a499c"
+content-hash = "688073d28cbb4cd27ce219b2e694f07a1a86fbd006c3d8272cb840ea8cc896b2"
 
 [metadata.files]
 alabaster = [
@@ -1868,6 +1868,7 @@ cryptography = [
     {file = "cryptography-37.0.2-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:093cb351031656d3ee2f4fa1be579a8c69c754cf874206be1d4cf3b542042804"},
     {file = "cryptography-37.0.2-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:59b281eab51e1b6b6afa525af2bd93c16d49358404f814fe2c2410058623928c"},
     {file = "cryptography-37.0.2-cp36-abi3-manylinux_2_24_x86_64.whl", hash = "sha256:0cc20f655157d4cfc7bada909dc5cc228211b075ba8407c46467f63597c78178"},
+    {file = "cryptography-37.0.2-cp36-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:f8ec91983e638a9bcd75b39f1396e5c0dc2330cbd9ce4accefe68717e6779e0a"},
     {file = "cryptography-37.0.2-cp36-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:46f4c544f6557a2fefa7ac8ac7d1b17bf9b647bd20b16decc8fbcab7117fbc15"},
     {file = "cryptography-37.0.2-cp36-abi3-win32.whl", hash = "sha256:731c8abd27693323b348518ed0e0705713a36d79fdbd969ad968fbef0979a7e0"},
     {file = "cryptography-37.0.2-cp36-abi3-win_amd64.whl", hash = "sha256:471e0d70201c069f74c837983189949aa0d24bb2d751b57e26e3761f2f782b8d"},
@@ -2334,8 +2335,8 @@ python-magic = [
     {file = "python_magic-0.4.25-py2.py3-none-any.whl", hash = "sha256:1a2c81e8f395c744536369790bd75094665e9644110a6623bcc3bbea30f03973"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.292.tar.gz", hash = "sha256:40277f3a4b5ce7622dc2fb8eac366287426c7af858891deccf2a95f30fbde8dc"},
-    {file = "python_opsi-4.2.0.292-py3-none-any.whl", hash = "sha256:2ef63d934e90a9bb50d290697dad1cdc8cef278781f58540c1c3ea6cf8321fa6"},
+    {file = "python-opsi-4.2.0.292.tar.gz", hash = "sha256:d97b0bc1336b3f4527ecb74d68f6bc138f8106270ce1893efecedcc39636ea5e"},
+    {file = "python_opsi-4.2.0.292-py3-none-any.whl", hash = "sha256:83b14af6028561dada70c27c0b6ca8631f95338ff6a62c95a8b95cbb205835bc"},
 ]
 python-opsi-common = [
     {file = "python-opsi-common-4.2.0.287.tar.gz", hash = "sha256:a11c60b66b8efa1bc4c05b6365b8c4db0d49bdec64d6da4c0dec9fbc8b42c3aa"},
