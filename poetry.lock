@@ -1031,7 +1031,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.294"
+version = "4.2.0.297"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -2335,8 +2335,8 @@ python-magic = [
     {file = "python_magic-0.4.26-py2.py3-none-any.whl", hash = "sha256:b978c4b69a20510d133a7f488910c2f07e7796f1f31703e61c241973f2bbf5fb"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.294.tar.gz", hash = "sha256:da4bbe632a6171104cc2d40fabb7599318d968638f850ed3f94d5ba4454dbf68"},
-    {file = "python_opsi-4.2.0.294-py3-none-any.whl", hash = "sha256:9f3103a4149a54ed06ad0d9244d30bf5c38f8f4d531880f1a4c403c717f34671"},
+    {file = "python-opsi-4.2.0.297.tar.gz", hash = "sha256:6240f997b0496289599a1ffc04dfcdd34422d4da6fc80860d979a517cb04ba0c"},
+    {file = "python_opsi-4.2.0.297-py3-none-any.whl", hash = "sha256:f2c5174ff311be5ea917fd4f33e3eacf5ff619292f91c9721a525ae8ff789628"},
 ]
 python-opsi-common = [
     {file = "python-opsi-common-4.2.0.287.tar.gz", hash = "sha256:a11c60b66b8efa1bc4c05b6365b8c4db0d49bdec64d6da4c0dec9fbc8b42c3aa"},
