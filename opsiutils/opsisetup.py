@@ -11,6 +11,7 @@ opsi-setup - swiss army knife for opsi administration.
 import codecs
 import getopt
 import json
+import logging
 import os
 import pwd
 import re
@@ -18,48 +19,59 @@ import shutil
 import sys
 import time
 
-import logging
-from opsicommon.logging import (
-	logger, init_logging, logging_config, secret_filter, DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG, LOG_NOTICE, LOG_CONFIDENTIAL, LOG_CRITICAL, OPSI_LEVEL_TO_LEVEL
-)
-from OPSI.System import Posix
 import OPSI.Util.Task.ConfigureBackend as backendUtils
+from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Config import DEFAULT_DEPOT_USER as CLIENT_USER
 from OPSI.Object import OpsiDepotserver
+from OPSI.System import Posix
 from OPSI.System.Posix import (
-	execute, getLocalFqdn, getNetworkConfiguration, which, Distribution)
-from OPSI.Types import (
-	forceBool, forceFilename, forceInt, forceIpAddress
+	Distribution,
+	execute,
+	getLocalFqdn,
+	getNetworkConfiguration,
+	which,
 )
+from OPSI.Types import forceBool, forceFilename, forceInt, forceIpAddress
 from OPSI.UI import UIFactory
 from OPSI.Util import blowfishDecrypt, randomString
 from OPSI.Util.File.Opsi import BackendDispatchConfigFile
 from OPSI.Util.Task.CleanupBackend import cleanupBackend
 from OPSI.Util.Task.ConfigureBackend.ConfigDefaults import editConfigDefaults
 from OPSI.Util.Task.ConfigureBackend.ConfigurationData import (
-	initializeConfigs, readWindowsDomainFromSambaConfig
+	initializeConfigs,
+	readWindowsDomainFromSambaConfig,
 )
 from OPSI.Util.Task.ConfigureBackend.DHCPD import configureDHCPD
+from OPSI.Util.Task.ConfigureBackend.MySQL import DatabaseConnectionFailedException
 from OPSI.Util.Task.ConfigureBackend.MySQL import (
-	DatabaseConnectionFailedException,
-	configureMySQLBackend as configureMySQLBackendWithoutGUI
+	configureMySQLBackend as configureMySQLBackendWithoutGUI,
 )
-from OPSI.Util.Task.InitializeBackend import (
-	_getServerConfig as getServerConfig, initializeBackends
-)
+from OPSI.Util.Task.InitializeBackend import _getServerConfig as getServerConfig
+from OPSI.Util.Task.InitializeBackend import initializeBackends
 from OPSI.Util.Task.Rights import setRights
+from OPSI.Util.Task.Samba import SMB_CONF, configureSamba
 from OPSI.Util.Task.Sudoers import patchSudoersFileForOpsi
 from OPSI.Util.Task.UpdateBackend.ConfigurationData import (
-	getServerAddress, updateBackendData
+	getServerAddress,
+	updateBackendData,
 )
 from OPSI.Util.Task.UpdateBackend.File import updateFileBackend
 from OPSI.Util.Task.UpdateBackend.MySQL import updateMySQLBackend
-from OPSI.Util.Task.Samba import SMB_CONF, configureSamba
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_CONFIDENTIAL,
+	LOG_CRITICAL,
+	LOG_DEBUG,
+	LOG_NOTICE,
+	OPSI_LEVEL_TO_LEVEL,
+	init_logging,
+	logger,
+	logging_config,
+	secret_filter,
+)
 
-from OPSI import __version__ as python_opsi_version
 from opsiutils import __version__
 
 init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
