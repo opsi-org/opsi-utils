@@ -37,6 +37,7 @@ from OPSI.Types import forceBool, forceFilename, forceInt, forceIpAddress
 from OPSI.UI import UIFactory
 from OPSI.Util import blowfishDecrypt, randomString
 from OPSI.Util.File.Opsi import BackendDispatchConfigFile
+from OPSI.Util.Task.BackendMigration import migrate_file_to_mysql
 from OPSI.Util.Task.CleanupBackend import cleanupBackend
 from OPSI.Util.Task.ConfigureBackend.ConfigDefaults import editConfigDefaults
 from OPSI.Util.Task.ConfigureBackend.ConfigurationData import (
@@ -883,11 +884,12 @@ def usage():
 	print("   --update-mysql                update mysql backend")
 	print("   --update-file                 update file backend")
 	print("   --configure-mysql             configure mysql backend")
+	print("   --file-to-mysql               migrate file to mysql backend and adjust dispatch.conf")
 	print("   --edit-config-defaults        edit global config defaults")
 	print("   --cleanup-backend             cleanup backend")
 	print("   --auto-configure-samba        patch smb.conf")
 	print("   --auto-configure-dhcpd        patch dhcpd.conf")
-	print("   --patch-sudoers-file	         patching sudoers file for tasks in opsiadmin context.")
+	print("   --patch-sudoers-file	        patching sudoers file for tasks in opsiadmin context.")
 	print("")
 
 
@@ -898,8 +900,8 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 				'help', 'version', 'log-file=', 'ip-address=', 'backend-config=',
 				'init-current-config', 'set-rights', 'auto-configure-samba',
 				'auto-configure-dhcpd', 'register-depot', 'configure-mysql',
-				'update-mysql', 'update-file', 'edit-config-defaults',
-				'cleanup-backend', 'update-from=',
+				'update-mysql', 'update-file', 'file-to-mysql',
+				'edit-config-defaults', 'cleanup-backend', 'update-from=',
 				'patch-sudoers-file', 'unattended='
 			]
 		)
@@ -948,6 +950,8 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 			task = 'update-mysql'
 		elif opt == "--update-file":
 			task = 'update-file'
+		elif opt == "--file-to-mysql":
+			task = 'file-to-mysql'
 		elif opt == "--edit-config-defaults":
 			task = 'edit-config-defaults'
 		elif opt == "--cleanup-backend":
@@ -1008,6 +1012,9 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 	elif task == 'update-file':
 		updateFileBackend(additionalBackendConfiguration=backendConfig)
 		update()
+
+	elif task == 'file-to-mysql':
+		migrate_file_to_mysql()
 
 	elif task == 'register-depot':
 		registerDepot(unattended)
