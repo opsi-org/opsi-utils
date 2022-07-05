@@ -83,7 +83,6 @@ package:
     - pigz
     - librsync | librsync2 | librsync1
     - cpio
-    - lsb-release | redhat-lsb-core
   conflicts:
     - opsi-server (<< 4.2)
     - opsi-server-expert (<< 4.2)

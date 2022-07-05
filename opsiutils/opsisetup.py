@@ -87,17 +87,6 @@ sysConfig = {}  # pylint: disable=invalid-name
 class CancelledByUserError(Exception):
 	pass
 
-def getDistribution():
-	"""Return the name of distribution"""
-	try:
-		proc = os.popen('lsb_release -d 2>/dev/null')
-		distribution = proc.read().split(':')[1].strip()
-		proc.close()
-		return distribution
-	except Exception:  # pylint: disable=broad-except
-		return ""
-
-
 # TODO: use OPSI.System.Posix.Sysconfig for a more standardized approach
 def getSysConfig():
 	"""Get the current system config"""
@@ -108,7 +97,7 @@ def getSysConfig():
 
 	distri = Distribution()
 	sysConfig['distributor'] = distri.distributor
-	sysConfig['distribution'] = getDistribution()
+	sysConfig['distribution'] = f"{distri.distribution} {distri.version[0]}"
 
 	if not sysConfig['distributor'] or not sysConfig['distribution']:
 		logger.warning("Failed to get distributor/distribution")
