@@ -1044,8 +1044,8 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 def main():
 	try:
 		opsisetup_main()
-	except SystemExit:
-		pass
+	except SystemExit as err:
+		sys.exit(err.code)
 	except Exception as err:  # pylint: disable=broad-except
 		logger.error(err, exc_info=True)
 		print(f"\nERROR: {err}\n", file=sys.stderr)

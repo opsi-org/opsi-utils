@@ -476,8 +476,8 @@ def unlockPackage(tempDir, packageControlFile):
 def main():
 	try:
 		makepackage_main()
-	except SystemExit:
-		pass
+	except SystemExit as err:
+		sys.exit(err.code)
 	except Exception as err:  # pylint: disable=broad-except
 		logging_config(stderr_level=LOG_ERROR)
 		logger.error(err, exc_info=True)
