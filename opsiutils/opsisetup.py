@@ -885,6 +885,8 @@ def usage():
 	print("   --update-file                 update file backend")
 	print("   --configure-mysql             configure mysql backend")
 	print("   --file-to-mysql               migrate file to mysql backend and adjust dispatch.conf")
+	print("     --no-backup                 do not run a backup before migration")
+	print("     --no-restart                do not restart services on migration")
 	print("   --edit-config-defaults        edit global config defaults")
 	print("   --cleanup-backend             cleanup backend")
 	print("   --auto-configure-samba        patch smb.conf")
@@ -902,7 +904,7 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 				'auto-configure-dhcpd', 'register-depot', 'configure-mysql',
 				'update-mysql', 'update-file', 'file-to-mysql',
 				'edit-config-defaults', 'cleanup-backend', 'update-from=',
-				'patch-sudoers-file', 'unattended='
+				'patch-sudoers-file', 'unattended=', 'no-backup', 'no-restart'
 			]
 		)
 
@@ -916,6 +918,8 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 	autoConfigureSamba = False
 	autoConfigureDhcpd = False
 	unattended = None
+	noBackup = False
+	noRestart = False
 
 	for (opt, arg) in opts:
 		if opt in ("-h", "--help"):
@@ -956,6 +960,10 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 			task = 'edit-config-defaults'
 		elif opt == "--cleanup-backend":
 			task = 'cleanup-backend'
+		elif opt == "--no-backup":
+			noBackup = True
+		elif opt == "--no-restart":
+			noRestart = True
 		elif opt == "--update-from":
 			updateFrom = arg
 		elif opt == "--auto-configure-samba":
@@ -989,6 +997,11 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 			usage()
 			raise Exception("Too many arguments")
 
+	if noBackup and task != 'file-to-mysql':
+		raise Exception("--no-backup only valid with --file-to-mysql")
+	if noRestart and task != 'file-to-mysql':
+		raise Exception("--no-restart only valid with --file-to-mysql")
+
 	if autoConfigureSamba:
 		configureSamba()
 
@@ -1014,7 +1027,9 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 		update()
 
 	elif task == 'file-to-mysql':
-		migrate_file_to_mysql()
+		if not migrate_file_to_mysql(create_backup=not noBackup, restart_services=not noRestart):
+			# Nothing to do
+			sys.exit(2)
 
 	elif task == 'register-depot':
 		registerDepot(unattended)
