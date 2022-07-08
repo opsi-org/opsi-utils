@@ -303,8 +303,8 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 				except Exception as err:  # pylint: disable=broad-except
 					logger.error("Failed to read session file '%s': %s", sessionFile, err)
 
-			from OPSI.Backend.JSONRPC import (
-				JSONRPCBackend,  # pylint: disable=import-outside-toplevel
+			from OPSI.Backend.JSONRPC import (  # pylint: disable=import-outside-toplevel
+				JSONRPCBackend,
 			)
 			backend = JSONRPCBackend(
 				address=address,
