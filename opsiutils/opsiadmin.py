@@ -12,33 +12,49 @@ import argparse
 import codecs
 import curses
 import fcntl
-import gettext
 import getpass
+import gettext
 import json
 import locale
 import os
 import os.path
 import pwd
+import select
+import stat
 import subprocess
 import sys
-import stat
 import time
-import select
 from contextlib import closing, contextmanager
 
-from opsicommon.logging import logger, logging_config, secret_filter, LOG_NONE, LOG_ERROR, LOG_DEBUG, LOG_WARNING, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Exceptions import OpsiRpcError
 from OPSI.System import CommandNotFoundException
-from OPSI.System import which
 from OPSI.System import execute as sys_execute
+from OPSI.System import which
 from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from OPSI.Util import (
-	blowfishDecrypt, deserialize, fromJson, getfqdn,
-	objectToBeautifiedText, objectToBash, serialize, toJson
+	blowfishDecrypt,
+	deserialize,
+	fromJson,
+	getfqdn,
+	objectToBash,
+	objectToBeautifiedText,
+	serialize,
+	toJson,
 )
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_DEBUG,
+	LOG_ERROR,
+	LOG_NONE,
+	LOG_WARNING,
+	logger,
+	logging_config,
+	secret_filter,
+)
+
 from opsiutils import __version__
 
 COLOR_NORMAL = '\033[0;0;0m'
@@ -287,7 +303,9 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 				except Exception as err:  # pylint: disable=broad-except
 					logger.error("Failed to read session file '%s': %s", sessionFile, err)
 
-			from OPSI.Backend.JSONRPC import JSONRPCBackend  # pylint: disable=import-outside-toplevel
+			from OPSI.Backend.JSONRPC import (  # pylint: disable=import-outside-toplevel
+				JSONRPCBackend,
+			)
 			backend = JSONRPCBackend(
 				address=address,
 				username=username,
@@ -1732,7 +1750,7 @@ def main():
 		pass
 
 	if os.name == 'posix':
-		from signal import signal, SIGINT, SIGQUIT  # pylint: disable=import-outside-toplevel
+		from signal import SIGINT, SIGQUIT, signal  # pylint: disable=import-outside-toplevel
 		signal(SIGINT, signalHandler)
 		signal(SIGQUIT, signalHandler)
 

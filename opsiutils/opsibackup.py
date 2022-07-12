@@ -10,14 +10,18 @@ import argparse
 import os
 import sys
 
-from opsicommon.logging import (
-	logger, init_logging, logging_config,
-	LOG_WARNING, LOG_NOTICE, DEFAULT_COLORED_FORMAT
-)
-from OPSI.Util.Task.Backup import OpsiBackup
 from OPSI import __version__ as python_opsi_version
-from opsiutils import __version__
+from OPSI.Util.Task.Backup import OpsiBackup
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_NOTICE,
+	LOG_WARNING,
+	init_logging,
+	logger,
+	logging_config,
+)
 
+from opsiutils import __version__
 
 USAGE = f'''
 Usage: {os.path.basename(sys.argv[0])} [common-options] <command> [command-options]
@@ -56,7 +60,6 @@ Commands:
       --backends <backend>             Select a backend to create a backup for. Use 'auto' for automatic detection
                                           of used backends or 'all' for all backends.
                                           Can be given multiple times.
-      --no-configuration               Do not backup opsi configuration.
       -c, --compression {{gz|bz2|none}}  Sets the compression format for the archive (default: bz2).
 
 '''

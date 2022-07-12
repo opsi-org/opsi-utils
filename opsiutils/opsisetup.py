@@ -233,7 +233,8 @@ def update(fromVersion=None):  # pylint: disable=unused-argument
 		with BackendManager(**configServerBackendConfig) as backend:
 			updateBackendData(backend)  # opsi 4.0 -> 4.1
 
-	configureSamba()
+	if os.path.exists(SMB_CONF):
+		configureSamba()
 
 
 def configureMySQLBackend(unattendedConfiguration=None):
