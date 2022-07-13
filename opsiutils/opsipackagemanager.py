@@ -11,6 +11,7 @@ import base64
 import curses
 import fcntl
 import gettext
+import glob
 import locale
 import os
 import random
@@ -20,27 +21,42 @@ import sys
 import termios
 import threading
 import time
-import glob
-from contextlib import contextmanager
-from signal import SIGWINCH, SIGTERM, SIGINT, signal
 from argparse import ArgumentParser
+from contextlib import contextmanager
+from signal import SIGINT, SIGTERM, SIGWINCH, signal
 
-from opsicommon.logging import logger, logging_config, LOG_NONE, LOG_WARNING, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Types import (
-	forceActionRequest, forceBool, forceHostId, forceInt,
-	forceList, forceProductId, forceUnicode, forceUnicodeList
+	forceActionRequest,
+	forceBool,
+	forceHostId,
+	forceInt,
+	forceList,
+	forceProductId,
+	forceUnicode,
+	forceUnicodeList,
 )
 from OPSI.UI import SnackUI
-from OPSI.Util import md5sum, getfqdn
+from OPSI.Util import getfqdn, md5sum
 from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Message import (
-	MessageSubject, ProgressObserver, ProgressSubject, SubjectsObserver
+	MessageSubject,
+	ProgressObserver,
+	ProgressSubject,
+	SubjectsObserver,
 )
-from OPSI.Util.Repository import getRepository
 from OPSI.Util.Product import ProductPackageFile
+from OPSI.Util.Repository import getRepository
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_NONE,
+	LOG_WARNING,
+	logger,
+	logging_config,
+)
+
 try:
 	from OPSI.Util.Sync import librsyncDeltaFile
 except ImportError:
@@ -1747,7 +1763,8 @@ class OpsiPackageManagerControl:
 	def processListCommand(self):  # pylint: disable=too-many-locals
 		terminalWidth = 60
 		try:
-			tty = os.popen('tty').readline().strip()
+			with os.popen('tty') as fd:
+				tty = fd.readline().strip()
 			with open(tty, encoding="utf-8") as fd:
 				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
 		except Exception:  # pylint: disable=broad-except
