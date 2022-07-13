@@ -49,6 +49,11 @@ from OPSI.Util.Message import (
 )
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Util.Repository import getRepository
+
+try:
+	from OPSI.Util.Sync import librsyncDeltaFile
+except ImportError:
+	librsyncDeltaFile = None
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_NONE,
@@ -56,11 +61,6 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
-
-try:
-	from OPSI.Util.Sync import librsyncDeltaFile
-except ImportError:
-	librsyncDeltaFile = None
 
 from opsiutils import __version__
 
