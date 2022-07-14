@@ -347,7 +347,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "docutils"
-version = "0.17.1"
+version = "0.18.1"
 description = "Docutils -- Python Documentation Utilities"
 category = "dev"
 optional = false
@@ -568,6 +568,22 @@ url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
+name = "mailbits"
+version = "0.2.1"
+description = "Assorted e-mail utility functions"
+category = "dev"
+optional = false
+python-versions = "~=3.6"
+
+[package.dependencies]
+attrs = ">=18.1"
+
+[package.source]
+type = "legacy"
+url = "https://pypi.uib.gmbh/simple"
+reference = "uibpypi"
+
+[[package]]
 name = "markupsafe"
 version = "2.1.1"
 description = "Safely add untrusted strings to HTML/XML markup."
@@ -621,7 +637,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "opsi-dev-tools"
-version = "1.1.12"
+version = "1.1.13"
 description = "opsi development tools"
 category = "dev"
 optional = false
@@ -633,16 +649,16 @@ click = "8.0.4"
 colorlog = ">=6.6,<7.0"
 configargparse = ">=1.2,<2.0"
 macholib = ">=1.14,<2.0"
-pefile = ">=2021.9,<2022.0"
+pefile = ">=2022.5,<2023.0"
 pyelftools = ">=0.28,<0.29"
-pypi-simple = ">=0.9,<0.10"
+pypi-simple = ">=0.10,<0.11"
 python-gettext = ">=4.0,<5.0"
 pyyaml = ">=6.0,<7.0"
 rarfile = ">=4.0,<5.0"
 requests = ">=2.23,<3.0"
 rich = ">=12.3,<13.0"
 rich-click = ">=1.3.0,<2.0.0"
-sphinx = ">=4.5.0,<5.0.0"
+sphinx = ">=5.0,<6.0"
 sphinx-asciidoc = ">=1.0.2,<2.0.0"
 sphinx-autodoc-typehints = ">=1.18.1,<2.0.0"
 toml = ">=0.10,<0.11"
@@ -709,7 +725,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "pefile"
-version = "2021.9.3"
+version = "2022.5.30"
 description = "Python PE parsing module"
 category = "main"
 optional = false
@@ -989,7 +1005,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "pypi-simple"
-version = "0.9.0"
+version = "0.10.0"
 description = "PyPI Simple Repository API client library"
 category = "dev"
 optional = false
@@ -997,8 +1013,12 @@ python-versions = "~=3.6"
 
 [package.dependencies]
 beautifulsoup4 = ">=4.5,<5.0"
+mailbits = ">=0.2,<1.0"
 packaging = ">=20"
 requests = ">=2.20,<3.0"
+
+[package.extras]
+tqdm = ["tqdm"]
 
 [package.source]
 type = "legacy"
@@ -1033,7 +1053,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.301"
+version = "4.2.0.302"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -1047,7 +1067,7 @@ ldap3 = ">=2.9,<3.0"
 lz4 = ">=4.0,<5.0"
 msgpack = ">=1.0,<2.0"
 mysqlclient = {version = ">=2.1,<3.0", markers = "sys_platform == \"linux\""}
-pefile = ">=2021.9,<2022.0"
+pefile = ">=2022.5,<2023.0"
 pexpect = ">=4.8,<5.0"
 psutil = ">=5.8,<6.0"
 pyasn1 = ">=0.4,<0.5"
@@ -1069,7 +1089,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi-common"
-version = "4.2.0.289"
+version = "4.2.0.290"
 description = "The opsi python common library"
 category = "main"
 optional = false
@@ -1320,7 +1340,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "sphinx"
-version = "4.5.0"
+version = "5.0.2"
 description = "Python documentation generator"
 category = "dev"
 optional = false
@@ -1330,7 +1350,7 @@ python-versions = ">=3.6"
 alabaster = ">=0.7,<0.8"
 babel = ">=1.3"
 colorama = {version = ">=0.3.5", markers = "sys_platform == \"win32\""}
-docutils = ">=0.14,<0.18"
+docutils = ">=0.14,<0.19"
 imagesize = "*"
 importlib-metadata = {version = ">=4.4", markers = "python_version < \"3.10\""}
 Jinja2 = ">=2.3"
@@ -1347,8 +1367,8 @@ sphinxcontrib-serializinghtml = ">=1.1.5"
 
 [package.extras]
 docs = ["sphinxcontrib-websupport"]
-lint = ["flake8 (>=3.5.0)", "isort", "mypy (>=0.931)", "docutils-stubs", "types-typed-ast", "types-requests"]
-test = ["pytest", "pytest-cov", "html5lib", "cython", "typed-ast"]
+lint = ["flake8 (>=3.5.0)", "isort", "mypy (>=0.950)", "docutils-stubs", "types-typed-ast", "types-requests"]
+test = ["pytest (>=4.6)", "html5lib", "cython", "typed-ast"]
 
 [package.source]
 type = "legacy"
@@ -1922,8 +1942,8 @@ distro = [
     {file = "distro-1.7.0.tar.gz", hash = "sha256:151aeccf60c216402932b52e40ee477a939f8d58898927378a02abbe852c1c39"},
 ]
 docutils = [
-    {file = "docutils-0.17.1-py2.py3-none-any.whl", hash = "sha256:cf316c8370a737a022b72b56874f6602acf974a37a9fba42ec2876387549fc61"},
-    {file = "docutils-0.17.1.tar.gz", hash = "sha256:686577d2e4c32380bb50cbb22f575ed742d58168cee37e99117a854bcd88f125"},
+    {file = "docutils-0.18.1-py2.py3-none-any.whl", hash = "sha256:23010f129180089fbcd3bc08cfefccb3b890b0050e1ca00c867036e9d161b98c"},
+    {file = "docutils-0.18.1.tar.gz", hash = "sha256:679987caf361a7539d76e584cbeddc311e3aee937877c87346f31debc63e9d06"},
 ]
 future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
@@ -2083,6 +2103,10 @@ macholib = [
     {file = "macholib-1.16-py2.py3-none-any.whl", hash = "sha256:5a0742b587e6e57bfade1ab90651d4877185bf66fd4a176a488116de36878229"},
     {file = "macholib-1.16.tar.gz", hash = "sha256:001bf281279b986a66d7821790d734e61150d52f40c080899df8fefae056e9f7"},
 ]
+mailbits = [
+    {file = "mailbits-0.2.1-py3-none-any.whl", hash = "sha256:04c06b036bba93067d96b08288780ae7002ba604ac7b205bc55dca52474fc3e2"},
+    {file = "mailbits-0.2.1.tar.gz", hash = "sha256:eb53610e01611a95d2ae46559e00d862d907c776e88034dd53020a53baac21d1"},
+]
 markupsafe = [
     {file = "MarkupSafe-2.1.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:86b1f75c4e7c2ac2ccdaec2b9022845dbb81880ca318bb7a0a01fbf7813e3812"},
     {file = "MarkupSafe-2.1.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f121a1420d4e173a5d96e47e9a0c0dcff965afdf1626d28de1460815f7c4ee7a"},
@@ -2193,8 +2217,8 @@ mysqlclient = [
     {file = "mysqlclient-2.1.1.tar.gz", hash = "sha256:828757e419fb11dd6c5ed2576ec92c3efaa93a0f7c39e263586d1ee779c3d782"},
 ]
 opsi-dev-tools = [
-    {file = "opsi-dev-tools-1.1.12.tar.gz", hash = "sha256:14987e9bf1c80b272017f072be77781b9c57b00913b2d419304773f849f0e2b3"},
-    {file = "opsi_dev_tools-1.1.12-py3-none-any.whl", hash = "sha256:fa5d0f6a5b9f73b8dcc429799c5807fee3f6678960c22bb0c291167c52983e73"},
+    {file = "opsi-dev-tools-1.1.13.tar.gz", hash = "sha256:2929cedc9fd8e6d65be89f725eeb13e29c515b273d683ebff4026f0dcd18644e"},
+    {file = "opsi_dev_tools-1.1.13-py3-none-any.whl", hash = "sha256:97b87de1685fa174551d6ccd9b11f0c5857c42435b06d067b70bec51453ee77a"},
 ]
 orjson = [
     {file = "orjson-3.6.0-cp310-cp310-manylinux_2_24_aarch64.whl", hash = "sha256:53ef160ac1b27d0417005e865ec1478044db4289b25beadff2ab4ce2c74a0f22"},
@@ -2231,7 +2255,7 @@ paramiko = [
     {file = "paramiko-2.11.0.tar.gz", hash = "sha256:003e6bee7c034c21fbb051bf83dc0a9ee4106204dd3c53054c71452cc4ec3938"},
 ]
 pefile = [
-    {file = "pefile-2021.9.3.tar.gz", hash = "sha256:344a49e40a94e10849f0fe34dddc80f773a12b40675bf2f7be4b8be578bdd94a"},
+    {file = "pefile-2022.5.30.tar.gz", hash = "sha256:a5488a3dd1fd021ce33f969780b88fe0f7eebb76eb20996d7318f307612a045b"},
 ]
 pexpect = [
     {file = "pexpect-4.8.0-py2.py3-none-any.whl", hash = "sha256:0b48a55dcb3c05f3329815901ea4fc1537514d6ba867a152b581d69ae3710937"},
@@ -2373,8 +2397,8 @@ pyparsing = [
     {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
 ]
 pypi-simple = [
-    {file = "pypi-simple-0.9.0.tar.gz", hash = "sha256:fde7da7b0969fa8092aa8345378d43a75d9ac781c6ffd30f758deacff653dfab"},
-    {file = "pypi_simple-0.9.0-py3-none-any.whl", hash = "sha256:ee44c07bc61b597cb455e948f88b05fb5fe338549c50b978ae5acdeae2177a4c"},
+    {file = "pypi-simple-0.10.0.tar.gz", hash = "sha256:d4fe24aedcb1a9c6f0eb4b9517c2492c060b0b7c083b57c75d8f03cdba0ae7c4"},
+    {file = "pypi_simple-0.10.0-py3-none-any.whl", hash = "sha256:87272a1df98c04d66ed6d4370e3df0260ea75cd3684b498c62de538216781a73"},
 ]
 python-gettext = [
     {file = "python-gettext-4.0.tar.gz", hash = "sha256:626b501a51ac892fc3460cf550e60dca121f544eaa46eb69c90ce4682fc7ec02"},
@@ -2384,12 +2408,12 @@ python-magic = [
     {file = "python_magic-0.4.27-py2.py3-none-any.whl", hash = "sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.301.tar.gz", hash = "sha256:c5b7b065df85974b6b83d0ffc1138124b7cddec4d74abf5580721be343372393"},
-    {file = "python_opsi-4.2.0.301-py3-none-any.whl", hash = "sha256:00383b386daf7a872eb6c6f4c64e28cbd743350082825da091bb191e8cf33820"},
+    {file = "python-opsi-4.2.0.302.tar.gz", hash = "sha256:2cb3028db6884a6ab778c0256ac66540d2ceada1871000844b00c51fa683c52a"},
+    {file = "python_opsi-4.2.0.302-py3-none-any.whl", hash = "sha256:94f0bdb7f3cf2661e5764a16daf952fea5eb1fc16838ca9ba435f1c573f192e6"},
 ]
 python-opsi-common = [
-    {file = "python-opsi-common-4.2.0.289.tar.gz", hash = "sha256:e76c469ccd914b8cfb163310afb7d62d72e9a87bea7b1a91300eb63b3c0afd6e"},
-    {file = "python_opsi_common-4.2.0.289-py3-none-any.whl", hash = "sha256:04c154e4bc991bdd945c4b95aa23cdad914bdac978a5bfc717f2a0b34b981e84"},
+    {file = "python-opsi-common-4.2.0.290.tar.gz", hash = "sha256:42537c016fd14323a3659c7f457bf4bc98328850ba4ed0540fee4c0374a0546b"},
+    {file = "python_opsi_common-4.2.0.290-py3-none-any.whl", hash = "sha256:7907c4407f360f4df098cbdba87a9f96966f3f20417a563d62b515a26916b467"},
 ]
 python-pam = [
     {file = "python-pam-2.0.2.tar.gz", hash = "sha256:97235235ba9b82dbae8068d1099508455949b275f77273ca22fdbd8b1fb5d950"},
@@ -2489,8 +2513,8 @@ soupsieve = [
     {file = "soupsieve-2.3.2.post1.tar.gz", hash = "sha256:fc53893b3da2c33de295667a0e19f078c14bf86544af307354de5fcf12a3f30d"},
 ]
 sphinx = [
-    {file = "Sphinx-4.5.0-py3-none-any.whl", hash = "sha256:ebf612653238bcc8f4359627a9b7ce44ede6fdd75d9d30f68255c7383d3a6226"},
-    {file = "Sphinx-4.5.0.tar.gz", hash = "sha256:7bf8ca9637a4ee15af412d1a1d9689fec70523a68ca9bb9127c2f3eeb344e2e6"},
+    {file = "Sphinx-5.0.2-py3-none-any.whl", hash = "sha256:d3e57663eed1d7c5c50895d191fdeda0b54ded6f44d5621b50709466c338d1e8"},
+    {file = "Sphinx-5.0.2.tar.gz", hash = "sha256:b18e978ea7565720f26019c702cd85c84376e948370f1cd43d60265010e1c7b0"},
 ]
 sphinx-asciidoc = [
     {file = "sphinx_asciidoc-1.0.2-py3-none-any.whl", hash = "sha256:3292e09daa0cceca27f2555b2ccd524e273150c41b8f2989ec45e3118c644246"},
