@@ -16,17 +16,26 @@ import termios
 import tty
 from contextlib import contextmanager
 
-from opsicommon.logging import logger, init_logging, logging_config, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, DEFAULT_COLORED_FORMAT
-from OPSI import __version__ as python_opsi_version
 import OPSI.Util.File.Archive
+from OPSI import __version__ as python_opsi_version
 from OPSI.System import execute
 from OPSI.Types import forceFilename, forceUnicode
+from OPSI.Util import md5sum
+from OPSI.Util.File import ZsyncFile
+from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.Message import ProgressObserver, ProgressSubject
 from OPSI.Util.Product import ProductPackageSource
-from OPSI.Util.File.Opsi import PackageControlFile
-from OPSI.Util.File import ZsyncFile
 from OPSI.Util.Task.Rights import setRights
-from OPSI.Util import md5sum
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_DEBUG,
+	LOG_ERROR,
+	LOG_NONE,
+	LOG_WARNING,
+	init_logging,
+	logger,
+	logging_config,
+)
 
 from opsiutils import __version__
 
@@ -53,7 +62,8 @@ class ProgressNotifier(ProgressObserver):
 	def __init__(self):  # pylint: disable=super-init-not-called
 		self.usedWidth = 60
 		try:
-			_tty = os.popen('tty').readline().strip()
+			with os.popen('tty') as proc:
+				_tty = proc.readline().strip()
 			with open(_tty, "rb") as fd:
 				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
 			self.usedWidth = min(self.usedWidth, terminalWidth)
