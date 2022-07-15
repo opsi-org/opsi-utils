@@ -437,10 +437,6 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 		self.mainWindow.refresh()
 
 		self.setSubjects(self.opmSubjects)
-		#disabled loggerWindow subject
-		#if self.loggerWindow:
-		#	self.addSubject(logger.getMessageSubject())
-		#	logger.setMessageSubjectLevel(self.config['consoleLogLevel'])
 
 		signal(SIGWINCH, self.resized)
 		logger.info("UserInterface initialized")
