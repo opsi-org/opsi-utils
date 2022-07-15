@@ -15,19 +15,27 @@ import struct
 import sys
 import termios
 
-from opsicommon.logging import logger, init_logging, logging_config, LOG_ERROR, LOG_NONE, DEFAULT_COLORED_FORMAT
 from OPSI import __version__ as python_opsi_version
-from OPSI.Types import forceUnicode, forceHostId, forceUnicodeLower
-from OPSI.Util import getfqdn
-from OPSI.Util.Message import ProgressObserver
 from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Backend.Replicator import BackendReplicator
+from OPSI.Types import forceHostId, forceUnicode, forceUnicodeLower
+from OPSI.Util import getfqdn
+from OPSI.Util.Message import ProgressObserver
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_ERROR,
+	LOG_NONE,
+	init_logging,
+	logger,
+	logging_config,
+)
 
 from opsiutils import __version__
 
 log_level = LOG_NONE  # pylint: disable=invalid-name
 init_logging(stderr_level=log_level, stderr_format=DEFAULT_COLORED_FORMAT)
+
 
 class ProgressNotifier(ProgressObserver):
 	def __init__(self, backendReplicator):  # pylint: disable=super-init-not-called
@@ -36,16 +44,13 @@ class ProgressNotifier(ProgressObserver):
 		self.overallProgressSubject = backendReplicator.getOverallProgressSubject()
 		self.currentProgressSubject.attachObserver(self)
 		self.overallProgressSubject.attachObserver(self)
-		#disabled loggerwindow subject
-		#self.logSubject = logger.getMessageSubject()
-		#self.logSubject.attachObserver(self)
-		#logger.setMessageSubjectLevel(LOG_ERROR)
 		self.error = None
 
 	def displayProgress(self):
 		usedWidth = self.usedWidth
 		try:
-			tty = os.popen('tty').readline().strip()
+			with os.popen('tty') as proc:
+				tty = proc.readline().strip()
 			with open(tty, "wb") as fd:
 				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
 				usedWidth = min(usedWidth, terminalWidth)
@@ -55,10 +60,6 @@ class ProgressNotifier(ProgressObserver):
 		if log_level <= LOG_NONE:
 			sys.stdout.write("\033[2A")
 
-		#if self.error:
-		#	sys.stdout.write("\033[K")
-		#	print("Error occurred: %s" % self.error)
-		#	sys.stdout.write("\033[K")
 		self.error = None
 		for subject in self.overallProgressSubject, self.currentProgressSubject:
 			text = ''
@@ -76,8 +77,6 @@ class ProgressNotifier(ProgressObserver):
 		self.displayProgress()
 
 	def messageChanged(self, subject, message):
-		#if subject == self.logSubject:
-		#	self.error = message
 		self.displayProgress()
 
 
@@ -91,24 +90,37 @@ The backends can either be the name of a backend as defined
 in /etc/opsi/backends (file, mysql, ...) or the the url of an opsi
 configuration service in the form of http(s)://<user>@<host>:<port>/rpc""")
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
-	parser.add_argument('--quiet', '-q', action='store_true', default=False,
-						help="do not show progress")
-	parser.add_argument('--verbose', '-v',
-						dest="logLevel", default=LOG_NONE, action="count",
-						help="increase verbosity (can be used multiple times)")
-	parser.add_argument('--log-level', dest="logLevel", default=LOG_NONE, type=int,
-						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
- 						help="Set log-level (0..9)")
-	parser.add_argument('--clean-destination', '-c', dest="cleanupFirst",
-						default=False, action='store_true',
-						help="clean destination database before writing")
-	parser.add_argument('--with-audit-data', '-a', dest="audit",
-						action='store_true', default=False,
-						help="including software/hardware inventory")
-	parser.add_argument('-s', metavar="OLD SERVER ID", dest="oldServerId",
-						help="use destination host as new server")
-	parser.add_argument('--log-file', '-l', dest="logFile",
-						help="Log to this file. The loglevel will be DEBUG.")
+	parser.add_argument(
+		'--quiet', '-q', action='store_true', default=False, help="do not show progress"
+	)
+	parser.add_argument(
+		'--verbose', '-v',
+		dest="logLevel", default=LOG_NONE, action="count",
+		help="increase verbosity (can be used multiple times)"
+	)
+	parser.add_argument(
+		'--log-level', dest="logLevel", default=LOG_NONE, type=int,
+		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		help="Set log-level (0..9)"
+	)
+	parser.add_argument(
+		'--clean-destination', '-c', dest="cleanupFirst",
+		default=False, action='store_true',
+		help="clean destination database before writing"
+	)
+	parser.add_argument(
+		'--with-audit-data', '-a', dest="audit",
+		action='store_true', default=False,
+		help="including software/hardware inventory"
+	)
+	parser.add_argument(
+		'-s', metavar="OLD SERVER ID", dest="oldServerId",
+		help="use destination host as new server"
+	)
+	parser.add_argument(
+		'--log-file', '-l', dest="logFile",
+		help="Log to this file. The loglevel will be DEBUG."
+	)
 	parser.add_argument('readBackend', metavar="source", help="Backend to read data from.")
 	parser.add_argument('writeBackend', metavar="destination", help="Backend to write data to.")
 
