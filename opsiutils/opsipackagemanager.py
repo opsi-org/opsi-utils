@@ -1164,8 +1164,8 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				logger.debug("Closing repository connection")
 				try:
 					repository.disconnect()
-				except Exception as error:  # pylint:disable=broad-except
-					logger.error("Failed to disconnect from repository: %s", error, exc_info=True)
+				except Exception as upload_error:  # pylint:disable=broad-except
+					logger.error("Failed to disconnect from repository: %s", upload_error, exc_info=True)
 
 	def installOnDepots(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		sequence = [
