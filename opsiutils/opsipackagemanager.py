@@ -971,6 +971,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				application=USER_AGENT,
 				readTimeout=24*3600  # Upload can take a long time
 			)
+
 			for dest in repository.content():
 				if dest['name'] == destination:
 					logger.info("Destination '%s' already exists on depot '%s'", destination, depotId)
@@ -1161,7 +1162,10 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		finally:
 			if repository:
 				logger.debug("Closing repository connection")
-				repository.disconnect()
+				try:
+					repository.disconnect()
+				except Exception as error:  # pylint:disable=broad-except
+					logger.error("Failed to disconnect from repository: %s", error, exc_info=True)
 
 	def installOnDepots(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		sequence = [
