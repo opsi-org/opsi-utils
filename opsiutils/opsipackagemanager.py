@@ -710,6 +710,9 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		for productPackageFile in self.productPackageFiles.values():
 			productPackageFile.cleanup()
 
+		for connection in self.depotConnections.values():
+			connection.disconnect()
+
 	def getDepotConnection(self, depotId):
 		try:
 			connection = self.depotConnections[depotId]
