@@ -921,6 +921,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 	def uploadToRepository(self, packageFile, depotId):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		subject = self.getDepotSubject(depotId)
+		repository = None
 
 		try:  # pylint: disable=too-many-nested-blocks
 			# Process upload
@@ -970,7 +971,6 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				application=USER_AGENT,
 				readTimeout=24*3600  # Upload can take a long time
 			)
-
 			for dest in repository.content():
 				if dest['name'] == destination:
 					logger.info("Destination '%s' already exists on depot '%s'", destination, depotId)
@@ -1158,6 +1158,10 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			logger.error(uploadError)
 			subject.setMessage(_("Error: %s") % uploadError, severity=2)
 			raise
+		finally:
+			if repository:
+				logger.debug("Closing repository connection")
+				repository.disconnect()
 
 	def installOnDepots(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		sequence = [
