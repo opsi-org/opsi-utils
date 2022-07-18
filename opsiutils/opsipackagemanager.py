@@ -921,6 +921,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 	def uploadToRepository(self, packageFile, depotId):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		subject = self.getDepotSubject(depotId)
+		repository = None
 
 		try:  # pylint: disable=too-many-nested-blocks
 			# Process upload
@@ -1158,6 +1159,13 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			logger.error(uploadError)
 			subject.setMessage(_("Error: %s") % uploadError, severity=2)
 			raise
+		finally:
+			if repository:
+				logger.debug("Closing repository connection")
+				try:
+					repository.disconnect()
+				except Exception as upload_error:  # pylint:disable=broad-except
+					logger.error("Failed to disconnect from repository: %s", upload_error, exc_info=True)
 
 	def installOnDepots(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		sequence = [
