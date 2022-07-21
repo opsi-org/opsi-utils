@@ -637,7 +637,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "opsi-dev-tools"
-version = "1.1.13"
+version = "1.1.15"
 description = "opsi development tools"
 category = "dev"
 optional = false
@@ -921,7 +921,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "pylint"
-version = "2.14.4"
+version = "2.14.5"
 description = "python code static checker"
 category = "dev"
 optional = false
@@ -1053,7 +1053,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.305"
+version = "4.2.0.306"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -2217,8 +2217,8 @@ mysqlclient = [
     {file = "mysqlclient-2.1.1.tar.gz", hash = "sha256:828757e419fb11dd6c5ed2576ec92c3efaa93a0f7c39e263586d1ee779c3d782"},
 ]
 opsi-dev-tools = [
-    {file = "opsi-dev-tools-1.1.13.tar.gz", hash = "sha256:2929cedc9fd8e6d65be89f725eeb13e29c515b273d683ebff4026f0dcd18644e"},
-    {file = "opsi_dev_tools-1.1.13-py3-none-any.whl", hash = "sha256:97b87de1685fa174551d6ccd9b11f0c5857c42435b06d067b70bec51453ee77a"},
+    {file = "opsi-dev-tools-1.1.15.tar.gz", hash = "sha256:b444be4ab0432af761013b82ee07e9a7cf440989ea36d68828a89fcce451018c"},
+    {file = "opsi_dev_tools-1.1.15-py3-none-any.whl", hash = "sha256:5eebf3d6459c1a0c893886905fc00213f5d0151670041432e1888c6f253326d2"},
 ]
 orjson = [
     {file = "orjson-3.6.0-cp310-cp310-manylinux_2_24_aarch64.whl", hash = "sha256:53ef160ac1b27d0417005e865ec1478044db4289b25beadff2ab4ce2c74a0f22"},
@@ -2373,8 +2373,8 @@ pyinstaller-hooks-contrib = [
     {file = "pyinstaller_hooks_contrib-2022.8-py2.py3-none-any.whl", hash = "sha256:e46f099934dd4577fb1ddcf37a99fa04027c92f8f5291c8802f326345988d001"},
 ]
 pylint = [
-    {file = "pylint-2.14.4-py3-none-any.whl", hash = "sha256:89b61867db16eefb7b3c5b84afc94081edaf11544189e2b238154677529ad69f"},
-    {file = "pylint-2.14.4.tar.gz", hash = "sha256:47705453aa9dce520e123a7d51843d5f0032cbfa06870f89f00927aa1f735a4a"},
+    {file = "pylint-2.14.5-py3-none-any.whl", hash = "sha256:fabe30000de7d07636d2e82c9a518ad5ad7908590fe135ace169b44839c15f90"},
+    {file = "pylint-2.14.5.tar.gz", hash = "sha256:487ce2192eee48211269a0e976421f334cf94de1806ca9d0a99449adcdf0285e"},
 ]
 pynacl = [
     {file = "PyNaCl-1.5.0-cp36-abi3-macosx_10_10_universal2.whl", hash = "sha256:401002a4aaa07c9414132aaed7f6836ff98f59277a234704ff66878c2ee4a0d1"},
@@ -2408,8 +2408,8 @@ python-magic = [
     {file = "python_magic-0.4.27-py2.py3-none-any.whl", hash = "sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3"},
 ]
 python-opsi = [
-    {file = "python-opsi-4.2.0.305.tar.gz", hash = "sha256:bb3bb49d4ab83f8e25bda01ac77cdaa15e07206f2e0c56166719af3f90bfaa8e"},
-    {file = "python_opsi-4.2.0.305-py3-none-any.whl", hash = "sha256:76a209d4a875a38bc824511714459291042bb18f546686101bda5e5a4d04de02"},
+    {file = "python-opsi-4.2.0.306.tar.gz", hash = "sha256:4e9f3ef28e1d85ea83e1b0df6d5b6f4162703cc2630adb1b4366118f1fdcff0e"},
+    {file = "python_opsi-4.2.0.306-py3-none-any.whl", hash = "sha256:a749c408f6269647b416ee4560eb24abf7a8d6a18e77140b6a4a8d2554cd4783"},
 ]
 python-opsi-common = [
     {file = "python-opsi-common-4.2.0.292.tar.gz", hash = "sha256:1e38ede22530320251f9b9bc6d613d7e75f1ff8f49a7435295bad57750291132"},
