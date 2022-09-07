@@ -46,6 +46,7 @@ pyinstaller-poetry:
         - opsi-setup
         - opsi-python
         - opsi-wakeup-clients
+        - opsi-outdated-to-setup
   data_files:
     - src: opsi-utils_data/**/*
       dst: opsi-utils_data
@@ -106,7 +107,7 @@ package:
       cp -a ${SRC}/opsi-utils-arm64 ${DST}/rootfs-arm64/usr/lib/opsi-utils
       cp -a ${SRC}/opsi-utils-arm64/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
     fi;
-    for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients; do
+    for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients opsi-outdated-to-setup; do
        echo "#!/bin/sh"                            > ${DST}/rootfs/usr/bin/$i
        echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
        chmod 755 ${DST}/rootfs/usr/bin/$i

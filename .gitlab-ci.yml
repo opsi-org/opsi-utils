@@ -6,7 +6,7 @@ stages:
   - publish
 
 
-test:pytest-pylint:
+pytest-pylint:
   stage: test
   script:
     - apt -y install python3-newt gettext gzip asciidoc-base
@@ -16,16 +16,16 @@ test:pytest-pylint:
     - poetry run pylint --disable=R,fixme opsiutils
 
 
-build:linux-pyinstaller:
+linux-pyinstaller:
   stage: build
   script:
     - apt -y install python3-newt gettext gzip asciidoc-base
     - poetry config experimental.new-installer false
     - poetry lock --no-update
     - poetry install
-    - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
-    - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils "$CI_JOB_ID"'
-    - '[ "$CI_COMMIT_TAG" = "" ] || poetry run opsi-dev-tool -l info --binary-push dist/opsi-utils'
+    - poetry run opsi-dev-cli -l info pyinstaller build
+    - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-cli -l info binary push dist/opsi-utils --prerelease="$CI_JOB_ID"'
+    - '[ "$CI_COMMIT_TAG" = "" ] || poetry run opsi-dev-cli -l info binary push dist/opsi-utils'
     - mv dist/opsi-utils ./opsi-utils-amd64
     # Check if binary is working
     - opsi-utils-amd64/opsi-admin --version
@@ -36,7 +36,7 @@ build:linux-pyinstaller:
     expire_in: 2 days
 
 
-build:arm64-pyinstaller:
+arm64-pyinstaller:
   stage: build
   tags:
     - arm64
@@ -45,7 +45,7 @@ build:arm64-pyinstaller:
     - poetry config experimental.new-installer false
     - poetry lock --no-update
     - poetry install
-    - poetry run opsi-dev-tool -l info --pyinstaller-poetry-build
+    - poetry run opsi-dev-cli -l info pyinstaller build
     - mv dist/opsi-utils ./opsi-utils-arm64
     # Check if binary is working
     - OPSI_HOSTNAME=test.uib.local opsi-utils-arm64/opsi-admin --version
@@ -56,7 +56,7 @@ build:arm64-pyinstaller:
     expire_in: 2 days
 
 
-package:obs_int:
+obs_int:
   stage: publish
   script:
     - opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
@@ -64,7 +64,7 @@ package:obs_int:
     - tags
 
 
-package:obs_ext:
+obs_ext:
   stage: publish
   script:
     - opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development

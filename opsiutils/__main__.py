@@ -41,4 +41,7 @@ def main():  # pylint: disable=too-many-return-statements
 	if name == "opsiwakeupclients":
 		from opsiutils.opsiwakeupclients import main as _main  # pylint: disable=import-outside-toplevel
 		return _main()
+	if name == "opsioutdatedtosetup":
+		from opsiutils.opsioutdatedtosetup import main as _main  # pylint: disable=import-outside-toplevel
+		return _main()
 	return None
