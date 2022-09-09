@@ -15,13 +15,27 @@ from OPSI.Backend.BackendManager import BackendManager
 
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
-	LOG_INFO,
+	LOG_NOTICE,
 	logger,
 	logging_config,
 )
 
 from opsiutils import __version__
-STATIC_EXCLUDE_PRODUCTS = ["opsi-winst", "opsi-auto-update", "opsi-script", "shutdownwanted", "windows10-upgrade", "activate-win", "opsi-script-test", "opsi-bootimage-local", "opsi-uiefi-netboot", "opsi-wan-config", "opsi-winpe", "win10-sysprep-app-update-blocker", "windomain"]
+STATIC_EXCLUDE_PRODUCTS = [
+	"opsi-winst",
+	"opsi-auto-update",
+	"opsi-script",
+	"shutdownwanted",
+	"windows10-upgrade",
+	"activate-win",
+	"opsi-script-test",
+	"opsi-bootimage-local",
+	"opsi-uefi-netboot",
+	"opsi-wan-config",
+	"opsi-winpe",
+	"win10-sysprep-app-update-blocker",
+	"windomain",
+]
 
 
 @contextmanager
@@ -29,6 +43,7 @@ def service_connection():
 	service = None
 	try:
 		service = BackendManager()
+		logger.debug("Created BackendManager")
 		yield service
 	finally:
 		if service:
@@ -38,11 +53,12 @@ def service_connection():
 def client_ids_from_group(backend: BackendManager, group: str):
 	result = backend.group_getObjects(id=group, type="HostGroup")
 	if not result:
-		raise ValueError(f"Client group '{group}' not found") 
+		raise ValueError(f"Client group '{group}' not found")
 	return [mapping.objectId for mapping in backend.objectToGroup_getObjects(groupId=result[0].id)]
 
 
-def outdated_to_setup(args: Namespace) -> None:
+def outdated_to_setup(args: Namespace) -> None:  # pylint: disable=too-many-branches,too-many-statements
+	logger.trace("Called with arguments: %s", args)
 	if args.dry_run:
 		logger.notice("operating in dry-run mode - not performing any actions")
 	clients = args.clients
@@ -55,7 +71,7 @@ def outdated_to_setup(args: Namespace) -> None:
 	exclude_products = STATIC_EXCLUDE_PRODUCTS
 	if args.exclude_products:
 		exclude_products.extend([entry.strip() for entry in args.exclude_products.split(",")])
-
+	logger.debug("List of excluded products: %s", exclude_products)
 	with service_connection() as service:
 		if clients:
 			clients = [entry.strip() for entry in clients.split(",")]
@@ -69,48 +85,50 @@ def outdated_to_setup(args: Namespace) -> None:
 			return
 		if "all" in clients:
 			clients = []
-		logger.notice(f"Selected clients: {clients or 'all'}")
-		for clientToDepotserver in service.configState_getClientToDepotserver(clientIds=clients):
+		logger.notice("Selected clients: %s", clients or 'all')
+		for clientToDepotserver in service.configState_getClientToDepotserver(clientIds=clients):  # pylint: disable=no-member
 			client_to_depot[clientToDepotserver["clientId"]] = clientToDepotserver["depotId"]
-		for entry in service.productOnDepot_getObjects():
+		logger.trace("ClientToDepot mapping: %s", client_to_depot)
+		for entry in service.productOnDepot_getObjects():  # pylint: disable=no-member
 			if not depot_versions.get(entry.depotId):
 				depot_versions[entry.depotId] = {}
 			depot_versions[entry.depotId][entry.productId] = entry.version
-		for pdep in service.productDependency_getObjects():
+		logger.trace("Product versions on depots: %s", depot_versions)
+		for pdep in service.productDependency_getObjects():  # pylint: disable=no-member
 			depending_products.add(pdep.productId)
+		logger.trace("Products with dependencies: %s", depending_products)
 
-		pocs = service.productOnClient_getObjects(clientId=clients or None, productType="LocalbootProduct")
+		pocs = service.productOnClient_getObjects(clientId=clients or None, productType="LocalbootProduct")  # pylint: disable=no-member
 		for entry in pocs:
+			logger.debug("Checking %s (%s) on %s", entry.productId, entry.version, entry.clientId)
 			if entry.productId in exclude_products:
+				logger.debug("Skipping as %s is in excluded products", entry.productId)
 				continue
-			#existing actionRequests are left untouched
+			# existing actionRequests are left untouched
 			try:
 				available = depot_versions[client_to_depot[entry.clientId]][entry.productId]
 			except KeyError:
-				logger.error("Skipping check of", entry.clientId, entry.productId, "(product not available on depot)")
+				logger.error("Skipping check of %s %s (product not available on depot)", entry.clientId, entry.productId)
 				continue
 			if (entry.actionRequest in (None, "none") and entry.version != available) or (entry.actionResult == "failed" and args.add_failed):
 				if entry.productId in depending_products:
-					logger.info(f"Setting ProductActionRequest with Dependencies: {entry.productId} -> {entry.clientId}")
+					logger.info("Setting ProductActionRequest with Dependencies: %s -> %s", entry.productId, entry.clientId)
 					if not args.dry_run:
-						service.setProductActionRequestWithDependencies(entry.productId, entry.clientId, "setup")
+						service.setProductActionRequestWithDependencies(entry.productId, entry.clientId, "setup")  # pylint: disable=no-member
 				else:
-					logger.info(f"Marking ProductActionRequest to add: {entry.productId} -> {entry.clientId}")
+					logger.info("Marking ProductActionRequest to add: %s -> %s", entry.productId, entry.clientId)
 					if not args.dry_run:
 						entry.setActionRequest("setup")
 						new_pocs.append(entry)
 		if not args.dry_run:
-			service.productOnClient_updateObjects(new_pocs)
+			logger.debug("Updating ProductOnClient")
+			service.productOnClient_updateObjects(new_pocs)  # pylint: disable=no-member
 
 
 def parse_args():
 	parser = ArgumentParser(description='Set outdated localboot Products to setup.')
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
-	parser.add_argument('--log-level', '-l',
-						default=LOG_INFO,
-						type=int,
-						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-						help="Set log-level (0..9)")
+	parser.add_argument('--log-level', '-l', default=LOG_NOTICE, type=int, choices=range(10), help="Set log-level (0..9)")
 	parser.add_argument("--clients", help="comma-separated list of clients or 'all'")
 	parser.add_argument("--dry-run", help="only simulate run", action="store_true")
 	parser.add_argument("--client-groups", help="comma-separated list of host groups")
@@ -122,7 +140,6 @@ def parse_args():
 
 def main():
 	try:
-		print("test")
 		args = parse_args()
 		logging_config(stderr_level=args.log_level, stderr_format=DEFAULT_COLORED_FORMAT)
 		outdated_to_setup(args)
