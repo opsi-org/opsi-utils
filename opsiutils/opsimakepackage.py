@@ -224,8 +224,6 @@ def parse_args():
 		sys.exit(1)
 	if args.no_compression:
 		args.compression = None
-	print("======================")
-	print(args.compression)
 	return args
 
 def makepackage_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
