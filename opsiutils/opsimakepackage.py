@@ -162,9 +162,12 @@ def parse_args():
 						type=int,
 						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 						help="Set log-level (0..9)")
-	parser.add_argument('--no-compression', '-n', dest="compression",
-						default='gzip', action='store_const', const=None,
+	parser.add_argument('--no-compression', '-n',
+						action='store_true', default=False,
 						help="Do not compress")
+	parser.add_argument('--compression',
+						default='gzip', choices=['gzip', 'zstd'],
+						help="Compression format")
 	parser.add_argument('--archive-format', '-F', dest="format", default='cpio', choices=['cpio', 'tar'],
 						help="Archive format to use. Default: cpio")
 	parser.add_argument('--no-pigz', dest="disablePigz",
@@ -219,6 +222,10 @@ def parse_args():
 	if args.help:
 		parser.print_help()
 		sys.exit(1)
+	if args.no_compression:
+		args.compression = None
+	print("======================")
+	print(args.compression)
 	return args
 
 def makepackage_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
