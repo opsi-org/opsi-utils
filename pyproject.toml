@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opsi-utils"
-version = "4.2.0.183"
+version = "4.2.0.184"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
@@ -28,7 +28,6 @@ distro = {platform = "linux", version = "^1.5"}
 paramiko = "^2.7"
 
 [tool.poetry.dev-dependencies]
-opsi-dev-tools = "^1.1.1"
 pyinstaller = "^4.4"
 pylint = "^2.7"
 
@@ -43,6 +42,7 @@ opsi-package-updater = "opsiutils.opsipackageupdater:main"
 opsi-setup = "opsiutils.opsisetup:main"
 opsi-python = "opsiutils.opsipython:main"
 opsi-wakeup-clients = "opsiutils.opsiwakeupclients:main"
+opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
 
 [tool.black]
 line-length = 140
