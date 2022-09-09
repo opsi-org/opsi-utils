@@ -60,7 +60,7 @@ def client_ids_from_group(backend: BackendManager, group: str):
 def outdated_to_setup(args: Namespace) -> None:  # pylint: disable=too-many-branches,too-many-statements
 	logger.trace("Called with arguments: %s", args)
 	if args.dry_run:
-		logger.notice("operating in dry-run mode - not performing any actions")
+		logger.notice("Operating in dry-run mode - not performing any actions")
 	clients = args.clients
 	client_groups = args.client_groups
 
