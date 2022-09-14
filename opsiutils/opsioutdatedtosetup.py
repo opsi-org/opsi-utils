@@ -43,7 +43,6 @@ def service_connection():
 	service = None
 	try:
 		service = BackendManager()
-		logger.debug("Created BackendManager")
 		yield service
 	finally:
 		if service:
@@ -69,9 +68,13 @@ def outdated_to_setup(args: Namespace) -> None:  # pylint: disable=too-many-bran
 	depending_products = set()
 	new_pocs = []
 	exclude_products = STATIC_EXCLUDE_PRODUCTS
+	include_products = []
+	if args.include_products:
+		include_products = [entry.strip() for entry in args.include_products.split(",")]
+		logger.notice("Limiting handled products to %s", include_products)
 	if args.exclude_products:
 		exclude_products.extend([entry.strip() for entry in args.exclude_products.split(",")])
-	logger.debug("List of excluded products: %s", exclude_products)
+	logger.info("List of excluded products: %s", exclude_products)
 	with service_connection() as service:
 		if clients:
 			clients = [entry.strip() for entry in clients.split(",")]
@@ -98,11 +101,11 @@ def outdated_to_setup(args: Namespace) -> None:  # pylint: disable=too-many-bran
 			depending_products.add(pdep.productId)
 		logger.trace("Products with dependencies: %s", depending_products)
 
-		pocs = service.productOnClient_getObjects(clientId=clients or None, productType="LocalbootProduct")  # pylint: disable=no-member
+		pocs = service.productOnClient_getObjects(clientId=clients or None, productType="LocalbootProduct", productId=include_products or None)  # pylint: disable=no-member
 		for entry in pocs:
 			logger.debug("Checking %s (%s) on %s", entry.productId, entry.version, entry.clientId)
 			if entry.productId in exclude_products:
-				logger.debug("Skipping as %s is in excluded products", entry.productId)
+				logger.info("Skipping as %s is in excluded products", entry.productId)
 				continue
 			# existing actionRequests are left untouched
 			try:
@@ -133,6 +136,7 @@ def parse_args():
 	parser.add_argument("--dry-run", help="only simulate run", action="store_true")
 	parser.add_argument("--client-groups", help="comma-separated list of host groups")
 	parser.add_argument("--exclude-products", help="do not set actionRequests for these products")
+	parser.add_argument("--include-products", help="set actionRequests ONLY for these products")
 	parser.add_argument("--add-failed", help="If this is set, it will also add actionRequests for all failed products", action="store_true")
 
 	return parser.parse_args()
