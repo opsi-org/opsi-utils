@@ -29,12 +29,13 @@ linux-pyinstaller:
     - mv dist/opsi-utils ./opsi-utils-amd64
     # Check if binary is working
     - opsi-utils-amd64/opsi-admin --version
+    - opsi-dev-cli -l info binary pull
+    - mv opsi-cli opsi-utils-amd64
   artifacts:
     name: 'opsi-utils-linux-pyinstaller'
     paths:
       - opsi-utils-amd64
     expire_in: 2 days
-
 
 arm64-pyinstaller:
   stage: build
@@ -49,6 +50,8 @@ arm64-pyinstaller:
     - mv dist/opsi-utils ./opsi-utils-arm64
     # Check if binary is working
     - OPSI_HOSTNAME=test.uib.local opsi-utils-arm64/opsi-admin --version
+    - opsi-dev-cli -l info binary pull
+    - mv opsi-cli opsi-utils-arm64
   artifacts:
     name: 'opsi-utils-arm64-pyinstaller'
     paths:
@@ -62,7 +65,6 @@ obs_int:
     - opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
   only:
     - tags
-
 
 obs_ext:
   stage: publish
