@@ -101,15 +101,11 @@ package:
       mkdir -p ${DST}/rootfs-amd64/usr/lib
       cp -a ${SRC}/opsi-utils-amd64 ${DST}/rootfs-amd64/usr/lib/opsi-utils
       cp -a ${SRC}/opsi-utils-amd64/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
-      cp -a ${SRC}/opsi-utils-amd64/opsi-cli ${DST}/rootfs-amd64/usr/bin
-      chmod 755 ${DST}/rootfs-amd64/usr/bin/opsi-cli
     fi;
     if [ -d ${SRC}/opsi-utils-arm64 ]; then
       mkdir -p ${DST}/rootfs-arm64/usr/lib
       cp -a ${SRC}/opsi-utils-arm64 ${DST}/rootfs-arm64/usr/lib/opsi-utils
       cp -a ${SRC}/opsi-utils-arm64/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
-      cp -a ${SRC}/opsi-utils-arm64/opsi-cli ${DST}/rootfs-arm64/usr/bin
-      chmod 755 ${DST}/rootfs-arm64/usr/bin/opsi-cli
     fi;
     for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients opsi-outdated-to-setup; do
        echo "#!/bin/sh"                            > ${DST}/rootfs/usr/bin/$i
@@ -119,6 +115,9 @@ package:
     echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-set-rights
     echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \"\$@\""  >> ${DST}/rootfs/usr/bin/opsi-set-rights
     chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
+    echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-cli
+    echo "exec /usr/lib/opsi-utils/opsi-cli \"\$@\""                 >> ${DST}/rootfs/usr/bin/opsi-cli
+    chmod 755 ${DST}/rootfs/usr/bin/opsi-cli
     cp -a "${SRC}/opsi-utils_data/etc"  ${DST}/rootfs/etc
     # mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
     cp -a "${SRC}/opsi-utils_data/opsi-python-examples" "${DST}/rootfs/usr/share/opsi-utils/"
