@@ -150,11 +150,12 @@ package:
     [ -e /etc/opsi/package-updater.repos.d/testing.repo ]         && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/testing.repo
     [ -e /etc/opsi/package-updater.repos.d/experimental.repo ]    && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/experimental.repo
 
+# os and architecture omitted -> defaulting to current machines values
 pull-binaries:
   - name: opsi-cli
     server-type: binaryindex
     destination: .
     extract: true
     post-script: []
-    version: 0.1.3  # os and architecture omitted -> defaulting to current machines values
+    version: 0.1.4
     server-url: http://binaryindex.uib.gmbh

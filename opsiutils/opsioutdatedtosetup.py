@@ -11,9 +11,10 @@ from argparse import ArgumentParser
 from subprocess import check_call
 
 from OPSI import __version__ as python_opsi_version
-from opsicommon.logging import logger
+from opsicommon.logging import logger, logging_config, DEFAULT_COLORED_FORMAT
 
 from opsiutils import __version__
+
 
 def parse_args():
 	parser = ArgumentParser(description='Set outdated localboot Products to setup.')
@@ -30,6 +31,10 @@ def parse_args():
 		help="If this is set, any installed package which only has an uninstall script will be set to uninstall",
 		action="store_true"
 	)
+	parser.add_argument("--exclude-client-groups", help="Do not perform actions for these client groups")
+	parser.add_argument("--include-product-groups", help="Set actionRequests for the products of these product groups")
+	parser.add_argument("--exclude-product-groups", help="Do not set actionRequests for these product groups")
+	parser.add_argument("--setup-on-action", help="After actionRequest was set for a client, set these products to setup")
 	return parser.parse_args()
 
 
@@ -54,25 +59,47 @@ def main():
 				"--client-groups",
 				args.client_groups
 			])
+		if args.exclude_client_groups:
+			opsi_cli_call.extend([
+				"--exclude-client-groups",
+				args.exclude_client_groups
+			])
 		opsi_cli_call.extend([
 			"set-action-request",
 			"--where-outdated"
 		])
+		if args.add_failed:
+			opsi_cli_call.append("--where-failed")
+		if args.uninstall_where_only_uninstall:
+			opsi_cli_call.append("--uninstall-where-only-uninstall")
 		if args.include_products:
 			opsi_cli_call.extend([
 				"--products",
 				args.include_products
+			])
+		if args.include_product_groups:
+			opsi_cli_call.extend([
+				"--product-groups",
+				args.include_product_groups
 			])
 		if args.exclude_products:
 			opsi_cli_call.extend([
 				"--exclude-products",
 				args.exclude_products
 			])
-		if args.add_failed:
-			opsi_cli_call.append("--where-failed")
-		if args.uninstall_where_only_uninstall:
-			opsi_cli_call.append("--uninstall-where-only-uninstall")
-		logger.essential("Executing '%s'", opsi_cli_call)
+		if args.exclude_product_groups:
+			opsi_cli_call.extend([
+				"--exclude-product-groups",
+				args.exclude_product_groups
+			])
+		if args.setup_on_action:
+			opsi_cli_call.extend([
+				"--setup-on-action",
+				args.setup_on_action
+			])
+
+		logging_config(stderr_level=args.log_level, stderr_format=DEFAULT_COLORED_FORMAT)
+		logger.essential("Executing '%s'", " ".join(opsi_cli_call))
 		check_call(opsi_cli_call)
 	except Exception as err:  # pylint: disable=broad-except
 		logger.error(err)
