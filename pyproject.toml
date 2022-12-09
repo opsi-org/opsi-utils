@@ -45,6 +45,9 @@ opsi-python = "opsiutils.opsipython:main"
 opsi-wakeup-clients = "opsiutils.opsiwakeupclients:main"
 opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
 
+[tool.poetry.group.dev.dependencies]
+mypy = "^0.991"
+
 [tool.black]
 line-length = 140
 target-version = ['py310']
