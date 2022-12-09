@@ -10,6 +10,7 @@ import argparse
 import fcntl
 import gettext
 import os
+from pathlib import Path
 import struct
 import sys
 import termios
@@ -189,6 +190,7 @@ def parse_args():
 	parser.add_argument('--temp-directory', '-t',
 						dest="tempDir", help="temp dir", default='/tmp',
 						metavar='directory')
+	parser.add_argument('--control-to-toml', action='store_true', default=False, help="Convert control file to toml format")
 	hashSumGroup = parser.add_mutually_exclusive_group()
 	hashSumGroup.add_argument(
 		'--md5', '-m',
@@ -280,16 +282,18 @@ def makepackage_main():  # pylint: disable=too-many-locals,too-many-branches,too
 		raise OSError(f"No such directory: {packageSourceDir}")
 
 	if customName:
-		packageControlFilePath = os.path.join(packageSourceDir, f'OPSI.{customName}', 'control')
-	if not customName or not os.path.exists(packageControlFilePath):
-		packageControlFilePath = os.path.join(packageSourceDir, 'OPSI', 'control')
-		if not os.path.exists(packageControlFilePath):
+		packageControlFilePath = Path(packageSourceDir) / f'OPSI.{customName}' / 'control.toml'
+	if not customName or not packageControlFilePath.exists():
+		packageControlFilePath = Path(packageSourceDir) / 'OPSI' / 'control.toml'
+	if not packageControlFilePath.exists():
+		packageControlFilePath = packageControlFilePath.with_suffix("")  # strip .toml to fall back to old behaviour
+		if not packageControlFilePath.exists():
 			raise OSError(f"Control file '{packageControlFilePath}' not found")
 
 	if not quiet:
 		print("")
 		print(_("Locking package"))
-	pcf = PackageControlFile(packageControlFilePath)
+	pcf = PackageControlFile(str(packageControlFilePath))
 
 	lockPackage(tempDir, pcf)
 	pps = None
@@ -403,6 +407,15 @@ def makepackage_main():  # pylint: disable=too-many-locals,too-many-branches,too
 
 			# Regenerating to fix encoding
 			pcf.generate()
+			if args.control_to_toml and pcf._filename.endswith(".toml"):
+				logger.warning("Already using toml format, no need to use --control-to-toml")
+			elif args.control_to_toml:
+				logger.warning("Creating control.toml from control and deleting old control file.")
+				pcf.generate_toml()
+				if not Path(pcf._filename + ".toml").exists():
+					raise RuntimeError("Failed to create control.toml")
+				os.remove(pcf._filename)
+				pcf._filename += ".toml"
 
 			progressSubject = None
 			if not quiet:
