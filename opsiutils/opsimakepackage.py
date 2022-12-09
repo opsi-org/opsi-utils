@@ -407,15 +407,15 @@ def makepackage_main():  # pylint: disable=too-many-locals,too-many-branches,too
 
 			# Regenerating to fix encoding
 			pcf.generate()
-			if args.control_to_toml and pcf._filename.endswith(".toml"):
+			if args.control_to_toml and pcf._filename.endswith(".toml"):  # pylint: disable=protected-access
 				logger.warning("Already using toml format, no need to use --control-to-toml")
 			elif args.control_to_toml:
 				logger.warning("Creating control.toml from control and deleting old control file.")
 				pcf.generate_toml()
-				if not Path(pcf._filename + ".toml").exists():
+				if not Path(pcf._filename + ".toml").exists():  # pylint: disable=protected-access
 					raise RuntimeError("Failed to create control.toml")
-				os.remove(pcf._filename)
-				pcf._filename += ".toml"
+				os.remove(pcf._filename)  # pylint: disable=protected-access
+				pcf._filename += ".toml"  # pylint: disable=protected-access
 
 			progressSubject = None
 			if not quiet:
