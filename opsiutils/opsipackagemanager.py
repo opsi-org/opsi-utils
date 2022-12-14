@@ -26,8 +26,6 @@ from contextlib import contextmanager
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
 
 from OPSI import __version__ as python_opsi_version
-from OPSI.Backend.BackendManager import BackendManager
-from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Types import (
 	forceActionRequest,
 	forceBool,
@@ -61,8 +59,14 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
+from opsicommon.client.opsiservice import (  # type: ignore[import]
+	ServiceClient,
+	ServiceVerificationModes,
+)
+from opsicommon.config import OpsiConfig  # type: ignore[import]
+from opsicommon.client.jsonrpc import JSONRPCClient  # type: ignore[import]
 
-from opsiutils import __version__
+from opsiutils import __version__, SESSION_LIFETIME
 
 USER_AGENT = f"opsi-package-manager/{__version__}"
 
@@ -664,9 +668,9 @@ class TaskQueue(threading.Thread):
 
 class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-many-public-methods
 
-	def __init__(self, config, backend):
+	def __init__(self, config, service_client):
 		self.config = config
-		self.backend = backend
+		self.service_client = service_client
 
 		self.aborted = False
 		self.userInterface = None
@@ -717,11 +721,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		try:
 			connection = self.depotConnections[depotId]
 		except KeyError:
-			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
+			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": "depotId"}])[0]
 
-			connection = JSONRPCBackend(
+			connection = JSONRPCClient(
 				username=depotId,
-				password=depot.getOpsiHostKey(),
+				password=depot["opsiHostKey"],
 				address=depotId,
 				application=USER_AGENT,
 				compression=True
@@ -835,13 +839,16 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			subject.setMessage(_("Setting action setup for product %s where installed") % productId)
 			actionRequest = forceActionRequest(actionRequest)
 			clientIds = []
-			for clientToDepot in self.backend.configState_getClientToDepotserver(depotIds=[depotId]):
+			for clientToDepot in self.service_client.jsonrpc("configState_getClientToDepotserver", [[depotId]]):
 				clientIds.append(clientToDepot['clientId'])
 
 			if not clientIds:
 				return
 
-			productOnClients = self.backend.productOnClient_getObjects(clientId=clientIds, productId=productId, installationStatus='installed')
+			productOnClients = self.service_client.jsonrpc(
+				"productOnClient_getObjects",
+				[[], {"clientId": clientIds, "productId": productId, "installationStatus": "installed"}]
+			)
 			if not productOnClients:
 				return
 
@@ -855,18 +862,18 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 						_("Setting action %s with Dependencies for product %s on client: %s")
 						% (actionRequest, productId, client)
 					)
-					self.backend.setProductActionRequestWithDependencies(clientId=client, productId=productId, actionRequest=actionRequest)
+					self.service_client.jsonrpc("setProductActionRequestWithDependencies", [productId, client, actionRequest])
 				return
 
 			clientIds = []
 			for idx, poc in enumerate(productOnClients):
-				productOnClients[idx].setActionRequest(actionRequest)
-				clientIds.append(poc.clientId)
+				productOnClients[idx]["actionRequest"] = actionRequest
+				clientIds.append(poc["clientId"])
 
 			clientIds.sort()
 			logger.notice("Setting action '%s' for product '%s' on client(s): %s", actionRequest, productId, ', '.join(clientIds))
 			subject.setMessage(_("Setting action %s for product %s on client(s): %s") % (actionRequest, productId, ', '.join(clientIds)))
-			self.backend.productOnClient_updateObjects(productOnClients)
+			self.service_client.jsonrpc("productOnClient_updateObjects", [productOnClients])
 		except Exception as err:
 			logger.error(err)
 			subject.setMessage(_("Error: %s") % err, severity=2)
@@ -878,7 +885,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			subject.setMessage(_("Purging product property states for product %s") % productId)
 			depotClientIds = [
 				clientToDepot['clientId'] for clientToDepot
-				in self.backend.configState_getClientToDepotserver(depotIds=[depotId])
+				in self.service_client.jsonrpc("configState_getClientToDepotserver", [[depotId]])
 			]
 
 			if not depotClientIds:
@@ -886,15 +893,15 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			productPropertyStates = []
 			clientIds = []
-			for productPropertyState in self.backend.productPropertyState_getObjects(productId=productId, objectId=depotClientIds):
+			for productPropertyState in self.service_client.jsonrpc("productPropertyState_getObjects", [[], {"productId": productId, "objectId": depotClientIds}]):
 				productPropertyStates.append(productPropertyState)
-				if productPropertyState.objectId not in clientIds:
-					clientIds.append(productPropertyState.objectId)
+				if productPropertyState["objectId"] not in clientIds:
+					clientIds.append(productPropertyState["objectId"])
 
 			logger.notice("Purging product property states for product '%s' on client(s): %s", productId, ', '.join(clientIds))
 			subject.setMessage(_("Purging product property states for product '%s' on client(s): %s") % (productId, ', '.join(clientIds)))
 
-			self.backend.productPropertyState_deleteObjects(productPropertyStates)
+			self.service_client.jsonrpc("productPropertyState_deleteObjects", [productPropertyStates])
 		except Exception as err:  # pylint: disable=broad-except
 			logger.error(err)
 			subject.setMessage(_("Error: %s") % err, severity=2)
@@ -951,7 +958,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			productId = self.getPackageControlFile(packageFile).getProduct().getId()
 
-			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
+			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": "depotId"}])[0]
 			if not depot.repositoryLocalUrl.startswith('file://'):
 				raise ValueError(f"Repository local url '{depot.repositoryLocalUrl}' not supported")
 			depotRepositoryPath = depot.repositoryLocalUrl[7:]
@@ -1206,15 +1213,14 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				self.getPackageControlFile(packageFile).getProduct().getId()
 				for packageFile in self.config['packageFiles']
 			]
-			lockedProductsOnDepot = self.backend.productOnDepot_getObjects(
-				productId=productIds,
-				depotId=self.config['depotIds'],
-				locked=True
+			lockedProductsOnDepot = self.service_client.jsonrpc(
+				"productOnDepot_getObjects",
+				[[], {"productId": productIds, "depotId": self.config["depotIds"], "locked": True}]
 			)
 
 			if lockedProductsOnDepot:
 				errors = [
-					f"Product '{productOnDepot.productId}' currently locked on depot '{productOnDepot.depotId}'"
+					f"Product '{productOnDepot['productId']}' currently locked on depot '{productOnDepot['depotId']}'"
 					for productOnDepot in lockedProductsOnDepot
 				]
 				nwl = "\n"
@@ -1337,11 +1343,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		depotPackageFile = packageFile
 
 		try:
-			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
+			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": depotId}])[0]
 			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
-				if not depot.repositoryLocalUrl.startswith('file://'):
-					raise ValueError(f"Repository local url '{depot.repositoryLocalUrl}' not supported")
-				depotPackageFile = depot.repositoryLocalUrl[7:]
+				if not depot["repositoryLocalUrl"].startswith('file://'):
+					raise ValueError(f"Repository local url '{depot['repositoryLocalUrl']}' not supported")
+				depotPackageFile = depot["repositoryLocalUrl"][7:]
 				if depotPackageFile.endswith('/'):
 					depotPackageFile = depotPackageFile[:-1]
 				depotPackageFile += '/' + os.path.basename(packageFile)
@@ -1380,11 +1386,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					propertyDefaultValues[productProperty.propertyId] = []
 
 			if self.config['properties'] == 'keep':
-				for productPropertyState in self.backend.productPropertyState_getObjects(productId=productId, objectId=depotId):
-					if productPropertyState.propertyId in propertyDefaultValues:
-						propertyDefaultValues[productPropertyState.propertyId] = productPropertyState.values
-						if propertyDefaultValues[productPropertyState.propertyId] is None:
-							propertyDefaultValues[productPropertyState.propertyId] = []
+				for productPropertyState in self.service_client.jsonrpc("productPropertyState_getObjects", [[], {"productId": productId, "objectId": depotId}]):
+					if productPropertyState["propertyId"] in propertyDefaultValues:
+						propertyDefaultValues[productPropertyState["propertyId"]] = productPropertyState["values"]
+						if propertyDefaultValues[productPropertyState["propertyId"]] is None:
+							propertyDefaultValues[productPropertyState["propertyId"]] = []
 
 			installationParameters = {
 				'force': self.config['forceInstall'],
@@ -1412,7 +1418,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					), severity=4)
 
 			else:
-				set_product_cache_outdated(depotId, self.backend)
+				set_product_cache_outdated(depotId, self.service_client)
 				logger.notice("Installation of package '%s' on depot '%s' successful", depotPackageFile, depotId)
 				subject.setMessage(_("Installation of package %s successful") % packageFile, severity=4)
 
@@ -1448,14 +1454,14 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			packageNotInstalled = False
 			productIds = []
 			for product in self.config['productIds']:
-				package = self.backend.productOnDepot_getObjects(depotId=depotId, productId=str(product))
+				package = self.service_client.jsonrcp("productOnDepot_getObjects", [[], {"depotId": depotId, "productId": str(product)}])
 				if not package:
 					subject.setMessage(_("WARNING: Product {0} not installed on depot {1}.".format(product, depotId)), severity=3)  # pylint: disable=consider-using-f-string
 					logger.warning("WARNING: Product %s not installed on depot %s.", product, depotId)
 					packageNotInstalled = True
 
-			for productOnDepot in self.backend.productOnDepot_getObjects(depotId=depotId, productId=self.config['productIds']):
-				productIds.append(productOnDepot.productId)
+			for productOnDepot in self.service_client.jsonrpc("productOnDepot_getObjects", [[], {"depotId": depotId, "productId": self.config["productIds"]}]):
+				productIds.append(productOnDepot["productId"])
 			if not productIds:
 				continue
 			tq = TaskQueue(name=f"Uninstall of package(s) {', '.join(productIds)} on depot '{depotId}'")
@@ -1484,9 +1490,9 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			logger.notice("Uninstalling package '%s' on depot '%s'", productId, depotId)
 			subject.setMessage(_(f"Uninstalling package {productId}"))
 
-			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
-			logger.info("Using '%s' as repository url", depot.getRepositoryRemoteUrl())
-			repository = getRepository(url=depot.getRepositoryRemoteUrl(), username=depotId, password=depot.getOpsiHostKey())
+			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": depotId}])[0]
+			logger.info("Using '%s' as repository url", depot["repositoryRemoteUrl"])
+			repository = getRepository(url=depot["repositoryRemoteUrl"], username=depotId, password=depot["opsiHostKey"])
 			for destination in repository.listdir():
 				fileInfo = parseFilename(destination)
 				if not fileInfo:
@@ -1503,7 +1509,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				productId, force=self.config['forceUninstall'], deleteFiles=self.config['deleteFilesOnUninstall']
 			)
 
-			set_product_cache_outdated(depotId, self.backend)
+			set_product_cache_outdated(depotId, self.service_client)
 
 			logger.notice("Uninstall of package '%s' on depot '%s' finished", productId, depotId)
 			subject.setMessage(_("Uninstallation of package {0} successful").format(productId), severity=4)
@@ -1592,14 +1598,19 @@ class OpsiPackageManagerControl:
 			stderr_format=DEFAULT_COLORED_FORMAT
 		)
 
-		self.backend = None
+		self.service_client = None
 		if need_opsi_server:
-			self.backend = BackendManager(
-				backendConfigDir=self.config['backendConfigDir'],
-				dispatchConfigFile=self.config['dispatchConfigFile'],
-				extensionConfigDir=self.config['extendConfigDir'],
-				extend=True
+			opsiconf = OpsiConfig()
+			service_client = ServiceClient(
+				address="https://localhost:4447/rpc",
+				username=opsiconf.get("host", "id"),
+				password=opsiconf.get("host", "key"),
+				user_agent=USER_AGENT,
+				session_lifetime=SESSION_LIFETIME,
+				verify=ServiceVerificationModes.ACCEPT_ALL,
 			)
+			service_client.connect()
+
 			try:
 				if not self.config['depotIds']:
 					try:
@@ -1609,7 +1620,7 @@ class OpsiPackageManagerControl:
 				else:
 					self.config['uploadToLocalDepot'] = True
 
-				knownDepotIds = set(self.backend.host_getIdents(type='OpsiDepotserver', returnType='unicode'))  # pylint: disable=no-member
+				knownDepotIds = set(self.service_client.jsonrpc("host_getIdents", ["unicode", {"type": "OpsiDepotserver"}]))
 
 				if any(depotId.lower() == 'all' for depotId in self.config['depotIds']):
 					self.config['depotIds'] = list(knownDepotIds)
@@ -1627,8 +1638,8 @@ class OpsiPackageManagerControl:
 
 				self.config['depotIds'].sort()
 			except Exception:
-				if self.backend:
-					self.backend.backend_exit()
+				if self.service_client:
+					self.service_client.disconnect()
 				raise
 		try:
 			if self.config['command'] in ('install', 'upload', 'extract'):
@@ -1659,8 +1670,8 @@ class OpsiPackageManagerControl:
 				if not self.config['productIds']:
 					raise ValueError("No opsi product id given")
 		except Exception:
-			if self.backend:
-				self.backend.backend_exit()
+			if self.service_client:
+				self.service_client.disconnect()
 			raise
 
 		try:
@@ -1668,6 +1679,9 @@ class OpsiPackageManagerControl:
 		except Exception as err:
 			logger.error(err, exc_info=True)
 			raise RuntimeError(f"Failed to process command '{self.config['command']}': {err}") from err
+		finally:
+			if self.service_client:
+				self.service_client.disconnect()
 
 	def processCommand(self):  # pylint: disable=too-many-branches
 		try:
@@ -1687,9 +1701,6 @@ class OpsiPackageManagerControl:
 			elif command == 'extract':
 				self.processExtractCommand()
 		finally:
-			if self.backend:
-				self.backend.backend_exit()
-
 			for thread in threading.enumerate():
 				try:
 					thread.join(5)
@@ -1781,22 +1792,23 @@ class OpsiPackageManagerControl:
 		idWidth = versionWidth = int((terminalWidth - len(indent)) / 3)
 		idWidth = min(idWidth, 25)
 		versionWidth = min(versionWidth, 25)
-		productOnDepots = self.backend.productOnDepot_getObjects(  # pylint: disable=no-member
-			depotId=self.config['depotIds'], productId=self.config['productIds']
+		productOnDepots = self.service_client.jsonrpc(
+			"productOnDepot_getObjects",
+			[[], {"depotId": self.config["depotIds"], "productId": self.config["productIds"]}],
 		)
-		products = self.backend.product_getObjects(id=self.config['productIds'])  # pylint: disable=no-member
+		products = self.service_client.jsonrpc("product_getObjects", [[], {"id": self.config["productIds"]}])
 
 		productInfo = {}
 		for product in products:
-			if product.id not in productInfo:
-				productInfo[product.id] = {}
-			if product.productVersion not in productInfo[product.id]:
-				productInfo[product.id][product.productVersion] = {}
+			if product["id"] not in productInfo:
+				productInfo[product["id"]] = {}
+			if product["productVersion"] not in productInfo[product["id"]]:
+				productInfo[product["id"]][product["productVersion"]] = {}
 
-			productInfo[product.id][product.productVersion][product.packageVersion] = product
+			productInfo[product["id"]][product["productVersion"]][product["packageVersion"]] = product
 
-			if len(product.id) > idWidth:
-				idWidth = len(product.id)
+			if len(product["id"]) > idWidth:
+				idWidth = len(product["id"])
 
 		nameWidth = terminalWidth - len(indent) - idWidth - versionWidth - 4
 
@@ -1804,7 +1816,7 @@ class OpsiPackageManagerControl:
 		for depotId in self.config['depotIds']:
 			productOnDepotInfo[depotId] = {}
 		for productOnDepot in productOnDepots:
-			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
+			productOnDepotInfo[productOnDepot["depotId"]][productOnDepot["productId"]] = productOnDepot
 
 		if self.config['quiet']:
 			return
@@ -1825,15 +1837,15 @@ class OpsiPackageManagerControl:
 
 			for productId in productIds:
 				productOnDepot = values[productId]
-				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
+				product = productInfo[productOnDepot["productId"]][productOnDepot["productVersion"]][productOnDepot["packageVersion"]]
 				print(
 					"%s%*s %*s %*s" % (
 						indent, -1 * idWidth,
 						productId,
 						-1 * versionWidth,
-						product.version,
+						product["version"],
 						-1 * nameWidth,
-						product.name.replace('\n', '')[:nameWidth]
+						product["name"].replace('\n', '')[:nameWidth]
 					)
 				)
 			print("")
@@ -1843,16 +1855,16 @@ class OpsiPackageManagerControl:
 			return
 
 		depotIds = self.config['depotIds']
-		productOnDepots = self.backend.productOnDepot_getObjects(  # pylint: disable=no-member
-			depotId=depotIds,
-			productId=self.config['productIds']
+		productOnDepots = self.service_client.jsonrpc(
+			"productOnDepot_getObjects",
+			[[], {"depotId": depotIds, "productId": self.config["productIds"]}]
 		)
 
 		productIds = set()
 		productOnDepotInfo = {depotId: {} for depotId in depotIds}
 		for productOnDepot in productOnDepots:
-			productIds.add(productOnDepot.productId)
-			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
+			productIds.add(productOnDepot["productId"])
+			productOnDepotInfo[productOnDepot["depotId"]][productOnDepot["productId"]] = productOnDepot
 
 		maxWidth = max(len(depotId) for depotId in depotIds)
 
@@ -1872,16 +1884,16 @@ class OpsiPackageManagerControl:
 					continue
 
 				if not productVersion:
-					productVersion = productOnDepot.productVersion
-				elif productVersion != productOnDepot.productVersion:
+					productVersion = productOnDepot["productVersion"]
+				elif productVersion != productOnDepot["productVersion"]:
 					differs = True
 
 				if not packageVersion:
-					packageVersion = productOnDepot.packageVersion
-				elif packageVersion != productOnDepot.packageVersion:
+					packageVersion = productOnDepot["packageVersion"]
+				elif packageVersion != productOnDepot["packageVersion"]:
 					differs = True
 
-				lines.append(f"    {depotId:<{maxWidth}}: {productOnDepot.version}")
+				lines.append(f"    {depotId:<{maxWidth}}: {productOnDepot['productVersion']}-{productOnDepot['packageVersion']}")
 
 			if differs:
 				depotsInSync = False
@@ -1894,21 +1906,21 @@ class OpsiPackageManagerControl:
 			print(syncMessage)
 
 	def processUploadCommand(self):
-		self._opm = OpsiPackageManager(self.config, self.backend)
+		self._opm = OpsiPackageManager(self.config, self.service_client)
 		try:
 			self._opm.uploadToRepositories()
 		finally:
 			self._opm.cleanup()
 
 	def processInstallCommand(self):
-		self._opm = OpsiPackageManager(self.config, self.backend)
+		self._opm = OpsiPackageManager(self.config, self.service_client)
 		try:
 			self._opm.installOnDepots()
 		finally:
 			self._opm.cleanup()
 
 	def processRemoveCommand(self):
-		self._opm = OpsiPackageManager(self.config, self.backend)
+		self._opm = OpsiPackageManager(self.config, self.service_client)
 		try:
 			self._opm.uninstallPackages()
 		finally:
@@ -1933,9 +1945,6 @@ class OpsiPackageManagerControl:
 			'logFile': None,
 			'quiet': False,
 			'tempDir': '/tmp',
-			'backendConfigDir': None,
-			'dispatchConfigFile': None,
-			'extendConfigDir': None,
 			'command': None,
 			'packageFiles': [],
 			'productIds': [],
@@ -1960,9 +1969,6 @@ class OpsiPackageManagerControl:
 		if opsi_server:
 			self.config['logFile'] = '/var/log/opsi/opsi-package-manager.log'
 			self.config['deltaUpload'] = librsyncDeltaFile is not None
-			self.config['backendConfigDir'] = '/etc/opsi/backends'
-			self.config['dispatchConfigFile'] = '/etc/opsi/backendManager/dispatch.conf'
-			self.config['extendConfigDir'] = "/etc/opsi/backendManager/extend.d"
 			self.config['localDepotId'] = forceHostId(getfqdn(conf='/etc/opsi/global.conf'))
 			self.config['depotIds'] = None
 
@@ -2058,8 +2064,8 @@ class OpsiPackageManagerControl:
 			if self._opm:
 				self._opm.abort()
 
-		if self.backend:
-			self.backend.backend_exit()
+		if self.service_client:
+			self.service_client.disconnect()
 
 		for thread in threading.enumerate():
 			logger.debug("Running thread after signal: %s", thread)
@@ -2137,7 +2143,7 @@ def main():
 		print(f"\nERROR: {err}\n", file=sys.stderr)
 		sys.exit(1)
 
-def set_product_cache_outdated(depotId, backend):
+def set_product_cache_outdated(depotId, service_client):
 	logger.debug("mark redis product cache as dirty for depot: %s", depotId)
 	config_id = f"opsiconfd.{depotId}.product.cache.outdated"
-	backend.config_createBool(id=config_id, description="", defaultValues=[True])
+	service_client.jsonrpc("config_createBool", [config_id, "", [True]])

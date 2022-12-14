@@ -6,4 +6,5 @@
 opsiutils
 """
 
-__version__ = '4.2.0.188'
+__version__ = '4.3.0.0'
+SESSION_LIFETIME = 15
