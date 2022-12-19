@@ -54,14 +54,10 @@ from opsicommon.logging import (
 	logging_config,
 	secret_filter,
 )
-from opsicommon.client.opsiservice import (  # type: ignore[import]
-	ServiceClient,
-	ServiceVerificationModes,
-)
 from opsicommon.config import OpsiConfig  # type: ignore[import]
 
 
-from opsiutils import __version__, SESSION_LIFETIME
+from opsiutils import __version__, get_service_client
 
 COLOR_NORMAL = '\033[0;0;0m'
 COLOR_BLACK = '\033[0;30;40m'
@@ -280,17 +276,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 				logger.error("Failed to read session file '%s': %s", sessionFile, err)
 				raise err
 
-		service_client = ServiceClient(
-			address=address,
-			username=username,
-			password=password,
-			user_agent=f"opsi-admin/{__version__}",
-			session_lifetime=SESSION_LIFETIME,
-			verify=ServiceVerificationModes.ACCEPT_ALL,
-			session_cookie=session_cookie
-		)
-		service_client.connect()
-		logger.info('Connected')
+		service_client = get_service_client(address=address, username=username, password=password, session_cookie=session_cookie)
 
 		session_cookie = service_client.session_cookie
 		if session_cookie and sessionFile:

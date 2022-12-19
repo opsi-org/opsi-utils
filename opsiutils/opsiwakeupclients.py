@@ -19,16 +19,12 @@ from contextlib import contextmanager
 from itertools import product
 
 from opsicommon.logging import logger, init_logging, logging_config, LOG_ERROR, DEFAULT_COLORED_FORMAT  # type: ignore[import]
-from opsicommon.client.opsiservice import (  # type: ignore[import]
-	ServiceClient,
-	ServiceVerificationModes,
-)
+
 from opsicommon.client.jsonrpc import JSONRPCClient  # type: ignore[import]
-from opsicommon.config import OpsiConfig  # type: ignore[import]
 from OPSI import __version__ as python_opsi_version  # type: ignore[import]
 from OPSI.Util.Ping import ping  # type: ignore[import]
 
-from opsiutils import __version__, SESSION_LIFETIME
+from opsiutils import __version__, get_service_client
 
 try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -495,16 +491,7 @@ def opsiwakeupclients_main():
 		init_logging(log_file=options.logFile, file_level=options.fileLogLevel)
 
 	try:
-		opsiconf = OpsiConfig()
-		service_client = ServiceClient(
-			address="https://localhost:4447/rpc",
-			username=opsiconf.get("host", "id"),
-			password=opsiconf.get("host", "key"),
-			user_agent=f"opsi-wakeup-clients/{__version__}",
-			session_lifetime=SESSION_LIFETIME,
-			verify=ServiceVerificationModes.ACCEPT_ALL,
-		)
-		service_client.connect()
+		service_client = get_service_client(user_agent=f"opsi-wakeup-clients/{__version__}")
 		wakeClientsForUpdate(
 			service_client,
 			options.depotId,

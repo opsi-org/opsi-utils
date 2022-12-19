@@ -59,14 +59,9 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
-from opsicommon.client.opsiservice import (  # type: ignore[import]
-	ServiceClient,
-	ServiceVerificationModes,
-)
-from opsicommon.config import OpsiConfig  # type: ignore[import]
 from opsicommon.client.jsonrpc import JSONRPCClient  # type: ignore[import]
 
-from opsiutils import __version__, SESSION_LIFETIME
+from opsiutils import __version__, get_service_client
 
 USER_AGENT = f"opsi-package-manager/{__version__}"
 
@@ -1600,16 +1595,7 @@ class OpsiPackageManagerControl:
 
 		self.service_client = None
 		if need_opsi_server:
-			opsiconf = OpsiConfig()
-			service_client = ServiceClient(
-				address="https://localhost:4447/rpc",
-				username=opsiconf.get("host", "id"),
-				password=opsiconf.get("host", "key"),
-				user_agent=USER_AGENT,
-				session_lifetime=SESSION_LIFETIME,
-				verify=ServiceVerificationModes.ACCEPT_ALL,
-			)
-			service_client.connect()
+			self.service_client = get_service_client(user_agent=USER_AGENT)
 
 			try:
 				if not self.config['depotIds']:
