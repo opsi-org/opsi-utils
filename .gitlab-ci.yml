@@ -40,12 +40,15 @@ integration_test:
     # OPSILICSRV_URL: ${OPSILICSRV_URL:-}
     # OPSILICSRV_TOKEN: ${OPSILICSRV_TOKEN:-}
   stage: test
-  image: docker.uib.gmbh/opsi/opsi-server:4.3-development
+  image:
+    name: docker.uib.gmbh/opsi/opsi-server:4.3-development
+    entrypoint: bash /entrypoint.sh & /bin/bash
   script:
     - ps -A
     - pwd
     - ls -lah
-
+    - sleep 30
+    - ps -A
 
 linux-pyinstaller:
   stage: build
