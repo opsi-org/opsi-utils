@@ -42,7 +42,7 @@ integration_test:
   stage: test
   image:
     name: docker.uib.gmbh/opsi/opsi-server:4.3-development
-    entrypoint: [ "/bin/bash", "-l", "-c" ]
+    entrypoint: [""]
   script:
     - ps -A
     - pwd
