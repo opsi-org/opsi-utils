@@ -15,6 +15,37 @@ pytest-pylint:
     - poetry install
     - poetry run pylint --disable=R,fixme opsiutils
 
+integration_test:
+  services:
+    - name: mysql:latest
+      command:
+        - --max_connections=1000
+        - --default-authentication-plugin=mysql_native_password
+    - name: redislabs/redistimeseries:latest
+      alias: redis
+    #- name: docker.uib.gmbh/opsi/opsi-server:4.3-development
+    #  alias: opsi-server
+  variables:
+    MYSQL_ROOT_PASSWORD: "opsi"
+    MYSQL_DATABASE: "opsitest"
+    MYSQL_USER: "opsi"
+    MYSQL_PASSWORD: "opsi"
+    MYSQL_HOST: mysql
+    REDIS_HOST: redis
+    OPSI_ADMIN_PASSWORD: vhahd8usaz
+    OPSI_HOST_ROLE: configserver
+    OPSI_TFTPBOOT: "false"
+    OPSICONFD_LOG_LEVEL: 6
+    # OPSICONFD_RESTORE_BACKUP_URL: ${OPSICONFD_RESTORE_BACKUP_URL:-}
+    # OPSILICSRV_URL: ${OPSILICSRV_URL:-}
+    # OPSILICSRV_TOKEN: ${OPSILICSRV_TOKEN:-}
+  stage: test
+  image: docker.uib.gmbh/opsi/opsi-server:4.3-development
+  script:
+    - ps -A
+    - pwd
+    - ls -lah
+
 
 linux-pyinstaller:
   stage: build
