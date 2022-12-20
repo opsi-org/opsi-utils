@@ -36,23 +36,15 @@ integration_test:
     OPSI_HOST_ROLE: configserver
     OPSI_TFTPBOOT: "false"
     OPSICONFD_LOG_LEVEL: 6
-    # OPSICONFD_RESTORE_BACKUP_URL: ${OPSICONFD_RESTORE_BACKUP_URL:-}
-    # OPSILICSRV_URL: ${OPSILICSRV_URL:-}
-    # OPSILICSRV_TOKEN: ${OPSILICSRV_TOKEN:-}
   stage: test
   image:
     name: docker.uib.gmbh/opsi/opsi-server:4.3-development
     entrypoint: [""]
   script:
-    - ps -A
-    - pwd
-    - ls -lah
-    - sleep 10
-    - ps -A
     - bash /entrypoint.sh &
-    - ps -A
-    - sleep 5
-    - ps -A
+    - while ! ps -A | grep "opsiconfd"; echo "waiting for opsiconfd"; do sleep 1; done
+    - opsi-admin -d method host_getObjects
+    - opsi-admin -d method does_not_exist
 
 linux-pyinstaller:
   stage: build
