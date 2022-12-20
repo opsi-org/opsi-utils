@@ -42,7 +42,7 @@ integration_test:
     entrypoint: [""]
   script:
     - bash /entrypoint.sh &
-    - while ! ps -A | grep "opsiconfd"; echo "waiting for opsiconfd"; do sleep 1; done
+    - while ! nc -v -z -w3 localhost 4447 > /dev/null; do sleep 1; done
     - opsi-admin -d method host_getObjects
     - opsi-admin -d method does_not_exist
 
