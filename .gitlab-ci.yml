@@ -42,12 +42,16 @@ integration_test:
   stage: test
   image:
     name: docker.uib.gmbh/opsi/opsi-server:4.3-development
-    entrypoint: ["bash", "entrypoint.sh", "&", "/bin/bash"]
+    entrypoint: ["/bin/bash"]
   script:
     - ps -A
     - pwd
     - ls -lah
-    - sleep 30
+    - sleep 10
+    - ps -A
+    - bash /entrypoint.sh &
+    - ps -A
+    - sleep 5
     - ps -A
 
 linux-pyinstaller:
