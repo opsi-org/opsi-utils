@@ -48,6 +48,7 @@ opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"
 pytest = "^7.2.0"
+pytest-cov = "^4.0.0"
 
 [tool.black]
 line-length = 140

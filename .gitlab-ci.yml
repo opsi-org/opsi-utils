@@ -14,7 +14,7 @@ pytest-pylint:
     - poetry lock --no-update
     - poetry install
     - poetry run pylint --disable=R,fixme opsiutils
-    - poetry run pytest
+    - poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
 
 
 linux-pyinstaller:
