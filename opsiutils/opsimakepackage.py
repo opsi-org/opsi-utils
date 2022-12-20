@@ -16,12 +16,13 @@ import sys
 import termios
 import tty
 from contextlib import contextmanager
+from typing import List
 
 import OPSI.Util.File.Archive
 from OPSI import __version__ as python_opsi_version
 from OPSI.System import execute
 from OPSI.Types import forceFilename, forceUnicode
-from OPSI.Util import md5sum
+from OPSI.Util import md5sum, compareVersions
 from OPSI.Util.File import ZsyncFile
 from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.Message import ProgressObserver, ProgressSubject
@@ -146,7 +147,7 @@ def print_info(product, customName, pcf):
 		print("   %-20s : %s" % ('user login', product.userLoginScript))  # pylint: disable=consider-using-f-string
 	print("")
 
-def parse_args():
+def parse_args(args: List[str] | None = None):
 	parser = argparse.ArgumentParser(add_help=False,
 		description=("Provides an opsi package from a package source directory.\n"
 				"If no source directory is supplied, the current directory will be used.")
@@ -220,7 +221,7 @@ def parse_args():
 				dest="newProductVersion", metavar='productversion',
 				help="Set new product version for package")
 
-	args = parser.parse_args()
+	args = parser.parse_args(args)  # falls back to sys.argv if None
 	if args.help:
 		parser.print_help()
 		sys.exit(1)
@@ -228,12 +229,12 @@ def parse_args():
 		args.compression = None
 	return args
 
-def makepackage_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 	os.umask(0o022)
 
 	init_logging(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
 
-	args = parse_args()
+	args = parse_args(args)
 
 	keepVersions = args.keepVersions
 	needOneVersion = False
@@ -283,6 +284,8 @@ def makepackage_main():  # pylint: disable=too-many-locals,too-many-branches,too
 
 	if customName:
 		packageControlFilePath = Path(packageSourceDir) / f'OPSI.{customName}' / 'control.toml'
+		if not packageControlFilePath.exists():
+			packageControlFilePath = Path(packageSourceDir) / f"OPSI.{customName}" / "control"
 	if not customName or not packageControlFilePath.exists():
 		packageControlFilePath = Path(packageSourceDir) / 'OPSI' / 'control.toml'
 	if not packageControlFilePath.exists():
@@ -294,6 +297,11 @@ def makepackage_main():  # pylint: disable=too-many-locals,too-many-branches,too
 		print("")
 		print(_("Locking package"))
 	pcf = PackageControlFile(str(packageControlFilePath))
+
+	if packageControlFilePath.suffix == ".toml" and packageControlFilePath.with_suffix("").exists():
+		pcf_old = PackageControlFile(str(packageControlFilePath.with_suffix("")))
+		if compareVersions(pcf_old.getProduct().version, ">", pcf.getProduct().version):
+			raise ValueError("control is newer than control.toml - Please update control.toml instead.")
 
 	lockPackage(tempDir, pcf)
 	pps = None
@@ -407,14 +415,18 @@ def makepackage_main():  # pylint: disable=too-many-locals,too-many-branches,too
 
 			# Regenerating to fix encoding
 			pcf.generate()
-			if args.control_to_toml and pcf._filename.endswith(".toml"):  # pylint: disable=protected-access
-				logger.warning("Already using toml format, no need to use --control-to-toml")
-			elif args.control_to_toml:
-				logger.warning("Creating control.toml from control and deleting old control file.")
-				pcf.generate_toml()
-				if not Path(pcf._filename + ".toml").exists():  # pylint: disable=protected-access
-					raise RuntimeError("Failed to create control.toml")
-				os.remove(pcf._filename)  # pylint: disable=protected-access
+			if args.control_to_toml:
+				if packageControlFilePath.suffix == ".toml":
+					raise ValueError("Already using toml format, do not use --control-to-toml")
+				else:
+					logger.warning("Creating control.toml from control and deleting old control file.")
+					pcf.generate_toml()
+					if not packageControlFilePath.with_suffix(".toml").exists():
+						raise RuntimeError("Failed to create control.toml")
+					pcf._filename += ".toml"  # pylint: disable=protected-access
+			elif packageControlFilePath.suffix == ".toml":
+				pcf._filename = pcf._filename.removesuffix(".toml")  # pylint: disable=protected-access
+				pcf.generate()  # Generate control for compatibility with old depots
 				pcf._filename += ".toml"  # pylint: disable=protected-access
 
 			progressSubject = None

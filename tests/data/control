@@ -1,0 +1,47 @@
+[Package]
+version: 1
+depends: 
+
+[Product]
+type: localboot
+id: prod-1750
+name: Control file with path
+description: This is some test description
+advice: 
+version: 1.0
+priority: 0
+licenseRequired: False
+productClasses: None
+setupScript: setup.ins
+uninstallScript: 
+updateScript: 
+alwaysScript: 
+onceScript: 
+customScript: 
+userLoginScript: 
+
+[ProductDependency]
+action: setup
+requiredProduct: l-system-update
+requiredAction: setup
+requiredStatus: installed
+requirementType: before
+
+[ProductProperty]
+type: unicode
+name: target_path
+multivalue: False
+editable: True
+description: The target path
+values: ["C:\\temp\\my_target"]
+default: ["C:\\temp\\my_target"]
+
+[ProductProperty]
+type: unicode
+name: adminaccounts
+multivalue: False
+editable: True
+description: Windows account(s) to provision as administrators.
+values: ["Administrator", "BUILTIN\\ADMINISTRATORS", "domain.local\\Administrator"]
+default: ["Administrator"]
+
