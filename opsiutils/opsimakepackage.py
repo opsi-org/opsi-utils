@@ -418,12 +418,11 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 			if args.control_to_toml:
 				if packageControlFilePath.suffix == ".toml":
 					raise ValueError("Already using toml format, do not use --control-to-toml")
-				else:
-					logger.warning("Creating control.toml from control and deleting old control file.")
-					pcf.generate_toml()
-					if not packageControlFilePath.with_suffix(".toml").exists():
-						raise RuntimeError("Failed to create control.toml")
-					pcf._filename += ".toml"  # pylint: disable=protected-access
+				logger.notice("Creating control.toml from control.")
+				pcf.generate_toml()
+				if not packageControlFilePath.with_suffix(".toml").exists():
+					raise RuntimeError("Failed to create control.toml")
+				pcf._filename += ".toml"  # pylint: disable=protected-access
 			elif packageControlFilePath.suffix == ".toml":
 				pcf._filename = pcf._filename.removesuffix(".toml")  # pylint: disable=protected-access
 				pcf.generate()  # Generate control for compatibility with old depots
