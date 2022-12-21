@@ -12,6 +12,7 @@ from opsicommon.client.opsiservice import (  # type: ignore[import]
 )
 from opsicommon.config import OpsiConfig  # type: ignore[import]
 
+<<<<<<< HEAD
 __version__ = '4.3.0.0'
 
 SESSION_LIFETIME = 15
@@ -37,3 +38,6 @@ def get_service_client(
 	)
 	service_client.connect()
 	logger.info('Connected')
+=======
+__version__ = '4.2.0.194'
+>>>>>>> feature/v4.2/control_toml2
