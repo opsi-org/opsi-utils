@@ -45,7 +45,11 @@ integration_test:
   script:
     - bash /entrypoint.sh &
     - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
+    - cat /etc/opsi/*.conf
+    - cat /etc/opsi/backends/*.conf
     - opsiconfd setup --log-level-stderr 6
+    - cat /etc/opsi/*.conf
+    - cat /etc/opsi/backends/*.conf
     - opsi-admin -d method host_getObjects
     - opsi-admin -d method does_not_exist
 
