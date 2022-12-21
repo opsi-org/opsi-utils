@@ -45,10 +45,9 @@ integration_test:
   script:
     - bash /entrypoint.sh &
     - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
-    - bash /entrypoint.sh set_environment_vars  # to set hosts for redis/grafana
-    - opsiconfd setup --log-level-stderr 6
-    - opsi-admin -d method host_getObjects
-    - opsi-admin -d method does_not_exist
+    - source /entrypoint.sh set_environment_vars  # to set hosts for redis/grafana
+    - opsiconfd setup --log-level-stderr 6  # initialize the new backend
+    - for file in integration_tests/*.sh; do bash "$file"; done
 
 linux-pyinstaller:
   stage: build
