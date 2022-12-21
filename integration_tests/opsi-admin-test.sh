@@ -1,4 +1,4 @@
 set -ex
 
-opsi-admin -d method host_getObjects
-opsi-admin -d method does_not_exist
+poetry run opsi-admin -d method host_getObjects
+poetry run opsi-admin -d method does_not_exist
