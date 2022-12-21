@@ -946,7 +946,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.3.0.2"
+version = "4.3.0.3"
 description = "The opsi python library"
 category = "main"
 optional = false
@@ -973,6 +973,7 @@ pywin32 = {version = ">=303,<304", markers = "sys_platform == \"win32\""}
 ruyaml = ">=0.91,<0.92"
 service-identity = ">=21.1,<22.0"
 sqlalchemy = ">=1.4,<2.0"
+tomlkit = ">=0.11.6,<0.12.0"
 twisted = {version = ">=22.1,<23.0", extras = ["tls"]}
 wmi = {version = ">=1.5,<2.0", markers = "sys_platform == \"win32\""}
 
@@ -1222,7 +1223,7 @@ reference = "uibpypi"
 name = "tomlkit"
 version = "0.11.6"
 description = "Style preserving TOML library"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -2080,8 +2081,8 @@ python-magic = [
     {file = "python_magic-0.4.27-py2.py3-none-any.whl", hash = "sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3"},
 ]
 python-opsi = [
-    {file = "python_opsi-4.3.0.2-py3-none-any.whl", hash = "sha256:1c7de367c6b0d9d7ce8e50fc36e5888165d82bd7acb6c738e647faf15881d8fc"},
-    {file = "python_opsi-4.3.0.2.tar.gz", hash = "sha256:6764490778f37065f9788da4863bda4f7b80840a7850493e93f6e8bc0b0724e9"},
+    {file = "python_opsi-4.3.0.3-py3-none-any.whl", hash = "sha256:5335348bc85d41e528cc6ef4d437d42a49644c584da469ecf2966bfb300a222e"},
+    {file = "python_opsi-4.3.0.3.tar.gz", hash = "sha256:bfc58b11c2fd764d91ff28639d80c07ec23596d2c7fd2de56ff1625e27354eaf"},
 ]
 python-opsi-common = [
     {file = "python_opsi_common-4.3.0.2-py3-none-any.whl", hash = "sha256:d38fbdf292aefddaea51424a32ba5812e242d267ce59c690632630fa2eb2c2ce"},
