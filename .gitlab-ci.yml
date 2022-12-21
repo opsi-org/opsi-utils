@@ -45,6 +45,9 @@ integration_test:
   script:
     - cat /etc/opsi/opsi.conf
     - cat /etc/opsi/opsiconfd.conf
+    - opsiconfd setup --log-level-stderr 6
+    - cat /etc/opsi/opsi.conf
+    - cat /etc/opsi/opsiconfd.conf
     - bash /entrypoint.sh &
     - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
     - cat /etc/opsi/opsi.conf
