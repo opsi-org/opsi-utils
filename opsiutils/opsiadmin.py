@@ -83,7 +83,7 @@ COLORS_AVAILABLE = [
 	COLOR_LIGHT_MAGENTA, COLOR_LIGHT_CYAN, COLOR_LIGHT_WHITE
 ]
 
-service_client = None
+service_client = None  # pylint: disable=invalid-name
 exitZero = False  # pylint: disable=invalid-name
 global_shell = None  # pylint: disable=invalid-name
 logFile = None  # pylint: disable=invalid-name
@@ -166,51 +166,95 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 	global logFile  # pylint: disable=global-statement,invalid-name
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--version', '-V', action='version',
-						version=f"{__version__} [python-opsi={python_opsi_version}]", help=_("Show version and exit"))
-	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_WARNING,
-						type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-						help=_("Set log level (default: 3)"))
-	parser.add_argument("--log-file", metavar='FILE', dest="logFile",
-						help=_("Path to log file"))
-	parser.add_argument('--address', '-a', default='https://localhost:4447/rpc',
-						help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"))
-	parser.add_argument('--username', '-u',
-						help=_("Username (default: host_id or current user)"))
-	parser.add_argument('--password', '-p',
-						help=_("Password (default: host_key or prompt for password)"))
-	parser.add_argument('--opsirc', default=getOpsircPath(),
-						help=(
-							_("Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
-							_("An opsirc file contains login credentials to the web API.")
-						))
-	parser.add_argument('--direct', '-d', action='store_true',
-						help=_("Do not use opsiconfd - DEPRECATED will be ignored"))
-	parser.add_argument('--no-depot', dest="depot",
-						action="store_false", default=True,
-						help=_("Do not use depotserver backend - DEPRECATED will be ignored"))
-	parser.add_argument('--interactive', '-i', action="store_true",
-						help=_("Start in interactive mode"))
-	parser.add_argument('--exit-zero', dest="exitZero", action='store_true',
-						help=_("Always exit with exit code 0."))
+	parser.add_argument(
+		'--version',
+		'-V',
+		action='version',
+		version=f"{__version__} [python-opsi={python_opsi_version}]",
+		help=_("Show version and exit")
+	)
+	parser.add_argument(
+		'--log-level',
+		'-l',
+		dest="logLevel",
+		default=LOG_WARNING,
+		type=int,
+		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		help=_("Set log level (default: 3)"),
+	)
+	parser.add_argument(
+		"--log-file",
+		metavar="FILE",
+		dest="logFile",
+		help=_("Path to log file"),
+	)
+	parser.add_argument(
+		'--address',
+		'-a',
+		default='https://localhost:4447/rpc',
+		help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"),
+	)
+	parser.add_argument('--username', '-u', help=_("Username (default: host_id or current user)"))
+	parser.add_argument('--password', '-p', help=_("Password (default: host_key or prompt for password)"))
+	parser.add_argument(
+		'--opsirc',
+		default=getOpsircPath(),
+		help=(
+			_("Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
+			_("An opsirc file contains login credentials to the web API.")
+		)
+	)
+	parser.add_argument('--direct', '-d', action='store_true', help=_("Do not use opsiconfd - DEPRECATED will be ignored"))
+	parser.add_argument(
+		'--no-depot',
+		dest="depot",
+		action="store_false",
+		default=True,
+		help=_("Do not use depotserver backend - DEPRECATED will be ignored")
+	)
+	parser.add_argument(
+		'--interactive',
+		'-i',
+		action="store_true",
+		help=_("Start in interactive mode")
+	)
+	parser.add_argument(
+		'--exit-zero',
+		dest="exitZero",
+		action='store_true',
+		help=_("Always exit with exit code 0.")
+	)
 
 	outputGroup = parser.add_argument_group(title=_("Output"))
-	outputGroup.add_argument('--colorize', '-c', action="store_true",
-						help=_("Colorize output"))
+	outputGroup.add_argument('--colorize', '-c', action="store_true", help=_("Colorize output"))
 
 	outputFormat = outputGroup.add_mutually_exclusive_group()
 	outputFormat.add_argument(
-		'--simple-output', '-S', dest='output', const='SIMPLE', action='store_const',
-		help=_("Simple output (only for scalars, lists)"))
+		'--simple-output',
+		'-S',
+		dest='output',
+		const='SIMPLE',
+		action='store_const',
+		help=_("Simple output (only for scalars, lists)"),
+	)
 	outputFormat.add_argument(
-		'--shell-output', '-s', dest='output', const='SHELL', action='store_const',
-		help=_("Shell output"))
+		'--shell-output',
+		'-s',
+		dest='output',
+		const='SHELL',
+		action='store_const',
+		help=_("Shell output"),
+	)
 	outputFormat.add_argument(
-		'--raw-output', '-r', dest='output', const='RAW', action='store_const',
-		help=_("Raw output"))
+		'--raw-output',
+		'-r',
+		dest='output',
+		const='RAW',
+		action='store_const',
+		help=_("Raw output"),
+	)
 
-	parser.add_argument('command', nargs=argparse.REMAINDER,
-						help=_("Command to execute."))
+	parser.add_argument('command', nargs=argparse.REMAINDER, help=_("Command to execute."))
 
 	options = parser.parse_args()
 
@@ -223,7 +267,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		logFile = forceFilename(options.logFile)
 		startLogFile(logFile, options.logLevel)
 
-	logging_config(stderr_level = LOG_NONE if interactive else options.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
+	logging_config(stderr_level=LOG_NONE if interactive else options.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 
 	global service_client  # pylint: disable=global-statement,invalid-name
 	try:
@@ -236,7 +280,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		opsiconf = OpsiConfig()
 		username = options.username or opsircConfig.get("username") or opsiconf.get("host", "id")
 		password = options.password or opsircConfig.get("password") or opsiconf.get("host", "key")
-		address =  options.address or opsircConfig.get("address") or "https://localhost:4447/rpc"  # config service url if running on depot?
+		address = options.address or opsircConfig.get("address") or "https://localhost:4447/rpc"  # config service url if running on depot?
 		if not username:
 			try:
 				username = forceUnicode(pwd.getpwuid(os.getuid())[0])
@@ -380,6 +424,7 @@ def startLogFile(log_file, logLevel):
 	with codecs.open(log_file, 'w', 'utf-8') as log:
 		log.write(f"Starting log at: {time.strftime('%a, %d %b %Y %H:%M:%S')}")
 	logging_config(log_file=log_file, file_level=logLevel)
+
 
 class Shell:  # pylint: disable=too-many-instance-attributes
 
@@ -1339,7 +1384,7 @@ class CommandSet(Command):
 
 		elif params[0] == 'log-file':
 			if params[1] == 'off':
-				logging_config(file_level = LOG_NONE)
+				logging_config(file_level=LOG_NONE)
 			else:
 				logFile = params[1]
 				startLogFile(logFile, LOG_DEBUG)
@@ -1347,7 +1392,7 @@ class CommandSet(Command):
 		elif params[0] == 'log-level':
 			if not logFile:
 				raise ValueError(_('No log-file set!'))
-			logging_config(file_level = int(params[1]))
+			logging_config(file_level=int(params[1]))
 
 
 class CommandHelp(Command):
@@ -1612,8 +1657,8 @@ class CommandTask(Command):
 			shell.appendLine(cleartext)
 
 		elif params[0] == 'setPcpatchPassword':
-			#if os.getuid() != 0:
-			#	raise RuntimeError(_("You have to be root to change pcpatch password!"))
+			# if os.getuid() != 0:
+			# 	raise RuntimeError(_("You have to be root to change pcpatch password!"))
 
 			fqdn = getfqdn(conf='/etc/opsi/global.conf')
 			if fqdn.count('.') < 2:
@@ -1695,6 +1740,7 @@ class CommandTask(Command):
 				else:
 					logger.warning("The user 'pcpatch' is not a local user, please change password also in Active Directory")
 
+
 def main():
 	@contextmanager
 	def shellExit():
@@ -1724,7 +1770,7 @@ def main():
 		logger.warning("Error in result: %s", error)
 		exitCode = 2
 	except Exception as err:  # pylint: disable=broad-except
-		logging_config(stderr_level = LOG_ERROR)
+		logging_config(stderr_level=LOG_ERROR)
 		logger.error("Error during execution: %s", err, exc_info=True)
 		exitCode = 1
 

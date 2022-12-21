@@ -50,11 +50,20 @@ class CancelledByUserError(Exception):
 def newprod_main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
-	parser.add_argument("-t", "--template-dir", default=None,
-						dest="templateDir", metavar="DIRECTORY",
-						help=_("Copies the contents of DIRECTORY to the destination directory."))
-	parser.add_argument('destination', default=os.getcwd(), nargs='?',
-						help=_("The destination of the new product source. If no destination directory is supplied, the current directory is used."))
+	parser.add_argument(
+		"-t",
+		"--template-dir",
+		default=None,
+		dest="templateDir",
+		metavar="DIRECTORY",
+		help=_("Copies the contents of DIRECTORY to the destination directory.")
+	)
+	parser.add_argument(
+		'destination',
+		default=os.getcwd(),
+		nargs='?',
+		help=_("The destination of the new product source. If no destination directory is supplied, the current directory is used."),
+	)
 
 	options = parser.parse_args()
 
@@ -360,10 +369,11 @@ Possible requirement types are: %s''') % (
 
 	while True:
 		if not ui.yesno(
-				title=_('Create product dependency?'),
-				text=_('Do you want to create a product dependency?'),
-				okLabel=_('Yes'),
-				cancelLabel=_('No')):
+			title=_('Create product dependency?'),
+			text=_('Do you want to create a product dependency?'),
+			okLabel=_('Yes'),
+			cancelLabel=_('No'),
+		):
 			break
 
 		productDependency = ProductDependency(
@@ -446,10 +456,12 @@ Property description: Usage description.
 Possible values: Comma separated list of possible values for the property. If no possible values are given any values are allowed.
 Editable: Is it allowed to specify a value which is not in the list of possible values?''')
 	while True:
-		if not ui.yesno(title=_('Create product property?'),
-				text=_('Do you want to create a product property?'),
-				okLabel=_('Yes'),
-				cancelLabel=_('No')):
+		if not ui.yesno(
+			title=_('Create product property?'),
+			text=_('Do you want to create a product property?'),
+			okLabel=_('Yes'),
+			cancelLabel=_('No')
+		):
 			break
 
 		# Get property type

@@ -77,8 +77,7 @@ def backup_main():  # pylint: disable=too-many-branches,too-many-statements
 	parser.add_argument("-h", "--help", action="help")
 	parser.add_argument("-v", "--verbose", action="store_true", default=False)
 	parser.add_argument("-V", "--version", action='store_true')
-	parser.add_argument("-l", "--log-level", default=LOG_NOTICE, type=int,
-						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	parser.add_argument("-l", "--log-level", default=LOG_NOTICE, type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 	parser.add_argument("--log-file", metavar='FILE', default="/var/log/opsi/opsi-backup.log")
 
 	subs = parser.add_subparsers(title="commands", dest="command")

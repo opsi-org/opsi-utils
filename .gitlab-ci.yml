@@ -3,6 +3,7 @@ image: docker.uib.gmbh/opsi/dev/pybuilder:uib-python-3.10
 stages:
   - test
   - build
+  - integration_test
   - publish
 
 
@@ -16,38 +17,6 @@ pytest-pylint:
     - poetry run pylint --disable=R,fixme opsiutils
     - poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
 
-integration_test:
-  services:
-    - name: mysql:latest
-      command:
-        - --max_connections=1000
-        - --default-authentication-plugin=mysql_native_password
-    - name: redislabs/redistimeseries:latest
-      alias: redis
-    #- name: docker.uib.gmbh/opsi/opsi-server:4.3-development
-    #  alias: opsi-server
-  variables:
-    MYSQL_ROOT_PASSWORD: "opsi"
-    MYSQL_DATABASE: "opsitest"
-    MYSQL_USER: "opsi"
-    MYSQL_PASSWORD: "opsi"
-    MYSQL_HOST: mysql
-    REDIS_HOST: redis
-    OPSI_ADMIN_PASSWORD: vhahd8usaz
-    OPSI_HOST_ROLE: configserver
-    OPSI_TFTPBOOT: "false"
-    OPSICONFD_LOG_LEVEL: 6
-    OPSICONFD_RESTORE_BACKUP_URL: "http://binaryindex.uib.gmbh/development/testbackup/all/all/testbackup_all_all_1.0.tar.gz"
-  stage: test
-  image:
-    name: docker.uib.gmbh/opsi/opsi-server:4.3-development
-    entrypoint: [""]
-  script:
-    - bash /entrypoint.sh &
-    - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
-    - source /entrypoint.sh set_environment_vars  # to set hosts for redis/grafana
-    - opsiconfd setup --log-level-stderr 6  # initialize the new backend
-    - for file in integration_tests/*.sh; do bash "$file"; done
 
 linux-pyinstaller:
   stage: build
@@ -90,6 +59,38 @@ arm64-pyinstaller:
     paths:
       - opsi-utils-arm64
     expire_in: 2 days
+
+
+integration_test:
+  services:
+    - name: mysql:latest
+      command:
+        - --max_connections=1000
+        - --default-authentication-plugin=mysql_native_password
+    - name: redislabs/redistimeseries:latest
+      alias: redis
+  variables:
+    MYSQL_ROOT_PASSWORD: "opsi"
+    MYSQL_DATABASE: "opsitest"
+    MYSQL_USER: "opsi"
+    MYSQL_PASSWORD: "opsi"
+    MYSQL_HOST: mysql
+    REDIS_HOST: redis
+    OPSI_ADMIN_PASSWORD: vhahd8usaz
+    OPSI_HOST_ROLE: configserver
+    OPSI_TFTPBOOT: "false"
+    OPSICONFD_LOG_LEVEL: 6
+    OPSICONFD_RESTORE_BACKUP_URL: "http://binaryindex.uib.gmbh/development/testbackup/all/all/testbackup_all_all_1.0.tar.gz"
+  stage: integration_test
+  image:
+    name: docker.uib.gmbh/opsi/opsi-server:4.3-development
+    entrypoint: [""]
+  script:
+    - bash /entrypoint.sh &
+    - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
+    - source /entrypoint.sh set_environment_vars  # to set hosts for redis/grafana
+    - opsiconfd setup --log-level-stderr 6  # initialize the new backend
+    - for file in integration_tests/*.sh; do bash "$file"; done
 
 
 obs_int:

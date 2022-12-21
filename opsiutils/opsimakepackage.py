@@ -78,7 +78,7 @@ class ProgressNotifier(ProgressObserver):
 
 		barlen = self.usedWidth - 10
 		filledlen = round(barlen * percent / 100)
-		_bar = '='*filledlen + ' ' * (barlen - filledlen)
+		_bar = '=' * filledlen + ' ' * (barlen - filledlen)
 		percent = f'{percent:0.2f}%'
 		sys.stderr.write(f'\r {percent:>8} [{_bar}]\r')
 		sys.stderr.flush()
@@ -87,19 +87,21 @@ class ProgressNotifier(ProgressObserver):
 		sys.stderr.write(f'\n{message}\n')
 		sys.stderr.flush()
 
+
 @contextmanager
 def raw_tty():
 	fd = sys.stdin.fileno()
-	#fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+	# fl = fcntl.fcntl(fd, fcntl.F_GETFL)
 	at = termios.tcgetattr(fd)
-	#fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+	# fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 	tty.setraw(fd)
 	try:
 		yield
 	finally:
-		#fcntl.fcntl(fd, fcntl.F_SETFL, fl)
-		#termios.tcsetattr(fd, termios.TCSADRAIN, at)
+		# fcntl.fcntl(fd, fcntl.F_SETFL, fl)
+		# termios.tcsetattr(fd, termios.TCSADRAIN, at)
 		termios.tcsetattr(fd, termios.TCSANOW, at)
+
 
 def print_info(product, customName, pcf):
 	print("")
@@ -147,79 +149,97 @@ def print_info(product, customName, pcf):
 		print("   %-20s : %s" % ('user login', product.userLoginScript))  # pylint: disable=consider-using-f-string
 	print("")
 
+
 def parse_args(args: List[str] | None = None):
-	parser = argparse.ArgumentParser(add_help=False,
-		description=("Provides an opsi package from a package source directory.\n"
-				"If no source directory is supplied, the current directory will be used.")
+	parser = argparse.ArgumentParser(
+		add_help=False,
+		description=(
+			"Provides an opsi package from a package source directory.\n"
+			"If no source directory is supplied, the current directory will be used."
+		),
 	)
-	parser.add_argument('--help', action='store_true', default=False,
-						help="Show help.")  # Manual implementation because of -h
+	parser.add_argument('--help', action='store_true', default=False, help="Show help.")  # Manual implementation because of -h
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
-	parser.add_argument('--quiet', '-q', action='store_true', default=False,
-						help="do not show progress")
-	parser.add_argument('--verbose', '-v', default=False, action="store_true",
-						help="verbose")
-	parser.add_argument('--log-level', '-l', dest="logLevel",
-						default=LOG_WARNING,
-						type=int,
-						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-						help="Set log-level (0..9)")
-	parser.add_argument('--no-compression', '-n',
-						action='store_true', default=False,
-						help="Do not compress")
-	parser.add_argument('--compression',
-						default='gzip', choices=['gzip', 'zstd'],
-						help="Compression format")
-	parser.add_argument('--archive-format', '-F', dest="format", default='cpio', choices=['cpio', 'tar'],
-						help="Archive format to use. Default: cpio")
-	parser.add_argument('--no-pigz', dest="disablePigz",
-					default=False, action='store_true',
-					help="Disable the usage of pigz")
-	parser.add_argument('--no-set-rights', dest="no_set_rights",
-					default=False, action='store_true',
-					help="Disable the setting of rights while building")
-	parser.add_argument('--follow-symlinks', '-h',
-						dest="dereference", help="follow symlinks",
-						default=False, action='store_true')
+	parser.add_argument('--quiet', '-q', action='store_true', default=False, help="do not show progress")
+	parser.add_argument('--verbose', '-v', default=False, action="store_true", help="verbose")
+	parser.add_argument(
+		'--log-level', '-l',
+		dest="logLevel",
+		default=LOG_WARNING,
+		type=int,
+		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		help="Set log-level (0..9)",
+	)
+	parser.add_argument('--no-compression', '-n', action='store_true', default=False, help="Do not compress")
+	parser.add_argument('--compression', default='gzip', choices=['gzip', 'zstd'], help="Compression format")
+	parser.add_argument(
+		'--archive-format',
+		'-F',
+		dest="format",
+		default='cpio',
+		choices=['cpio', 'tar'],
+		help="Archive format to use. Default: cpio",
+	)
+	parser.add_argument('--no-pigz', dest="disablePigz", default=False, action='store_true', help="Disable the usage of pigz")
+	parser.add_argument(
+		'--no-set-rights',
+		dest="no_set_rights",
+		default=False,
+		action='store_true',
+		help="Disable the setting of rights while building",
+	)
+	parser.add_argument('--follow-symlinks', '-h', dest="dereference", help="follow symlinks", default=False, action='store_true')
 	customGroup = parser.add_mutually_exclusive_group()
-	customGroup.add_argument('--custom-name', '-i', metavar='custom name',
-							dest="customName", default='',
-							help="Add custom files and add custom name to the base package.")
-	customGroup.add_argument('--custom-only', '-c', metavar='custom name',
-							dest="customOnly", default=False,
-							help="Only package custom files and add custom name to base package.")
-	parser.add_argument('--temp-directory', '-t',
-						dest="tempDir", help="temp dir", default='/tmp',
-						metavar='directory')
+	customGroup.add_argument(
+		'--custom-name',
+		'-i',
+		metavar='custom name',
+		dest="customName",
+		default='',
+		help="Add custom files and add custom name to the base package.",
+	)
+	customGroup.add_argument(
+		'--custom-only',
+		'-c',
+		metavar='custom name',
+		dest="customOnly",
+		default=False,
+		help="Only package custom files and add custom name to base package.",
+	)
+	parser.add_argument('--temp-directory', '-t', dest="tempDir", help="temp dir", default='/tmp', metavar='directory')
 	parser.add_argument('--control-to-toml', action='store_true', default=False, help="Convert control file to toml format")
 	hashSumGroup = parser.add_mutually_exclusive_group()
 	hashSumGroup.add_argument(
-		'--md5', '-m',
-		dest="createMd5SumFile", default=True, action='store_true',
-		help="Create file with md5 checksum.")
-	hashSumGroup.add_argument(
-		'--no-md5', dest="createMd5SumFile", action='store_false',
-		help="Do not create file with md5 checksum.")
+		'--md5',
+		'-m',
+		dest="createMd5SumFile",
+		default=True,
+		action='store_true',
+		help="Create file with md5 checksum.",
+	)
+	hashSumGroup.add_argument('--no-md5', dest="createMd5SumFile", action='store_false', help="Do not create file with md5 checksum.")
 	zsyncGroup = parser.add_mutually_exclusive_group()
 	zsyncGroup.add_argument(
-		'--zsync', '-z', dest="createZsyncFile",
-		default=True, action='store_true',
-		help="Create zsync file.")
-	zsyncGroup.add_argument(
-		'--no-zsync', dest="createZsyncFile", action='store_false',
-		help="Do not create zsync file.")
-	parser.add_argument('packageSourceDir', metavar="source directory",
-						nargs='?', default=os.getcwd())
+		'--zsync',
+		'-z',
+		dest="createZsyncFile",
+		default=True,
+		action='store_true',
+		help="Create zsync file.",
+	)
+	zsyncGroup.add_argument('--no-zsync', dest="createZsyncFile", action='store_false', help="Do not create zsync file.")
+	parser.add_argument('packageSourceDir', metavar="source directory", nargs='?', default=os.getcwd())
 
-	vgroup = parser.add_argument_group('Versions',
-		'Set versions for package. Combinations are possible.')
-	vgroup.add_argument('--keep-versions', '-k', action='store_true',
-				help="Keep versions and overwrite package", dest="keepVersions")
-	vgroup.add_argument('--package-version', help="Set new package version ",
-				default='', metavar='packageversion', dest="newPackageVersion")
-	vgroup.add_argument('--product-version', default='',
-				dest="newProductVersion", metavar='productversion',
-				help="Set new product version for package")
+	vgroup = parser.add_argument_group('Versions', 'Set versions for package. Combinations are possible.')
+	vgroup.add_argument('--keep-versions', '-k', action='store_true', help="Keep versions and overwrite package", dest="keepVersions")
+	vgroup.add_argument('--package-version', help="Set new package version ", default='', metavar='packageversion', dest="newPackageVersion")
+	vgroup.add_argument(
+		'--product-version',
+		default='',
+		dest="newProductVersion",
+		metavar='productversion',
+		help="Set new product version for package",
+	)
 
 	args = parser.parse_args(args)  # falls back to sys.argv if None
 	if args.help:
@@ -228,6 +248,7 @@ def parse_args(args: List[str] | None = None):
 	if args.no_compression:
 		args.compression = None
 	return args
+
 
 def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 	os.umask(0o022)

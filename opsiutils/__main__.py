@@ -9,6 +9,7 @@ opsiutils.__main__
 import os
 import sys
 
+
 def main():  # pylint: disable=too-many-return-statements
 	name = os.path.splitext(os.path.basename(sys.argv[0]))[0].lower().replace("-", "")
 	if name == "opsiadmin":

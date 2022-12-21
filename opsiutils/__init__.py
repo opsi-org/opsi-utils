@@ -37,3 +37,4 @@ def get_service_client(
 	)
 	service_client.connect()
 	logger.info('Connected')
+	return service_client

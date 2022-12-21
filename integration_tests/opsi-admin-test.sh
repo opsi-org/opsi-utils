@@ -1,4 +1,5 @@
 set -ex
+cd opsi-utils-amd64/
 
-poetry run opsi-admin -d method host_getObjects
-poetry run opsi-admin -d method does_not_exist
+./opsi-admin -d method host_getObjects
+./opsi-admin -d method does_not_exist

@@ -888,7 +888,10 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			productPropertyStates = []
 			clientIds = []
-			for productPropertyState in self.service_client.jsonrpc("productPropertyState_getObjects", [[], {"productId": productId, "objectId": depotClientIds}]):
+			for productPropertyState in self.service_client.jsonrpc(
+				"productPropertyState_getObjects",
+				[[], {"productId": productId, "objectId": depotClientIds}],
+			):
 				productPropertyStates.append(productPropertyState)
 				if productPropertyState["objectId"] not in clientIds:
 					clientIds.append(productPropertyState["objectId"])
@@ -974,7 +977,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				password=depot.opsiHostKey,
 				maxBandwidth=maxBandwidth * 1000,
 				application=USER_AGENT,
-				readTimeout=24*3600  # Upload can take a long time
+				readTimeout=24 * 3600  # Upload can take a long time
 			)
 
 			for dest in repository.content():
@@ -1381,7 +1384,10 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					propertyDefaultValues[productProperty.propertyId] = []
 
 			if self.config['properties'] == 'keep':
-				for productPropertyState in self.service_client.jsonrpc("productPropertyState_getObjects", [[], {"productId": productId, "objectId": depotId}]):
+				for productPropertyState in self.service_client.jsonrpc(
+					"productPropertyState_getObjects",
+					[[], {"productId": productId, "objectId": depotId}],
+				):
 					if productPropertyState["propertyId"] in propertyDefaultValues:
 						propertyDefaultValues[productPropertyState["propertyId"]] = productPropertyState["values"]
 						if propertyDefaultValues[productPropertyState["propertyId"]] is None:
@@ -1451,11 +1457,14 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			for product in self.config['productIds']:
 				package = self.service_client.jsonrcp("productOnDepot_getObjects", [[], {"depotId": depotId, "productId": str(product)}])
 				if not package:
-					subject.setMessage(_("WARNING: Product {0} not installed on depot {1}.".format(product, depotId)), severity=3)  # pylint: disable=consider-using-f-string
+					subject.setMessage(_(f"WARNING: Product {product} not installed on depot {depotId}."), severity=3)
 					logger.warning("WARNING: Product %s not installed on depot %s.", product, depotId)
 					packageNotInstalled = True
 
-			for productOnDepot in self.service_client.jsonrpc("productOnDepot_getObjects", [[], {"depotId": depotId, "productId": self.config["productIds"]}]):
+			for productOnDepot in self.service_client.jsonrpc(
+				"productOnDepot_getObjects",
+				[[], {"depotId": depotId, "productId": self.config["productIds"]}],
+			):
 				productIds.append(productOnDepot["productId"])
 			if not productIds:
 				continue
@@ -2102,6 +2111,7 @@ class OpsiPackageManagerControl:
 		print("                                          installation. Do not use with WAN extension!")
 		print("")
 
+
 def main():
 	@contextmanager
 	def keepOriginalTerminalSettings():
@@ -2128,6 +2138,7 @@ def main():
 		logger.error(err, exc_info=True)
 		print(f"\nERROR: {err}\n", file=sys.stderr)
 		sys.exit(1)
+
 
 def set_product_cache_outdated(depotId, service_client):
 	logger.debug("mark redis product cache as dirty for depot: %s", depotId)

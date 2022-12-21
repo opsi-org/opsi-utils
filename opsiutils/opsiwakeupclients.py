@@ -116,12 +116,24 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 	eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout, maxConcurrent
 ):
 	logger.info(
-		"Using params: depotId=%s, inputFile=%s, noAutoUpdate=%s, reboot=%s, rebootTimeout=%s, "
-		"hostGroupId=%s, productGroupId=%s, eventName=%s, wolTimeout=%s, eventTimeout=%s, "
-		"connectTimeout=%s, pingTimeout=%s, maxConcurrent=%s",
-		depotId, inputFile, noAutoUpdate, reboot, rebootTimeout,
-		hostGroupId, productGroupId, eventName,	wolTimeout, eventTimeout,
-		connectTimeout, pingTimeout, maxConcurrent
+		(
+			"Using params: depotId=%s, inputFile=%s, noAutoUpdate=%s, reboot=%s, rebootTimeout=%s, "
+			"hostGroupId=%s, productGroupId=%s, eventName=%s, wolTimeout=%s, eventTimeout=%s, "
+			"connectTimeout=%s, pingTimeout=%s, maxConcurrent=%s"
+		),
+		depotId,
+		inputFile,
+		noAutoUpdate,
+		reboot,
+		rebootTimeout,
+		hostGroupId,
+		productGroupId,
+		eventName,
+		wolTimeout,
+		eventTimeout,
+		connectTimeout,
+		pingTimeout,
+		maxConcurrent,
 	)
 	clientsToWake = []
 
@@ -220,6 +232,7 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 
 	logger.notice("Succesfully processed %s/%s clients", clientSum - totalFails, clientSum)
 
+
 def getClientIDsFromDepot(service_client, depotId, groupName):
 	clientsFromGroup = []
 	if groupName:
@@ -228,23 +241,25 @@ def getClientIDsFromDepot(service_client, depotId, groupName):
 	depotClients = service_client.jsonrpc("getClientsOnDepot", [depotId])
 	if not clientsFromGroup:
 		return depotClients
-	return [ x for x in depotClients if x in clientsFromGroup ]
+	return [x for x in depotClients if x in clientsFromGroup]
+
 
 def getClientIDsFromFile(service_client, inputFile):
 	if not os.path.exists(inputFile):
 		raise FileNotFoundError(f"Host-file '{inputFile}' not found")
-	knownIds = service_client.jsonrpc("host_getIdents", [[], {"type":"OpsiClient"}])
+	knownIds = service_client.jsonrpc("host_getIdents", [[], {"type": "OpsiClient"}])
 	clientIds = []
 	with codecs.open(inputFile, 'r', "utf8") as file:
 		for line in file.readlines():
 			line = line.strip()
 			if not line or line.startswith('#'):
 				continue
-			if not line in knownIds:
+			if line not in knownIds:
 				logger.warning("Client '%s' from host-file not found in backend", line)
 				continue
 			clientIds.append(line)
 	return clientIds
+
 
 def getClientIDsFromGroup(service_client, groupName):
 	group = service_client.jsonrpc("group_getObjects", [[], {"id": "groupName", "type": "HostGroup"}])
@@ -392,7 +407,7 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 						connectTimeout=self.connectTimeout,
 						socketTimeout=self.connectTimeout,
 					)
-					if not backend.jsonrpc_getSessionId():
+					if not backend.session:
 						continue
 
 					self.opsiclientdbackend = backend
@@ -436,8 +451,8 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 					if self.opsiclientdbackend.isEventRunning(self.eventName):  # pylint: disable=no-member
 						logger.notice("Event '%s' is running on '%s'", self.eventName, self.clientId)
 						break
-					if self.opsiclientdbackend.isEventRunning(self.eventName+"{user_logged_in}"):  # pylint: disable=no-member
-						logger.notice("Event '%s' is running on '%s'", self.eventName+"{user_logged_in}", self.clientId)
+					if self.opsiclientdbackend.isEventRunning(self.eventName + "{user_logged_in}"):  # pylint: disable=no-member
+						logger.notice("Event '%s' is running on '%s'", self.eventName + "{user_logged_in}", self.clientId)
 						break
 				except Exception as exc:  # pylint: disable=broad-except
 					logger.debug("Failed to check running event on '%s': %s", self.clientId, exc)

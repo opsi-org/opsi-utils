@@ -87,6 +87,7 @@ sysConfig = {}  # pylint: disable=invalid-name
 class CancelledByUserError(Exception):
 	pass
 
+
 # TODO: use OPSI.System.Posix.Sysconfig for a more standardized approach
 def getSysConfig():
 	"""Get the current system config"""
@@ -887,14 +888,31 @@ def usage():
 
 def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 	try:
-		(opts, args) = getopt.getopt(sys.argv[1:], "hVl:",
+		(opts, args) = getopt.getopt(
+			sys.argv[1:],
+			"hVl:",
 			[
-				'help', 'version', 'log-file=', 'ip-address=', 'backend-config=',
-				'init-current-config', 'set-rights', 'auto-configure-samba',
-				'auto-configure-dhcpd', 'register-depot', 'configure-mysql',
-				'update-mysql', 'update-file', 'file-to-mysql',
-				'edit-config-defaults', 'cleanup-backend', 'update-from=',
-				'patch-sudoers-file', 'unattended=', 'no-backup', 'no-restart'
+				'help',
+				'version',
+				'log-file=',
+				'ip-address=',
+				'backend-config=',
+				'init-current-config',
+				'set-rights',
+				'auto-configure-samba',
+				'auto-configure-dhcpd',
+				'register-depot',
+				'configure-mysql',
+				'update-mysql',
+				'update-file',
+				'file-to-mysql',
+				'edit-config-defaults',
+				'cleanup-backend',
+				'update-from=',
+				'patch-sudoers-file',
+				'unattended=',
+				'no-backup',
+				'no-restart',
 			]
 		)
 
