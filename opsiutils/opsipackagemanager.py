@@ -37,7 +37,7 @@ from OPSI.Types import (
 	forceUnicodeList,
 )
 from OPSI.UI import SnackUI
-from OPSI.Util import getfqdn, md5sum
+from OPSI.Util import md5sum
 from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Message import (
 	MessageSubject,
@@ -59,6 +59,7 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
+from opsicommon.config import OpsiConfig  # type: ignore[import]
 from opsicommon.client.jsonrpc import JSONRPCClient  # type: ignore[import]
 
 from opsiutils import __version__, get_service_client
@@ -1964,7 +1965,7 @@ class OpsiPackageManagerControl:
 		if opsi_server:
 			self.config['logFile'] = '/var/log/opsi/opsi-package-manager.log'
 			self.config['deltaUpload'] = librsyncDeltaFile is not None
-			self.config['localDepotId'] = forceHostId(getfqdn(conf='/etc/opsi/global.conf'))
+			self.config['localDepotId'] = OpsiConfig(upgrade_config=False).get("host", "id")
 			self.config['depotIds'] = None
 
 	def setCommandlineConfig(self):  # pylint: disable=too-many-branches, too-many-statements
