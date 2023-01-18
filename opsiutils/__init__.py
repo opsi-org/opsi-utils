@@ -6,4 +6,4 @@
 opsiutils
 """
 
-__version__ = '4.2.0.196'
+__version__ = '4.2.0.197'
