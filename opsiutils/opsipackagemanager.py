@@ -718,12 +718,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			logger.info("Establishing connection to depot %s", depotId)
 			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": ["OpsiDepotserver", "OpsiConfigserver"], "id": depotId}])[0]
 
-			connection = JSONRPCClient(
+			connection = get_service_client(
 				username=depotId,
 				password=depot.opsiHostKey,
 				address=depotId,
-				application=USER_AGENT,
-				compression=True
+				user_agent=USER_AGENT,
 			)
 			self.depotConnections[depotId] = connection
 
