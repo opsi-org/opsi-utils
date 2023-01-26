@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -7,7 +5,7 @@ opsiutils
 """
 from opsicommon.logging import logger
 from opsicommon.client.opsiservice import ServiceClient
-from opsicommon.config import OpsiConfig 
+from opsicommon.config import OpsiConfig
 
 __version__ = '4.3.0.0'
 

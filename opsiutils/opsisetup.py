@@ -19,6 +19,19 @@ import shutil
 import sys
 import time
 
+from opsicommon.client.jsonrpc import JSONRPCClient
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_CONFIDENTIAL,
+	LOG_CRITICAL,
+	LOG_DEBUG,
+	LOG_NOTICE,
+	OPSI_LEVEL_TO_LEVEL,
+	init_logging,
+	logger,
+	logging_config,
+	secret_filter,
+)
 import OPSI.Util.Task.ConfigureBackend as backendUtils
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.JSONRPC import JSONRPCBackend
@@ -54,20 +67,6 @@ from OPSI.Util.Task.Samba import SMB_CONF, configureSamba
 from OPSI.Util.Task.Sudoers import patchSudoersFileForOpsi
 from OPSI.Util.Task.UpdateBackend.ConfigurationData import getServerAddress
 from OPSI.Util.Task.UpdateBackend.File import updateFileBackend
-from OPSI.Util.Task.UpdateBackend.MySQL import updateMySQLBackend
-from opsicommon.client.jsonrpc import JSONRPCClient
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_CONFIDENTIAL,
-	LOG_CRITICAL,
-	LOG_DEBUG,
-	LOG_NOTICE,
-	OPSI_LEVEL_TO_LEVEL,
-	init_logging,
-	logger,
-	logging_config,
-	secret_filter,
-)
 
 from opsiutils import __version__, get_service_client
 
@@ -1004,13 +1003,19 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 		setRights(path)
 
 	elif task == 'init-current-config':
-		logger.warning("init-current-config is no longer necessary with opsiconfd 4.3 (which performs a similar operation at start) and has been removed from opsi-setup.")
+		logger.warning(
+			"init-current-config is no longer necessary with opsiconfd 4.3 "
+			"(which performs a similar operation at start) and has been removed from opsi-setup."
+		)
 
 	elif task == 'configure-mysql':
 		configureMySQLBackend(unattended)  # TODO: wrapper for opsiconfd
 
 	elif task == 'update-mysql':
-		logger.warning("update-mysql is no longer necessary with opsiconfd 4.3 (which performs a similar operation at start) and has been removed from opsi-setup.")
+		logger.warning(
+			"update-mysql is no longer necessary with opsiconfd 4.3 "
+			"(which performs a similar operation at start) and has been removed from opsi-setup."
+		)
 
 	elif task == 'update-file':
 		updateFileBackend(additionalBackendConfiguration=backendConfig)

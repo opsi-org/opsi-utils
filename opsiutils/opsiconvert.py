@@ -15,13 +15,6 @@ import struct
 import sys
 import termios
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.Backend.BackendManager import BackendManager
-from OPSI.Backend.JSONRPC import JSONRPCBackend
-from OPSI.Backend.Replicator import BackendReplicator
-from OPSI.Types import forceHostId, forceUnicode, forceUnicodeLower
-from OPSI.Util import getfqdn
-from OPSI.Util.Message import ProgressObserver
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_ERROR,
@@ -30,6 +23,13 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
+from OPSI import __version__ as python_opsi_version
+from OPSI.Backend.BackendManager import BackendManager
+from OPSI.Backend.JSONRPC import JSONRPCBackend
+from OPSI.Backend.Replicator import BackendReplicator
+from OPSI.Types import forceHostId, forceUnicode, forceUnicodeLower
+from OPSI.Util import getfqdn
+from OPSI.Util.Message import ProgressObserver
 
 from opsiutils import __version__
 

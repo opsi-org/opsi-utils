@@ -18,13 +18,6 @@ import tty
 from contextlib import contextmanager
 from typing import List
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.System import execute
-from OPSI.Types import forceFilename, forceUnicode
-from OPSI.Util import md5sum, compareVersions
-from OPSI.Util.File import ZsyncFile
-from OPSI.Util.Message import ProgressObserver, ProgressSubject
-from OPSI.Util.Task.Rights import setRights
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
@@ -36,6 +29,13 @@ from opsicommon.logging import (
 	logging_config,
 )
 from opsicommon.package import OpsiPackage
+from OPSI import __version__ as python_opsi_version
+from OPSI.System import execute
+from OPSI.Types import forceFilename, forceUnicode
+from OPSI.Util import md5sum, compareVersions
+from OPSI.Util.File import ZsyncFile
+from OPSI.Util.Message import ProgressObserver, ProgressSubject
+from OPSI.Util.Task.Rights import setRights
 
 from opsiutils import __version__
 
@@ -178,7 +178,8 @@ def parse_args(args: List[str] | None = None):
 		choices=['cpio', 'tar'],
 		help="Archive format to use. Default: cpio",
 	)
-	parser.add_argument('--no-pigz', dest="disablePigz", default=False, action='store_true', help="Disable the usage of pigz")  # TODO: is currently ignored
+	# TODO: --no-pigz is currently ignored
+	parser.add_argument('--no-pigz', dest="disablePigz", default=False, action='store_true', help="Disable the usage of pigz")
 	parser.add_argument(
 		'--no-set-rights',
 		dest="no_set_rights",
@@ -269,7 +270,7 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 	customOnly = bool(args.customOnly)
 	if customOnly:
 		customName = args.customOnly
-	dereference = args.dereference  # TODO
+	dereference = args.dereference  # pylint: disable=unused-variable # TODO
 	logLevel = args.logLevel
 	compression = args.compression
 	quiet = args.quiet
@@ -359,10 +360,11 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 						finally:
 							print('\r\033[0K')
 
-				# TODO: why twice?
 				if newVersion:
 					while True:
-						print('\r%s' % _("Please specify new product version, press <ENTER> to keep current version (%s):") % opsi_package.product.productVersion, end=' ')  # pylint: disable=consider-using-f-string
+						print('\r%s' % _(  # pylint: disable=consider-using-f-string
+							"Please specify new product version, press <ENTER> to keep current version (%s):"
+						) % opsi_package.product.productVersion, end=' ')  # pylint: disable=consider-using-f-string
 						newVersion = newProductVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -383,7 +385,9 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 							print(_("Bad product version: %s") % newVersion)
 
 					while True:
-						print('\r%s' % _("Please specify new package version, press <ENTER> to keep current version (%s):") % opsi_package.product.packageVersion, end=' ')  # pylint: disable=consider-using-f-string
+						print('\r%s' % _(  # pylint: disable=consider-using-f-string
+							"Please specify new package version, press <ENTER> to keep current version (%s):"
+						) % opsi_package.product.packageVersion, end=' ')  # pylint: disable=consider-using-f-string
 						newVersion = newPackageVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()

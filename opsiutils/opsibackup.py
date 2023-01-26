@@ -10,8 +10,6 @@ import argparse
 import os
 import sys
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.Util.Task.Backup import OpsiBackup
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_NOTICE,
@@ -20,6 +18,8 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
+from OPSI import __version__ as python_opsi_version
+from OPSI.Util.Task.Backup import OpsiBackup
 
 from opsiutils import __version__
 

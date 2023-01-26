@@ -26,22 +26,6 @@ from argparse import ArgumentParser
 from contextlib import contextmanager
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.UI import SnackUI
-from OPSI.Util import md5sum
-from OPSI.Util.File.Opsi import parseFilename
-from OPSI.Util.Message import (
-	MessageSubject,
-	ProgressObserver,
-	ProgressSubject,
-	SubjectsObserver,
-)
-from OPSI.Util.Repository import getRepository
-
-try:
-	from OPSI.Util.Sync import librsyncDeltaFile
-except ImportError:
-	librsyncDeltaFile = None
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_NONE,
@@ -62,6 +46,22 @@ from opsicommon.types import (
 	forceUnicode,
 	forceUnicodeList,
 )
+from OPSI import __version__ as python_opsi_version
+from OPSI.UI import SnackUI
+from OPSI.Util import md5sum
+from OPSI.Util.File.Opsi import parseFilename
+from OPSI.Util.Message import (
+	MessageSubject,
+	ProgressObserver,
+	ProgressSubject,
+	SubjectsObserver,
+)
+from OPSI.Util.Repository import getRepository
+
+try:
+	from OPSI.Util.Sync import librsyncDeltaFile
+except ImportError:
+	librsyncDeltaFile = None
 
 from opsiutils import __version__, get_service_client
 
