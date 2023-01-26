@@ -7,4 +7,4 @@ tar -xvf hwaudit_all_all_4.2.0.2-1.tar.gz
 rm -r hwaudit-package
 ./opsi-makepackage -vv hwaudit
 ls
-file hwaudit_4.2.0.2-1.opsi
+ls hwaudit_4.2.0.2-1.opsi
