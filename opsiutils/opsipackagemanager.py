@@ -719,7 +719,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			connection = JSONRPCClient(
 				username=depotId,
-				password=depot["opsiHostKey"],
+				password=depot.opsiHostKey,
 				address=depotId,
 				application=USER_AGENT,
 				compression=True
@@ -832,7 +832,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			actionRequest = forceActionRequest(actionRequest)
 			clientIds = []
 			for clientToDepot in self.service_client.jsonrpc("configState_getClientToDepotserver", [[depotId]]):
-				clientIds.append(clientToDepot['clientId'])
+				clientIds.append(clientToDepot.clientId)
 
 			if not clientIds:
 				return
@@ -859,7 +859,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			clientIds = []
 			for idx, poc in enumerate(productOnClients):
-				productOnClients[idx]["actionRequest"] = actionRequest
+				productOnClients[idx].actionRequest = actionRequest
 				clientIds.append(poc["clientId"])
 
 			clientIds.sort()
@@ -876,7 +876,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			subject = self.getDepotSubject(depotId)
 			subject.setMessage(_("Purging product property states for product %s") % productId)
 			depotClientIds = [
-				clientToDepot['clientId'] for clientToDepot
+				clientToDepot.clientId for clientToDepot
 				in self.service_client.jsonrpc("configState_getClientToDepotserver", [[depotId]])
 			]
 
@@ -890,8 +890,8 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				[[], {"productId": productId, "objectId": depotClientIds}],
 			):
 				productPropertyStates.append(productPropertyState)
-				if productPropertyState["objectId"] not in clientIds:
-					clientIds.append(productPropertyState["objectId"])
+				if productPropertyState.objectId not in clientIds:
+					clientIds.append(productPropertyState.objectId)
 
 			logger.notice("Purging product property states for product '%s' on client(s): %s", productId, ', '.join(clientIds))
 			subject.setMessage(_("Purging product property states for product '%s' on client(s): %s") % (productId, ', '.join(clientIds)))
@@ -1215,7 +1215,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			if lockedProductsOnDepot:
 				errors = [
-					f"Product '{productOnDepot['productId']}' currently locked on depot '{productOnDepot['depotId']}'"
+					f"Product '{productOnDepot.productId}' currently locked on depot '{productOnDepot.depotId}'"
 					for productOnDepot in lockedProductsOnDepot
 				]
 				nwl = "\n"
@@ -1340,9 +1340,9 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		try:
 			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": depotId}])[0]
 			if self.config['uploadToLocalDepot'] or (depotId != self.config['localDepotId']):
-				if not depot["repositoryLocalUrl"].startswith('file://'):
-					raise ValueError(f"Repository local url '{depot['repositoryLocalUrl']}' not supported")
-				depotPackageFile = depot["repositoryLocalUrl"][7:]
+				if not depot.repositoryLocalUrl.startswith('file://'):
+					raise ValueError(f"Repository local url '{depot.repositoryLocalUrl}' not supported")
+				depotPackageFile = depot.repositoryLocalUrl[7:]
 				if depotPackageFile.endswith('/'):
 					depotPackageFile = depotPackageFile[:-1]
 				depotPackageFile += '/' + os.path.basename(packageFile)
@@ -1385,10 +1385,10 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					"productPropertyState_getObjects",
 					[[], {"productId": productId, "objectId": depotId}],
 				):
-					if productPropertyState["propertyId"] in propertyDefaultValues:
-						propertyDefaultValues[productPropertyState["propertyId"]] = productPropertyState["values"]
-						if propertyDefaultValues[productPropertyState["propertyId"]] is None:
-							propertyDefaultValues[productPropertyState["propertyId"]] = []
+					if productPropertyState.propertyId in propertyDefaultValues:
+						propertyDefaultValues[productPropertyState.propertyId] = productPropertyState.values
+						if propertyDefaultValues[productPropertyState.propertyId] is None:
+							propertyDefaultValues[productPropertyState.propertyId] = []
 
 			installationParameters = {
 				'force': self.config['forceInstall'],
@@ -1461,7 +1461,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				"productOnDepot_getObjects",
 				[[], {"depotId": depotId, "productId": self.config["productIds"]}],
 			):
-				productIds.append(productOnDepot["productId"])
+				productIds.append(productOnDepot.productId)
 			if not productIds:
 				continue
 			tq = TaskQueue(name=f"Uninstall of package(s) {', '.join(productIds)} on depot '{depotId}'")
@@ -1492,7 +1492,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": depotId}])[0]
 			logger.info("Using '%s' as repository url", depot["repositoryRemoteUrl"])
-			repository = getRepository(url=depot["repositoryRemoteUrl"], username=depotId, password=depot["opsiHostKey"])
+			repository = getRepository(url=depot.repositoryRemoteUrl, username=depotId, password=depot.opsiHostKey)
 			for destination in repository.listdir():
 				fileInfo = parseFilename(destination)
 				if not fileInfo:
@@ -1800,7 +1800,7 @@ class OpsiPackageManagerControl:
 		for depotId in self.config['depotIds']:
 			productOnDepotInfo[depotId] = {}
 		for productOnDepot in productOnDepots:
-			productOnDepotInfo[productOnDepot["depotId"]][productOnDepot["productId"]] = productOnDepot
+			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
 
 		if self.config['quiet']:
 			return
@@ -1847,8 +1847,8 @@ class OpsiPackageManagerControl:
 		productIds = set()
 		productOnDepotInfo = {depotId: {} for depotId in depotIds}
 		for productOnDepot in productOnDepots:
-			productIds.add(productOnDepot["productId"])
-			productOnDepotInfo[productOnDepot["depotId"]][productOnDepot["productId"]] = productOnDepot
+			productIds.add(productOnDepot.productId)
+			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
 
 		maxWidth = max(len(depotId) for depotId in depotIds)
 
