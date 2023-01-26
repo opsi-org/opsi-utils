@@ -34,7 +34,6 @@ from opsicommon.logging import (
 	logging_config,
 )
 from opsicommon.config import OpsiConfig
-from opsicommon.client.jsonrpc import JSONRPCClient
 from opsicommon.package import OpsiPackage
 from opsicommon.types import (
 	forceActionRequest,
