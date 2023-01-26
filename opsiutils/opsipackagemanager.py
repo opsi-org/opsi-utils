@@ -783,7 +783,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		with self.productPackageFilesLock:
 			if packageFile.name not in self.productPackageFiles:
 				self.infoSubject.setMessage(_('Opening package file %s') % packageFile.name)
-				self.productPackageFiles[packageFile.name] = OpsiPackage(packageFile, temp_dir=self.config['tempDir'])
+				self.productPackageFiles[packageFile.name] = OpsiPackage(packageFile, temp_dir=self.config.get('tempDir'))
 
 	def getOpsiPackage(self, packageFile):
 		filename = os.path.basename(packageFile)
@@ -1742,7 +1742,7 @@ class OpsiPackageManagerControl:
 
 		destinationDir = os.path.abspath(os.getcwd())
 		for packageFile in self.config['packageFiles']:
-			opsi_package = OpsiPackage(Path(packageFile), temp_dir=self.config['tempDir'])
+			opsi_package = OpsiPackage(Path(packageFile), temp_dir=self.config.get('tempDir'))
 
 			productId = opsi_package.product.id
 			if not productId:
