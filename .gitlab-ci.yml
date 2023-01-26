@@ -10,7 +10,7 @@ stages:
 pytest-pylint:
   stage: test
   script:
-    - apt -y install python3-newt gettext gzip asciidoc-base
+    - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
     - poetry lock --no-update
     - poetry install
