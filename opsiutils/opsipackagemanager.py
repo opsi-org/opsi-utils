@@ -715,7 +715,8 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		try:
 			connection = self.depotConnections[depotId]
 		except KeyError:
-			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": depotId}])[0]
+			logger.info("Establishing connection to depot %s", depotId)
+			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": ["OpsiDepotserver", "OpsiConfigserver"], "id": depotId}])[0]
 
 			connection = JSONRPCClient(
 				username=depotId,
