@@ -712,7 +712,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 	def getDepotConnection(self, depotId):
 		try:
-			connection = self.depotConnections[depotId]
+			if depotId == self.service_client.server_name:
+				logger.debug("Requested config server depot")
+				connection = self.service_client
+			else:
+				connection = self.depotConnections[depotId]
 		except KeyError:
 			logger.info("Establishing connection to depot %s", depotId)
 			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": ["OpsiDepotserver", "OpsiConfigserver"], "id": depotId}])[0]
