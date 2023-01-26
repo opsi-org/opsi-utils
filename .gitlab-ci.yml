@@ -95,6 +95,7 @@ integration_test:
     - opsiconfd setup --log-level-stderr 6  # initialize the new backend
     - apt update
     - apt -y install zstd
+    - sed -i /etc/hosts -e 's/localhost/localhost configserver.mycompany.de/'  # for integration test connections
     - for file in integration_tests/*.sh; do bash "$file"; done
 
 
