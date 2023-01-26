@@ -18,15 +18,12 @@ import tty
 from contextlib import contextmanager
 from typing import List
 
-import OPSI.Util.File.Archive
 from OPSI import __version__ as python_opsi_version
 from OPSI.System import execute
 from OPSI.Types import forceFilename, forceUnicode
 from OPSI.Util import md5sum, compareVersions
 from OPSI.Util.File import ZsyncFile
-from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.Message import ProgressObserver, ProgressSubject
-from OPSI.Util.Product import ProductPackageSource
 from OPSI.Util.Task.Rights import setRights
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
@@ -38,6 +35,7 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
+from opsicommon.package import OpsiPackage
 
 from opsiutils import __version__
 
@@ -103,7 +101,7 @@ def raw_tty():
 		termios.tcsetattr(fd, termios.TCSANOW, at)
 
 
-def print_info(product, customName, pcf):
+def print_info(product, customName, opsi_package):
 	print("")
 	print(_("Package info"))
 	print("----------------------------------------------------------------------------")
@@ -111,7 +109,7 @@ def print_info(product, customName, pcf):
 	print("   %-20s : %s" % ('custom package name', customName))  # pylint: disable=consider-using-f-string
 	print("   %-20s : %s" % (  # pylint: disable=consider-using-f-string
 		'package dependencies',
-		', '.join('{package}({condition}{version})'.format(**dep) for dep in pcf.getPackageDependencies()))  # pylint: disable=consider-using-f-string
+		', '.join('{package}({condition}{version})'.format(**dep) for dep in opsi_package.package_dependencies))  # pylint: disable=consider-using-f-string
 	)
 
 	print("")
@@ -170,8 +168,8 @@ def parse_args(args: List[str] | None = None):
 		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 		help="Set log-level (0..9)",
 	)
-	parser.add_argument('--no-compression', '-n', action='store_true', default=False, help="Do not compress")
-	parser.add_argument('--compression', default='gzip', choices=['gzip', 'zstd'], help="Compression format")
+	parser.add_argument('--no-compression', '-n', action='store_true', default=False, help="Do not compress")  # TODO: is currently ignored
+	parser.add_argument('--compression', default='zstd', choices=['bzip2', 'zstd'], help="Compression format")
 	parser.add_argument(
 		'--archive-format',
 		'-F',
@@ -180,7 +178,7 @@ def parse_args(args: List[str] | None = None):
 		choices=['cpio', 'tar'],
 		help="Archive format to use. Default: cpio",
 	)
-	parser.add_argument('--no-pigz', dest="disablePigz", default=False, action='store_true', help="Disable the usage of pigz")
+	parser.add_argument('--no-pigz', dest="disablePigz", default=False, action='store_true', help="Disable the usage of pigz")  # TODO: is currently ignored
 	parser.add_argument(
 		'--no-set-rights',
 		dest="no_set_rights",
@@ -245,8 +243,6 @@ def parse_args(args: List[str] | None = None):
 	if args.help:
 		parser.print_help()
 		sys.exit(1)
-	if args.no_compression:
-		args.compression = None
 	return args
 
 
@@ -273,16 +269,15 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 	customOnly = bool(args.customOnly)
 	if customOnly:
 		customName = args.customOnly
-	dereference = args.dereference
+	dereference = args.dereference  # TODO
 	logLevel = args.logLevel
 	compression = args.compression
 	quiet = args.quiet
-	tempDir = forceFilename(args.tempDir)
+	tempDir = Path(forceFilename(args.tempDir))
 	arch_format = forceUnicode(args.format)
 	createMd5SumFile = args.createMd5SumFile
 	createZsyncFile = args.createZsyncFile
 	packageSourceDir = args.packageSourceDir
-	disablePigz = args.disablePigz
 
 	if args.verbose:
 		logLevel = LOG_DEBUG
@@ -317,50 +312,32 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 	if not quiet:
 		print("")
 		print(_("Locking package"))
-	pcf = PackageControlFile(str(packageControlFilePath))
+	opsi_package = OpsiPackage(temp_dir=tempDir)
+	opsi_package.parse_control_file(packageControlFilePath)
 
 	if packageControlFilePath.suffix == ".toml" and packageControlFilePath.with_suffix("").exists():
-		pcf_old = PackageControlFile(str(packageControlFilePath.with_suffix("")))
-		if compareVersions(pcf_old.getProduct().version, ">", pcf.getProduct().version):
+		opsi_package_tmp = OpsiPackage(temp_dir=tempDir)
+		opsi_package_tmp.parse_control_file_legacy(packageControlFilePath.with_suffix(""))
+		if compareVersions(opsi_package_tmp.product.version, ">", opsi_package.product.version):
 			raise ValueError("control is newer than control.toml - Please update control.toml instead.")
 
-	lockPackage(tempDir, pcf)
-	pps = None
+	archive = Path(opsi_package.package_archive_name())
+	lockPackage(tempDir, opsi_package)
 	try:
 		while True:
-			product = pcf.getProduct()
-
 			if not quiet:
-				print_info(product, customName, pcf)
-			if disablePigz:
-				logger.debug("Disabling pigz")
-				OPSI.Util.File.Archive.PIGZ_ENABLED = False
-
-			pps = ProductPackageSource(
-				packageSourceDir=packageSourceDir,
-				tempDir=tempDir,
-				customName=customName,
-				customOnly=customOnly,
-				packageFileDestDir=os.getcwd(),
-				format=arch_format,
-				compression=compression,
-				dereference=dereference
-			)
-
-			if not quiet and os.path.exists(pps.getPackageFile()):
-				print(_("Package file '%s' already exists.") % pps.getPackageFile())
+				print_info(opsi_package.product, customName, opsi_package)
+			if not quiet and archive.exists():
+				print(_("Package file '%s' already exists.") % archive)
 				print(_("Press <O> to overwrite, <C> to abort or <N> to specify a new version:"), end=' ')
 				sys.stdout.flush()
 				newVersion = False
 				if keepVersions and needOneVersion:
 					newVersion = True
 				elif keepVersions:
-					if os.path.exists(pps.packageFile):
-						os.remove(pps.packageFile)
-					if os.path.exists(pps.packageFile + '.md5'):
-						os.remove(pps.packageFile + '.md5')
-					if os.path.exists(pps.packageFile + '.zsync'):
-						os.remove(pps.packageFile + '.zsync')
+					for path in (archive, Path(f"{archive}.md5"), Path(f"{archive}.zsync")):
+						if path.exists():
+							path.unlink()
 				elif needOneVersion:
 					newVersion = True
 
@@ -370,12 +347,9 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 							while True:
 								ch = sys.stdin.read(1)
 								if ch in ('o', 'O'):
-									if os.path.exists(pps.packageFile):
-										os.remove(pps.packageFile)
-									if os.path.exists(pps.packageFile + '.md5'):
-										os.remove(pps.packageFile + '.md5')
-									if os.path.exists(pps.packageFile + '.zsync'):
-										os.remove(pps.packageFile + '.zsync')
+									for path in (archive, Path(f"{archive}.md5"), Path(f"{archive}.zsync")):
+										if path.exists():
+											path.unlink()
 									break
 								if ch in ('c', 'C'):
 									raise Exception(_("Aborted"))
@@ -385,9 +359,10 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 						finally:
 							print('\r\033[0K')
 
+				# TODO: why twice?
 				if newVersion:
 					while True:
-						print('\r%s' % _("Please specify new product version, press <ENTER> to keep current version (%s):") % product.productVersion, end=' ')  # pylint: disable=consider-using-f-string
+						print('\r%s' % _("Please specify new product version, press <ENTER> to keep current version (%s):") % opsi_package.product.productVersion, end=' ')  # pylint: disable=consider-using-f-string
 						newVersion = newProductVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -395,20 +370,20 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 							if newProductVersion:
 								newVersion = newProductVersion
 							elif keepVersions:
-								newVersion = product.productVersion
+								newVersion = opsi_package.product.productVersion
 							else:
 								newVersion = sys.stdin.readline().strip()
 
 						try:
 							if newVersion:
-								product.setProductVersion(newVersion)
-								pcf.generate()
+								opsi_package.product.setProductVersion(newVersion)
+								opsi_package.generate_control_file(packageControlFilePath)
 							break
 						except Exception:  # pylint: disable=broad-except
 							print(_("Bad product version: %s") % newVersion)
 
 					while True:
-						print('\r%s' % _("Please specify new package version, press <ENTER> to keep current version (%s):") % product.packageVersion, end=' ')  # pylint: disable=consider-using-f-string
+						print('\r%s' % _("Please specify new package version, press <ENTER> to keep current version (%s):") % opsi_package.product.packageVersion, end=' ')  # pylint: disable=consider-using-f-string
 						newVersion = newPackageVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -416,14 +391,14 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 							if newPackageVersion:
 								newVersion = newPackageVersion
 							elif keepVersions:
-								newVersion = product.packageVersion
+								newVersion = opsi_package.product.packageVersion
 							else:
 								newVersion = sys.stdin.readline().strip()
 
 						try:
 							if newVersion:
-								product.setPackageVersion(newVersion)
-								pcf.generate()
+								opsi_package.product.setPackageVersion(newVersion)
+								opsi_package.generate_control_file(packageControlFilePath)
 							break
 						except Exception:  # pylint: disable=broad-except
 							print(_("Bad package version: %s") % newVersion)
@@ -435,39 +410,35 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 					continue
 
 			# Regenerating to fix encoding
-			pcf.generate()
+			opsi_package.generate_control_file(packageControlFilePath)
 			if args.control_to_toml:
 				if packageControlFilePath.suffix == ".toml":
 					raise ValueError("Already using toml format, do not use --control-to-toml")
 				logger.notice("Creating control.toml from control.")
-				pcf.generate_toml()
+				opsi_package.generate_control_file(packageControlFilePath.with_suffix(".toml"))
 				if not packageControlFilePath.with_suffix(".toml").exists():
 					raise RuntimeError("Failed to create control.toml")
-				pcf._filename += ".toml"  # pylint: disable=protected-access
 			elif packageControlFilePath.suffix == ".toml":
-				pcf._filename = pcf._filename.removesuffix(".toml")  # pylint: disable=protected-access
-				pcf.generate()  # Generate control for compatibility with old depots
-				pcf._filename += ".toml"  # pylint: disable=protected-access
+				opsi_package.generate_control_file(packageControlFilePath.with_suffix(""))
 
 			progressSubject = None
 			if not quiet:
 				progressSubject = ProgressSubject('packing')
 				progressSubject.attachObserver(ProgressNotifier())
-				print(_("Creating package file '%s'") % pps.getPackageFile())
-			pps.pack(progressSubject=progressSubject)
+				print(_("Creating package file '%s'") % archive)
+			opsi_package.create_package_archive(Path(packageSourceDir), compression=compression)
 			if not args.no_set_rights:
 				try:
-					setRights(pps.getPackageFile())
+					setRights(archive)
 				except Exception as err:  # pylint: disable=broad-except
 					logger.warning("Failed to set rights: %s", err)
-
 			if not quiet:
 				print("\n")
 			if createMd5SumFile:
-				md5sumFile = f'{pps.getPackageFile()}.md5'
+				md5sumFile = f'{archive}.md5'
 				if not quiet:
 					print(_("Creating md5sum file '%s'") % md5sumFile)
-				md5 = md5sum(pps.getPackageFile())
+				md5 = md5sum(str(archive))
 				with open(md5sumFile, 'w', encoding='utf-8') as file:
 					file.write(md5)
 				if not args.no_set_rights:
@@ -477,11 +448,11 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 						logger.warning("Failed to set rights: %s", err)
 
 			if createZsyncFile:
-				zsyncFilePath = f'{pps.getPackageFile()}.zsync'
+				zsyncFilePath = f'{archive}.zsync'
 				if not quiet:
 					print(_("Creating zsync file '%s'") % zsyncFilePath)
 				zsyncFile = ZsyncFile(zsyncFilePath)
-				zsyncFile.generate(pps.getPackageFile())
+				zsyncFile.generate(archive)
 				if not args.no_set_rights:
 					try:
 						setRights(zsyncFilePath)
@@ -489,19 +460,15 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 						logger.warning("Failed to set rights: %s", err)
 			break
 	finally:
-		if pps:
-			if not quiet:
-				print(_("Cleaning up"))
-			pps.cleanup()
 		if not quiet:
 			print(_("Unlocking package"))
-		unlockPackage(tempDir, pcf)
+		unlockPackage(tempDir, opsi_package)
 		if not quiet:
 			print("")
 
 
 def lockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, f'.opsi-makepackage.lock.{packageControlFile.getProduct().id}')
+	lockFile = os.path.join(tempDir, f'.opsi-makepackage.lock.{packageControlFile.product.id}')
 	# Test if other processes are accessing same product
 	try:
 		with open(lockFile, 'r', encoding='utf-8') as file:
@@ -516,7 +483,7 @@ def lockPackage(tempDir, packageControlFile):
 					pName = line.split()[-1].strip()
 					# process is running
 					raise RuntimeError(
-						f"Product '{packageControlFile.getProduct().id}' is currently locked by process {pName} ({pid})."
+						f"Product '{packageControlFile.product.id}' is currently locked by process {pName} ({pid})."
 					)
 
 	except IOError:
@@ -527,8 +494,8 @@ def lockPackage(tempDir, packageControlFile):
 		file.write(str(os.getpid()))
 
 
-def unlockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, f".opsi-makepackage.lock.{packageControlFile.getProduct().id}")
+def unlockPackage(tempDir, opsi_package):
+	lockFile = os.path.join(tempDir, f".opsi-makepackage.lock.{opsi_package.product.id}")
 	if os.path.isfile(lockFile):
 		os.unlink(lockFile)
 

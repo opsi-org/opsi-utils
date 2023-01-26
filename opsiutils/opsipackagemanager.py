@@ -14,6 +14,7 @@ import gettext
 import glob
 import locale
 import os
+from pathlib import Path
 import random
 import stat
 import struct
@@ -26,16 +27,6 @@ from contextlib import contextmanager
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
 
 from OPSI import __version__ as python_opsi_version
-from OPSI.Types import (
-	forceActionRequest,
-	forceBool,
-	forceHostId,
-	forceInt,
-	forceList,
-	forceProductId,
-	forceUnicode,
-	forceUnicodeList,
-)
 from OPSI.UI import SnackUI
 from OPSI.Util import md5sum
 from OPSI.Util.File.Opsi import parseFilename
@@ -45,7 +36,6 @@ from OPSI.Util.Message import (
 	ProgressSubject,
 	SubjectsObserver,
 )
-from OPSI.Util.Product import ProductPackageFile
 from OPSI.Util.Repository import getRepository
 
 try:
@@ -59,8 +49,19 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
-from opsicommon.config import OpsiConfig  # type: ignore[import]
-from opsicommon.client.jsonrpc import JSONRPCClient  # type: ignore[import]
+from opsicommon.config import OpsiConfig
+from opsicommon.client.jsonrpc import JSONRPCClient
+from opsicommon.package import OpsiPackage
+from opsicommon.types import (
+	forceActionRequest,
+	forceBool,
+	forceHostId,
+	forceInt,
+	forceList,
+	forceProductId,
+	forceUnicode,
+	forceUnicodeList,
+)
 
 from opsiutils import __version__, get_service_client
 
@@ -707,9 +708,6 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		if self.userInterface:
 			self.userInterface.exit()
 
-		for productPackageFile in self.productPackageFiles.values():
-			productPackageFile.cleanup()
-
 		for connection in self.depotConnections.values():
 			connection.disconnect()
 
@@ -781,21 +779,19 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			self.createDepotSubjects()
 		return self.depotSubjects.get(depotId)
 
-	def openProductPackageFile(self, packageFile):
-		filename = os.path.basename(packageFile)
+	def openProductPackageFile(self, packageFile: Path):
 		with self.productPackageFilesLock:
-			if filename not in self.productPackageFiles:
-				self.infoSubject.setMessage(_('Opening package file %s') % filename)
-				self.productPackageFiles[filename] = ProductPackageFile(packageFile, tempDir=self.config['tempDir'])
-				self.productPackageFiles[filename].getMetaData()
+			if packageFile.name not in self.productPackageFiles:
+				self.infoSubject.setMessage(_('Opening package file %s') % packageFile.name)
+				self.productPackageFiles[packageFile.name] = OpsiPackage(packageFile, temp_dir=self.config['tempDir'])
 
-	def getPackageControlFile(self, packageFile):
+	def getOpsiPackage(self, packageFile):
 		filename = os.path.basename(packageFile)
 		try:
-			return self.productPackageFiles[filename].packageControlFile
+			return self.productPackageFiles[filename]
 		except KeyError:
-			self.openProductPackageFile(packageFile)
-			return self.productPackageFiles[filename].packageControlFile
+			self.openProductPackageFile(Path(packageFile))
+			return self.productPackageFiles[filename]
 
 	def getPackageMd5Sum(self, packageFile):
 		filename = os.path.basename(packageFile)
@@ -908,7 +904,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 	def uploadToRepositories(self):
 		for packageFile in self.config['packageFiles']:
-			self.openProductPackageFile(packageFile)
+			self.openProductPackageFile(Path(packageFile))
 
 		for depotId in self.config['depotIds']:
 			tq = TaskQueue(name=f"Upload of package(s) {', '.join(self.config['packageFiles'])} to repository '{depotId}'")
@@ -955,7 +951,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				logger.notice("Custom-package detected, try to fix that.")
 				destination = f"{destination.split('~')[0]}.opsi"
 
-			productId = self.getPackageControlFile(packageFile).getProduct().getId()
+			productId = self.getOpsiPackage(packageFile).product.id
 
 			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": "depotId"}])[0]
 			if not depot.repositoryLocalUrl.startswith('file://'):
@@ -1061,7 +1057,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 								i += 1
 							deltaFilename = newDeltaFilename
 
-						deltaFile = os.path.join(self.config['tempDir'], deltaFilename)
+						deltaFile = os.path.join("/tmp", deltaFilename)
 
 						librsyncDeltaFile(packageFile, sig, deltaFile)
 
@@ -1178,13 +1174,13 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 	def installOnDepots(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		sequence = [
-			self.getPackageControlFile(packageFile).getProduct().id
+			self.getOpsiPackage(packageFile).product.id
 			for packageFile in self.config['packageFiles']
 		]
 
 		for packageFile in self.config['packageFiles']:
-			productId = self.getPackageControlFile(packageFile).getProduct().id
-			for dependency in self.getPackageControlFile(packageFile).getPackageDependencies():
+			productId = self.getOpsiPackage(packageFile).product.id
+			for dependency in self.getOpsiPackage(packageFile).package_dependencies:
 				try:
 					ppos = sequence.index(productId)
 					dpos = sequence.index(dependency['package'])
@@ -1200,7 +1196,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		sortedPackageFiles = []
 		for productId in sequence:
 			for packageFile in self.config['packageFiles']:
-				if productId == self.getPackageControlFile(packageFile).getProduct().id:
+				if productId == self.getOpsiPackage(packageFile).product.id:
 					sortedPackageFiles.append(packageFile)
 					break
 
@@ -1209,7 +1205,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		if not self.config['forceInstall']:
 			logger.info("Checking product locks")
 			productIds = [
-				self.getPackageControlFile(packageFile).getProduct().getId()
+				self.getOpsiPackage(packageFile).product.id
 				for packageFile in self.config['packageFiles']
 			]
 			lockedProductsOnDepot = self.service_client.jsonrpc(
@@ -1229,8 +1225,8 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			productProperties = []
 			products = {}
 			for packageFile in self.config['packageFiles']:
-				product = self.getPackageControlFile(packageFile).getProduct()
-				for productProperty in self.getPackageControlFile(packageFile).getProductProperties():
+				product = self.getOpsiPackage(packageFile).product
+				for productProperty in self.getOpsiPackage(packageFile).product.product_properties:
 					productProperties.append(productProperty)
 					products[productProperty.getIdent(returnType='unicode')] = product
 
@@ -1369,14 +1365,14 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				logger.notice("Installing package '%s' on depot '%s'", packageFile, depotId)
 				subject.setMessage(_("Installing package %s") % packageFile)
 
-			packageControlFile = self.getPackageControlFile(packageFile)
-			product = packageControlFile.getProduct()
+			opsi_package = self.getOpsiPackage(packageFile)
+			product = opsi_package.product
 			if self.config['newProductId']:
 				product.setId(self.config['newProductId'])
 			productId = product.getId()
 
 			propertyDefaultValues = {}
-			for productProperty in packageControlFile.getProductProperties():
+			for productProperty in opsi_package.product_properties:
 				if self.config['newProductId']:
 					productProperty.productId = productId
 
@@ -1397,7 +1393,6 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			installationParameters = {
 				'force': self.config['forceInstall'],
 				'propertyDefaultValues': propertyDefaultValues,
-				'tempDir': self.config['tempDir'],
 			}
 			if self.config['newProductId']:
 				installationParameters['forceProductId'] = self.config['newProductId']
@@ -1745,18 +1740,11 @@ class OpsiPackageManagerControl:
 		if not self.config['quiet']:
 			progressSubject.attachObserver(ProgressNotifier())
 
-		extractTempDir = None
-		if self.opts.tempDir:
-			extractTempDir = os.path.abspath(self.config['tempDir'])
-
 		destinationDir = os.path.abspath(os.getcwd())
 		for packageFile in self.config['packageFiles']:
-			if extractTempDir is None:
-				ppf = ProductPackageFile(packageFile)
-			else:
-				ppf = ProductPackageFile(packageFile, tempDir=extractTempDir)
+			opsi_package = OpsiPackage(Path(packageFile), temp_dir=self.config['tempDir'])
 
-			productId = ppf.getMetaData().getProduct().getId()
+			productId = opsi_package.product.id
 			if not productId:
 				raise ValueError(
 					f"Failed to extract source from package '{packageFile}': product id not found in meta data"
@@ -1769,10 +1757,10 @@ class OpsiPackageManagerControl:
 			if os.path.exists(packageDestinationDir):
 				raise OSError(f"Destination directory '{packageDestinationDir}' already exists")
 			os.mkdir(packageDestinationDir)
-			ppf.unpackSource(destinationDir=packageDestinationDir, newProductId=newProductId, progressSubject=progressSubject)
+
+			opsi_package.extract_package_archive(Path(packageFile), destination=Path(packageDestinationDir), new_product_id=newProductId)
 			if not self.config['quiet']:
 				sys.stderr.write('\n\n')
-			ppf.cleanup()
 
 	def processListCommand(self):  # pylint: disable=too-many-locals
 		terminalWidth = 60
@@ -1940,7 +1928,6 @@ class OpsiPackageManagerControl:
 			'consoleLogLevel': LOG_NONE,
 			'logFile': None,
 			'quiet': False,
-			'tempDir': '/tmp',
 			'command': None,
 			'packageFiles': [],
 			'productIds': [],
@@ -1983,7 +1970,7 @@ class OpsiPackageManagerControl:
 		if self.opts.fileLogLevel:
 			self.config['fileLogLevel'] = forceInt(self.opts.fileLogLevel)
 		if self.opts.tempDir:
-			self.config['tempDir'] = self.opts.tempDir
+			self.config['tempDir'] = Path(self.opts.tempDir)
 		if self.opts.depots:
 			self.config['depotIds'] = self.opts.depots.split(',')
 		if self.opts.newProductId:

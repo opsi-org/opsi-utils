@@ -21,7 +21,6 @@ import time
 
 import OPSI.Util.Task.ConfigureBackend as backendUtils
 from OPSI import __version__ as python_opsi_version
-from OPSI.Backend.BackendManager import BackendManager
 from OPSI.Backend.JSONRPC import JSONRPCBackend
 from OPSI.Config import DEFAULT_DEPOT_USER as CLIENT_USER
 from OPSI.Object import OpsiDepotserver
@@ -50,16 +49,13 @@ from OPSI.Util.Task.ConfigureBackend.MySQL import (
 	configureMySQLBackend as configureMySQLBackendWithoutGUI,
 )
 from OPSI.Util.Task.InitializeBackend import _getServerConfig as getServerConfig
-from OPSI.Util.Task.InitializeBackend import initializeBackends
 from OPSI.Util.Task.Rights import setRights
 from OPSI.Util.Task.Samba import SMB_CONF, configureSamba
 from OPSI.Util.Task.Sudoers import patchSudoersFileForOpsi
-from OPSI.Util.Task.UpdateBackend.ConfigurationData import (
-	getServerAddress,
-	updateBackendData,
-)
+from OPSI.Util.Task.UpdateBackend.ConfigurationData import getServerAddress
 from OPSI.Util.Task.UpdateBackend.File import updateFileBackend
 from OPSI.Util.Task.UpdateBackend.MySQL import updateMySQLBackend
+from opsicommon.client.jsonrpc import JSONRPCClient
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_CONFIDENTIAL,
@@ -73,7 +69,7 @@ from opsicommon.logging import (
 	secret_filter,
 )
 
-from opsiutils import __version__
+from opsiutils import __version__, get_service_client
 
 init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
@@ -161,37 +157,34 @@ def setPasswordForClientUser():
 	fqdn = getSysConfig()['fqdn']
 
 	password = None
-	backend_config = {
-		"dispatchConfigFile": '/etc/opsi/backendManager/dispatch.conf',
-		"backendConfigDir": '/etc/opsi/backends',
-		"extensionConfigDir": '/etc/opsi/backendManager/extend.d',
-		"depotBackend": True
-	}
-
 	try:
-		with BackendManager(**backend_config) as backend:
-			depot = backend.host_getObjects(type='OpsiDepotserver', id=fqdn)[0]  # pylint: disable=no-member
+		service_client = get_service_client()
+		depot = service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": fqdn}])[0]
 
-			for configserver in backend.host_getObjects(type='OpsiConfigserver'):  # pylint: disable=no-member
-				if configserver.id == fqdn:
-					break  # we are on the configserver - nothing to do
+		# Can there be more than one?
+		for configserver in service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiConfigserver"}]):
+			if configserver.id == fqdn:
+				break  # we are on the configserver - nothing to do
 
-				try:
-					with JSONRPCBackend(address=configserver.id, username=depot.id, password=depot.opsiHostKey) as jsonrpcBackend:
-						password = blowfishDecrypt(
-							depot.opsiHostKey,
-							jsonrpcBackend.user_getCredentials(username=CLIENT_USER, hostId=depot.id)['password']  # pylint: disable=no-member
-						)
-				except Exception as err:  # pylint: disable=broad-except
-					logger.info("Failed to get client user (%s) password from configserver: %s", CLIENT_USER, err)
+			try:
+				with JSONRPCClient(address=configserver.id, username=depot.id, password=depot.opsiHostKey) as jsonrpcBackend:
+					password = blowfishDecrypt(
+						depot.opsiHostKey,
+						jsonrpcBackend.user_getCredentials(username=CLIENT_USER, hostId=depot.id)['password']  # pylint: disable=no-member
+					)
+			except Exception as err:  # pylint: disable=broad-except
+				logger.info("Failed to get client user (%s) password from configserver: %s", CLIENT_USER, err)
 
-			if not password:
-				password = blowfishDecrypt(
-					depot.opsiHostKey,
-					backend.user_getCredentials(username=CLIENT_USER, hostId=depot.id)['password']  # pylint: disable=no-member
-				)
+		if not password:
+			password = blowfishDecrypt(
+				depot.opsiHostKey,
+				service_client.jsonrpc("user_getCredentials", [CLIENT_USER, depot.id])['password']  # pylint: disable=no-member
+			)
+
 	except Exception as err:  # pylint: disable=broad-except
 		logger.info("Failed to get client user (%s) password: %s", CLIENT_USER, err)
+	finally:
+		service_client.disconnect()
 
 	if not password:
 		logger.warning("No password for %s found. Generating random password.", CLIENT_USER)
@@ -214,25 +207,16 @@ def update(fromVersion=None):  # pylint: disable=unused-argument
 	except Exception as err:  # pylint: disable=broad-except
 		logger.warning(err)
 
-	configServerBackendConfig = {
-		"dispatchConfigFile": '/etc/opsi/backendManager/dispatch.conf',
-		"backendConfigDir": '/etc/opsi/backends',
-		"extensionConfigDir": '/etc/opsi/backendManager/extend.d',
-		"depotbackend": False
-	}
-
 	if isConfigServer:
 		try:
-			with BackendManager(**configServerBackendConfig) as backend:
-				backend.backend_createBase()
+			service_client = get_service_client()
+			service_client.jsonrpc("backend_createBase")
+			initializeConfigs()
+			# not calling OPSI.Util.Task.UpdateBackend.ConfigurationData.setDefaultWorkbenchLocation
 		except Exception as err:  # pylint: disable=broad-except
 			logger.warning(err)
-
-	if isConfigServer:
-		initializeConfigs()
-
-		with BackendManager(**configServerBackendConfig) as backend:
-			updateBackendData(backend)  # opsi 4.0 -> 4.1
+		finally:
+			service_client.disconnect()
 
 	if os.path.exists(SMB_CONF):
 		configureSamba()
@@ -1020,15 +1004,13 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 		setRights(path)
 
 	elif task == 'init-current-config':
-		initializeBackends(ipAddress)
-		configureClientUser()
+		logger.warning("init-current-config is no longer necessary with opsiconfd 4.3 (which performs a similar operation at start) and has been removed from opsi-setup.")
 
 	elif task == 'configure-mysql':
-		configureMySQLBackend(unattended)
+		configureMySQLBackend(unattended)  # TODO: wrapper for opsiconfd
 
 	elif task == 'update-mysql':
-		updateMySQLBackend(additionalBackendConfiguration=backendConfig)
-		update()
+		logger.warning("update-mysql is no longer necessary with opsiconfd 4.3 (which performs a similar operation at start) and has been removed from opsi-setup.")
 
 	elif task == 'update-file':
 		updateFileBackend(additionalBackendConfiguration=backendConfig)

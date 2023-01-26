@@ -10,18 +10,19 @@ import argparse
 import codecs
 import gettext
 import os
+from pathlib import Path
 import sys
 import shutil
 import time
 
 from opsicommon.logging import logger, logging_config, LOG_ERROR, DEFAULT_COLORED_FORMAT
-from OPSI import __version__ as python_opsi_version
-from OPSI.Object import (
+from opsicommon.package import OpsiPackage
+from opsicommon.objects import (
 	ProductDependency, LocalbootProduct, NetbootProduct, UnicodeProductProperty, BoolProductProperty
 )
+from opsicommon.types import forceEmailAddress, forceFilename, forceUnicode
+from OPSI import __version__ as python_opsi_version
 from OPSI.System import copy
-from OPSI.Types import forceEmailAddress, forceFilename, forceUnicode
-from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
@@ -626,11 +627,6 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 
 		break
 
-	pcf = PackageControlFile(os.path.join(productDirectory, 'OPSI', 'control'))
-	pcf.setProduct(product)
-	pcf.setProductDependencies(productDependencies)
-	pcf.setProductProperties(productProperties)
-
 	tmpChangelog = os.path.join(productDirectory, 'OPSI', 'changelog.txt')
 	cf = ChangelogFile(tmpChangelog)
 	cf.setEntries([{
@@ -647,9 +643,12 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 	product.setChangelog(''.join(cf.getLines()))
 	os.unlink(tmpChangelog)
 
-	pcf.setProduct(product)
-	pcf.generate()
-	pcf.chmod(0o600)
+	opsi_package = OpsiPackage()
+	opsi_package.product_dependencies = productDependencies
+	opsi_package.product_properties = productProperties
+	opsi_package.product = product
+	opsi_package.generate_control_file_legacy(Path(productDirectory) / "OPSI" / "control")
+	os.chmod(str(Path(productDirectory) / "OPSI" / "control"), 0o600)
 
 
 def createTemplates(productDirectory, templateDirectory=None):

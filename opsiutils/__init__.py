@@ -6,11 +6,8 @@
 opsiutils
 """
 from opsicommon.logging import logger
-from opsicommon.client.opsiservice import (  # type: ignore[import]
-	ServiceClient,
-	ServiceVerificationModes,
-)
-from opsicommon.config import OpsiConfig  # type: ignore[import]
+from opsicommon.client.opsiservice import ServiceClient
+from opsicommon.config import OpsiConfig 
 
 __version__ = '4.3.0.0'
 
@@ -32,8 +29,9 @@ def get_service_client(
 		password=password or opsiconf.get("host", "key"),
 		user_agent=user_agent or f"opsi-admin/{__version__}",
 		session_lifetime=SESSION_LIFETIME,
-		verify=ServiceVerificationModes.ACCEPT_ALL,
-		session_cookie=session_cookie
+		session_cookie=session_cookie,
+		jsonrpc_create_objects=True,
+		jsonrpc_create_methods=True,
 	)
 	service_client.connect()
 	logger.info('Connected')

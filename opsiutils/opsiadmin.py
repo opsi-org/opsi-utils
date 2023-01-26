@@ -28,11 +28,9 @@ import time
 from contextlib import closing, contextmanager
 
 from OPSI import __version__ as python_opsi_version
-from OPSI.Exceptions import OpsiRpcError
 from OPSI.System import CommandNotFoundException
 from OPSI.System import execute as sys_execute
 from OPSI.System import which
-from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from OPSI.Util import (
 	blowfishDecrypt,
 	deserialize,
@@ -44,6 +42,9 @@ from OPSI.Util import (
 	toJson,
 )
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
+
+from opsicommon.config import OpsiConfig
+from opsicommon.exceptions import OpsiRpcError
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
@@ -54,8 +55,7 @@ from opsicommon.logging import (
 	logging_config,
 	secret_filter,
 )
-from opsicommon.config import OpsiConfig  # type: ignore[import]
-
+from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 
 from opsiutils import __version__, get_service_client
 
@@ -1220,11 +1220,12 @@ class CommandMethod(Command):
 		shell.setInfoline(f"Executing:  {methodName}({pString})")
 		start = time.time()
 
+		# This needs ServiceClient with "jsonrpc_create_methods=True"
+		method = getattr(service_client, methodName)
 		if keywords:
-			params.append(keywords)
-		result = service_client.jsonrpc(methodName, params)  # TODO: how to deal with keywords?
-		# if keywords:
-		# 	result = method(*params, **keywords)
+			result = method(*params, **keywords)
+		else:
+			result = method(*params)
 
 		duration = time.time() - start
 		logger.debug('Took %0.3f seconds to process: %s(%s)', duration, methodName, pString)
