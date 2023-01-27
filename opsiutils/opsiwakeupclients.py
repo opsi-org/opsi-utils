@@ -262,12 +262,12 @@ def getClientIDsFromFile(service_client, inputFile):
 
 
 def getClientIDsFromGroup(service_client, groupName):
-	group = service_client.jsonrpc("group_getObjects", [[], {"id": "groupName", "type": "HostGroup"}])
+	group = service_client.jsonrpc("group_getObjects", [[], {"id": groupName, "type": "HostGroup"}])
 
 	try:
 		group = group[0]
 	except IndexError as err:
-		raise ValueError(f"Client group '{groupName}' found") from err
+		raise ValueError(f"Client group '{groupName}' not found") from err
 
 	return [mapping["objectId"] for mapping in service_client.jsonrpc("objectToGroup_getObjects", [[], {"groupId": group["id"]}])]
 
