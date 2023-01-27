@@ -21,9 +21,12 @@ def get_service_client(
 ) -> ServiceClient:
 	opsiconf = OpsiConfig()
 
+	address = address or "https://localhost:4447/rpc",  # IDEA Address from opsiconf for depots?
+	username = username or opsiconf.get("host", "id")
+	logger.debug("Creating service connection to '%s' as user '%s'", address, username)
 	service_client = ServiceClient(
-		address=address or "https://localhost:4447/rpc",  # Address from opsiconf?
-		username=username or opsiconf.get("host", "id"),
+		address=address,
+		username=username,
 		password=password or opsiconf.get("host", "key"),
 		user_agent=user_agent or f"opsi-admin/{__version__}",
 		session_lifetime=SESSION_LIFETIME,
@@ -33,5 +36,5 @@ def get_service_client(
 		jsonrpc_create_methods=True,
 	)
 	service_client.connect()
-	logger.info('Connected')
+	logger.info('Connected to %s', service_client.server_name)
 	return service_client
