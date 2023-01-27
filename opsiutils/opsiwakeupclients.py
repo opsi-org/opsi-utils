@@ -269,7 +269,7 @@ def getClientIDsFromGroup(service_client, groupName):
 	except IndexError as err:
 		raise ValueError(f"Client group '{groupName}' not found") from err
 
-	return [mapping["objectId"] for mapping in service_client.jsonrpc("objectToGroup_getObjects", [[], {"groupId": group["id"]}])]
+	return [mapping.objectId for mapping in service_client.jsonrpc("objectToGroup_getObjects", [[], {"groupId": group.id}])]
 
 
 def configureOpsiAutoUpdate(service_client, clientIds):
@@ -290,7 +290,7 @@ def getProductsFromProductGroup(service_client, productGroupId):
 	except IndexError as err:
 		raise ValueError(f"Product group '{productGroupId}' not found") from err
 
-	return {mapping["objectId"] for mapping in service_client.jsonrpc("objectToGroup_getObjects", [[], {"groupId": group["id"]}])}
+	return {mapping.objectId for mapping in service_client.jsonrpc("objectToGroup_getObjects", [[], {"groupId": group.id}])}
 
 
 def requireProductInstallation(service_client, clientIds, productIds):
@@ -382,7 +382,7 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 		logger.notice("Connecting to opsi-client-agent on '%s'", self.clientId)
 		port = 4441
 		address = f"https://{self.clientId}:{port}/opsiclientd"  # We expect the FQDN here
-		password = self.service_client.jsonrpc("host_getObjects", [[], {"id": self.clientId}])[0]["opsiHostKey"]
+		password = self.service_client.jsonrpc("host_getObjects", [[], {"id": self.clientId}])[0].opsiHostKey
 		timeout_event = threading.Event()
 
 		retryTimeout = 10
