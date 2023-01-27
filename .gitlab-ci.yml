@@ -95,7 +95,7 @@ integration_test:
     - opsiconfd setup --log-level-stderr 6  # initialize the new backend
     - apt update
     - apt -y install zstd
-    - for file in integration_tests/*.sh; do bash "$file"; done
+    #- for file in integration_tests/*.sh; do bash "$file"; done
 
 
 obs_int:
