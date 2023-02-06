@@ -9,6 +9,7 @@ opsiutils.__main__
 import os
 import sys
 
+
 def main():  # pylint: disable=too-many-return-statements
 	name = os.path.splitext(os.path.basename(sys.argv[0]))[0].lower().replace("-", "")
 	if name == "opsiadmin":
@@ -18,8 +19,9 @@ def main():  # pylint: disable=too-many-return-statements
 		from opsiutils.opsibackup import main as _main  # pylint: disable=import-outside-toplevel
 		return _main()
 	if name == "opsiconvert":
-		from opsiutils.opsiconvert import main as _main  # pylint: disable=import-outside-toplevel
-		return _main()
+		raise RuntimeError(
+			"opsiconvert not available with opsi 4.3. You can use `opsi-setup --file-to-mysql` to convert from FILE to MySQL backend."
+		)
 	if name == "opsimakepackage":
 		from opsiutils.opsimakepackage import main as _main  # pylint: disable=import-outside-toplevel
 		return _main()

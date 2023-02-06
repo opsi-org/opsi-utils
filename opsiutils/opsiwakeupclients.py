@@ -18,13 +18,13 @@ from collections import defaultdict
 from contextlib import contextmanager
 from itertools import product
 
-from opsicommon.logging import logger, init_logging, logging_config, LOG_ERROR, DEFAULT_COLORED_FORMAT
-from OPSI import __version__ as python_opsi_version
-from OPSI.Backend.BackendManager import BackendManager
-from OPSI.Backend.JSONRPC import JSONRPCBackend
-from OPSI.Util.Ping import ping
+from opsicommon.logging import logger, init_logging, logging_config, LOG_ERROR, DEFAULT_COLORED_FORMAT  # type: ignore[import]
 
-from opsiutils import __version__
+from opsicommon.client.jsonrpc import JSONRPCClient  # type: ignore[import]
+from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI.Util.Ping import ping  # type: ignore[import]
+
+from opsiutils import __version__, get_service_client
 
 try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -112,16 +112,28 @@ def parseOptions():
 
 
 def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-	backend, depotId, inputFile, noAutoUpdate, shutdownwanted, reboot, rebootTimeout, hostGroupId, productGroupId,
+	service_client, depotId, inputFile, noAutoUpdate, shutdownwanted, reboot, rebootTimeout, hostGroupId, productGroupId,
 	eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout, maxConcurrent
 ):
 	logger.info(
-		"Using params: depotId=%s, inputFile=%s, noAutoUpdate=%s, reboot=%s, rebootTimeout=%s, "
-		"hostGroupId=%s, productGroupId=%s, eventName=%s, wolTimeout=%s, eventTimeout=%s, "
-		"connectTimeout=%s, pingTimeout=%s, maxConcurrent=%s",
-		depotId, inputFile, noAutoUpdate, reboot, rebootTimeout,
-		hostGroupId, productGroupId, eventName,	wolTimeout, eventTimeout,
-		connectTimeout, pingTimeout, maxConcurrent
+		(
+			"Using params: depotId=%s, inputFile=%s, noAutoUpdate=%s, reboot=%s, rebootTimeout=%s, "
+			"hostGroupId=%s, productGroupId=%s, eventName=%s, wolTimeout=%s, eventTimeout=%s, "
+			"connectTimeout=%s, pingTimeout=%s, maxConcurrent=%s"
+		),
+		depotId,
+		inputFile,
+		noAutoUpdate,
+		reboot,
+		rebootTimeout,
+		hostGroupId,
+		productGroupId,
+		eventName,
+		wolTimeout,
+		eventTimeout,
+		connectTimeout,
+		pingTimeout,
+		maxConcurrent,
 	)
 	clientsToWake = []
 
@@ -130,13 +142,13 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 			logger.notice("Getting list of clients to process by depot '%s' and client group '%s'", depotId, hostGroupId)
 		else:
 			logger.notice("Getting list of clients to process by depot '%s'", depotId)
-		clientsToWake = getClientIDsFromDepot(backend, depotId, hostGroupId)
+		clientsToWake = getClientIDsFromDepot(service_client, depotId, hostGroupId)
 	elif hostGroupId:
 		logger.notice("Getting list of clients to process by group '%s'", hostGroupId)
-		clientsToWake = getClientIDsFromGroup(backend, hostGroupId)
+		clientsToWake = getClientIDsFromGroup(service_client, hostGroupId)
 	elif inputFile:
 		logger.notice("Getting list of clients to process from file '%s'", inputFile)
-		clientsToWake = getClientIDsFromFile(backend, inputFile)
+		clientsToWake = getClientIDsFromFile(service_client, inputFile)
 	else:
 		logger.error("No criteria given to determine a list of clients to process. You have to provide either -D/-H or -F.")
 		sys.exit(1)
@@ -150,16 +162,16 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 	logger.notice("Configuring products")
 	if not noAutoUpdate:
 		logger.notice("Configuring opsi-auto-update product")
-		configureOpsiAutoUpdate(backend, clientsToWake)
+		configureOpsiAutoUpdate(service_client, clientsToWake)
 
 	if shutdownwanted:
 		logger.notice("Setting shutdownwanted for clients")
-		setShutdownwanted(backend, clientsToWake)
+		setShutdownwanted(service_client, clientsToWake)
 
 	productIds = set()
 	if productGroupId:
 		logger.notice("Getting list of products to set to setup by product group '%s'", productGroupId)
-		productIds = getProductsFromProductGroup(backend, productGroupId)
+		productIds = getProductsFromProductGroup(service_client, productGroupId)
 	if productIds:
 		logger.notice("List of products to set to setup: %s", productIds)
 	else:
@@ -178,10 +190,10 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 			newClients.append(clientsToWake.pop())
 		if newClients:
 			if productIds:
-				requireProductInstallation(backend, newClients, productIds)
+				requireProductInstallation(service_client, newClients, productIds)
 			for client in newClients:
 				thread = ClientMonitoringThread(
-					backend, client, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout
+					service_client, client, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout
 				)
 				logger.notice("Starting task on client '%s'", client)
 				thread.daemon = True
@@ -220,74 +232,77 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 
 	logger.notice("Succesfully processed %s/%s clients", clientSum - totalFails, clientSum)
 
-def getClientIDsFromDepot(backend, depotId, groupName):
+
+def getClientIDsFromDepot(service_client, depotId, groupName):
 	clientsFromGroup = []
 	if groupName:
-		clientsFromGroup = getClientIDsFromGroup(backend, groupName)
+		clientsFromGroup = getClientIDsFromGroup(service_client, groupName)
 
-	depotClients = backend.getClientsOnDepot(depotId)
+	depotClients = service_client.jsonrpc("getClientsOnDepot", [depotId])
 	if not clientsFromGroup:
 		return depotClients
-	return [ x for x in depotClients if x in clientsFromGroup ]
+	return [x for x in depotClients if x in clientsFromGroup]
 
-def getClientIDsFromFile(backend, inputFile):
+
+def getClientIDsFromFile(service_client, inputFile):
 	if not os.path.exists(inputFile):
 		raise FileNotFoundError(f"Host-file '{inputFile}' not found")
-	knownIds = backend.host_getIdents(type="OpsiClient")
+	knownIds = service_client.jsonrpc("host_getIdents", [[], {"type": "OpsiClient"}])
 	clientIds = []
 	with codecs.open(inputFile, 'r', "utf8") as file:
 		for line in file.readlines():
 			line = line.strip()
 			if not line or line.startswith('#'):
 				continue
-			if not line in knownIds:
+			if line not in knownIds:
 				logger.warning("Client '%s' from host-file not found in backend", line)
 				continue
 			clientIds.append(line)
 	return clientIds
 
-def getClientIDsFromGroup(backend, groupName):
-	group = backend.group_getObjects(id=groupName, type="HostGroup")
+
+def getClientIDsFromGroup(service_client, groupName):
+	group = service_client.jsonrpc("group_getObjects", [[], {"id": groupName, "type": "HostGroup"}])
 
 	try:
 		group = group[0]
 	except IndexError as err:
-		raise ValueError(f"Client group '{groupName}' found") from err
+		raise ValueError(f"Client group '{groupName}' not found") from err
 
-	return [mapping.objectId for mapping in backend.objectToGroup_getObjects(groupId=group.id)]
+	return [mapping.objectId for mapping in service_client.jsonrpc("objectToGroup_getObjects", [[], {"groupId": group.id}])]
 
 
-def configureOpsiAutoUpdate(backend, clientIds):
+def configureOpsiAutoUpdate(service_client, clientIds):
 	for clientId in clientIds:
-		backend.setProductProperty('opsi-auto-update', 'rebootflag', 0, clientId)
+		service_client.jsonrpc("setProductProperty", ["opsi-auto-update", "rebootflag", 0, clientId])
 
 
-def setShutdownwanted(backend, clientIds):
+def setShutdownwanted(service_client, clientIds):
 	for clientId in clientIds:
-		backend.setProductActionRequest("shutdownwanted", clientId, 'setup')
+		service_client.jsonrpc("setProductActionRequest", ["shutdownwanted", clientId, "setup"])
 
 
-def getProductsFromProductGroup(backend, productGroupId):
-	group = backend.group_getObjects(id=productGroupId, type="ProductGroup")
+def getProductsFromProductGroup(service_client, productGroupId):
+	group = service_client.jsonrpc("group_getObjects", [[], {"id": productGroupId, "type": "ProductGroup"}])
 
 	try:
 		group = group[0]
 	except IndexError as err:
 		raise ValueError(f"Product group '{productGroupId}' not found") from err
 
-	return set([mapping.objectId for mapping in backend.objectToGroup_getObjects(groupId=group.id)])  # pylint: disable=consider-using-set-comprehension
+	return {mapping.objectId for mapping in service_client.jsonrpc("objectToGroup_getObjects", [[], {"groupId": group.id}])}
 
 
-def requireProductInstallation(backend, clientIds, productIds):
+def requireProductInstallation(service_client, clientIds, productIds):
 	for clientId, productId in product(clientIds, productIds):
-		backend.setProductActionRequestWithDependencies(productId, clientId, 'setup')
+		service_client.jsonrpc("setProductActionRequestWithDependencies", [productId, clientId, "setup"])
 
 
 class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-instance-attributes
-	def __init__(self, backend, clientId, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout):  # pylint: disable=too-many-arguments
+	def __init__(self, service_client, clientId, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout):  # pylint: disable=too-many-arguments
 		threading.Thread.__init__(self)
 
-		self.backend = backend
+		self.service_client = service_client
 		self.opsiclientdbackend = None
 		self.clientId = clientId
 		self.hostKey = None
@@ -335,7 +350,7 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 
 	def wakeClient(self):
 		logger.notice("Waking up client '%s'", self.clientId)
-		self.backend.hostControlSafe_start(self.clientId)
+		self.service_client.jsonrpc("hostControlSafe_start", [self.clientId])
 
 		if os.geteuid() == 0:
 			if self.pingTimeout > 0:
@@ -367,7 +382,7 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 		logger.notice("Connecting to opsi-client-agent on '%s'", self.clientId)
 		port = 4441
 		address = f"https://{self.clientId}:{port}/opsiclientd"  # We expect the FQDN here
-		password = self.backend.host_getObjects(id=self.clientId)[0].opsiHostKey
+		password = self.service_client.jsonrpc("host_getObjects", [[], {"id": self.clientId}])[0].opsiHostKey
 		timeout_event = threading.Event()
 
 		retryTimeout = 10
@@ -385,14 +400,14 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 					if res != 0:
 						raise Exception(f"Port {port} unreachable")
 
-					backend = JSONRPCBackend(
+					backend = JSONRPCClient(
 						address=address,
 						username=self.clientId,
 						password=password,
 						connectTimeout=self.connectTimeout,
 						socketTimeout=self.connectTimeout,
 					)
-					if not backend.jsonrpc_getSessionId():
+					if not backend.session:
 						continue
 
 					self.opsiclientdbackend = backend
@@ -436,8 +451,8 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 					if self.opsiclientdbackend.isEventRunning(self.eventName):  # pylint: disable=no-member
 						logger.notice("Event '%s' is running on '%s'", self.eventName, self.clientId)
 						break
-					if self.opsiclientdbackend.isEventRunning(self.eventName+"{user_logged_in}"):  # pylint: disable=no-member
-						logger.notice("Event '%s' is running on '%s'", self.eventName+"{user_logged_in}", self.clientId)
+					if self.opsiclientdbackend.isEventRunning(self.eventName + "{user_logged_in}"):  # pylint: disable=no-member
+						logger.notice("Event '%s' is running on '%s'", self.eventName + "{user_logged_in}", self.clientId)
 						break
 				except Exception as exc:  # pylint: disable=broad-except
 					logger.debug("Failed to check running event on '%s': %s", self.clientId, exc)
@@ -490,9 +505,10 @@ def opsiwakeupclients_main():
 			os.remove(options.logFile)
 		init_logging(log_file=options.logFile, file_level=options.fileLogLevel)
 
-	with BackendManager() as backend:
+	try:
+		service_client = get_service_client(user_agent=f"opsi-wakeup-clients/{__version__}")
 		wakeClientsForUpdate(
-			backend,
+			service_client,
 			options.depotId,
 			options.inputFile, options.noAutoUpdate,
 			options.shutdownwanted,
@@ -504,6 +520,9 @@ def opsiwakeupclients_main():
 			options.pingTimeout,
 			options.maxConcurrent
 		)
+	finally:
+		service_client.disconnect()
+
 
 def main():
 	try:

@@ -3,23 +3,27 @@ image: docker.uib.gmbh/opsi/dev/pybuilder:uib-python-3.10
 stages:
   - test
   - build
+  - integration_test
   - publish
 
 
 pytest-pylint:
   stage: test
   script:
-    - apt -y install python3-newt gettext gzip asciidoc-base
+    - apt update
+    - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
     - poetry lock --no-update
     - poetry install
     - poetry run pylint --disable=R,fixme opsiutils
+    - poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
 
 
 linux-pyinstaller:
   stage: build
   script:
-    - apt -y install python3-newt gettext gzip asciidoc-base
+    - apt update
+    - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
     - poetry lock --no-update
     - poetry install
@@ -42,7 +46,8 @@ arm64-pyinstaller:
   tags:
     - arm64
   script:
-    - apt -y install python3-newt gettext gzip asciidoc-base
+    - apt update
+    - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
     - poetry lock --no-update
     - poetry install
@@ -59,16 +64,50 @@ arm64-pyinstaller:
     expire_in: 2 days
 
 
+integration_test:
+  services:
+    - name: mysql:latest
+      command:
+        - --max_connections=1000
+        - --default-authentication-plugin=mysql_native_password
+    - name: redislabs/redistimeseries:latest
+      alias: redis
+  variables:
+    MYSQL_ROOT_PASSWORD: "opsi"
+    MYSQL_DATABASE: "opsitest"
+    MYSQL_USER: "opsi"
+    MYSQL_PASSWORD: "opsi"
+    MYSQL_HOST: mysql
+    REDIS_HOST: redis
+    OPSI_ADMIN_PASSWORD: vhahd8usaz
+    OPSI_HOST_ROLE: configserver
+    OPSI_HOST_ID: "test.uib.gmbh"
+    OPSI_TFTPBOOT: "false"
+    OPSICONFD_LOG_LEVEL: 6
+    OPSICONFD_RESTORE_BACKUP_URL: "http://binaryindex.uib.gmbh/development/testbackup/all/all/testbackup_all_all_1.0.tar.gz"
+  stage: integration_test
+  image:
+    name: docker.uib.gmbh/opsi/opsi-server:4.3-development
+    entrypoint: [""]
+  script:
+    - bash /entrypoint.sh &
+    - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
+    - source /entrypoint.sh set_environment_vars  # to set hosts for redis/grafana
+    - apt update
+    - apt -y install zstd
+    - for file in integration_tests/*.sh; do bash "$file"; done
+
+
 obs_int:
   stage: publish
   script:
-    - opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
+    - opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.3:development
   only:
     - tags
 
-obs_ext:
-  stage: publish
-  script:
-    - opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.2:development
-  only:
-    - tags
+#obs_ext:
+#  stage: publish
+#  script:
+#    - opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.3:development
+#  only:
+#    - tags

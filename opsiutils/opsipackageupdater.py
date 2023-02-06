@@ -19,13 +19,12 @@ from opsicommon.system import ensure_not_already_running
 from OPSI import __version__ as python_opsi_version
 from OPSI.Types import forceProductId
 from OPSI.Util import compareVersions
-from OPSI.Util.Task.UpdatePackages.Config import DEFAULT_CONFIG
-from OPSI.Util.Task.UpdatePackages.Exceptions import NoActiveRepositoryError
-from OPSI.Util.Task.UpdatePackages.Updater import OpsiPackageUpdater
-from OPSI.Util.Task.UpdatePackages.Util import getUpdatablePackages
 
 from opsiutils import __version__
-
+from opsiutils.update_packages.Config import DEFAULT_CONFIG
+from opsiutils.update_packages.Exceptions import NoActiveRepositoryError
+from opsiutils.update_packages.Updater import OpsiPackageUpdater
+from opsiutils.update_packages.Util import getUpdatablePackages
 
 class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
@@ -58,8 +57,8 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		for repository in self.getActiveRepositories():
 			for package in self.getDownloadablePackagesFromRepository(repository):
 				name = package.get("productId")
-				if not name in data or compareVersions(package.get("version"), ">" , data[name].get("version")):
-					data[name] = {"version" : package.get("version"), "repository" : repository.name}
+				if name not in data or compareVersions(package.get("version"), ">", data[name].get("version")):
+					data[name] = {"version": package.get("version"), "repository": repository.name}
 
 		for name in sorted(data.keys()):
 			print(f"\t{name} (Version {data[name].get('version')} in {data[name].get('repository')})")
@@ -157,6 +156,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		else:
 			logger.notice("No updates found.")
 
+
 parser = argparse.ArgumentParser(
 	description=(
 		"Updater for local opsi products.\n"
@@ -164,95 +164,150 @@ parser = argparse.ArgumentParser(
 		"Each mode has their own options that can be viewed with MODE -h"
 	)
 )
+
+
 def parse_args():
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
-	parser.add_argument('--config', '-c', help="Location of config file",
-						dest="configFile",
-						default='/etc/opsi/opsi-package-updater.conf')
+	parser.add_argument(
+		'--config',
+		'-c',
+		help="Location of config file",
+		dest="configFile",
+		default='/etc/opsi/opsi-package-updater.conf',
+	)
 
 	logGroup = parser.add_mutually_exclusive_group()
-	logGroup.add_argument('--verbose', '-v',
-		dest="logLevel", default=4, action="count",
-		help="Increase verbosity on console (can be used multiple times)")
-	logGroup.add_argument('--log-level', '-l',
-		dest="logLevel", type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-		help="Set the desired loglevel for the console.")
+	logGroup.add_argument(
+		'--verbose',
+		'-v',
+		dest="logLevel",
+		default=4,
+		action="count",
+		help="Increase verbosity on console (can be used multiple times)",
+	)
+	logGroup.add_argument(
+		'--log-level',
+		'-l',
+		dest="logLevel",
+		type=int,
+		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		help="Set the desired loglevel for the console.",
+	)
 
-	parser.add_argument('--force-checksum-calculation',
-		dest='forceChecksumCalculation', action="store_true", default=False,
+	parser.add_argument(
+		'--force-checksum-calculation',
+		dest='forceChecksumCalculation',
+		action="store_true",
+		default=False,
 		help=(
 			"Force calculation of a checksum (MD5) for every package. "
 			"Default is to use existing checksums from the .md5-file "
 			"of a package if possible."
-		)
+		),
 	)
 
-	parser.add_argument('--repo', metavar="repository_name", dest="repository",
-						default=None, help="Limit the actions the given repository.")
-	parser.add_argument('--use-inactive-repository', action="store_true",
-						dest="forceRepositoryActivation", help=(
-							"Force the activation of an otherwise disabled "
-							"repository. The repository must be given through "
-							"--repo."
-						)
+	parser.add_argument(
+		'--repo',
+		metavar="repository_name",
+		dest="repository",
+		default=None,
+		help="Limit the actions the given repository."
 	)
-	parser.add_argument('--ignore-errors',
-								action="store_true", dest="ignoreErrors",
-								help='Continue working even after download or installation of a package failed.')
+	parser.add_argument(
+		'--use-inactive-repository',
+		action="store_true",
+		dest="forceRepositoryActivation",
+		help="Force the activation of an otherwise disabled repository. The repository must be given through --repo.",
+	)
+	parser.add_argument(
+		"--ignore-errors",
+		action="store_true",
+		dest="ignoreErrors",
+		help='Continue working even after download or installation of a package failed.'
+	)
 
-	parser.add_argument('--no-zsync',
-		dest='no_zsync', action="store_true", default=False,
-		help=("Forces to not use zsync. Instead the fallback command is used.")
+	parser.add_argument(
+		"--no-zsync",
+		dest='no_zsync',
+		action="store_true",
+		default=False,
+		help="Forces to not use zsync. Instead the fallback command is used.",
 	)
 
 	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
 	installparser = modeparsers.add_parser(
-		'install', help='Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)'
+		'install',
+		help='Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)',
 	)
-	installparser.add_argument('processProductIds', nargs='*',
-								metavar="productID",
-								help="Limit installation to products with the given IDs.")
+	installparser.add_argument(
+		'processProductIds',
+		nargs='*',
+		metavar="productID",
+		help="Limit installation to products with the given IDs.",
+	)
 
 	updateparser = modeparsers.add_parser('update', help='Update already installed packages from repositories.')
-	updateparser.add_argument('processProductIds', nargs='*',
-								metavar="productID",
-								help="Limit updates to products with the given IDs.")
+	updateparser.add_argument(
+		'processProductIds',
+		nargs='*',
+		metavar="productID",
+		help="Limit updates to products with the given IDs.",
+	)
 
-	downloadParser = modeparsers.add_parser('download',
-											help=('Download packages from repositories. '
-													'This will not install packages.'))
-	downloadParser.add_argument('--force',
-								action="store_true", dest="forceDownload",
-								help='Force the download of a product even though it would otherwise not be required.')
-	downloadParser.add_argument('processProductIds', nargs='*', metavar="productID",
-								help="Limit downloads to products with the given IDs.")
+	downloadParser = modeparsers.add_parser('download', help='Download packages from repositories. This will not install packages.')
+	downloadParser.add_argument(
+		'--force',
+		action="store_true",
+		dest="forceDownload",
+		help='Force the download of a product even though it would otherwise not be required.'
+	)
+	downloadParser.add_argument('processProductIds', nargs='*', metavar="productID", help="Limit downloads to products with the given IDs.")
 
 	listparser = modeparsers.add_parser('list', help='Listing information')
 	listmgroup = listparser.add_mutually_exclusive_group()
-	listmgroup.add_argument('--repos',
-							action="store_true", dest="listRepositories",
-							help='Lists all repositories')
-	listmgroup.add_argument('--active-repos',
-							action="store_true", dest="listActiveRepos",
-							help='Lists all active repositories')
-	listmgroup.add_argument('--packages', '--products',
-							action="store_true", dest="listAvailableProducts",
-							help='Lists the repositories and the packages they provide.')
-	listmgroup.add_argument('--packages-unique',
-							action="store_true", dest="listAvailablePackagesUnique",
-							help='Lists the repositories and the packages they provide.')
-	listmgroup.add_argument('--packages-and-installationstatus', '--products-and-installationstatus',
-							action="store_true", dest="listProductsWithInstallationStatus",
-							help='Lists the repositories with their provided packages and information about the local installation status.')
-	listmgroup.add_argument('--package-differences', '--product-differences',
-							action="store_true", dest="listProductsWithDifference",
-							help='Lists packages where local and remote version are different.')
-	listmgroup.add_argument('--updatable-packages', '--updatable-products',
-							action="store_true", dest="listUpdatableProducts",
-							help='Lists packages that have updates in the remote repositories.')
-	listmgroup.add_argument('--search-package', '--search-product', metavar='text',
-							dest="searchForProduct",
-							help='Search for a package with the given name.')
+	listmgroup.add_argument('--repos', action="store_true", dest="listRepositories", help='Lists all repositories')
+	listmgroup.add_argument('--active-repos', action="store_true", dest="listActiveRepos", help='Lists all active repositories')
+	listmgroup.add_argument(
+		'--packages',
+		'--products',
+		action="store_true",
+		dest="listAvailableProducts",
+		help='Lists the repositories and the packages they provide.',
+	)
+	listmgroup.add_argument(
+		'--packages-unique',
+		action="store_true",
+		dest="listAvailablePackagesUnique",
+		help='Lists the repositories and the packages they provide.',
+	)
+	listmgroup.add_argument(
+		'--packages-and-installationstatus',
+		'--products-and-installationstatus',
+		action="store_true",
+		dest="listProductsWithInstallationStatus",
+		help='Lists the repositories with their provided packages and information about the local installation status.',
+	)
+	listmgroup.add_argument(
+		'--package-differences',
+		'--product-differences',
+		action="store_true",
+		dest="listProductsWithDifference",
+		help='Lists packages where local and remote version are different.'
+	)
+	listmgroup.add_argument(
+		'--updatable-packages',
+		'--updatable-products',
+		action="store_true",
+		dest="listUpdatableProducts",
+		help='Lists packages that have updates in the remote repositories.',
+	)
+	listmgroup.add_argument(
+		'--search-package',
+		'--search-product',
+		metavar='text',
+		dest="searchForProduct",
+		help='Search for a package with the given name.',
+	)
 
 	# Setting a default to not stumble over possibly not present args.
 	parser.set_defaults(processProductIds=[])

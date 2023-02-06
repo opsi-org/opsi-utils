@@ -10,18 +10,19 @@ import argparse
 import codecs
 import gettext
 import os
+from pathlib import Path
 import sys
 import shutil
 import time
 
 from opsicommon.logging import logger, logging_config, LOG_ERROR, DEFAULT_COLORED_FORMAT
-from OPSI import __version__ as python_opsi_version
-from OPSI.Object import (
+from opsicommon.package import OpsiPackage
+from opsicommon.objects import (
 	ProductDependency, LocalbootProduct, NetbootProduct, UnicodeProductProperty, BoolProductProperty
 )
+from opsicommon.types import forceEmailAddress, forceFilename, forceUnicode
+from OPSI import __version__ as python_opsi_version
 from OPSI.System import copy
-from OPSI.Types import forceEmailAddress, forceFilename, forceUnicode
-from OPSI.Util.File.Opsi import PackageControlFile
 from OPSI.Util.File import ChangelogFile
 from OPSI.Util.Task.Rights import setRights
 from OPSI.UI import UIFactory
@@ -50,11 +51,20 @@ class CancelledByUserError(Exception):
 def newprod_main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
-	parser.add_argument("-t", "--template-dir", default=None,
-						dest="templateDir", metavar="DIRECTORY",
-						help=_("Copies the contents of DIRECTORY to the destination directory."))
-	parser.add_argument('destination', default=os.getcwd(), nargs='?',
-						help=_("The destination of the new product source. If no destination directory is supplied, the current directory is used."))
+	parser.add_argument(
+		"-t",
+		"--template-dir",
+		default=None,
+		dest="templateDir",
+		metavar="DIRECTORY",
+		help=_("Copies the contents of DIRECTORY to the destination directory.")
+	)
+	parser.add_argument(
+		'destination',
+		default=os.getcwd(),
+		nargs='?',
+		help=_("The destination of the new product source. If no destination directory is supplied, the current directory is used."),
+	)
 
 	options = parser.parse_args()
 
@@ -360,10 +370,11 @@ Possible requirement types are: %s''') % (
 
 	while True:
 		if not ui.yesno(
-				title=_('Create product dependency?'),
-				text=_('Do you want to create a product dependency?'),
-				okLabel=_('Yes'),
-				cancelLabel=_('No')):
+			title=_('Create product dependency?'),
+			text=_('Do you want to create a product dependency?'),
+			okLabel=_('Yes'),
+			cancelLabel=_('No'),
+		):
 			break
 
 		productDependency = ProductDependency(
@@ -446,10 +457,12 @@ Property description: Usage description.
 Possible values: Comma separated list of possible values for the property. If no possible values are given any values are allowed.
 Editable: Is it allowed to specify a value which is not in the list of possible values?''')
 	while True:
-		if not ui.yesno(title=_('Create product property?'),
-				text=_('Do you want to create a product property?'),
-				okLabel=_('Yes'),
-				cancelLabel=_('No')):
+		if not ui.yesno(
+			title=_('Create product property?'),
+			text=_('Do you want to create a product property?'),
+			okLabel=_('Yes'),
+			cancelLabel=_('No')
+		):
 			break
 
 		# Get property type
@@ -614,11 +627,6 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 
 		break
 
-	pcf = PackageControlFile(os.path.join(productDirectory, 'OPSI', 'control'))
-	pcf.setProduct(product)
-	pcf.setProductDependencies(productDependencies)
-	pcf.setProductProperties(productProperties)
-
 	tmpChangelog = os.path.join(productDirectory, 'OPSI', 'changelog.txt')
 	cf = ChangelogFile(tmpChangelog)
 	cf.setEntries([{
@@ -635,9 +643,12 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 	product.setChangelog(''.join(cf.getLines()))
 	os.unlink(tmpChangelog)
 
-	pcf.setProduct(product)
-	pcf.generate()
-	pcf.chmod(0o600)
+	opsi_package = OpsiPackage()
+	opsi_package.product_dependencies = productDependencies
+	opsi_package.product_properties = productProperties
+	opsi_package.product = product
+	opsi_package.generate_control_file_legacy(Path(productDirectory) / "OPSI" / "control")
+	os.chmod(str(Path(productDirectory) / "OPSI" / "control"), 0o600)
 
 
 def createTemplates(productDirectory, templateDirectory=None):

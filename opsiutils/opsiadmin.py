@@ -18,6 +18,7 @@ import json
 import locale
 import os
 import os.path
+from pathlib import Path
 import pwd
 import select
 import stat
@@ -26,13 +27,23 @@ import sys
 import time
 from contextlib import closing, contextmanager
 
+from opsicommon.config import OpsiConfig
+from opsicommon.exceptions import OpsiRpcError
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_DEBUG,
+	LOG_ERROR,
+	LOG_NONE,
+	LOG_WARNING,
+	logger,
+	logging_config,
+	secret_filter,
+)
+from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from OPSI import __version__ as python_opsi_version
-from OPSI.Backend.BackendManager import BackendManager
-from OPSI.Exceptions import OpsiRpcError
 from OPSI.System import CommandNotFoundException
 from OPSI.System import execute as sys_execute
 from OPSI.System import which
-from OPSI.Types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from OPSI.Util import (
 	blowfishDecrypt,
 	deserialize,
@@ -44,18 +55,8 @@ from OPSI.Util import (
 	toJson,
 )
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG,
-	LOG_ERROR,
-	LOG_NONE,
-	LOG_WARNING,
-	logger,
-	logging_config,
-	secret_filter,
-)
 
-from opsiutils import __version__
+from opsiutils import __version__, get_service_client
 
 COLOR_NORMAL = '\033[0;0;0m'
 COLOR_BLACK = '\033[0;30;40m'
@@ -81,7 +82,7 @@ COLORS_AVAILABLE = [
 	COLOR_LIGHT_MAGENTA, COLOR_LIGHT_CYAN, COLOR_LIGHT_WHITE
 ]
 
-backend = None  # pylint: disable=invalid-name
+service_client = None  # pylint: disable=invalid-name
 exitZero = False  # pylint: disable=invalid-name
 global_shell = None  # pylint: disable=invalid-name
 logFile = None  # pylint: disable=invalid-name
@@ -163,66 +164,99 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 	global exitZero  # pylint: disable=global-statement,invalid-name
 	global logFile  # pylint: disable=global-statement,invalid-name
 
-	try:
-		username = forceUnicode(pwd.getpwuid(os.getuid())[0])
-	except Exception:  # pylint: disable=broad-except
-		username = ''
-
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--version', '-V', action='version',
-						version=f"{__version__} [python-opsi={python_opsi_version}]", help=_("Show version and exit"))
-	parser.add_argument('--log-level', '-l', dest="logLevel", default=LOG_WARNING,
-						type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-						help=_("Set log level (default: 3)"))
-	parser.add_argument("--log-file", metavar='FILE', dest="logFile",
-						help=_("Path to log file"))
-	parser.add_argument('--address', '-a', default='https://localhost:4447/rpc',
-						help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"))
-	parser.add_argument('--username', '-u', default=username,
-						help=_("Username (default: current user)"))
-	parser.add_argument('--password', '-p',
-						help=_("Password (default: prompt for password)"))
-	parser.add_argument('--opsirc', default=getOpsircPath(),
-						help=(
-							_("Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
-							_("An opsirc file contains login credentials to the web API.")
-						))
-	parser.add_argument('--direct', '-d', action='store_true',
-						help=_("Do not use opsiconfd"))
-	parser.add_argument('--no-depot', dest="depot",
-						action="store_false", default=True,
-						help=_("Do not use depotserver backend"))
-	parser.add_argument('--interactive', '-i', action="store_true",
-						help=_("Start in interactive mode"))
-	parser.add_argument('--exit-zero', dest="exitZero", action='store_true',
-						help=_("Always exit with exit code 0."))
+	parser.add_argument(
+		'--version',
+		'-V',
+		action='version',
+		version=f"{__version__} [python-opsi={python_opsi_version}]",
+		help=_("Show version and exit")
+	)
+	parser.add_argument(
+		'--log-level',
+		'-l',
+		dest="logLevel",
+		default=LOG_WARNING,
+		type=int,
+		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		help=_("Set log level (default: 3)"),
+	)
+	parser.add_argument(
+		"--log-file",
+		metavar="FILE",
+		dest="logFile",
+		help=_("Path to log file"),
+	)
+	parser.add_argument(
+		'--address',
+		'-a',
+		default='https://localhost:4447/rpc',
+		help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"),
+	)
+	parser.add_argument('--username', '-u', help=_("Username (default: host_id or current user)"))
+	parser.add_argument('--password', '-p', help=_("Password (default: host_key or prompt for password)"))
+	parser.add_argument(
+		'--opsirc',
+		default=getOpsircPath(),
+		help=(
+			_("Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
+			_("An opsirc file contains login credentials to the web API.")
+		)
+	)
+	parser.add_argument('--direct', '-d', action='store_true', help=_("Do not use opsiconfd - DEPRECATED will be ignored"))
+	parser.add_argument(
+		'--no-depot',
+		dest="depot",
+		action="store_false",
+		default=True,
+		help=_("Do not use depotserver backend - DEPRECATED will be ignored")
+	)
+	parser.add_argument(
+		'--interactive',
+		'-i',
+		action="store_true",
+		help=_("Start in interactive mode")
+	)
+	parser.add_argument(
+		'--exit-zero',
+		dest="exitZero",
+		action='store_true',
+		help=_("Always exit with exit code 0.")
+	)
 
 	outputGroup = parser.add_argument_group(title=_("Output"))
-	outputGroup.add_argument('--colorize', '-c', action="store_true",
-						help=_("Colorize output"))
+	outputGroup.add_argument('--colorize', '-c', action="store_true", help=_("Colorize output"))
 
 	outputFormat = outputGroup.add_mutually_exclusive_group()
 	outputFormat.add_argument(
-		'--simple-output', '-S', dest='output', const='SIMPLE', action='store_const',
-		help=_("Simple output (only for scalars, lists)"))
+		'--simple-output',
+		'-S',
+		dest='output',
+		const='SIMPLE',
+		action='store_const',
+		help=_("Simple output (only for scalars, lists)"),
+	)
 	outputFormat.add_argument(
-		'--shell-output', '-s', dest='output', const='SHELL', action='store_const',
-		help=_("Shell output"))
+		'--shell-output',
+		'-s',
+		dest='output',
+		const='SHELL',
+		action='store_const',
+		help=_("Shell output"),
+	)
 	outputFormat.add_argument(
-		'--raw-output', '-r', dest='output', const='RAW', action='store_const',
-		help=_("Raw output"))
+		'--raw-output',
+		'-r',
+		dest='output',
+		const='RAW',
+		action='store_const',
+		help=_("Raw output"),
+	)
 
-	parser.add_argument('command', nargs=argparse.REMAINDER,
-						help=_("Command to execute."))
+	parser.add_argument('command', nargs=argparse.REMAINDER, help=_("Command to execute."))
 
 	options = parser.parse_args()
 
-	username = options.username
-	password = options.password
-	opsircfile = options.opsirc
-	address = options.address
-	direct = options.direct
-	depotBackend = options.depot
 	interactive = options.interactive
 	color = options.colorize
 	output = options.output or 'JSON'
@@ -232,97 +266,68 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		logFile = forceFilename(options.logFile)
 		startLogFile(logFile, options.logLevel)
 
-	logging_config(stderr_level = LOG_NONE if interactive else options.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
+	logging_config(stderr_level=LOG_NONE if interactive else options.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 
-	global backend  # pylint: disable=global-statement,invalid-name
+	global service_client  # pylint: disable=global-statement,invalid-name
 	try:
-		if direct:
-			# Create BackendManager
-			backend = BackendManager(
-				dispatchConfigFile='/etc/opsi/backendManager/dispatch.conf',
-				backendConfigDir='/etc/opsi/backends',
-				extensionConfigDir='/etc/opsi/backendManager/extend.d',
-				depotBackend=depotBackend,
-				hostControlBackend=True,
-				hostControlSafeBackend=True
-			)
+		if options.direct:
+			logger.warning("Option --direct/-d is deprecated and can be omitted.")
 
-		else:
-			# Reading opsirc file.
-			# We should alway prefer the settings from the commandline
-			# in case an value is to be overridden.
-			opsircConfig = readOpsirc(opsircfile)
-
+		# Reading opsirc file.
+		# We should always prefer the settings from the commandline
+		opsircConfig = readOpsirc(options.opsirc)
+		opsiconf = OpsiConfig()
+		username = options.username or opsircConfig.get("username") or opsiconf.get("host", "id")
+		password = options.password or opsircConfig.get("password") or opsiconf.get("host", "key")
+		address = options.address or opsircConfig.get("address") or opsiconf.get("service", "url")
+		if not username:
 			try:
-				password = password or opsircConfig['password']
-			except KeyError:
-				pass
-
+				username = forceUnicode(pwd.getpwuid(os.getuid())[0])
+			except Exception as error:  # pylint: disable=broad-except
+				logger.error("Failed to get username: %s", error)
+				raise
+		if not password:
 			try:
-				username = username or opsircConfig['username']
-			except KeyError:
-				try:
-					username = forceUnicode(pwd.getpwuid(os.getuid())[0])
-				except Exception:  # pylint: disable=broad-except
-					username = ''
+				password = getpass.getpass()
+			except Exception as error:  # pylint: disable=broad-except
+				logger.error("Failed to get password: %s", error)
+				raise
 
+		session_cookie = None
+		sessionFile = None
+		home = os.environ.get('HOME')
+		if home:
+			opsiadminUserDir = Path(home) / '.opsi.org'
+			if not opsiadminUserDir.exists():
+				try:
+					opsiadminUserDir.mkdir()
+				except OSError as err:
+					logger.info("Could not create %s: %s", opsiadminUserDir, err)
+
+			sessionFile = opsiadminUserDir / 'session'
 			try:
-				address = address or opsircConfig['address']
-			except KeyError:
-				address = 'https://localhost:4447/rpc'
-
-			# Connect to opsiconfd
-			if not password:
-				try:
-					password = getpass.getpass()
-				except Exception:  # pylint: disable=broad-except
-					pass
-
-			sessionId = None
-			sessionFile = None
-			home = os.environ.get('HOME')
-			if home:
-				opsiadminUserDir = forceFilename(os.path.join(home, '.opsi.org'))
-				if not os.path.exists(opsiadminUserDir):
-					try:
-						os.mkdir(opsiadminUserDir)
-					except OSError as err:
-						logger.info("Could not create %s: %s", opsiadminUserDir, err)
-
-				sessionFile = os.path.join(opsiadminUserDir, 'session')
-				try:
-					with codecs.open(sessionFile, 'r', 'utf-8') as session:
-						for line in session:
-							line = line.strip()
-							if line:
-								sessionId = forceUnicode(line)
-								break
-				except IOError as err:
-					if err.errno != 2:  # 2 is No such file or directory
-						logger.error("Failed to read session file '%s': %s", sessionFile, err)
-				except Exception as err:  # pylint: disable=broad-except
+				with codecs.open(sessionFile, 'r', 'utf-8') as session:
+					for line in session:
+						line = line.strip()
+						if line:
+							session_cookie = forceUnicode(line)
+							break
+			except IOError as err:
+				if err.errno != 2:  # 2 is No such file or directory
 					logger.error("Failed to read session file '%s': %s", sessionFile, err)
+			except Exception as err:  # pylint: disable=broad-except
+				logger.error("Failed to read session file '%s': %s", sessionFile, err)
+				raise err
 
-			from OPSI.Backend.JSONRPC import (  # pylint: disable=import-outside-toplevel
-				JSONRPCBackend,
-			)
-			backend = JSONRPCBackend(
-				address=address,
-				username=username,
-				password=password,
-				application=f"opsi-admin/{ __version__}",
-				sessionId=sessionId,
-				compression=True
-			)
-			logger.info('Connected')
+		service_client = get_service_client(address=address, username=username, password=password, session_cookie=session_cookie)
 
-			sessionId = backend.jsonrpc_getSessionId()
-			if sessionId and sessionFile:
-				try:
-					with codecs.open(sessionFile, 'w', 'utf-8') as session:
-						session.write(f"{sessionId}\n")
-				except Exception as err:  # pylint: disable=broad-except
-					logger.error("Failed to write session file '%s': %s", sessionFile, err)
+		session_cookie = service_client.session_cookie
+		if session_cookie and sessionFile:
+			try:
+				with codecs.open(sessionFile, 'w', 'utf-8') as session:
+					session.write(f"{session_cookie}\n")
+			except Exception as err:  # pylint: disable=broad-except
+				logger.error("Failed to write session file '%s': %s", sessionFile, err)
 
 		cmdline = ''
 		for i, argument in enumerate(options.command, start=0):
@@ -407,9 +412,9 @@ To exit opsi-admin please type 'exit'."""
 		else:
 			raise RuntimeError("Not running in interactive mode and no commandline arguments given.")
 	finally:
-		if backend:
+		if service_client:
 			try:
-				backend.backend_exit()
+				service_client.disconnect()
 			except Exception:  # pylint: disable=broad-except
 				pass
 
@@ -418,6 +423,7 @@ def startLogFile(log_file, logLevel):
 	with codecs.open(log_file, 'w', 'utf-8') as log:
 		log.write(f"Starting log at: {time.strftime('%a, %d %b %Y %H:%M:%S')}")
 	logging_config(log_file=log_file, file_level=logLevel)
+
 
 class Shell:  # pylint: disable=too-many-instance-attributes
 
@@ -1118,14 +1124,14 @@ class Command:
 class CommandMethod(Command):
 	def __init__(self):
 		Command.__init__(self, 'method')
-		self.interface = backend.backend_getInterface()
+		self.interface = service_client.jsonrpc_interface
 
 	def getDescription(self):
 		return _("Execute a config-interface-method")
 
 	def help(self, shell):  # pylint: disable=redefined-outer-name
 		shell.appendLine(f'\r{_("Methods are:")}\n')
-		for method in backend.backend_getInterface():
+		for method in service_client.jsonrpc_interface:
 			logger.debug(method)
 			shell.appendLine(f"\r{method.get('name')}\n")
 
@@ -1213,7 +1219,8 @@ class CommandMethod(Command):
 		shell.setInfoline(f"Executing:  {methodName}({pString})")
 		start = time.time()
 
-		method = getattr(backend, methodName)
+		# This needs ServiceClient with "jsonrpc_create_methods=True"
+		method = getattr(service_client, methodName)
 		if keywords:
 			result = method(*params, **keywords)
 		else:
@@ -1377,7 +1384,7 @@ class CommandSet(Command):
 
 		elif params[0] == 'log-file':
 			if params[1] == 'off':
-				logging_config(file_level = LOG_NONE)
+				logging_config(file_level=LOG_NONE)
 			else:
 				logFile = params[1]
 				startLogFile(logFile, LOG_DEBUG)
@@ -1385,7 +1392,7 @@ class CommandSet(Command):
 		elif params[0] == 'log-level':
 			if not logFile:
 				raise ValueError(_('No log-file set!'))
-			logging_config(file_level = int(params[1]))
+			logging_config(file_level=int(params[1]))
 
 
 class CommandHelp(Command):
@@ -1494,7 +1501,7 @@ class CommandLog(Command):
 class CommandTask(Command):
 	def __init__(self):
 		Command.__init__(self, 'task')
-		self._tasks = (
+		self._tasks = (  # TODO: are these deprecated methods still needed?
 			('setupWhereInstalled', 'productId'),
 			('setupWhereNotInstalled', 'productId'),
 			('updateWhereInstalled', 'productId'),
@@ -1550,7 +1557,7 @@ class CommandTask(Command):
 				"Please use 'method setupWhereInstalled' instead."
 			)
 
-			for clientId in backend.setupWhereInstalled(productId):  # pylint: disable=no-member
+			for clientId in service_client.jsonrpc("setupWhereInstalled", [productId]):
 				shell.appendLine(clientId)
 
 		elif params[0] == 'setupWhereNotInstalled':
@@ -1563,7 +1570,7 @@ class CommandTask(Command):
 				"Please use 'method setupWhereNotInstalled' instead."
 			)
 
-			for clientId in backend.setupWhereNotInstalled(productId):  # pylint: disable=no-member
+			for clientId in service_client.jsonrpc("setupWhereNotInstalled", [productId]):
 				shell.appendLine(clientId)
 
 		elif params[0] == 'updateWhereInstalled':
@@ -1576,7 +1583,7 @@ class CommandTask(Command):
 				"Please use 'method updateWhereInstalled' instead."
 			)
 
-			for clientId in backend.updateWhereInstalled(productId):  # pylint: disable=no-member
+			for clientId in service_client.jsonrpc("updateWhereInstalled", [productId]):
 				shell.appendLine(clientId)
 
 		elif params[0] == 'uninstallWhereInstalled':
@@ -1589,7 +1596,7 @@ class CommandTask(Command):
 				"Please use 'method uninstallWhereInstalled' instead."
 			)
 
-			for clientId in backend.uninstallWhereInstalled(productId):  # pylint: disable=no-member
+			for clientId in service_client.jsonrpc("uninstallWhereInstalled", [productId]):
 				shell.appendLine(clientId)
 
 		elif params[0] == 'setActionRequestWhereOutdated':
@@ -1606,7 +1613,7 @@ class CommandTask(Command):
 				"Please use 'method setActionRequestWhereOutdated' instead."
 			)
 
-			for clientId in backend.setActionRequestWhereOutdated(actionRequest, productId):  # pylint: disable=no-member
+			for clientId in service_client.jsonrpc("setActionRequestWhereOutdated", [actionRequest, productId]):
 				shell.appendLine(clientId)
 
 		elif params[0] == 'setActionRequestWithDependencies':
@@ -1621,7 +1628,7 @@ class CommandTask(Command):
 			clientId = params[3]
 
 			if productId and clientId and actionRequest:
-				backend.setProductActionRequestWithDependencies(productId, clientId, actionRequest)  # pylint: disable=no-member
+				service_client.jsonrpc("setProductActionRequestWithDependencies", [productId, clientId, actionRequest])
 
 		elif params[0] == 'setActionRequestWhereOutdatedWithDependencies':
 			if len(params) < 2:
@@ -1638,7 +1645,7 @@ class CommandTask(Command):
 				"setActionRequestWhereOutdatedWithDependencies' instead."
 			)
 
-			for clientId in backend.setActionRequestWhereOutdatedWithDependencies(actionRequest, productId):  # pylint: disable=no-member
+			for clientId in service_client.jsonrpc("setActionRequestWhereOutdatedWithDependencies", [actionRequest, productId]):
 				shell.appendLine(clientId)
 
 		elif params[0] == 'decodePcpatchPassword':
@@ -1650,8 +1657,8 @@ class CommandTask(Command):
 			shell.appendLine(cleartext)
 
 		elif params[0] == 'setPcpatchPassword':
-			#if os.getuid() != 0:
-			#	raise RuntimeError(_("You have to be root to change pcpatch password!"))
+			# if os.getuid() != 0:
+			# 	raise RuntimeError(_("You have to be root to change pcpatch password!"))
 
 			fqdn = getfqdn(conf='/etc/opsi/global.conf')
 			if fqdn.count('.') < 2:
@@ -1667,7 +1674,7 @@ class CommandTask(Command):
 				raise ValueError("Can not use empty password!")
 			secret_filter.add_secrets(password)
 
-			backend.user_setCredentials(username='pcpatch', password=password)  # pylint: disable=no-member
+			service_client.jsonrpc("user_setCredentials", ['pcpatch', password])
 
 			try:
 				udm = which('univention-admin')
@@ -1733,6 +1740,7 @@ class CommandTask(Command):
 				else:
 					logger.warning("The user 'pcpatch' is not a local user, please change password also in Active Directory")
 
+
 def main():
 	@contextmanager
 	def shellExit():
@@ -1762,7 +1770,7 @@ def main():
 		logger.warning("Error in result: %s", error)
 		exitCode = 2
 	except Exception as err:  # pylint: disable=broad-except
-		logging_config(stderr_level = LOG_ERROR)
+		logging_config(stderr_level=LOG_ERROR)
 		logger.error("Error during execution: %s", err, exc_info=True)
 		exitCode = 1
 
