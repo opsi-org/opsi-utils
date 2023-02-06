@@ -10,8 +10,8 @@ import sys
 from argparse import ArgumentParser
 from subprocess import check_call
 
-from OPSI import __version__ as python_opsi_version
 from opsicommon.logging import logger, logging_config, DEFAULT_COLORED_FORMAT
+from OPSI import __version__ as python_opsi_version
 
 from opsiutils import __version__
 

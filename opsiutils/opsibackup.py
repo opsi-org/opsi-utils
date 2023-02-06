@@ -10,8 +10,6 @@ import argparse
 import os
 import sys
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.Util.Task.Backup import OpsiBackup
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_NOTICE,
@@ -20,8 +18,11 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
+from OPSI import __version__ as python_opsi_version
+from OPSI.Util.Task.Backup import OpsiBackup
 
 from opsiutils import __version__
+from opsiutils.opsimakepackage import raw_tty
 
 USAGE = f'''
 Usage: {os.path.basename(sys.argv[0])} [common-options] <command> [command-options]
@@ -77,8 +78,7 @@ def backup_main():  # pylint: disable=too-many-branches,too-many-statements
 	parser.add_argument("-h", "--help", action="help")
 	parser.add_argument("-v", "--verbose", action="store_true", default=False)
 	parser.add_argument("-V", "--version", action='store_true')
-	parser.add_argument("-l", "--log-level", default=LOG_NOTICE, type=int,
-						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+	parser.add_argument("-l", "--log-level", default=LOG_NOTICE, type=int, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 	parser.add_argument("--log-file", metavar='FILE', default="/var/log/opsi/opsi-backup.log")
 
 	subs = parser.add_subparsers(title="commands", dest="command")
@@ -120,11 +120,22 @@ def backup_main():  # pylint: disable=too-many-branches,too-many-statements
 		if not args.backends:
 			logger.debug("No backend given, assuming 'auto'")
 			args.backends = ['auto']
-
+		logger.warning("opsi-backup is deprecated, please use `opsiconfd backup` and `opsiconfd restore`")
+		configuration = args.configuration
+		if configuration:
+			print("Do you really want to restore pre opsi 4.3 configuration files? (y/n)", end=" ")
+			sys.stdout.flush()
+			with raw_tty():
+				while True:
+					ch = sys.stdin.read(1)
+					if ch == "y":
+						break
+					if ch == "n":
+						raise RuntimeError("Aborted `opsi-backup restore` to avoid restoring pre opsi 4.3 configuration files.")
 		# restore doesnt return anything, in case of error, an exception is thrown
 		backup.restore(
 			file=args.file, backends=args.backends,
-			configuration=args.configuration, force=args.force,
+			configuration=configuration, force=args.force,
 			new_server_id=args.new_server_id
 		)
 	elif args.command == 'verify':
@@ -138,6 +149,7 @@ def backup_main():  # pylint: disable=too-many-branches,too-many-statements
 			logging_config(stderr_level=LOG_NOTICE)
 		backup.list(args.file)
 	elif args.command == 'create':
+		logger.warning("opsi-backup is deprecated, please use `opsiconfd backup`")
 		if os.geteuid() != 0:
 			logger.error("Only users with root access can create a backup.")
 			raise PermissionError("Permission denied")
