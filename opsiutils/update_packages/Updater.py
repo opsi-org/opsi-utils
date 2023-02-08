@@ -21,13 +21,14 @@ from requests.packages import urllib3
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate
 from OPSI import System
 from OPSI.Object import NetbootProduct, ProductOnClient
-from OPSI.Types import forceHostId, forceProductId
-from OPSI.Util import compareVersions, formatFileSize, getfqdn, md5sum
+from OPSI.Types import forceProductId
+from OPSI.Util import compareVersions, formatFileSize, md5sum
 from OPSI.Util.File import ZsyncFile
 from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Path import cd
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Util.Task.Rights import setRights
+from opsicommon.config.opsi import OpsiConfig
 from opsicommon.logging import get_logger, secret_filter
 from opsicommon.ssl import install_ca
 from opsicommon.utils import prepare_proxy_environment
@@ -52,7 +53,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		self.config = config
 		self.httpHeaders = {"User-Agent": self.config.get("userAgent", DEFAULT_USER_AGENT)}
 		self.configBackend = None
-		self.depotId = forceHostId(getfqdn(conf="/etc/opsi/global.conf").lower())
+		self.depotId = OpsiConfig().get("host", "id")
 		self.errors = []
 
 		try:
