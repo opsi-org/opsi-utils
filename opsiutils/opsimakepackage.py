@@ -10,14 +10,21 @@ import argparse
 import fcntl
 import gettext
 import os
-from pathlib import Path
 import struct
 import sys
 import termios
 import tty
 from contextlib import contextmanager
+from pathlib import Path
 from typing import List
 
+from OPSI import __version__ as python_opsi_version
+from OPSI.System import execute
+from OPSI.Types import forceFilename, forceUnicode
+from OPSI.Util import compareVersions, md5sum
+from OPSI.Util.File import ZsyncFile
+from OPSI.Util.Message import ProgressObserver, ProgressSubject
+from OPSI.Util.Task.Rights import setRights
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
@@ -29,28 +36,20 @@ from opsicommon.logging import (
 	logging_config,
 )
 from opsicommon.package import OpsiPackage
-from OPSI import __version__ as python_opsi_version
-from OPSI.System import execute
-from OPSI.Types import forceFilename, forceUnicode
-from OPSI.Util import md5sum, compareVersions
-from OPSI.Util.File import ZsyncFile
-from OPSI.Util.Message import ProgressObserver, ProgressSubject
-from OPSI.Util.Task.Rights import setRights
-
 from opsiutils import __version__
 
 try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 	if os.path.exists(os.path.join(sp, "site-packages")):
 		sp = os.path.join(sp, "site-packages")
-	sp = os.path.join(sp, 'opsi-utils_data', 'locale')
-	translation = gettext.translation('opsi-utils', sp)
+	sp = os.path.join(sp, "opsi-utils_data", "locale")
+	translation = gettext.translation("opsi-utils", sp)
 	_ = translation.gettext
 except Exception as loc_err:  # pylint: disable=broad-except
 	logger.debug("Failed to load locale from %s: %s", sp, loc_err)
 
 	def _(string):
-		""" Fallback function """
+		"""Fallback function"""
 		return string
 
 
@@ -62,10 +61,10 @@ class ProgressNotifier(ProgressObserver):
 	def __init__(self):  # pylint: disable=super-init-not-called
 		self.usedWidth = 60
 		try:
-			with os.popen('tty') as proc:
+			with os.popen("tty") as proc:
 				_tty = proc.readline().strip()
 			with open(_tty, "rb") as fd:
-				terminalWidth = struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))[1]
+				terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234"))[1]
 			self.usedWidth = min(self.usedWidth, terminalWidth)
 		except Exception:  # pylint: disable=broad-except
 			pass
@@ -76,13 +75,13 @@ class ProgressNotifier(ProgressObserver):
 
 		barlen = self.usedWidth - 10
 		filledlen = round(barlen * percent / 100)
-		_bar = '=' * filledlen + ' ' * (barlen - filledlen)
-		percent = f'{percent:0.2f}%'
-		sys.stderr.write(f'\r {percent:>8} [{_bar}]\r')
+		_bar = "=" * filledlen + " " * (barlen - filledlen)
+		percent = f"{percent:0.2f}%"
+		sys.stderr.write(f"\r {percent:>8} [{_bar}]\r")
 		sys.stderr.flush()
 
 	def messageChanged(self, subject, message):
-		sys.stderr.write(f'\n{message}\n')
+		sys.stderr.write(f"\n{message}\n")
 		sys.stderr.flush()
 
 
@@ -105,46 +104,52 @@ def print_info(product, customName, opsi_package):
 	print("")
 	print(_("Package info"))
 	print("----------------------------------------------------------------------------")
-	print("   %-20s : %s" % ('version', product.packageVersion))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('custom package name', customName))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % (  # pylint: disable=consider-using-f-string
-		'package dependencies',
-		', '.join('{package}({condition}{version})'.format(**dep) for dep in opsi_package.package_dependencies))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("version", product.packageVersion))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("custom package name", customName))  # pylint: disable=consider-using-f-string
+	print(
+		"   %-20s : %s"  # pylint: disable=consider-using-f-string
+		% (
+			"package dependencies",
+			", ".join(
+				"{package}({condition}{version})".format(**dep)  # pylint: disable=consider-using-f-string
+				for dep in opsi_package.package_dependencies
+			),
+		)
 	)
 
 	print("")
 	print(_("Product info"))
 	print("----------------------------------------------------------------------------")
-	print("   %-20s : %s" % ('product id', product.id))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("product id", product.id))  # pylint: disable=consider-using-f-string
 
-	if product.getType() == 'LocalbootProduct':
-		print("   %-20s : %s" % ('product type', 'localboot'))  # pylint: disable=consider-using-f-string
-	elif product.getType() == 'NetbootProduct':
-		print("   %-20s : %s" % ('product type', 'netboot'))  # pylint: disable=consider-using-f-string
+	if product.getType() == "LocalbootProduct":
+		print("   %-20s : %s" % ("product type", "localboot"))  # pylint: disable=consider-using-f-string
+	elif product.getType() == "NetbootProduct":
+		print("   %-20s : %s" % ("product type", "netboot"))  # pylint: disable=consider-using-f-string
 
-	print("   %-20s : %s" % ('version', product.productVersion))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('name', product.name))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('description', product.description))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('advice', product.advice))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('priority', product.priority))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('licenseRequired', product.licenseRequired))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('product classes', ', '.join(product.productClassIds)))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('windows software ids', ', '.join(product.windowsSoftwareIds)))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("version", product.productVersion))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("name", product.name))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("description", product.description))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("advice", product.advice))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("priority", product.priority))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("licenseRequired", product.licenseRequired))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("product classes", ", ".join(product.productClassIds)))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("windows software ids", ", ".join(product.windowsSoftwareIds)))  # pylint: disable=consider-using-f-string
 
-	if product.getType() == 'NetbootProduct':
-		print("   %-20s : %s" % ('pxe config template', product.pxeConfigTemplate))  # pylint: disable=consider-using-f-string
+	if product.getType() == "NetbootProduct":
+		print("   %-20s : %s" % ("pxe config template", product.pxeConfigTemplate))  # pylint: disable=consider-using-f-string
 
 	print("")
 	print(_("Product scripts"))
 	print("----------------------------------------------------------------------------")
-	print("   %-20s : %s" % ('setup', product.setupScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('uninstall', product.uninstallScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('update', product.updateScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('always', product.alwaysScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('once', product.onceScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ('custom', product.customScript))  # pylint: disable=consider-using-f-string
-	if product.getType() == 'LocalbootProduct':
-		print("   %-20s : %s" % ('user login', product.userLoginScript))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("setup", product.setupScript))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("uninstall", product.uninstallScript))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("update", product.updateScript))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("always", product.alwaysScript))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("once", product.onceScript))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("custom", product.customScript))  # pylint: disable=consider-using-f-string
+	if product.getType() == "LocalbootProduct":
+		print("   %-20s : %s" % ("user login", product.userLoginScript))  # pylint: disable=consider-using-f-string
 	print("")
 
 
@@ -156,86 +161,89 @@ def parse_args(args: List[str] | None = None):
 			"If no source directory is supplied, the current directory will be used."
 		),
 	)
-	parser.add_argument('--help', action='store_true', default=False, help="Show help.")  # Manual implementation because of -h
-	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
-	parser.add_argument('--quiet', '-q', action='store_true', default=False, help="do not show progress")
-	parser.add_argument('--verbose', '-v', default=False, action="store_true", help="verbose")
+	parser.add_argument("--help", action="store_true", default=False, help="Show help.")  # Manual implementation because of -h
+	parser.add_argument("--version", "-V", action="version", version=f"{__version__} [python-opsi={python_opsi_version}]")
+	parser.add_argument("--quiet", "-q", action="store_true", default=False, help="do not show progress")
+	parser.add_argument("--verbose", "-v", default=False, action="store_true", help="verbose")
 	parser.add_argument(
-		'--log-level', '-l',
+		"--log-level",
+		"-l",
 		dest="logLevel",
 		default=LOG_WARNING,
 		type=int,
 		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
 		help="Set log-level (0..9)",
 	)
-	parser.add_argument('--no-compression', '-n', action='store_true', default=False, help="Do not compress")
-	parser.add_argument('--compression', default='zstd', choices=['bzip2', 'zstd'], help="Compression format")
+	parser.add_argument("--no-compression", "-n", action="store_true", default=False, help="Do not compress")
+	parser.add_argument("--compression", default="zstd", choices=["bzip2", "zstd"], help="Compression format")
 	parser.add_argument(
-		'--archive-format',
-		'-F',
+		"--archive-format",
+		"-F",
 		dest="format",
-		default='cpio',
-		choices=['cpio', 'tar'],
+		default="cpio",
+		choices=["cpio", "tar"],
 		help="Archive format to use. Default: cpio",
 	)
-	parser.add_argument('--no-pigz', dest="disablePigz", default=False, action='store_true', help="Disable the usage of pigz")
+	parser.add_argument("--no-pigz", dest="disablePigz", default=False, action="store_true", help="Disable the usage of pigz")
 	parser.add_argument(
-		'--no-set-rights',
+		"--no-set-rights",
 		dest="no_set_rights",
 		default=False,
-		action='store_true',
+		action="store_true",
 		help="Disable the setting of rights while building",
 	)
-	parser.add_argument('--follow-symlinks', '-h', dest="dereference", help="follow symlinks", default=False, action='store_true')
+	parser.add_argument("--follow-symlinks", "-h", dest="dereference", help="follow symlinks", default=False, action="store_true")
 	customGroup = parser.add_mutually_exclusive_group()
 	customGroup.add_argument(
-		'--custom-name',
-		'-i',
-		metavar='custom name',
+		"--custom-name",
+		"-i",
+		metavar="custom name",
 		dest="customName",
-		default='',
+		default="",
 		help="Add custom files and add custom name to the base package.",
 	)
 	customGroup.add_argument(
-		'--custom-only',
-		'-c',
-		metavar='custom name',
+		"--custom-only",
+		"-c",
+		metavar="custom name",
 		dest="customOnly",
 		default=False,
 		help="Only package custom files and add custom name to base package.",
 	)
-	parser.add_argument('--temp-directory', '-t', dest="tempDir", help="temp dir", default='/tmp', metavar='directory')
-	parser.add_argument('--control-to-toml', action='store_true', default=False, help="Convert control file to toml format")
+	parser.add_argument("--temp-directory", "-t", dest="tempDir", help="temp dir", default="/tmp", metavar="directory")
+	parser.add_argument("--control-to-toml", action="store_true", default=False, help="Convert control file to toml format")
 	hashSumGroup = parser.add_mutually_exclusive_group()
 	hashSumGroup.add_argument(
-		'--md5',
-		'-m',
+		"--md5",
+		"-m",
 		dest="createMd5SumFile",
 		default=True,
-		action='store_true',
+		action="store_true",
 		help="Create file with md5 checksum.",
 	)
-	hashSumGroup.add_argument('--no-md5', dest="createMd5SumFile", action='store_false', help="Do not create file with md5 checksum.")
+	hashSumGroup.add_argument("--no-md5", dest="createMd5SumFile", action="store_false", help="Do not create file with md5 checksum.")
 	zsyncGroup = parser.add_mutually_exclusive_group()
 	zsyncGroup.add_argument(
-		'--zsync',
-		'-z',
+		"--zsync",
+		"-z",
 		dest="createZsyncFile",
 		default=True,
-		action='store_true',
+		action="store_true",
 		help="Create zsync file.",
 	)
-	zsyncGroup.add_argument('--no-zsync', dest="createZsyncFile", action='store_false', help="Do not create zsync file.")
-	parser.add_argument('packageSourceDir', metavar="source directory", nargs='?', default=os.getcwd())
+	zsyncGroup.add_argument("--no-zsync", dest="createZsyncFile", action="store_false", help="Do not create zsync file.")
+	parser.add_argument("packageSourceDir", metavar="source directory", nargs="?", default=os.getcwd())
 
-	vgroup = parser.add_argument_group('Versions', 'Set versions for package. Combinations are possible.')
-	vgroup.add_argument('--keep-versions', '-k', action='store_true', help="Keep versions and overwrite package", dest="keepVersions")
-	vgroup.add_argument('--package-version', help="Set new package version ", default='', metavar='packageversion', dest="newPackageVersion")
+	vgroup = parser.add_argument_group("Versions", "Set versions for package. Combinations are possible.")
+	vgroup.add_argument("--keep-versions", "-k", action="store_true", help="Keep versions and overwrite package", dest="keepVersions")
 	vgroup.add_argument(
-		'--product-version',
-		default='',
+		"--package-version", help="Set new package version ", default="", metavar="packageversion", dest="newPackageVersion"
+	)
+	vgroup.add_argument(
+		"--product-version",
+		default="",
 		dest="newProductVersion",
-		metavar='productversion',
+		metavar="productversion",
 		help="Set new product version for package",
 	)
 
@@ -297,18 +305,18 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 	logger.info("Custom name: %s", customName)
 	logger.info("Archive format: %s", arch_format)
 
-	if arch_format not in ['tar', 'cpio']:
+	if arch_format not in ["tar", "cpio"]:
 		raise ValueError(f"Unsupported archive format: {arch_format}")
 
 	if not os.path.isdir(packageSourceDir):
 		raise OSError(f"No such directory: {packageSourceDir}")
 
 	if customName:
-		packageControlFilePath = Path(packageSourceDir) / f'OPSI.{customName}' / 'control.toml'
+		packageControlFilePath = Path(packageSourceDir) / f"OPSI.{customName}" / "control.toml"
 		if not packageControlFilePath.exists():
 			packageControlFilePath = Path(packageSourceDir) / f"OPSI.{customName}" / "control"
 	if not customName or not packageControlFilePath.exists():
-		packageControlFilePath = Path(packageSourceDir) / 'OPSI' / 'control.toml'
+		packageControlFilePath = Path(packageSourceDir) / "OPSI" / "control.toml"
 	if not packageControlFilePath.exists():
 		packageControlFilePath = packageControlFilePath.with_suffix("")  # strip .toml to fall back to old behaviour
 		if not packageControlFilePath.exists():
@@ -334,7 +342,7 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 				print_info(opsi_package.product, customName, opsi_package)
 			if not quiet and archive.exists():
 				print(_("Package file '%s' already exists.") % archive)
-				print(_("Press <O> to overwrite, <C> to abort or <N> to specify a new version:"), end=' ')
+				print(_("Press <O> to overwrite, <C> to abort or <N> to specify a new version:"), end=" ")
 				sys.stdout.flush()
 				newVersion = False
 				if keepVersions and needOneVersion:
@@ -351,24 +359,27 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 						try:
 							while True:
 								ch = sys.stdin.read(1)
-								if ch in ('o', 'O'):
+								if ch in ("o", "O"):
 									for path in (archive, Path(f"{archive}.md5"), Path(f"{archive}.zsync")):
 										if path.exists():
 											path.unlink()
 									break
-								if ch in ('c', 'C'):
-									raise Exception(_("Aborted"))
-								if ch in ('n', 'N'):
+								if ch in ("c", "C"):
+									raise RuntimeError(_("Aborted"))
+								if ch in ("n", "N"):
 									newVersion = True
 									break
 						finally:
-							print('\r\033[0K')
+							print("\r\033[0K")
 
 				if newVersion:
 					while True:
-						print('\r%s' % _(  # pylint: disable=consider-using-f-string
-							"Please specify new product version, press <ENTER> to keep current version (%s):"
-						) % opsi_package.product.productVersion, end=' ')  # pylint: disable=consider-using-f-string
+						print(
+							"\r%s"  # pylint: disable=consider-using-f-string
+							% _("Please specify new product version, press <ENTER> to keep current version (%s):")
+							% opsi_package.product.productVersion,
+							end=" ",
+						)
 						newVersion = newProductVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -389,9 +400,12 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 							print(_("Bad product version: %s") % newVersion)
 
 					while True:
-						print('\r%s' % _(  # pylint: disable=consider-using-f-string
-							"Please specify new package version, press <ENTER> to keep current version (%s):"
-						) % opsi_package.product.packageVersion, end=' ')  # pylint: disable=consider-using-f-string
+						print(
+							"\r%s"  # pylint: disable=consider-using-f-string
+							% _("Please specify new package version, press <ENTER> to keep current version (%s):")
+							% opsi_package.product.packageVersion,
+							end=" ",
+						)  # pylint: disable=consider-using-f-string
 						newVersion = newPackageVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -431,7 +445,7 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 
 			progressSubject = None
 			if not quiet:
-				progressSubject = ProgressSubject('packing')
+				progressSubject = ProgressSubject("packing")
 				progressSubject.attachObserver(ProgressNotifier())
 				print(_("Creating package file '%s'") % archive)
 			opsi_package.create_package_archive(Path(packageSourceDir), compression=compression)
@@ -443,11 +457,11 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 			if not quiet:
 				print("\n")
 			if createMd5SumFile:
-				md5sumFile = f'{archive}.md5'
+				md5sumFile = f"{archive}.md5"
 				if not quiet:
 					print(_("Creating md5sum file '%s'") % md5sumFile)
 				md5 = md5sum(str(archive))
-				with open(md5sumFile, 'w', encoding='utf-8') as file:
+				with open(md5sumFile, "w", encoding="utf-8") as file:
 					file.write(md5)
 				if not args.no_set_rights:
 					try:
@@ -456,7 +470,7 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 						logger.warning("Failed to set rights: %s", err)
 
 			if createZsyncFile:
-				zsyncFilePath = f'{archive}.zsync'
+				zsyncFilePath = f"{archive}.zsync"
 				if not quiet:
 					print(_("Creating zsync file '%s'") % zsyncFilePath)
 				zsyncFile = ZsyncFile(zsyncFilePath)
@@ -476,10 +490,10 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 
 
 def lockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, f'.opsi-makepackage.lock.{packageControlFile.product.id}')
+	lockFile = os.path.join(tempDir, f".opsi-makepackage.lock.{packageControlFile.product.id}")
 	# Test if other processes are accessing same product
 	try:
-		with open(lockFile, 'r', encoding='utf-8') as file:
+		with open(lockFile, "r", encoding="utf-8") as file:
 			pid = file.read().strip()
 
 		if pid:
@@ -490,15 +504,13 @@ def lockPackage(tempDir, packageControlFile):
 				if pid == line.split()[0].strip():
 					pName = line.split()[-1].strip()
 					# process is running
-					raise RuntimeError(
-						f"Product '{packageControlFile.product.id}' is currently locked by process {pName} ({pid})."
-					)
+					raise RuntimeError(f"Product '{packageControlFile.product.id}' is currently locked by process {pName} ({pid}).")
 
 	except IOError:
 		pass
 
 	# Write lock-file
-	with open(lockFile, 'w', encoding='utf-8') as file:
+	with open(lockFile, "w", encoding="utf-8") as file:
 		file.write(str(os.getpid()))
 
 

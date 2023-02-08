@@ -18,7 +18,6 @@ import json
 import locale
 import os
 import os.path
-from pathlib import Path
 import pwd
 import select
 import stat
@@ -26,20 +25,8 @@ import subprocess
 import sys
 import time
 from contextlib import closing, contextmanager
+from pathlib import Path
 
-from opsicommon.config import OpsiConfig
-from opsicommon.exceptions import OpsiRpcError
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG,
-	LOG_ERROR,
-	LOG_NONE,
-	LOG_WARNING,
-	logger,
-	logging_config,
-	secret_filter,
-)
-from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from OPSI import __version__ as python_opsi_version
 from OPSI.System import CommandNotFoundException
 from OPSI.System import execute as sys_execute
@@ -55,31 +42,56 @@ from OPSI.Util import (
 	toJson,
 )
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
-
+from opsicommon.config import OpsiConfig
+from opsicommon.exceptions import OpsiRpcError
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_DEBUG,
+	LOG_ERROR,
+	LOG_NONE,
+	LOG_WARNING,
+	logger,
+	logging_config,
+	secret_filter,
+)
+from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from opsiutils import __version__, get_service_client
 
-COLOR_NORMAL = '\033[0;0;0m'
-COLOR_BLACK = '\033[0;30;40m'
-COLOR_RED = '\033[0;31;40m'
-COLOR_GREEN = '\033[0;32;40m'
-COLOR_YELLOW = '\033[0;33;40m'
-COLOR_BLUE = '\033[0;34;40m'
-COLOR_MAGENTA = '\033[0;35;40m'
-COLOR_CYAN = '\033[0;36;40m'
-COLOR_WHITE = '\033[0;37;40m'
-COLOR_LIGHT_BLACK = '\033[1;30;40m'
-COLOR_LIGHT_RED = '\033[1;31;40m'
-COLOR_LIGHT_GREEN = '\033[1;32;40m'
-COLOR_LIGHT_YELLOW = '\033[1;33;40m'
-COLOR_LIGHT_BLUE = '\033[1;34;40m'
-COLOR_LIGHT_MAGENTA = '\033[1;35;40m'
-COLOR_LIGHT_CYAN = '\033[1;36;40m'
-COLOR_LIGHT_WHITE = '\033[1;37;40m'
+COLOR_NORMAL = "\033[0;0;0m"
+COLOR_BLACK = "\033[0;30;40m"
+COLOR_RED = "\033[0;31;40m"
+COLOR_GREEN = "\033[0;32;40m"
+COLOR_YELLOW = "\033[0;33;40m"
+COLOR_BLUE = "\033[0;34;40m"
+COLOR_MAGENTA = "\033[0;35;40m"
+COLOR_CYAN = "\033[0;36;40m"
+COLOR_WHITE = "\033[0;37;40m"
+COLOR_LIGHT_BLACK = "\033[1;30;40m"
+COLOR_LIGHT_RED = "\033[1;31;40m"
+COLOR_LIGHT_GREEN = "\033[1;32;40m"
+COLOR_LIGHT_YELLOW = "\033[1;33;40m"
+COLOR_LIGHT_BLUE = "\033[1;34;40m"
+COLOR_LIGHT_MAGENTA = "\033[1;35;40m"
+COLOR_LIGHT_CYAN = "\033[1;36;40m"
+COLOR_LIGHT_WHITE = "\033[1;37;40m"
 COLORS_AVAILABLE = [
-	COLOR_NORMAL, COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
-	COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE, COLOR_LIGHT_BLACK,
-	COLOR_LIGHT_RED, COLOR_LIGHT_GREEN, COLOR_LIGHT_YELLOW, COLOR_LIGHT_BLUE,
-	COLOR_LIGHT_MAGENTA, COLOR_LIGHT_CYAN, COLOR_LIGHT_WHITE
+	COLOR_NORMAL,
+	COLOR_BLACK,
+	COLOR_RED,
+	COLOR_GREEN,
+	COLOR_YELLOW,
+	COLOR_BLUE,
+	COLOR_MAGENTA,
+	COLOR_CYAN,
+	COLOR_WHITE,
+	COLOR_LIGHT_BLACK,
+	COLOR_LIGHT_RED,
+	COLOR_LIGHT_GREEN,
+	COLOR_LIGHT_YELLOW,
+	COLOR_LIGHT_BLUE,
+	COLOR_LIGHT_MAGENTA,
+	COLOR_LIGHT_CYAN,
+	COLOR_LIGHT_WHITE,
 ]
 
 service_client = None  # pylint: disable=invalid-name
@@ -90,12 +102,12 @@ interactive = False  # pylint: disable=invalid-name
 
 outEncoding = sys.stdout.encoding  # pylint: disable=invalid-name
 inEncoding = sys.stdin.encoding  # pylint: disable=invalid-name
-if not outEncoding or outEncoding == 'ascii':
+if not outEncoding or outEncoding == "ascii":
 	outEncoding = locale.getpreferredencoding()
-if not outEncoding or outEncoding == 'ascii':
-	outEncoding = 'utf-8'  # pylint: disable=invalid-name
+if not outEncoding or outEncoding == "ascii":
+	outEncoding = "utf-8"  # pylint: disable=invalid-name
 
-if not inEncoding or (inEncoding == 'ascii'):
+if not inEncoding or (inEncoding == "ascii"):
 	inEncoding = outEncoding
 
 UNCOLORED_LOGO = f"""\
@@ -125,7 +137,9 @@ UNCOLORED_LOGO = f"""\
                              -~||=__:.-..:__|||~ .
                                 -~+++||||++~--
           opsi-admin {__version__}
-""".split('\n')
+""".split(
+	"\n"
+)
 
 LOGO = [{"color": COLOR_CYAN, "text": line} for line in UNCOLORED_LOGO]
 
@@ -133,14 +147,14 @@ try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 	if os.path.exists(os.path.join(sp, "site-packages")):
 		sp = os.path.join(sp, "site-packages")
-	sp = os.path.join(sp, 'opsi-utils_data', 'locale')
-	translation = gettext.translation('opsi-utils', sp)
+	sp = os.path.join(sp, "opsi-utils_data", "locale")
+	translation = gettext.translation("opsi-utils", sp)
 	_ = translation.gettext
 except Exception as loc_err:  # pylint: disable=broad-except
 	logger.debug("Failed to load locale from %s: %s", sp, loc_err)
 
 	def _(string):
-		""" Fallback function """
+		"""Fallback function"""
 		return string
 
 
@@ -150,6 +164,7 @@ class ErrorInResultException(Exception):
 
 def signalHandler(signo, stackFrame):  # pylint: disable=unused-argument
 	from signal import SIGINT, SIGQUIT  # pylint: disable=import-outside-toplevel
+
 	logger.info("Received signal %s", signo)
 	if signo == SIGINT:
 		if global_shell:
@@ -166,15 +181,11 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument(
-		'--version',
-		'-V',
-		action='version',
-		version=f"{__version__} [python-opsi={python_opsi_version}]",
-		help=_("Show version and exit")
+		"--version", "-V", action="version", version=f"{__version__} [python-opsi={python_opsi_version}]", help=_("Show version and exit")
 	)
 	parser.add_argument(
-		'--log-level',
-		'-l',
+		"--log-level",
+		"-l",
 		dest="logLevel",
 		default=LOG_WARNING,
 		type=int,
@@ -188,78 +199,68 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		help=_("Path to log file"),
 	)
 	parser.add_argument(
-		'--address',
-		'-a',
-		default='https://localhost:4447/rpc',
+		"--address",
+		"-a",
+		default="https://localhost:4447/rpc",
 		help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"),
 	)
-	parser.add_argument('--username', '-u', help=_("Username (default: host_id or current user)"))
-	parser.add_argument('--password', '-p', help=_("Password (default: host_key or prompt for password)"))
+	parser.add_argument("--username", "-u", help=_("Username (default: host_id or current user)"))
+	parser.add_argument("--password", "-p", help=_("Password (default: host_key or prompt for password)"))
 	parser.add_argument(
-		'--opsirc',
+		"--opsirc",
 		default=getOpsircPath(),
 		help=(
-			_("Path to the opsirc file to use (default: ~/.opsi.org/opsirc)") +
-			_("An opsirc file contains login credentials to the web API.")
-		)
+			_("Path to the opsirc file to use (default: ~/.opsi.org/opsirc)")
+			+ _("An opsirc file contains login credentials to the web API.")
+		),
 	)
-	parser.add_argument('--direct', '-d', action='store_true', help=_("Do not use opsiconfd - DEPRECATED will be ignored"))
+	parser.add_argument("--direct", "-d", action="store_true", help=_("Do not use opsiconfd - DEPRECATED will be ignored"))
 	parser.add_argument(
-		'--no-depot',
+		"--no-depot",
 		dest="depot",
 		action="store_false",
 		default=True,
-		help=_("Do not use depotserver backend - DEPRECATED will be ignored")
+		help=_("Do not use depotserver backend - DEPRECATED will be ignored"),
 	)
-	parser.add_argument(
-		'--interactive',
-		'-i',
-		action="store_true",
-		help=_("Start in interactive mode")
-	)
-	parser.add_argument(
-		'--exit-zero',
-		dest="exitZero",
-		action='store_true',
-		help=_("Always exit with exit code 0.")
-	)
+	parser.add_argument("--interactive", "-i", action="store_true", help=_("Start in interactive mode"))
+	parser.add_argument("--exit-zero", dest="exitZero", action="store_true", help=_("Always exit with exit code 0."))
 
 	outputGroup = parser.add_argument_group(title=_("Output"))
-	outputGroup.add_argument('--colorize', '-c', action="store_true", help=_("Colorize output"))
+	outputGroup.add_argument("--colorize", "-c", action="store_true", help=_("Colorize output"))
 
 	outputFormat = outputGroup.add_mutually_exclusive_group()
 	outputFormat.add_argument(
-		'--simple-output',
-		'-S',
-		dest='output',
-		const='SIMPLE',
-		action='store_const',
+		"--simple-output",
+		"-S",
+		dest="output",
+		const="SIMPLE",
+		action="store_const",
 		help=_("Simple output (only for scalars, lists)"),
 	)
 	outputFormat.add_argument(
-		'--shell-output',
-		'-s',
-		dest='output',
-		const='SHELL',
-		action='store_const',
+		"--shell-output",
+		"-s",
+		dest="output",
+		const="SHELL",
+		action="store_const",
 		help=_("Shell output"),
 	)
 	outputFormat.add_argument(
-		'--raw-output',
-		'-r',
-		dest='output',
-		const='RAW',
-		action='store_const',
+		"--raw-output",
+		"-r",
+		dest="output",
+		const="RAW",
+		action="store_const",
 		help=_("Raw output"),
 	)
 
-	parser.add_argument('command', nargs=argparse.REMAINDER, help=_("Command to execute."))
+	parser.add_argument("command", nargs=argparse.REMAINDER, help=_("Command to execute."))
 
 	options = parser.parse_args()
 
 	interactive = options.interactive
 	color = options.colorize
-	output = options.output or 'JSON'
+	output = options.output or "JSON"
 	exitZero = options.exitZero
 
 	if options.logFile:
@@ -295,18 +296,18 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 
 		session_cookie = None
 		sessionFile = None
-		home = os.environ.get('HOME')
+		home = os.environ.get("HOME")
 		if home:
-			opsiadminUserDir = Path(home) / '.opsi.org'
+			opsiadminUserDir = Path(home) / ".opsi.org"
 			if not opsiadminUserDir.exists():
 				try:
 					opsiadminUserDir.mkdir()
 				except OSError as err:
 					logger.info("Could not create %s: %s", opsiadminUserDir, err)
 
-			sessionFile = opsiadminUserDir / 'session'
+			sessionFile = opsiadminUserDir / "session"
 			try:
-				with codecs.open(sessionFile, 'r', 'utf-8') as session:
+				with codecs.open(sessionFile, "r", "utf-8") as session:
 					for line in session:
 						line = line.strip()
 						if line:
@@ -324,17 +325,17 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		session_cookie = service_client.session_cookie
 		if session_cookie and sessionFile:
 			try:
-				with codecs.open(sessionFile, 'w', 'utf-8') as session:
+				with codecs.open(sessionFile, "w", "utf-8") as session:
 					session.write(f"{session_cookie}\n")
 			except Exception as err:  # pylint: disable=broad-except
 				logger.error("Failed to write session file '%s': %s", sessionFile, err)
 
-		cmdline = ''
+		cmdline = ""
 		for i, argument in enumerate(options.command, start=0):
 			logger.info("arg[%d]: %s", i, argument)
 			if i == 0:
 				cmdline = argument
-			elif ' ' in argument or len(argument) == 0:
+			elif " " in argument or len(argument) == 0:
 				cmdline = f"{cmdline} '{argument}'"
 			else:
 				cmdline = f"{cmdline} {argument}"
@@ -349,7 +350,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 				if not dat:
 					break
 				data += dat
-			data = data.replace('\r', '').replace('\n', '')
+			data = data.replace("\r", "").replace("\n", "")
 			if data:
 				logger.trace("Read %s from stdin", data)
 				cmdline = f"{cmdline} '{data}'"
@@ -364,25 +365,26 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 				global_shell.setInfoline(f"Connected to {address}")
 
 				for line in LOGO:
-					global_shell.appendLine(line.get('text'), line.get('color'))
+					global_shell.appendLine(line.get("text"), line.get("color"))
 
 				welcomeMessage = """\
 Welcome to the interactive mode of opsi-admin.
 You can use syntax completion via [TAB]. \
 To exit opsi-admin please type 'exit'."""
 
-				for line in welcomeMessage.split('\n'):
+				for line in welcomeMessage.split("\n"):
 					global_shell.appendLine(line, COLOR_NORMAL)
 				global_shell.run()
 			except Exception as error:
 				logger.error(error, exc_info=True)
 				raise
 		elif cmdline:
+
 			def searchForError(obj):
 				if isinstance(obj, dict):
 					try:
-						if obj.get('error'):
-							raise ErrorInResultException(obj['error'])
+						if obj.get("error"):
+							raise ErrorInResultException(obj["error"])
 					except KeyError:
 						for key in obj:
 							searchForError(obj[key])
@@ -392,17 +394,17 @@ To exit opsi-admin please type 'exit'."""
 
 			try:
 				global_shell = Shell(prompt=f"{username}@opsi-admin>", output=output, color=color)
-				for cmd in cmdline.split('\n'):
+				for cmd in cmdline.split("\n"):
 					if cmd:
 						global_shell.cmdline = cmd
 						global_shell.execute()
 
 				logger.debug("Shell lines are: '%s'", global_shell.getLines())
 				for line in global_shell.lines:
-					print(line['text'].rstrip())
+					print(line["text"].rstrip())
 
 				try:
-					resultAsJSON = json.loads('\n'.join([line['text'] for line in global_shell.lines]))
+					resultAsJSON = json.loads("\n".join([line["text"] for line in global_shell.lines]))
 					searchForError(dict(resultAsJSON))
 				except (TypeError, ValueError) as error:
 					logger.trace("Conversion to dict failed: %s", error)
@@ -420,14 +422,13 @@ To exit opsi-admin please type 'exit'."""
 
 
 def startLogFile(log_file, logLevel):
-	with codecs.open(log_file, 'w', 'utf-8') as log:
+	with codecs.open(log_file, "w", "utf-8") as log:
 		log.write(f"Starting log at: {time.strftime('%a, %d %b %Y %H:%M:%S')}")
 	logging_config(log_file=log_file, file_level=logLevel)
 
 
 class Shell:  # pylint: disable=too-many-instance-attributes
-
-	def __init__(self, prompt='opsi-admin>', output='JSON', color=True, cmdline=''):
+	def __init__(self, prompt="opsi-admin>", output="JSON", color=True, cmdline=""):
 		self.color = forceBool(color)
 		self.output = forceUnicode(output)
 		self.running = False
@@ -435,7 +436,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		self.cmdBufferSize = 1024
 		self.userConfigDir = None
 		self.prompt = forceUnicode(prompt)
-		self.infoline = 'opsi admin started'
+		self.infoline = "opsi admin started"
 		self.yMax = 0
 		self.xMax = 0
 		self.pos = len(cmdline)
@@ -448,7 +449,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		self.cmdListPos = 0
 		self.cmdList = []
 		self.cmdline = forceUnicode(cmdline)
-		self.shellCommand = ''
+		self.shellCommand = ""
 		self.reverseSearch = None
 		self.commands = [
 			CommandMethod(),
@@ -458,27 +459,27 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 			CommandExit(),
 			CommandHistory(),
 			CommandLog(),
-			CommandTask()
+			CommandTask(),
 		]
 
-		home = os.environ.get('HOME')
+		home = os.environ.get("HOME")
 		if not home:
-			logger.debug('Environment has no $HOME set.')
-			home = os.path.expanduser('~')
+			logger.debug("Environment has no $HOME set.")
+			home = os.path.expanduser("~")
 
 		if home:
-			self.userConfigDir = forceFilename(os.path.join(home, '.opsi.org'))
+			self.userConfigDir = forceFilename(os.path.join(home, ".opsi.org"))
 			if not os.path.isdir(self.userConfigDir):
 				try:
 					os.mkdir(self.userConfigDir)
 				except OSError as error:
 					logger.error("Failed to create user dir '%s': %s", self.userConfigDir, error)
 		else:
-			logger.error('Failed to get home directory from environment!')
+			logger.error("Failed to get home directory from environment!")
 
-		historyFile = forceFilename(os.path.join(self.userConfigDir, 'history'))
+		historyFile = forceFilename(os.path.join(self.userConfigDir, "history"))
 		try:
-			with codecs.open(historyFile, 'r', 'utf-8', 'replace') as history:
+			with codecs.open(historyFile, "r", "utf-8", "replace") as history:
 				for line in history:
 					if not line:
 						continue
@@ -532,7 +533,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 
 	def sigint(self):
 		self.pos = 0
-		self.setCmdline('')
+		self.setCmdline("")
 		self.reverseSearch = None
 
 	def run(self):
@@ -541,14 +542,14 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		self.initScreen()
 
 		if self.cmdline:
-			for cmd in self.cmdline.split('\n'):
+			for cmd in self.cmdline.split("\n"):
 				self.cmdline = cmd
 				self.appendLine(f"{self.prompt} {self.cmdline}")
 				if self.cmdline:
 					try:
 						self.execute()
 					except Exception as err:  # pylint: disable=broad-except
-						lines = str(err).split('\n')
+						lines = str(err).split("\n")
 						lines[0] = f"ERROR: {lines[0]}"
 						for line in lines:
 							self.appendLine(line, COLOR_RED)
@@ -569,11 +570,11 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 				except OSError as err:
 					logger.error("Failed to delete log-file '%s': %s", logFile, err)
 
-		historyFilePath = os.path.join(self.userConfigDir, 'history')
+		historyFilePath = os.path.join(self.userConfigDir, "history")
 		try:
-			with codecs.open(historyFilePath, 'w', 'utf-8') as history:
+			with codecs.open(historyFilePath, "w", "utf-8") as history:
 				for line in self.cmdList:
-					if not line or line in ('quit', 'exit'):
+					if not line or line in ("quit", "exit"):
 						continue
 					history.write(f"{line}\n")
 		except Exception as err:  # pylint: disable=broad-except
@@ -582,22 +583,22 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		self.exitScreen()
 		self.running = False
 
-	def bell(self):  # pylint: disable=no-self-use
-		sys.stderr.write('\a')
+	def bell(self):
+		sys.stderr.write("\a")
 
 	def display(self):  # pylint: disable=too-many-branches,too-many-statements
 		if not self.screen:
 			return
 		self.screen.move(0, 0)
 		self.screen.clrtoeol()
-		shellLine = self.infoline + (self.xMax - len(self.infoline)) * ' '
+		shellLine = self.infoline + (self.xMax - len(self.infoline)) * " "
 		try:
 			self.screen.addstr(shellLine, curses.A_REVERSE)
 		except Exception as err:  # pylint: disable=broad-except
 			logger.error("Failed to add string '%s': %s", shellLine, err)
 
-		height = int(len(self.prompt + ' ' + self.cmdline) / self.xMax) + 1
-		clear = self.xMax - (len(self.prompt + ' ' + self.cmdline) % self.xMax) - 1
+		height = int(len(self.prompt + " " + self.cmdline) / self.xMax) + 1
+		clear = self.xMax - (len(self.prompt + " " + self.cmdline) % self.xMax) - 1
 
 		self.linesMax = self.yMax - height - 1
 		self.screen.move(self.yMax - height, 0)
@@ -611,12 +612,12 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		for i in range(0, self.linesMax):
 			self.screen.move(self.linesMax - i, 0)
 			self.screen.clrtoeol()
-			shellLine = ''
+			shellLine = ""
 			color = None
 			if len(self.lines) - self.linesBack > i:
-				shellLine = self.lines[len(self.lines) - self.linesBack - 1 - i]['text']
+				shellLine = self.lines[len(self.lines) - self.linesBack - 1 - i]["text"]
 				if self.color:
-					color = self.lines[len(self.lines) - self.linesBack - 1 - i]['color']
+					color = self.lines[len(self.lines) - self.linesBack - 1 - i]["color"]
 
 			if color:
 				if color == COLOR_NORMAL:
@@ -642,8 +643,8 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 			except Exception as err:  # pylint: disable=broad-except
 				logger.error("Failed to add string '%s': %s", shellLine, err)
 
-		moveY = self.yMax - height + int((len(self.prompt + ' ') + self.pos) / self.xMax)
-		moveX = ((len(self.prompt + ' ') + self.pos) % self.xMax)
+		moveY = self.yMax - height + int((len(self.prompt + " ") + self.pos) / self.xMax)
+		moveX = (len(self.prompt + " ") + self.pos) % self.xMax
 		self.screen.move(moveY, moveX)
 		self.screen.refresh()
 
@@ -667,11 +668,11 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 				color = COLOR_RED
 
 		for availableColor in COLORS_AVAILABLE:
-			line = line.replace(availableColor, '')
+			line = line.replace(availableColor, "")
 
 		while self.xMax and (len(line) > self.xMax):
-			self.lines.append({"text": line[:self.xMax], "color": color})
-			line = line[self.xMax:]
+			self.lines.append({"text": line[: self.xMax], "color": color})
+			line = line[self.xMax :]
 
 		self.lines.append({"text": line, "color": color})
 		if refresh:
@@ -695,7 +696,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		self.parseCmdline()
 		if len(self.params) > i:
 			return self.params[i]
-		return ''
+		return ""
 
 	def parseCmdline(self):  # pylint: disable=too-many-branches,too-many-statements
 		self.params = []
@@ -705,29 +706,26 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		if not self.cmdline:
 			return
 
-		self.shellCommand = ''
+		self.shellCommand = ""
 		cmdline = self.cmdline
-		if '|' in cmdline:
+		if "|" in cmdline:
 			quoteCount = 0
 			doubleQuoteCount = 0
-			parts = cmdline.split('|')
+			parts = cmdline.split("|")
 			for i, part in enumerate(parts):
 				quoteCount += part.count("'")
 				doubleQuoteCount += part.count('"')
 				if (quoteCount % 2 == 0) and (doubleQuoteCount % 2 == 0):
-					cmdline = '|'.join(parts[:i + 1])
-					self.shellCommand = '|'.join(parts[i + 1:]).lstrip()
+					cmdline = "|".join(parts[: i + 1])
+					self.shellCommand = "|".join(parts[i + 1 :]).lstrip()
 					break
 
 		cur = 0
 		quote = None
 		for i, element in enumerate(cmdline):
-			logger.trace(
-				"parseCmdline(): char '%s', quote: '%s', cur: '%s', params: '%s'",
-				element, quote, cur, self.params
-			)
+			logger.trace("parseCmdline(): char '%s', quote: '%s', cur: '%s', params: '%s'", element, quote, cur, self.params)
 			if len(self.params) < cur + 1:
-				self.params.append('')
+				self.params.append("")
 
 			if i == self.pos - 1:
 				self.paramPos = cur
@@ -740,7 +738,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 						cur += 1
 					quote = None
 				else:
-					self.params[cur] += '\''
+					self.params[cur] += "'"
 			elif element == '"':
 				if quote is None:
 					self.params[cur] += '"'
@@ -760,27 +758,23 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 			else:
 				self.params[cur] += element
 
-		if not quote and self.params and self.params[-1] and self.pos == len(cmdline) and cmdline.endswith(' '):
-			self.params.append('')
+		if not quote and self.params and self.params[-1] and self.pos == len(cmdline) and cmdline.endswith(" "):
+			self.params.append("")
 			self.paramPos += 1
 
 		if self.params:
 			self.currentParam = self.params[self.paramPos]
 		else:
-			self.currentParam = ''
+			self.currentParam = ""
 
 		logger.debug("cmdline: '%s'", cmdline)
-		logger.trace(
-			"paramPos %s, currentParam: '%s', params: '%s'",
-			self.paramPos, self.currentParam, self.params
-		)
+		logger.trace("paramPos %s, currentParam: '%s', params: '%s'", self.paramPos, self.currentParam, self.params)
 
 		if self.paramPos >= len(self.params):
 			logger.error(
-				"Assertion 'self.paramPos < len(self.params)' failed: "
-				"self.paramPos: %s, len(self.params): %s",
+				"Assertion 'self.paramPos < len(self.params)' failed: self.paramPos: %s, len(self.params): %s",
 				self.paramPos,
-				len(self.params)
+				len(self.params),
 			)
 			self.paramPos = len(self.params) - 1
 
@@ -810,21 +804,21 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		if interactive:
 			self.screen.move(self.yMax - 1, 0)
 			self.screen.clrtoeol()
-			self.screen.addstr(question + ' (n/y)')
+			self.screen.addstr(question + " (n/y)")
 			self.screen.refresh()
 			char = None
 			while True:
 				char = self.screen.getch()
 				if char and 256 > char >= 0 and char != 10:
-					if chr(char) == 'y':
+					if chr(char) == "y":
 						return True
-					if chr(char) == 'n':
+					if chr(char) == "n":
 						return False
 		return False
 
 	def getPassword(self):
-		password1 = ''
-		password2 = ''
+		password1 = ""
+		password2 = ""
 		while not password1 or (password1 != password2):
 			if interactive:
 				self.screen.move(self.yMax - 1, 0)
@@ -854,7 +848,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 	def getCommand(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		char = None
 		self.pos = 0
-		self.setCmdline('')
+		self.setCmdline("")
 		self.reverseSearch = None
 
 		while not char or (char != 10):  # pylint: disable=too-many-nested-blocks
@@ -884,7 +878,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 					self.cmdListPos += 1
 					if self.cmdListPos == len(self.cmdList):
 						self.pos = 0
-						self.setCmdline('')
+						self.setCmdline("")
 					else:
 						self.pos = len(self.cmdList[self.cmdListPos])
 						self.setCmdline(self.cmdList[self.cmdListPos])
@@ -934,7 +928,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 				# ^R
 				if self.reverseSearch is None:
 					self.setInfoline("reverse-i-search")
-					self.reverseSearch = ''
+					self.reverseSearch = ""
 				else:
 					self.setInfoline("")
 					self.reverseSearch = None
@@ -964,15 +958,11 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 						completions.append(command.getName())
 
 				if len(completions) == 1:
-					self.setCmdline(
-						self.cmdline[:self.pos] +
-						completions[0][len(params[self.paramPos]):] +
-						self.cmdline[self.pos:]
-					)
-					self.pos += len(completions[0][len(params[self.paramPos]):])
+					self.setCmdline(self.cmdline[: self.pos] + completions[0][len(params[self.paramPos]) :] + self.cmdline[self.pos :])
+					self.pos += len(completions[0][len(params[self.paramPos]) :])
 
 					if self.pos == len(self.cmdline):
-						self.cmdline += ' '
+						self.cmdline += " "
 						self.pos += 1
 
 					self.setCmdline(self.cmdline)
@@ -991,28 +981,25 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 						if len(comp) > longest:
 							longest = len(comp)
 
-					curLine = ''
+					curLine = ""
 					i = 0
 					while i < len(completions):
 						while (i < len(completions)) and (not curLine or (len(curLine) + longest < self.xMax - 5)):
-							pf = '%s %-' + str(longest) + 's'
+							pf = "%s %-" + str(longest) + "s"
 							curLine = pf % (curLine, completions[i])
 							i += 1
 						lines.append({"text": curLine, "color": None})
-						curLine = ''
+						curLine = ""
 
 					if self.paramPos < 0:
 						self.currentParam = ""
 
-					text = (
-						f"{self.prompt} {self.cmdline[:self.pos - len(self.currentParam)]}"
-						f"{match.strip()}{self.cmdline[self.pos:]}"
-					)
+					text = f"{self.prompt} {self.cmdline[:self.pos - len(self.currentParam)]}" f"{match.strip()}{self.cmdline[self.pos:]}"
 					self.lines.append({"text": text, "color": None})
 
 					self.lines.extend(lines)
 
-					self.setCmdline(self.cmdline[:self.pos - len(self.currentParam)] + match.strip() + self.cmdline[self.pos:])
+					self.setCmdline(self.cmdline[: self.pos - len(self.currentParam)] + match.strip() + self.cmdline[self.pos :])
 
 					self.pos += len(match) - len(self.currentParam)
 
@@ -1032,13 +1019,13 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 						self.setInfoline(f"reverse-i-search: {self.reverseSearch}")
 					elif self.pos > 0:
 						newPos = self.pos - 1
-						newCmdline = self.cmdline[:newPos] + self.cmdline[self.pos:]
+						newCmdline = self.cmdline[:newPos] + self.cmdline[self.pos :]
 				elif char == 330:
 					# del
 					if self.reverseSearch is not None:
 						pass
 					elif len(self.cmdline) > 0:
-						newCmdline = self.cmdline[:self.pos] + self.cmdline[self.pos + 1:]
+						newCmdline = self.cmdline[: self.pos] + self.cmdline[self.pos + 1 :]
 
 				else:
 					try:
@@ -1057,7 +1044,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 							self.reverseSearch += char
 						else:
 							newPos = self.pos + 1
-							newCmdline = self.cmdline[0:self.pos] + char + self.cmdline[self.pos:]
+							newCmdline = self.cmdline[0 : self.pos] + char + self.cmdline[self.pos :]
 					except Exception as err:  # pylint: disable=broad-except
 						logger.error("Failed to add char %r: %s", char, err)
 
@@ -1087,12 +1074,12 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 
 		self.cmdline = self.cmdline.strip()
 
-		self.appendLine(self.prompt + ' ' + self.cmdline)
+		self.appendLine(self.prompt + " " + self.cmdline)
 		if self.cmdline:
 			try:
 				self.execute()
 			except Exception as err:  # pylint: disable=broad-except
-				lines = str(err).split('\n')
+				lines = str(err).split("\n")
 				lines[0] = f"ERROR: {lines[0]}"
 				for line in lines:
 					self.appendLine(line, COLOR_RED)
@@ -1108,7 +1095,7 @@ class Command:
 	def getName(self):
 		return self.name
 
-	def getDescription(self):  # pylint: disable=no-self-use
+	def getDescription(self):
 		return ""
 
 	def completion(self, params, paramPos):  # pylint: disable=unused-argument,no-self-use
@@ -1123,7 +1110,7 @@ class Command:
 
 class CommandMethod(Command):
 	def __init__(self):
-		Command.__init__(self, 'method')
+		Command.__init__(self, "method")
 		self.interface = service_client.jsonrpc_interface
 
 	def getDescription(self):
@@ -1139,41 +1126,41 @@ class CommandMethod(Command):
 		completions = []
 
 		if paramPos == 0:
-			completions.append('list')
+			completions.append("list")
 			for param in self.interface:
-				completions.append(param.get('name'))
+				completions.append(param.get("name"))
 
 		elif paramPos == 1:
-			if 'list'.startswith(params[0]):
-				completions.append('list')
+			if "list".startswith(params[0]):
+				completions.append("list")
 			for param in self.interface:
-				if param.get('name').startswith(params[0]):
-					completions.append(param.get('name'))
+				if param.get("name").startswith(params[0]):
+					completions.append(param.get("name"))
 
 		elif paramPos >= 2:
 			for param in self.interface:
-				if param.get('name') == params[0]:
-					if len(param.get('params')) >= len(params) - 1:
-						completions = [param.get('params')[paramPos - 2]]
+				if param.get("name") == params[0]:
+					if len(param.get("params")) >= len(params) - 1:
+						completions = [param.get("params")[paramPos - 2]]
 					break
 
 		return completions
 
 	def execute(self, shell, params):  # pylint: disable=too-many-statements,redefined-outer-name,too-many-locals,too-many-branches
 		if len(params) <= 0:
-			shell.appendLine(_('No method defined'))
+			shell.appendLine(_("No method defined"))
 			return
 
 		methodName = params[0]
 
-		if methodName == 'list':
+		if methodName == "list":
 			for methodDescription in self.interface:
 				shell.appendLine(f"{methodDescription.get('name')}{tuple(methodDescription.get('params'))}", refresh=False)
 			shell.display()
 			return
 
 		for methodDescription in self.interface:
-			if methodName == methodDescription['name']:
+			if methodName == methodDescription["name"]:
 				methodInterface = methodDescription
 				break
 		else:
@@ -1181,12 +1168,12 @@ class CommandMethod(Command):
 
 		params = params[1:]
 		keywords = {}
-		if methodInterface['keywords']:
+		if methodInterface["keywords"]:
 			parameters = 0
-			if methodInterface['args']:
-				parameters += len(methodInterface['args'])
-			if methodInterface['varargs']:
-				parameters += len(methodInterface['varargs'])
+			if methodInterface["args"]:
+				parameters += len(methodInterface["args"])
+			if methodInterface["varargs"]:
+				parameters += len(methodInterface["varargs"])
 
 			if len(params) >= parameters:
 				# Do not create Object instances!
@@ -1209,9 +1196,9 @@ class CommandMethod(Command):
 
 		pString = str(params)[1:-1]
 		if keywords:
-			pString += ', ' + str(keywords)
+			pString += ", " + str(keywords)
 		if len(pString) > 200:
-			pString = pString[:200] + '...'
+			pString = pString[:200] + "..."
 
 		result = None
 
@@ -1227,30 +1214,30 @@ class CommandMethod(Command):
 			result = method(*params)
 
 		duration = time.time() - start
-		logger.debug('Took %0.3f seconds to process: %s(%s)', duration, methodName, pString)
-		shell.setInfoline(_('Took %0.3f seconds to process: %s(%s)') % (duration, methodName, pString))
+		logger.debug("Took %0.3f seconds to process: %s(%s)", duration, methodName, pString)
+		shell.setInfoline(_("Took %0.3f seconds to process: %s(%s)") % (duration, methodName, pString))
 		result = serialize(result)
 		logger.trace("Serialized result: '%s'", result)
 
 		if result is not None:  # pylint: disable=too-many-nested-blocks
 			lines = []
-			if shell.output == 'RAW':
+			if shell.output == "RAW":
 				lines.append(toJson(result))
 
-			elif shell.output == 'JSON':
-				lines = objectToBeautifiedText(result).split('\n')
+			elif shell.output == "JSON":
+				lines = objectToBeautifiedText(result).split("\n")
 
-			elif shell.output == 'SHELL':
+			elif shell.output == "SHELL":
 				bashVars = objectToBash(result, {})
 				for index in range(len(bashVars) - 1, -2, -1):
 					if index == -1:
-						index = ''
+						index = ""
 
 					value = bashVars.get(f"RESULT{index}")
 					if value:
 						lines.append(f"RESULT{index}={value}")
 
-			elif shell.output == 'SIMPLE':
+			elif shell.output == "SIMPLE":
 				if isinstance(result, dict):
 					for (key, value) in result.items():
 						if isinstance(value, bool):
@@ -1263,7 +1250,7 @@ class CommandMethod(Command):
 								if isinstance(value, bool):
 									value = forceUnicodeLower(value)
 								lines.append(f"{key}={value}")
-							lines.append('')
+							lines.append("")
 						elif isinstance(resultElement, (tuple, list)):
 							raise ValueError("Simple output not possible for list of lists")
 						else:
@@ -1293,14 +1280,14 @@ class CommandMethod(Command):
 				encoding = proc.stdout.encoding or inEncoding
 
 				exitCode = None
-				buf = ''
-				serr = ''
+				buf = ""
+				serr = ""
 
 				while exitCode is None:
 					exitCode = proc.poll()
 					if lines:
 						for line in lines:
-							proc.stdin.write(line.encode(outEncoding, 'replace'))
+							proc.stdin.write(line.encode(outEncoding, "replace"))
 							proc.stdin.write(b"\n")
 						lines = []
 						proc.stdin.close()
@@ -1323,11 +1310,9 @@ class CommandMethod(Command):
 
 				if exitCode != 0:
 					nwl = "\n"
-					raise Exception(
-						f"Exitcode: {exitCode * -1}{nwl}{serr.decode(encoding, 'replace')}"
-					)
+					raise RuntimeError(f"Exitcode: {exitCode * -1}{nwl}{serr.decode(encoding, 'replace')}")
 
-				lines = buf.decode(encoding, 'replace').split('\n')
+				lines = buf.decode(encoding, "replace").split("\n")
 
 			for line in lines:
 				shell.appendLine(line, COLOR_GREEN)
@@ -1335,7 +1320,7 @@ class CommandMethod(Command):
 
 class CommandSet(Command):
 	def __init__(self):
-		Command.__init__(self, 'set')
+		Command.__init__(self, "set")
 
 	def getDescription(self):
 		return _("Settings")
@@ -1344,23 +1329,23 @@ class CommandSet(Command):
 		completions = []
 
 		if paramPos == 0 or not params[0]:
-			completions = ['color', 'log-file', 'log-level']
+			completions = ["color", "log-file", "log-level"]
 
 		elif paramPos == 1:
-			if 'color'.startswith(params[0]):
-				completions = ['color']
-			if 'log-file'.startswith(params[0]):
-				completions = ['log-file']
-			if 'log-level'.startswith(params[0]):
-				completions.append('log-level')
+			if "color".startswith(params[0]):
+				completions = ["color"]
+			if "log-file".startswith(params[0]):
+				completions = ["log-file"]
+			if "log-level".startswith(params[0]):
+				completions.append("log-level")
 
 		elif paramPos == 2:
-			if params[0] == 'color':
-				completions = ['on', 'off']
-			elif params[0] == 'log-file':
-				completions = ['<filename>', 'off']
-			elif params[0] == 'log-level':
-				completions = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+			if params[0] == "color":
+				completions = ["on", "off"]
+			elif params[0] == "log-file":
+				completions = ["<filename>", "off"]
+			elif params[0] == "log-level":
+				completions = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 		return completions
 
@@ -1368,42 +1353,42 @@ class CommandSet(Command):
 		global logFile  # pylint: disable=global-statement,invalid-name
 
 		if len(params) <= 0:
-			raise ValueError(_('Missing option'))
-		if params[0] not in ('color', 'log-file', 'log-level'):
-			raise ValueError(_('Unknown option: %s') % params[0])
+			raise ValueError(_("Missing option"))
+		if params[0] not in ("color", "log-file", "log-level"):
+			raise ValueError(_("Unknown option: %s") % params[0])
 		if len(params) <= 1:
-			raise ValueError(_('Missing value'))
+			raise ValueError(_("Missing value"))
 
-		if params[0] == 'color':
-			if params[1] == 'on':
+		if params[0] == "color":
+			if params[1] == "on":
 				shell.setColor(True)
-			elif params[1] == 'off':
+			elif params[1] == "off":
 				shell.setColor(False)
 			else:
-				raise ValueError(_('Bad value: %s') % params[1])
+				raise ValueError(_("Bad value: %s") % params[1])
 
-		elif params[0] == 'log-file':
-			if params[1] == 'off':
+		elif params[0] == "log-file":
+			if params[1] == "off":
 				logging_config(file_level=LOG_NONE)
 			else:
 				logFile = params[1]
 				startLogFile(logFile, LOG_DEBUG)
 
-		elif params[0] == 'log-level':
+		elif params[0] == "log-level":
 			if not logFile:
-				raise ValueError(_('No log-file set!'))
+				raise ValueError(_("No log-file set!"))
 			logging_config(file_level=int(params[1]))
 
 
 class CommandHelp(Command):
 	def __init__(self):
-		Command.__init__(self, 'help')
+		Command.__init__(self, "help")
 
 	def getDescription(self):
 		return _("Show this text")
 
 	def execute(self, shell, params):
-		shell.appendLine('\r' + _("Commands are:") + '\n', refresh=False)
+		shell.appendLine("\r" + _("Commands are:") + "\n", refresh=False)
 		for cmd in shell.commands:
 			shell.appendLine(f"\r\t{(cmd.getName() + ':'):<20)}{cmd.getDescription()}\n", refresh=False)
 		shell.display()
@@ -1411,7 +1396,7 @@ class CommandHelp(Command):
 
 class CommandQuit(Command):
 	def __init__(self):
-		Command.__init__(self, 'quit')
+		Command.__init__(self, "quit")
 
 	def getDescription(self):
 		return _("Exit opsi-admin")
@@ -1422,12 +1407,12 @@ class CommandQuit(Command):
 
 class CommandExit(CommandQuit):
 	def __init__(self):  # pylint: disable=super-init-not-called
-		Command.__init__(self, 'exit')  # pylint: disable=non-parent-init-called
+		Command.__init__(self, "exit")  # pylint: disable=non-parent-init-called
 
 
 class CommandHistory(Command):
 	def __init__(self):
-		Command.__init__(self, 'history')
+		Command.__init__(self, "history")
 
 	def getDescription(self):
 		return _("show / clear command history")
@@ -1436,35 +1421,35 @@ class CommandHistory(Command):
 		completions = []
 
 		if paramPos == 0 or not params[0]:
-			completions = ['clear', 'show']
+			completions = ["clear", "show"]
 
 		elif paramPos == 1:
-			if 'clear'.startswith(params[0]):
-				completions = ['clear']
-			elif 'show'.startswith(params[0]):
-				completions = ['show']
+			if "clear".startswith(params[0]):
+				completions = ["clear"]
+			elif "show".startswith(params[0]):
+				completions = ["show"]
 
 		return completions
 
 	def execute(self, shell, params):
 		if len(params) <= 0:
 			# By default: show history
-			params = ['show']
-		elif params[0] not in ('clear', 'show'):
-			raise ValueError(_('Unknown command: %s') % params[0])
+			params = ["show"]
+		elif params[0] not in ("clear", "show"):
+			raise ValueError(_("Unknown command: %s") % params[0])
 
-		if params[0] == 'show':
+		if params[0] == "show":
 			for line in shell.cmdList:
 				shell.appendLine(line, refresh=False)
 			shell.display()
-		elif params[0] == 'clear':
+		elif params[0] == "clear":
 			shell.cmdList = []
 			shell.cmdListPos = -1
 
 
 class CommandLog(Command):
 	def __init__(self):
-		Command.__init__(self, 'log')
+		Command.__init__(self, "log")
 
 	def getDescription(self):
 		return _("show log")
@@ -1473,26 +1458,26 @@ class CommandLog(Command):
 		completions = []
 
 		if paramPos == 0 or not params[0]:
-			completions = ['show']
+			completions = ["show"]
 
 		elif paramPos == 1:
-			if 'show'.startswith(params[0]):
-				completions = ['show']
+			if "show".startswith(params[0]):
+				completions = ["show"]
 
 		return completions
 
 	def execute(self, shell, params):
 		if len(params) <= 0:
 			# By default: show log
-			params = ['show']
-		elif params[0] not in ('show',):
-			raise ValueError(_('Unknown command: %s') % params[0])
+			params = ["show"]
+		elif params[0] not in ("show",):
+			raise ValueError(_("Unknown command: %s") % params[0])
 
-		if params[0] == 'show':
+		if params[0] == "show":
 			if not logFile:
-				raise RuntimeError(_('File logging is not activated'))
+				raise RuntimeError(_("File logging is not activated"))
 
-			with open(logFile, encoding='utf-8') as log:
+			with open(logFile, encoding="utf-8") as log:
 				for line in log:
 					shell.appendLine(line, refresh=False)
 			shell.display()
@@ -1500,24 +1485,24 @@ class CommandLog(Command):
 
 class CommandTask(Command):
 	def __init__(self):
-		Command.__init__(self, 'task')
+		Command.__init__(self, "task")
 		self._tasks = (  # TODO: are these deprecated methods still needed?
-			('setupWhereInstalled', 'productId'),
-			('setupWhereNotInstalled', 'productId'),
-			('updateWhereInstalled', 'productId'),
-			('uninstallWhereInstalled', 'productId'),
-			('setActionRequestWhereOutdated', 'actionRequest', 'productId'),
-			('setActionRequestWhereOutdatedWithDependencies', 'actionRequest', 'productId'),
-			('setActionRequestWithDependencies', 'actionRequest', 'productId', 'clientId'),
-			('decodePcpatchPassword', 'encodedPassword', 'opsiHostKey'),
-			('setPcpatchPassword', '*password')
+			("setupWhereInstalled", "productId"),
+			("setupWhereNotInstalled", "productId"),
+			("updateWhereInstalled", "productId"),
+			("uninstallWhereInstalled", "productId"),
+			("setActionRequestWhereOutdated", "actionRequest", "productId"),
+			("setActionRequestWhereOutdatedWithDependencies", "actionRequest", "productId"),
+			("setActionRequestWithDependencies", "actionRequest", "productId", "clientId"),
+			("decodePcpatchPassword", "encodedPassword", "opsiHostKey"),
+			("setPcpatchPassword", "*password"),
 		)
 
 	def getDescription(self):
 		return _("execute a task")
 
 	def help(self, shell):
-		shell.appendLine('')
+		shell.appendLine("")
 
 	def completion(self, params, paramPos):
 		completions = []
@@ -1545,84 +1530,71 @@ class CommandTask(Command):
 			return
 
 		if params[0] not in tasknames:
-			raise ValueError(_('Unknown task: %s') % params[0])
+			raise ValueError(_("Unknown task: %s") % params[0])
 
-		if params[0] == 'setupWhereInstalled':
+		if params[0] == "setupWhereInstalled":
 			if len(params) < 2:
-				raise ValueError(_('Missing product-id'))
+				raise ValueError(_("Missing product-id"))
 			productId = params[1]
 
-			logger.warning(
-				"The task 'setupWhereInstalled' is obsolete. "
-				"Please use 'method setupWhereInstalled' instead."
-			)
+			logger.warning("The task 'setupWhereInstalled' is obsolete. Please use 'method setupWhereInstalled' instead.")
 
 			for clientId in service_client.jsonrpc("setupWhereInstalled", [productId]):
 				shell.appendLine(clientId)
 
-		elif params[0] == 'setupWhereNotInstalled':
+		elif params[0] == "setupWhereNotInstalled":
 			if len(params) < 2:
-				raise ValueError(_('Missing product-id'))
+				raise ValueError(_("Missing product-id"))
 			productId = params[1]
 
-			logger.warning(
-				"The task 'setupWhereNotInstalled' is obsolete. "
-				"Please use 'method setupWhereNotInstalled' instead."
-			)
+			logger.warning("The task 'setupWhereNotInstalled' is obsolete. Please use 'method setupWhereNotInstalled' instead.")
 
 			for clientId in service_client.jsonrpc("setupWhereNotInstalled", [productId]):
 				shell.appendLine(clientId)
 
-		elif params[0] == 'updateWhereInstalled':
+		elif params[0] == "updateWhereInstalled":
 			if len(params) < 2:
-				raise ValueError(_('Missing product-id'))
+				raise ValueError(_("Missing product-id"))
 			productId = params[1]
 
-			logger.warning(
-				"The task 'updateWhereInstalled' is obsolete. "
-				"Please use 'method updateWhereInstalled' instead."
-			)
+			logger.warning("The task 'updateWhereInstalled' is obsolete. Please use 'method updateWhereInstalled' instead.")
 
 			for clientId in service_client.jsonrpc("updateWhereInstalled", [productId]):
 				shell.appendLine(clientId)
 
-		elif params[0] == 'uninstallWhereInstalled':
+		elif params[0] == "uninstallWhereInstalled":
 			if len(params) < 2:
-				raise ValueError(_('Missing product-id'))
+				raise ValueError(_("Missing product-id"))
 			productId = params[1]
 
-			logger.warning(
-				"The task 'uninstallWhereInstalled' is obsolete. "
-				"Please use 'method uninstallWhereInstalled' instead."
-			)
+			logger.warning("The task 'uninstallWhereInstalled' is obsolete. Please use 'method uninstallWhereInstalled' instead.")
 
 			for clientId in service_client.jsonrpc("uninstallWhereInstalled", [productId]):
 				shell.appendLine(clientId)
 
-		elif params[0] == 'setActionRequestWhereOutdated':
+		elif params[0] == "setActionRequestWhereOutdated":
 			if len(params) < 2:
-				raise ValueError(_('Missing action request'))
+				raise ValueError(_("Missing action request"))
 			if len(params) < 3:
-				raise ValueError(_('Missing product-id'))
+				raise ValueError(_("Missing product-id"))
 
 			actionRequest = params[1]
 			productId = params[2]
 
 			logger.warning(
-				"The task 'setActionRequestWhereOutdated' is obsolete. "
-				"Please use 'method setActionRequestWhereOutdated' instead."
+				"The task 'setActionRequestWhereOutdated' is obsolete. Please use 'method setActionRequestWhereOutdated' instead."
 			)
 
 			for clientId in service_client.jsonrpc("setActionRequestWhereOutdated", [actionRequest, productId]):
 				shell.appendLine(clientId)
 
-		elif params[0] == 'setActionRequestWithDependencies':
+		elif params[0] == "setActionRequestWithDependencies":
 			if len(params) < 2:
-				raise ValueError(_('Missing action request'))
+				raise ValueError(_("Missing action request"))
 			if len(params) < 3:
-				raise ValueError(_('Missing product-id'))
+				raise ValueError(_("Missing product-id"))
 			if len(params) < 4:
-				raise ValueError(_('Missing client-id'))
+				raise ValueError(_("Missing client-id"))
 			actionRequest = params[1]
 			productId = params[2]
 			clientId = params[3]
@@ -1630,11 +1602,11 @@ class CommandTask(Command):
 			if productId and clientId and actionRequest:
 				service_client.jsonrpc("setProductActionRequestWithDependencies", [productId, clientId, actionRequest])
 
-		elif params[0] == 'setActionRequestWhereOutdatedWithDependencies':
+		elif params[0] == "setActionRequestWhereOutdatedWithDependencies":
 			if len(params) < 2:
-				raise ValueError(_('Missing action request'))
+				raise ValueError(_("Missing action request"))
 			if len(params) < 3:
-				raise ValueError(_('Missing product-id'))
+				raise ValueError(_("Missing product-id"))
 
 			actionRequest = params[1]
 			productId = params[2]
@@ -1648,23 +1620,23 @@ class CommandTask(Command):
 			for clientId in service_client.jsonrpc("setActionRequestWhereOutdatedWithDependencies", [actionRequest, productId]):
 				shell.appendLine(clientId)
 
-		elif params[0] == 'decodePcpatchPassword':
+		elif params[0] == "decodePcpatchPassword":
 			if len(params) < 3:
-				raise ValueError(_('Missing argument'))
+				raise ValueError(_("Missing argument"))
 			crypt = params[1]
 			key = params[2]
 			cleartext = blowfishDecrypt(key, crypt)
 			shell.appendLine(cleartext)
 
-		elif params[0] == 'setPcpatchPassword':
+		elif params[0] == "setPcpatchPassword":
 			# if os.getuid() != 0:
 			# 	raise RuntimeError(_("You have to be root to change pcpatch password!"))
 
-			fqdn = getfqdn(conf='/etc/opsi/global.conf')
-			if fqdn.count('.') < 2:
+			fqdn = getfqdn(conf="/etc/opsi/global.conf")
+			if fqdn.count(".") < 2:
 				raise RuntimeError(_("Failed to get my own fully qualified domainname"))
 
-			password = ''
+			password = ""
 			if len(params) < 2:
 				password = shell.getPassword()
 			else:
@@ -1674,20 +1646,20 @@ class CommandTask(Command):
 				raise ValueError("Can not use empty password!")
 			secret_filter.add_secrets(password)
 
-			service_client.jsonrpc("user_setCredentials", ['pcpatch', password])
+			service_client.jsonrpc("user_setCredentials", ["pcpatch", password])
 
 			try:
-				udm = which('univention-admin')
+				udm = which("univention-admin")
 				server_role = sys_execute("ucr get server/role")
 				if server_role in ("domaincontroller_master", "domaincontroller_backup"):
 					# We are on Univention Corporate Server (UCS)
 					dn = None
 					command = f'{udm} users/user list --filter "(uid=pcpatch)"'
 					logger.debug("Filtering for pcpatch: %s", command)
-					with closing(os.popen(command, 'r')) as process:
+					with closing(os.popen(command, "r")) as process:
 						for line in process.readlines():
-							if line.startswith('DN'):
-								dn = line.strip().split(' ')[1]
+							if line.startswith("DN"):
+								dn = line.strip().split(" ")[1]
 								break
 
 					if not dn:
@@ -1753,12 +1725,13 @@ def main():
 				pass
 
 	try:
-		locale.setlocale(locale.LC_ALL, '')
+		locale.setlocale(locale.LC_ALL, "")
 	except Exception:  # pylint: disable=broad-except
 		pass
 
-	if os.name == 'posix':
+	if os.name == "posix":
 		from signal import SIGINT, SIGQUIT, signal  # pylint: disable=import-outside-toplevel
+
 		signal(SIGINT, signalHandler)
 		signal(SIGQUIT, signalHandler)
 

@@ -12,15 +12,6 @@ import getopt
 import os
 import sys
 
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG,
-	LOG_NOTICE,
-	init_logging,
-	logger,
-	logging_config,
-)
-
 from OPSI import __version__ as python_opsi_version
 from OPSI.System import Posix
 from OPSI.Types import forceFilename
@@ -31,12 +22,19 @@ from OPSI.Util.Task.ConfigureBackend.DHCPD import configureDHCPD
 from OPSI.Util.Task.Rights import setRights
 from OPSI.Util.Task.Samba import configureSamba
 from OPSI.Util.Task.Sudoers import patchSudoersFileForOpsi
-
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_DEBUG,
+	LOG_NOTICE,
+	init_logging,
+	logger,
+	logging_config,
+)
 from opsiutils import __version__
 
 init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
-DHCPD_CONF = Posix.locateDHCPDConfig('/etc/dhcp3/dhcpd.conf')
+DHCPD_CONF = Posix.locateDHCPDConfig("/etc/dhcp3/dhcpd.conf")
 
 
 def usage():
@@ -71,27 +69,27 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 			sys.argv[1:],
 			"hVl:",
 			[
-				'help',
-				'version',
-				'log-file=',
-				'ip-address=',
-				'backend-config=',
-				'init-current-config',
-				'set-rights',
-				'auto-configure-samba',
-				'auto-configure-dhcpd',
-				'register-depot',
-				'configure-mysql',
-				'update-mysql',
-				'file-to-mysql',
-				'edit-config-defaults',
-				'cleanup-backend',
-				'update-from=',
-				'patch-sudoers-file',
-				'unattended=',
-				'no-backup',
-				'no-restart',
-			]
+				"help",
+				"version",
+				"log-file=",
+				"ip-address=",
+				"backend-config=",
+				"init-current-config",
+				"set-rights",
+				"auto-configure-samba",
+				"auto-configure-dhcpd",
+				"register-depot",
+				"configure-mysql",
+				"update-mysql",
+				"file-to-mysql",
+				"edit-config-defaults",
+				"cleanup-backend",
+				"update-from=",
+				"patch-sudoers-file",
+				"unattended=",
+				"no-backup",
+				"no-restart",
+			],
 		)
 
 	except Exception:
@@ -113,7 +111,7 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 			return
 
 	if os.geteuid() != 0:
-		raise Exception("This script must be startet as root")
+		raise RuntimeError("This script must be startet as root")
 
 	for (opt, arg) in opts:
 		if opt == "--log-file":
@@ -124,7 +122,7 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 			logger.warning("init-current-config is deprecated. The task is performed automatically at the start of opsiconfd.")
 			return
 		elif opt == "--set-rights":
-			task = 'set-rights'
+			task = "set-rights"
 		elif opt == "--register-depot":
 			logger.warning("register-depot is deprecated. Use `opsiconfd setup --register-depot` instead.")
 			return
@@ -135,9 +133,9 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 			logger.warning("update-mysql is deprecated. The task is performed automatically at the start of opsiconfd.")
 			return
 		elif opt == "--file-to-mysql":
-			task = 'file-to-mysql'
+			task = "file-to-mysql"
 		elif opt == "--edit-config-defaults":
-			task = 'edit-config-defaults'
+			task = "edit-config-defaults"
 		elif opt == "--cleanup-backend":
 			logger.warning("cleanup-backend is deprecated. The task is performed automatically at the start of opsiconfd.")
 			return
@@ -155,19 +153,19 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 		elif opt == "--patch-sudoers-file":
 			task = "patch-sudoers-file"
 
-	path = '/'
+	path = "/"
 	if len(args) > 0:
 		logger.debug("Additional arguments are: %s", args)
-		if task == 'set-rights' and len(args) == 1:
+		if task == "set-rights" and len(args) == 1:
 			path = os.path.abspath(forceFilename(args[0]))
 		else:
 			usage()
-			raise Exception("Too many arguments")
+			raise RuntimeError("Too many arguments")
 
-	if noBackup and task != 'file-to-mysql':
-		raise Exception("--no-backup only valid with --file-to-mysql")
-	if noRestart and task != 'file-to-mysql':
-		raise Exception("--no-restart only valid with --file-to-mysql")
+	if noBackup and task != "file-to-mysql":
+		raise RuntimeError("--no-backup only valid with --file-to-mysql")
+	if noRestart and task != "file-to-mysql":
+		raise RuntimeError("--no-restart only valid with --file-to-mysql")
 
 	if autoConfigureSamba:
 		configureSamba()
@@ -175,18 +173,18 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 	if autoConfigureDhcpd:
 		configureDHCPD()
 
-	if task == 'set-rights':
+	if task == "set-rights":
 		setRights(path)
 
-	elif task == 'file-to-mysql':
+	elif task == "file-to-mysql":
 		if not migrate_file_to_mysql(create_backup=not noBackup, restart_services=not noRestart):
 			# Nothing to do
 			sys.exit(2)
 
-	elif task == 'edit-config-defaults':
+	elif task == "edit-config-defaults":
 		editConfigDefaults()
 
-	elif task == 'cleanup-backend':
+	elif task == "cleanup-backend":
 		cleanupBackend()
 
 	elif task == "patch-sudoers-file":

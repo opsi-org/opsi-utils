@@ -16,13 +16,9 @@ import subprocess
 import time
 from contextlib import contextmanager
 from urllib.parse import quote
-
-from OpenSSL.crypto import FILETYPE_PEM, load_certificate
-from opsicommon.logging import get_logger, secret_filter
-from opsicommon.ssl import install_ca
-from opsicommon.utils import prepare_proxy_environment
 from requests.packages import urllib3
 
+from OpenSSL.crypto import FILETYPE_PEM, load_certificate
 from OPSI import System
 from OPSI.Object import NetbootProduct, ProductOnClient
 from OPSI.Types import forceHostId, forceProductId
@@ -32,7 +28,9 @@ from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Path import cd
 from OPSI.Util.Product import ProductPackageFile
 from OPSI.Util.Task.Rights import setRights
-
+from opsicommon.logging import get_logger, secret_filter
+from opsicommon.ssl import install_ca
+from opsicommon.utils import prepare_proxy_environment
 from opsiutils import get_service_client
 from opsiutils.update_packages.Config import DEFAULT_USER_AGENT, ConfigurationParser
 from opsiutils.update_packages.Notifier import DummyNotifier, EmailNotifier
@@ -466,7 +464,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 		return products
 
-	def _verifyDownloadedPackage(self, packageFile, availablePackage):  # pylint: disable=no-self-use
+	def _verifyDownloadedPackage(self, packageFile, availablePackage):
 		"""
 		Verify the downloaded package.
 
@@ -491,7 +489,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		logger.info("%s: md5sum match, package download verified", availablePackage["productId"])
 		return True
 
-	def get_installed_package(self, availablePackage, installedProducts):  # pylint: disable=no-self-use
+	def get_installed_package(self, availablePackage, installedProducts):
 		logger.info("Testing if download/installation of package '%s' is needed", availablePackage["filename"])
 		for product in installedProducts:
 			if product.productId == availablePackage["productId"]:
@@ -505,7 +503,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				return product
 		return None
 
-	def get_local_package(self, availablePackage, localPackages):  # pylint: disable=no-self-use
+	def get_local_package(self, availablePackage, localPackages):
 		for localPackage in localPackages:
 			if localPackage["productId"] == availablePackage["productId"]:
 				logger.debug("Found local package file '%s'", localPackage["filename"])
@@ -544,7 +542,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			notifier.appendLine(message)
 		return True
 
-	def is_install_needed(self, availablePackage, product):  # pylint: disable=no-self-use
+	def is_install_needed(self, availablePackage, product):
 		if not product:
 			if availablePackage["repository"].autoInstall:
 				logger.notice(
@@ -839,7 +837,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		except Exception as err:  # pylint: disable=broad-except
 			logger.error("Failed to create zsync file '%s': %s", zsyncFile, err)
 
-	def onlyNewestPackages(self, packages):  # pylint: disable=no-self-use
+	def onlyNewestPackages(self, packages):
 		newestPackages = []
 		for package in packages:
 			found = None
@@ -1003,7 +1001,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			return packages
 
 	@contextmanager
-	def makeSession(self, repository):  # pylint: disable=no-self-use
+	def makeSession(self, repository):
 		logger.info("opening session for repository '%s' (%s)", repository.name, repository.baseUrl)
 		try:
 			no_proxy_addresses = ["localhost", "127.0.0.1", "ip6-localhost", "::1"]
