@@ -1692,15 +1692,15 @@ class OpsiPackageManagerControl:
 
 		productInfo = {}
 		for product in products:
-			if product["id"] not in productInfo:
-				productInfo[product["id"]] = {}
-			if product["productVersion"] not in productInfo[product["id"]]:
-				productInfo[product["id"]][product["productVersion"]] = {}
+			if product.id not in productInfo:
+				productInfo[product.id] = {}
+			if product.productVersion not in productInfo[product.id]:
+				productInfo[product.id][product.productVersion] = {}
 
-			productInfo[product["id"]][product["productVersion"]][product["packageVersion"]] = product
+			productInfo[product.id][product.productVersion][product.packageVersion] = product
 
-			if len(product["id"]) > idWidth:
-				idWidth = len(product["id"])
+			if len(product.id) > idWidth:
+				idWidth = len(product.id)
 
 		nameWidth = terminalWidth - len(indent) - idWidth - versionWidth - 4
 
@@ -1735,7 +1735,7 @@ class OpsiPackageManagerControl:
 
 			for productId in productIds:
 				productOnDepot = values[productId]
-				product = productInfo[productOnDepot["productId"]][productOnDepot["productVersion"]][productOnDepot["packageVersion"]]
+				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
 				print(
 					"%s%*s %*s %*s"
 					% (
@@ -1743,9 +1743,9 @@ class OpsiPackageManagerControl:
 						-1 * idWidth,
 						productId,
 						-1 * versionWidth,
-						product["version"],
+						product.version,
 						-1 * nameWidth,
-						product["name"].replace("\n", "")[:nameWidth],
+						product.name.replace("\n", "")[:nameWidth],
 					)
 				)
 			print("")
