@@ -6,21 +6,18 @@
 opsi-python interpreter for custom opsi python scripts
 """
 
+import argparse
+import codecs
 import os
 import sys
-import codecs
 import traceback
-import argparse
-
-# import modules to trigger pyinstaller import hook -> available (non-pruned) in opsi-python
-import pyasn1_modules  # pylint: disable=unused-import
 
 
-def add_systempackages_to_path():
+def add_systempackages_to_path() -> None:
 	ver = sys.version_info
 	for path in (
 		f"/usr/lib/python{ver.major}.{ver.minor}",
-		f"/usr/lib/python{ver.major}.{ver.minor}/lib-dynload"
+		f"/usr/lib/python{ver.major}.{ver.minor}/lib-dynload",
 		f"/usr/local/lib/python{ver.major}.{ver.minor}/dist-packages",
 		f"/usr/lib/python{ver.major}/dist-packages",
 	):
@@ -28,14 +25,14 @@ def add_systempackages_to_path():
 			sys.path.append(path)
 
 
-def run_script():
+def run_script() -> None:
 	script = sys.argv[1]
 	sys.argv.pop(0)
 
 	imp_new_module = type(sys)
 	new_module = imp_new_module(script)
-	new_module.__dict__['__name__'] = '__main__'
-	new_module.__dict__['__file__'] = script
+	new_module.__dict__["__name__"] = "__main__"
+	new_module.__dict__["__file__"] = script
 
 	with codecs.open(script, "r", "utf-8") as file:
 		code = file.read()
@@ -44,13 +41,14 @@ def run_script():
 	exec(code, new_module.__dict__)  # pylint: disable=exec-used
 
 
-def run_interactive():
+def run_interactive() -> None:
 	import code  # pylint: disable=import-outside-toplevel
+
 	add_systempackages_to_path()
 	code.interact(local=locals())
 
 
-def main():  # pylint: disable=inconsistent-return-statements
+def main() -> None:
 	try:
 		parser = argparse.ArgumentParser(add_help=False)
 		parser.add_argument("-V", "--version", action="store_true", help="print the Python version number and exit")
@@ -62,10 +60,12 @@ def main():  # pylint: disable=inconsistent-return-statements
 		args, _ = parser.parse_known_args()
 
 		if args.file:
-			return run_script()
+			run_script()
+			return
 
 		if args.help:
-			return parser.print_help()
+			parser.print_help()
+			return
 
 		if args.version:
 			print(f"Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
@@ -73,9 +73,10 @@ def main():  # pylint: disable=inconsistent-return-statements
 
 		if args.c:
 			add_systempackages_to_path()
-			return exec(args.c)  # pylint: disable=exec-used
+			exec(args.c)  # pylint: disable=exec-used
+			return
 
-		return run_interactive()
+		run_interactive()
 	except Exception:  # pylint: disable=broad-except
 		traceback.print_exc()
 		sys.exit(1)
