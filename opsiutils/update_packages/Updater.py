@@ -226,7 +226,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 					continue
 				packageFile = os.path.join(self.config["packageDir"], package["filename"])
 				productId = package["productId"]
-				opsi_package = OpsiPackage(Path(packageFile), temp_dir = self.config.get("tempdir"))
+				opsi_package = OpsiPackage(Path(packageFile), temp_dir = Path(self.config.get("tempdir")) if self.config.get("tempdir") else None)
 				for dependency in opsi_package.package_dependencies:
 					try:
 						ppos = sequence.index(productId)
