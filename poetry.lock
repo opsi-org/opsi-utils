@@ -988,7 +988,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi-common"
-version = "4.3.0.12"
+version = "4.3.0.13"
 description = "The opsi python common library"
 category = "main"
 optional = false
@@ -1000,7 +1000,6 @@ distro = ">=1.6,<2.0"
 lz4 = ">=4.0,<5.0"
 msgpack = ">=1.0,<2.0"
 msgspec = ">=0.12,<0.13"
-orjson = ">=3.8,<4.0"
 psutil = ">=5.8,<6.0"
 pycryptodome = ">=3.10,<4.0"
 pyopenssl = ">=23.0,<24.0"
@@ -2206,12 +2205,12 @@ python-magic = [
     {file = "python_magic-0.4.27-py2.py3-none-any.whl", hash = "sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3"},
 ]
 python-opsi = [
-    {file = "python_opsi-4.3.0.8-py3-none-any.whl", hash = "sha256:ecf3213a52f085c6b101a2d32a680ec52ab1a2dcdee8001d24d5183d46143d80"},
-    {file = "python_opsi-4.3.0.8.tar.gz", hash = "sha256:4cdf4b1834d561e942569a93f779d8bcc12d61cda468f748b86973948c55eeb3"},
+    {file = "python_opsi-4.3.0.8-py3-none-any.whl", hash = "sha256:804e892e1e010ba6cf64cee164230a3469ea4bea1fb120f4aab81e2a09b6f0ee"},
+    {file = "python_opsi-4.3.0.8.tar.gz", hash = "sha256:ff55e909aea1b16e473903a92bf2635bc4f65df68bbdfda168111e30f73af875"},
 ]
 python-opsi-common = [
-    {file = "python_opsi_common-4.3.0.12-py3-none-any.whl", hash = "sha256:9c9984f8dcf96257e4564188864d7d284103be869b22fe0956597e542820ff4f"},
-    {file = "python_opsi_common-4.3.0.12.tar.gz", hash = "sha256:fa96b12021be57ee12edf60fd7bf04ec573093bd1d4cc126b8406486ef2249f8"},
+    {file = "python_opsi_common-4.3.0.13-py3-none-any.whl", hash = "sha256:426d21ca47df9bd246aec7d4762009fa0cbc698c9eab81aa987b3941a15d420f"},
+    {file = "python_opsi_common-4.3.0.13.tar.gz", hash = "sha256:523b5353dcbbb7373b0c8e6e96b9bdb94bd160e0f26d0d977ef68b2901dec4ca"},
 ]
 python-pam = [
     {file = "python-pam-2.0.2.tar.gz", hash = "sha256:97235235ba9b82dbae8068d1099508455949b275f77273ca22fdbd8b1fb5d950"},

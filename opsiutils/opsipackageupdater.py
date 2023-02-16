@@ -120,27 +120,27 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		difference.
 		"""
 		localProducts = self.getInstalledProducts()
-		localProducts = {product['productId']: product for product in localProducts}
+		localProducts = {product.productId: product for product in localProducts}
 
 		for repository in self.getActiveRepositories():
 			repoMessageShown = False
 			packages = sorted(
 				self.getDownloadablePackagesFromRepository(repository),
-				key=operator.itemgetter('productId')
+				key=lambda entry: entry.productId
 			)
 			for package in packages:
 				try:
-					localProduct = localProducts[package['productId']]
+					localProduct = localProducts[package.productId]
 				except KeyError:
 					continue  # Not installed locally
 
-				localVersion = f"{localProduct['productVersion']}-{localProduct['packageVersion']}"
-				if not compareVersions(package['version'], '==', localVersion):
+				localVersion = f"{localProduct.productVersion}-{localProduct.packageVersion}"
+				if not compareVersions(package.version, '==', localVersion):
 					if not repoMessageShown:
 						print(f"Packages in {repository.name}:")
 						repoMessageShown = True
 
-					print(f"\t{package.get('productId')} (Version {package.get('version')}, installed {localVersion})")
+					print(f"\t{package.productId} (Version {package.version}, installed {localVersion})")
 
 	def listUpdatableProducts(self):
 		try:

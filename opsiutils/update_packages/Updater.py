@@ -14,6 +14,7 @@ import os.path
 import re
 import subprocess
 import time
+from pathlib import Path
 from contextlib import contextmanager
 from urllib.parse import quote
 from requests.packages import urllib3
@@ -21,17 +22,17 @@ from requests.packages import urllib3
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate
 from OPSI import System
 from OPSI.Object import NetbootProduct, ProductOnClient
-from OPSI.Types import forceProductId
 from OPSI.Util import compareVersions, formatFileSize, md5sum
 from OPSI.Util.File import ZsyncFile
 from OPSI.Util.File.Opsi import parseFilename
 from OPSI.Util.Path import cd
-from OPSI.Util.Product import ProductPackageFile
 from OPSI.Util.Task.Rights import setRights
+from opsicommon.types import forceProductId
 from opsicommon.config.opsi import OpsiConfig
 from opsicommon.logging import get_logger, secret_filter
 from opsicommon.ssl import install_ca
 from opsicommon.utils import prepare_proxy_environment
+from opsicommon.package import OpsiPackage
 from opsiutils import get_service_client
 from opsiutils.update_packages.Config import DEFAULT_USER_AGENT, ConfigurationParser
 from opsiutils.update_packages.Notifier import DummyNotifier, EmailNotifier
@@ -225,11 +226,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 					continue
 				packageFile = os.path.join(self.config["packageDir"], package["filename"])
 				productId = package["productId"]
-				ppf = ProductPackageFile(packageFile, tempDir=self.config.get("tempdir", "/tmp"))
-				ppf.getMetaData()
-				dependencies = ppf.packageControlFile.getPackageDependencies()
-				ppf.cleanup()
-				for dependency in dependencies:
+				opsi_package = OpsiPackage(Path(packageFile), temp_dir = self.config.get("tempdir"))
+				for dependency in opsi_package.package_dependencies:
 					try:
 						ppos = sequence.index(productId)
 						dpos = sequence.index(dependency["package"])
@@ -493,13 +491,13 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 	def get_installed_package(self, availablePackage, installedProducts):
 		logger.info("Testing if download/installation of package '%s' is needed", availablePackage["filename"])
 		for product in installedProducts:
-			if product.productId == availablePackage["productId"]:
+			if product["productId"] == availablePackage["productId"]:
 				logger.debug("Product '%s' is installed", availablePackage["productId"])
 				logger.debug(
 					"Available product version is '%s', installed product version is '%s-%s'",
 					availablePackage["version"],
-					product.productVersion,
-					product.packageVersion,
+					product["productVersion"],
+					product["packageVersion"],
 				)
 				return product
 		return None
@@ -561,15 +559,15 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			)
 			return False
 
-		if compareVersions(availablePackage["version"], ">", f"{product.productVersion}-{product.packageVersion}"):
+		if compareVersions(availablePackage["version"], ">", f"{product['productVersion']}-{product['packageVersion']}"):
 			if availablePackage["repository"].autoUpdate:
 				logger.notice(
 					"%s - installation required: a more recent version of product '%s' was found"
 					" (installed: %s-%s, available: %s) and auto update is set for repository '%s'",
 					availablePackage["filename"],
 					availablePackage["productId"],
-					product.productVersion,
-					product.packageVersion,
+					product["productVersion"],
+					product["packageVersion"],
 					availablePackage["version"],
 					availablePackage["repository"].name,
 				)
@@ -579,8 +577,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				" (installed: %s-%s, available: %s) but auto update is not set for repository '%s'",
 				availablePackage["filename"],
 				availablePackage["productId"],
-				product.productVersion,
-				product.packageVersion,
+				product["productVersion"],
+				product["packageVersion"],
 				availablePackage["version"],
 				availablePackage["repository"].name,
 			)
@@ -588,8 +586,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		logger.info(
 			"%s - installation not required: installed version '%s-%s' of product '%s' is up to date",
 			availablePackage["filename"],
-			product.productVersion,
-			product.packageVersion,
+			product["productVersion"],
+			product["packageVersion"],
 			availablePackage["productId"],
 		)
 		return False
@@ -862,8 +860,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		logger.info("Getting installed products")
 		products = []
 		configBackend = self.getConfigBackend()
-		for product in configBackend.productOnDepot_getObjects(depotId=self.depotId):  # pylint: disable=no-member
-			logger.info("Found installed product '%s_%s-%s'", product.productId, product.productVersion, product.packageVersion)
+		for product in configBackend.productOnDepot_getHashes(depotId=self.depotId):  # pylint: disable=no-member
+			logger.info("Found installed product '%s_%s-%s'", product["productId"], product["productVersion"], product["packageVersion"])
 			products.append(product)
 		return products
 
