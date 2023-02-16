@@ -69,7 +69,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 		depots = self.getConfigBackend().host_getObjects(type="OpsiDepotserver", id=self.depotId)  # pylint: disable=no-member
 		try:
-			self.depotKey = depots[0].opsiHostKey
+			self.depotKey = depots[0]["opsiHostKey"]
 		except IndexError as err:
 			raise ValueError(f"Depot '{self.depotId}' not found in backend") from err
 
@@ -127,7 +127,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 	def getConfigBackend(self):
 		if not self.configBackend:
-			self.configBackend = get_service_client(proxy_url=self.config["proxy"])
+			self.configBackend = get_service_client(proxy_url=self.config["proxy"], jsonrpc_create_objects=False)
 			try:
 				ca_crt = load_certificate(FILETYPE_PEM, self.configBackend.jsonrpc("getOpsiCACert"))
 				install_ca(ca_crt)
@@ -268,7 +268,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 							)
 						if productPropertyStates:
 							for pps in productPropertyStates:
-								propertyDefaultValues[pps.propertyId] = pps.values
+								propertyDefaultValues[pps["propertyId"]] = pps["values"]
 						logger.notice("Using product property defaults: %s", propertyDefaultValues)
 					except Exception as err:  # pylint: disable=broad-except
 						logger.warning("Failed to get product property defaults: %s", err)

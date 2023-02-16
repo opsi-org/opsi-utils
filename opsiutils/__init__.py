@@ -19,6 +19,7 @@ def get_service_client(
 	session_cookie: str | None = None,
 	user_agent: str | None = None,
 	proxy_url: str | None = None,
+	jsonrpc_create_objects: bool = True,
 ) -> ServiceClient:
 	opsiconf = OpsiConfig()
 
@@ -34,7 +35,7 @@ def get_service_client(
 		session_cookie=session_cookie,
 		verify=ServiceVerificationFlags.STRICT_CHECK,
 		ca_cert_file="/etc/opsi/ssl/opsi-ca-cert.pem",
-		jsonrpc_create_objects=True,
+		jsonrpc_create_objects=jsonrpc_create_objects,
 		jsonrpc_create_methods=True,
 		proxy_url=proxy_url,
 	)
