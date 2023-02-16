@@ -180,9 +180,9 @@ def parse_args(args: List[str] | None = None):
 		"--archive-format",
 		"-F",
 		dest="format",
-		default="cpio",
-		choices=["cpio", "tar"],
-		help="Archive format to use. Default: cpio",
+		default="tar",
+		choices=["tar"],
+		help="DEPRECATED: Archive format to use. Default: tar",
 	)
 	parser.add_argument("--no-pigz", dest="disablePigz", default=False, action="store_true", help="Disable the usage of pigz")
 	parser.add_argument(
@@ -282,7 +282,6 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 	compression = args.compression
 	quiet = args.quiet
 	tempDir = Path(forceFilename(args.tempDir))
-	arch_format = forceUnicode(args.format)
 	createMd5SumFile = args.createMd5SumFile
 	createZsyncFile = args.createZsyncFile
 	packageSourceDir = args.packageSourceDir
@@ -303,10 +302,6 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 	logger.info("Source dir: %s", packageSourceDir)
 	logger.info("Temp dir: %s", tempDir)
 	logger.info("Custom name: %s", customName)
-	logger.info("Archive format: %s", arch_format)
-
-	if arch_format not in ["tar", "cpio"]:
-		raise ValueError(f"Unsupported archive format: {arch_format}")
 
 	if not os.path.isdir(packageSourceDir):
 		raise OSError(f"No such directory: {packageSourceDir}")
