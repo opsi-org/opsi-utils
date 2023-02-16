@@ -20,7 +20,6 @@ from typing import List
 
 from OPSI import __version__ as python_opsi_version
 from OPSI.System import execute
-from OPSI.Types import forceFilename, forceUnicode
 from OPSI.Util import compareVersions, md5sum
 from OPSI.Util.File import ZsyncFile
 from OPSI.Util.Message import ProgressObserver, ProgressSubject
