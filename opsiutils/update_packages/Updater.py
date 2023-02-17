@@ -23,7 +23,7 @@ from OpenSSL.crypto import FILETYPE_PEM, load_certificate  # type: ignore[import
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config.opsi import OpsiConfig
 from opsicommon.logging import get_logger, secret_filter
-from opsicommon.objects import NetbootProduct, Product, ProductOnClient
+from opsicommon.objects import NetbootProduct, Product, ProductOnClient, ProductOnDepot
 from opsicommon.package import OpsiPackage
 from opsicommon.ssl import install_ca
 from opsicommon.types import forceProductId
@@ -519,11 +519,11 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 	def get_installed_package(
 			self,
 			availablePackage: dict[str, str | ProductRepositoryInfo],
-			installedProducts: list[Product]
-		) -> Product | None:
+			installedProducts: list[ProductOnDepot]
+		) -> ProductOnDepot | None:
 		logger.info("Testing if download/installation of package '%s' is needed", availablePackage["filename"])
 		for product in installedProducts:
-			if product.id == availablePackage["productId"]:
+			if product.productId == availablePackage["productId"]:
 				logger.debug("Product '%s' is installed", availablePackage["productId"])
 				logger.debug(
 					"Available product version is '%s', installed product version is '%s-%s'",
@@ -582,7 +582,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			notifier.appendLine(message)
 		return True
 
-	def is_install_needed(self, availablePackage: dict[str, str | ProductRepositoryInfo], product: Product) -> bool:
+	def is_install_needed(self, availablePackage: dict[str, str | ProductRepositoryInfo], product: ProductOnDepot) -> bool:
 		if not product:
 			if availablePackage["repository"].autoInstall:
 				logger.notice(
@@ -914,7 +914,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 	def getLocalPackages(self) -> list[dict[str, str]]:
 		return getLocalPackages(self.config["packageDir"], forceChecksumCalculation=self.config["forceChecksumCalculation"])
 
-	def getInstalledProducts(self) -> list[Product]:
+	def getInstalledProducts(self) -> list[ProductOnDepot]:
 		logger.info("Getting installed products")
 		products = []
 		configBackend = self.getConfigBackend()
