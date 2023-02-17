@@ -158,7 +158,12 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				result[package["repository"]] = [package]
 		return result
 
-	def _useZsync(self, session, availablePackage, localPackage):  # pylint: disable=too-many-return-statements
+	def _useZsync(  # pylint: disable=too-many-return-statements
+		self,
+		session: Session,
+		availablePackage: dict[str, str | ProductRepositoryInfo],
+		localPackage: dict[str, str] | None
+	) -> bool:
 		if not self.config["useZsync"]:
 			return False
 		if not localPackage:
