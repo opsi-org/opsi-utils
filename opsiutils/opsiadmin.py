@@ -27,6 +27,20 @@ import time
 from contextlib import closing, contextmanager
 from pathlib import Path
 
+from opsicommon.config import OpsiConfig
+from opsicommon.exceptions import OpsiRpcError
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_DEBUG,
+	LOG_ERROR,
+	LOG_NONE,
+	LOG_WARNING,
+	logger,
+	logging_config,
+	secret_filter,
+)
+from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
+
 from OPSI import __version__ as python_opsi_version
 from OPSI.System import CommandNotFoundException
 from OPSI.System import execute as sys_execute
@@ -42,19 +56,7 @@ from OPSI.Util import (
 	toJson,
 )
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
-from opsicommon.config import OpsiConfig
-from opsicommon.exceptions import OpsiRpcError
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG,
-	LOG_ERROR,
-	LOG_NONE,
-	LOG_WARNING,
-	logger,
-	logging_config,
-	secret_filter,
-)
-from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
+
 from opsiutils import __version__, get_service_client
 
 COLOR_NORMAL = "\033[0;0;0m"

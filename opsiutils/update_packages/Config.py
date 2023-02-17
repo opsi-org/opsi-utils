@@ -13,7 +13,6 @@ import os.path
 import re
 import socket
 
-from OPSI.Util.File import IniFile  # type: ignore[import]
 from opsicommon.logging import get_logger, logging_config, secret_filter
 from opsicommon.types import (
 	forceBool,
@@ -28,6 +27,7 @@ from opsicommon.types import (
 )
 
 from OPSI import __version__  # type: ignore[import]
+from OPSI.Util.File import IniFile  # type: ignore[import]
 
 from .Exceptions import (
 	ConfigurationError,

@@ -13,7 +13,6 @@ import argparse
 import operator
 import sys
 
-from OPSI.Util import compareVersions  # type: ignore[import]
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	get_logger,
@@ -24,6 +23,7 @@ from opsicommon.system import ensure_not_already_running
 from opsicommon.types import forceProductId
 
 from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI.Util import compareVersions  # type: ignore[import]
 from opsiutils import __version__
 from opsiutils.update_packages.Config import DEFAULT_CONFIG
 from opsiutils.update_packages.Exceptions import NoActiveRepositoryError

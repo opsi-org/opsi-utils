@@ -6,8 +6,8 @@
 Utility functions for package updates.
 """
 
-from OPSI.Util import compareVersions  # type: ignore[import]
 from opsicommon.logging import get_logger
+from OPSI.Util import compareVersions  # type: ignore[import]
 
 from .Exceptions import NoActiveRepositoryError
 from .Repository import ProductRepositoryInfo

@@ -20,11 +20,6 @@ from typing import Generator
 from urllib.parse import quote
 
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate  # type: ignore[import]
-from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[import]
-from OPSI.Util.File import ZsyncFile  # type: ignore[import]
-from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
-from OPSI.Util.Path import cd  # type: ignore[import]
-from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config.opsi import OpsiConfig
 from opsicommon.logging import get_logger, secret_filter
@@ -36,7 +31,13 @@ from opsicommon.utils import prepare_proxy_environment
 from requests import Response, Session  # type: ignore[import]
 from requests.packages import urllib3  # type: ignore[import]
 
-from OPSI import System
+from OPSI import System  # type: ignore[import]
+from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[import]
+from OPSI.Util.File import ZsyncFile  # type: ignore[import]
+from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
+from OPSI.Util.Path import cd  # type: ignore[import]
+from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
+
 from opsiutils import get_service_client
 from opsiutils.update_packages.Config import DEFAULT_USER_AGENT, ConfigurationParser
 from opsiutils.update_packages.Notifier import (
@@ -639,13 +640,13 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 	) -> list[dict[str, str | ProductRepositoryInfo]]:
 		installedProducts = self.getInstalledProducts()
 		localPackages = self.getLocalPackages()
-		packages_per_repository: dict[ProductRepositoryInfo, list[dict[str, str | ProductRepositoryInfo]]] = self.get_new_packages_per_repository()
+		pack_per_repo: dict[ProductRepositoryInfo, list[dict[str, str | ProductRepositoryInfo]]] = self.get_new_packages_per_repository()
 		newPackages: list[dict[str, str | ProductRepositoryInfo]] = []
-		if not any(packages_per_repository.values()):
+		if not any(pack_per_repo.values()):
 			logger.warning("No downloadable packages found")
 			return newPackages
 
-		for repository, downloadablePackages in packages_per_repository.items():
+		for repository, downloadablePackages in pack_per_repo.items():
 			logger.debug("Processing downloadable packages on repository %s", repository)
 			with self.makeSession(repository) as session:
 				for availablePackage in downloadablePackages:

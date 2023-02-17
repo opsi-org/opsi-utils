@@ -12,9 +12,6 @@ import getopt
 import os
 import sys
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.System import Posix
-from OPSI.Util.Task.Rights import setRights
 from opsicommon.types import forceFilename
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
@@ -24,6 +21,11 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
+
+from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI.System import Posix  # type: ignore[import]
+from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
+
 from opsiutils import __version__
 
 init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
