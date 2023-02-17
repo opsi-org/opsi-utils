@@ -23,7 +23,7 @@ from OpenSSL.crypto import FILETYPE_PEM, load_certificate  # type: ignore[import
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config.opsi import OpsiConfig
 from opsicommon.logging import get_logger, secret_filter
-from opsicommon.objects import NetbootProduct, Product, ProductOnClient, ProductOnDepot
+from opsicommon.objects import NetbootProduct, ProductOnClient, ProductOnDepot
 from opsicommon.package import OpsiPackage
 from opsicommon.ssl import install_ca
 from opsicommon.types import forceProductId

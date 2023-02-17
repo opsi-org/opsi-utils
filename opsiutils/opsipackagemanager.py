@@ -1401,7 +1401,10 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			tq.start()
 		self.waitForTaskQueues()
 		if packageNotInstalled:
-			raise ValueError(f"At least one package failed to uninstall, please check {self.config['logFile']} for more information")
+			logfilestring = ""
+			if self.config["logFile"]:
+				logfilestring = f", please check {self.config['logFile']} for more information"
+			raise ValueError(f"At least one package failed to uninstall{logfilestring}")
 
 	def uninstallPackage(self, productId, depotId):
 		subject = self.getDepotSubject(depotId)
@@ -1869,7 +1872,6 @@ class OpsiPackageManagerControl:
 			"suppressPackageContentFileGeneration": False,
 		}
 		if opsi_server:
-			self.config["logFile"] = "/var/log/opsi/opsi-package-manager.log"
 			self.config["deltaUpload"] = librsyncDeltaFile is not None
 			self.config["localDepotId"] = OpsiConfig(upgrade_config=False).get("host", "id")
 			self.config["depotIds"] = None
