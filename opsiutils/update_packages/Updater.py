@@ -496,7 +496,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 		return products
 
-	def _verifyDownloadedPackage(self, packageFile, availablePackage):
+	def _verifyDownloadedPackage(self, packageFile: str, availablePackage: dict[str, str | ProductRepositoryInfo]) -> bool:
 		"""
 		Verify the downloaded package.
 
@@ -505,20 +505,20 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		:param packageFile: The path to the package that is checked.
 		:type packageFile: str
 		:param availablePackage: Information about the package.
-		:type availablePackage: dict / Package
+		:type availablePackage: dict
 		"""
 
 		logger.info("Verifying download of package '%s'", packageFile)
-		if not availablePackage.md5sum:
-			logger.warning("%s: Cannot verify download of package: missing md5sum file", availablePackage.productId)
+		if not availablePackage["md5sum"]:
+			logger.warning("%s: Cannot verify download of package: missing md5sum file", availablePackage["productId"])
 			return True
 
 		md5 = md5sum(packageFile)
-		if md5 != availablePackage.md5sum:
-			logger.info("%s: md5sum mismatch, package download failed", availablePackage.productId)
+		if md5 != availablePackage["md5sum"]:
+			logger.info("%s: md5sum mismatch, package download failed", availablePackage["productId"])
 			return False
 
-		logger.info("%s: md5sum match, package download verified", availablePackage.productId)
+		logger.info("%s: md5sum match, package download verified", availablePackage["productId"])
 		return True
 
 	def get_installed_package(
