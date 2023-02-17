@@ -283,9 +283,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 					if not productOnDepots:
 						raise ValueError(f"Product '{package['productId']}' not found on depot '{self.depotId}' after installation")
 					package["product"] = backend.product_getObjects(  # pylint: disable=no-member
-						id=productOnDepots[0].productId,
-						productVersion=productOnDepots[0].productVersion,
-						packageVersion=productOnDepots[0].packageVersion,
+						id=productOnDepots[0]["productId"],
+						productVersion=productOnDepots[0]["productVersion"],
+						packageVersion=productOnDepots[0]["packageVersion"],
 					)[0]
 
 					message = f"Package '{packageFile}' successfully installed"
@@ -376,15 +376,15 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 						excludedWolProducts = set(self.config["wolActionExcludeProductIds"])
 
 						for poc in productOnClients:
-							poc.setActionRequest("setup")
+							poc["actionRequest"] = "setup"
 							if wolEnabled and package["productId"] not in excludedWolProducts:
-								wakeOnLanClients.add(poc.clientId)
+								wakeOnLanClients.add(poc["clientId"])
 
 						backend.productOnClient_updateObjects(productOnClients)  # pylint: disable=no-member
 						notifier.appendLine(
 							(
 								f"Product {package['productId']} set to 'setup' on clients: "
-								", ".join(sorted(poc.clientId for poc in productOnClients))
+								", ".join(sorted(poc["clientId"] for poc in productOnClients))
 							)
 						)
 
