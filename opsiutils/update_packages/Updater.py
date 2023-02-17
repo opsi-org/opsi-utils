@@ -169,14 +169,14 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		if not localPackage:
 			logger.info("Cannot use zsync, no local package found")
 			return False
-		if not availablePackage.zsyncFile:
+		if not availablePackage["zsyncFile"]:
 			logger.info("Cannot use zsync, no zsync file on server found")
 			return False
 		if not self.config["zsyncCommand"]:
 			logger.info("Cannot use zsync, command not found")
 			return False
 
-		response = session.head(availablePackage.packageFile)
+		response = session.head(availablePackage["packageFile"])
 		if not response.headers.get("Accept-Ranges"):
 			logger.info("Cannot use zsync, server or proxy does not accept ranges")
 			return False
