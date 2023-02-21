@@ -44,7 +44,7 @@ _repository_.
 		for availablePackage in downloadablePackages:
 			productId = availablePackage["productId"]
 			for product in installedProducts:
-				if product.id == productId:
+				if product.productId == productId:
 					logger.debug("Product '%s' is installed", productId)
 					logger.debug(
 						"Available product version is '%s', installed product version is '%s-%s'",
