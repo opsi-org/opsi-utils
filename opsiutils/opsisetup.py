@@ -109,28 +109,43 @@ def opsisetup_main():  # pylint: disable=too-many-branches,too-many-return-state
 			logger.warning("configure-mysql is deprecated. Use `opsiconfd setup --configure-mysql` instead.")
 			return
 		elif opt == "--update-mysql":
-			logger.warning("update-mysql is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'")
+			logger.warning(
+				"update-mysql is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'"
+			)
 			return
 		elif opt == "--file-to-mysql":
-			logger.warning("file-to-mysql is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'.")
+			logger.warning((
+				"file-to-mysql is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
+			))
 			return
 		elif opt == "--cleanup-backend":
-			logger.warning("cleanup-backend is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'.")
+			logger.warning((
+				"cleanup-backend is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
+			))
 			return
 		elif opt == "--update-from":
 			logger.warning("update-from is deprecated.")
 			return
 		elif opt == "--auto-configure-samba":
-			logger.warning("auto-configure-samba is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'.")
+			logger.warning((
+				"auto-configure-samba is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
+		))
 			return
 		elif opt == "--auto-configure-dhcpd":
 			logger.warning((
-				"auto-configure-dhcp is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'. "
+				"auto-configure-dhcp is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'. "
 				"Please make sure that '\"enabled\": True' is set in /etc/opsi/backends/dhcpd.conf."
 			))
 			return
 		elif opt == "--patch-sudoers-file":
-			logger.warning("patch-sudoers-file is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'.")
+			logger.warning((
+				"patch-sudoers-file is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
+			))
 			return
 
 	path = "/"

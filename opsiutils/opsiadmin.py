@@ -1099,13 +1099,13 @@ class Command:
 	def getDescription(self):
 		return ""
 
-	def completion(self, params, paramPos):  # pylint: disable=unused-argument,no-self-use
+	def completion(self, params, paramPos):  # pylint: disable=unused-argument
 		return []
 
-	def help(self, shell):  # pylint: disable=unused-argument,redefined-outer-name,no-self-use
+	def help(self, shell):  # pylint: disable=unused-argument,redefined-outer-name
 		shell.appendLine("")
 
-	def execute(self, shell, params):  # pylint: disable=unused-argument,redefined-outer-name,no-self-use
+	def execute(self, shell, params):  # pylint: disable=unused-argument,redefined-outer-name
 		raise NotImplementedError("Nothing to do.")
 
 

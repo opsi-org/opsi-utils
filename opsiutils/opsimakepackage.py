@@ -329,7 +329,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 
 	archive = Path(opsi_package.package_archive_name())
 	lockPackage(tempDir, opsi_package)
-	try:
+	try:  # pylint: disable=too-many-nested-blocks
 		while True:
 			if not quiet:
 				print_info(opsi_package.product, customName, opsi_package)
