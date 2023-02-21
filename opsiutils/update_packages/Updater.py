@@ -386,7 +386,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 					continue
 
 				clientToDepotserver = backend.configState_getClientToDepotserver(depotIds=[self.depotId])  # pylint: disable=no-member
-				clientIds = set(ctd["clientId"] for ctd in clientToDepotserver if ctd["clientId"])  # TODO: dict or Object?
+				clientIds = set(ctd["clientId"] for ctd in clientToDepotserver if ctd["clientId"])
 
 				if clientIds:
 					productOnClients = backend.jsonrpc(

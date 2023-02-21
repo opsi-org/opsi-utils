@@ -278,18 +278,15 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 	customOnly = bool(args.customOnly)
 	if customOnly:
 		customName = args.customOnly
-	dereference = args.dereference  # pylint: disable=unused-variable # TODO proper symlink handling in opsicommon.package
 	logLevel = args.logLevel
 	compression = args.compression
 	quiet = args.quiet
 	tempDir = Path(forceFilename(args.tempDir))
-	createMd5SumFile = args.createMd5SumFile
-	createZsyncFile = args.createZsyncFile
 	packageSourceDir = args.packageSourceDir
 
 	if args.no_compression:
 		raise ValueError("The option --no-compression has been removed. Default compression is zstd")
-	if args.disablePigz:  # TODO: --no-pigz is currently ignored (not needed for zstd or bz2)
+	if args.disablePigz:
 		logger.warning("The option --no-pigz is deprecated. Default is to try pigz with a fallback in case of error")
 
 	if args.verbose:
@@ -444,7 +441,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 				progressSubject = ProgressSubject("packing")
 				progressSubject.attachObserver(ProgressNotifier())
 				print(_("Creating package file '%s'") % archive)
-			opsi_package.create_package_archive(Path(packageSourceDir), compression=compression)
+			opsi_package.create_package_archive(Path(packageSourceDir), compression=compression, dereference=args.dereference)
 			if not args.no_set_rights:
 				try:
 					setRights(archive)
@@ -452,7 +449,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 					logger.warning("Failed to set rights: %s", err)
 			if not quiet:
 				print("\n")
-			if createMd5SumFile:
+			if args.createMd5SumFile:
 				md5sumFile = f"{archive}.md5"
 				if not quiet:
 					print(_("Creating md5sum file '%s'") % md5sumFile)
@@ -465,7 +462,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 					except Exception as err:  # pylint: disable=broad-except
 						logger.warning("Failed to set rights: %s", err)
 
-			if createZsyncFile:
+			if args.createZsyncFile:
 				zsyncFilePath = f"{archive}.zsync"
 				if not quiet:
 					print(_("Creating zsync file '%s'") % zsyncFilePath)
