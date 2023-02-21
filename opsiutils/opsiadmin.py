@@ -49,7 +49,6 @@ from OPSI.Util import (
 	blowfishDecrypt,
 	deserialize,
 	fromJson,
-	getfqdn,
 	objectToBash,
 	objectToBeautifiedText,
 	serialize,
@@ -1633,10 +1632,6 @@ class CommandTask(Command):
 		elif params[0] == "setPcpatchPassword":
 			# if os.getuid() != 0:
 			# 	raise RuntimeError(_("You have to be root to change pcpatch password!"))
-
-			fqdn = getfqdn(conf="/etc/opsi/global.conf")
-			if fqdn.count(".") < 2:
-				raise RuntimeError(_("Failed to get my own fully qualified domainname"))
 
 			password = ""
 			if len(params) < 2:
