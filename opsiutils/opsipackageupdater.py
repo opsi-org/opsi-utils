@@ -84,7 +84,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		"""
 		if withLocalInstallationStatus:
 			localProducts = self.getInstalledProducts()
-			localProducts = {product['productId']: product for product in localProducts}
+			local_products_dict = {product.productId: product for product in localProducts}
 
 		for repository in self.getActiveRepositories():
 			logger.notice("Packages in %s:", repository.name)
@@ -104,13 +104,13 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			for package in packages:
 				if withLocalInstallationStatus:
 					try:
-						localProduct = localProducts[package['productId']]
+						localProduct = local_products_dict[package['productId']]
 					except KeyError as kerr:
 						logger.debug(kerr)
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, not installed)")
 						continue
 
-					localVersion = f"{localProduct.get('productVersion')}-{localProduct.get('packageVersion')}"
+					localVersion = f"{localProduct.productVersion}-{localProduct.packageVersion}"
 					if compareVersions(package['version'], '==', localVersion):
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, installed)")
 					else:
