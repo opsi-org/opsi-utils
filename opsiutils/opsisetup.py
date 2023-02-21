@@ -46,7 +46,7 @@ def usage():
 	print("")
 
 
-def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
+def opsisetup_main():  # pylint: disable=too-many-branches,too-many-return-statements
 	try:
 		(opts, args) = getopt.getopt(
 			sys.argv[1:],
