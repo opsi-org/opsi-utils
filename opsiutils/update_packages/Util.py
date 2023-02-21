@@ -7,17 +7,18 @@ Utility functions for package updates.
 """
 
 from opsicommon.logging import get_logger
-
-from OPSI.Util import compareVersions
+from OPSI.Util import compareVersions  # type: ignore[import]
 
 from .Exceptions import NoActiveRepositoryError
+from .Repository import ProductRepositoryInfo
+from .Updater import OpsiPackageUpdater
 
 __all__ = ("getUpdatablePackages",)
 
 logger = get_logger("opsi.general")
 
 
-def getUpdatablePackages(updater):
+def getUpdatablePackages(updater: OpsiPackageUpdater) -> dict[str, dict[str, str | ProductRepositoryInfo]]:
 	"""
 	Returns information about updatable packages from the given `updater`.
 
@@ -43,23 +44,23 @@ _repository_.
 		for availablePackage in downloadablePackages:
 			productId = availablePackage["productId"]
 			for product in installedProducts:
-				if product["productId"] == productId:
+				if product.productId == productId:
 					logger.debug("Product '%s' is installed", productId)
 					logger.debug(
 						"Available product version is '%s', installed product version is '%s-%s'",
 						availablePackage["version"],
-						product["productVersion"],
-						product["packageVersion"],
+						product.productVersion,
+						product.packageVersion,
 					)
 					updateAvailable = compareVersions(
-						availablePackage["version"], ">", f"{product['productVersion']}-{product['packageVersion']}"
+						availablePackage["version"], ">", f"{product.productVersion}-{product.packageVersion}"
 					)
 
 					if updateAvailable:
 						updates[productId] = {
 							"productId": productId,
 							"newVersion": f"{availablePackage['version']}",
-							"oldVersion": f"{product['productVersion']}-{product['packageVersion']}",
+							"oldVersion": f"{product.productVersion}-{product.packageVersion}",
 							"repository": availablePackage["repository"].name,
 						}
 					break

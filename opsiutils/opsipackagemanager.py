@@ -26,29 +26,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.UI import SnackUI
-from OPSI.Util import md5sum
-from OPSI.Util.File.Opsi import parseFilename
-from OPSI.Util.Message import (
-	MessageSubject,
-	ProgressObserver,
-	ProgressSubject,
-	SubjectsObserver,
-)
-from OPSI.Util.Repository import getRepository
-
-try:
-	from OPSI.Util.Sync import librsyncDeltaFile
-except ImportError:
-	librsyncDeltaFile = None
-
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_NONE,
 	LOG_WARNING,
-	logger,
+	get_logger,
 	logging_config,
 )
 from opsicommon.package import OpsiPackage
@@ -62,7 +45,28 @@ from opsicommon.types import (
 	forceUnicode,
 	forceUnicodeList,
 )
+
+from OPSI.UI import SnackUI  # type: ignore[import]
+from OPSI.Util import md5sum  # type: ignore[import]
+from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
+from OPSI.Util.Message import (  # type: ignore[import]
+	MessageSubject,
+	ProgressObserver,
+	ProgressSubject,
+	SubjectsObserver,
+)
+from OPSI.Util.Repository import getRepository  # type: ignore[import]
+
+from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+
+try:
+	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
+except ImportError:
+	librsyncDeltaFile = None
+
 from opsiutils import __version__, get_service_client
+
+logger = get_logger("opsi-package-manager")
 
 USER_AGENT = f"opsi-package-manager/{__version__}"
 
@@ -808,7 +812,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			clientIds = []
 			for idx, poc in enumerate(productOnClients):
 				productOnClients[idx].actionRequest = actionRequest
-				clientIds.append(poc["clientId"])
+				clientIds.append(poc.clientId)
 
 			clientIds.sort()
 			logger.notice("Setting action '%s' for product '%s' on client(s): %s", actionRequest, productId, ", ".join(clientIds))
@@ -1397,7 +1401,10 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			tq.start()
 		self.waitForTaskQueues()
 		if packageNotInstalled:
-			raise ValueError(f"At least one package failed to uninstall, please check {self.config['logFile']} for more information")
+			logfilestring = ""
+			if self.config["logFile"]:
+				logfilestring = f", please check {self.config['logFile']} for more information"
+			raise ValueError(f"At least one package failed to uninstall{logfilestring}")
 
 	def uninstallPackage(self, productId, depotId):
 		subject = self.getDepotSubject(depotId)
@@ -1783,16 +1790,16 @@ class OpsiPackageManagerControl:
 					continue
 
 				if not productVersion:
-					productVersion = productOnDepot["productVersion"]
-				elif productVersion != productOnDepot["productVersion"]:
+					productVersion = productOnDepot.productVersion
+				elif productVersion != productOnDepot.productVersion:
 					differs = True
 
 				if not packageVersion:
-					packageVersion = productOnDepot["packageVersion"]
-				elif packageVersion != productOnDepot["packageVersion"]:
+					packageVersion = productOnDepot.packageVersion
+				elif packageVersion != productOnDepot.packageVersion:
 					differs = True
 
-				lines.append(f"    {depotId:<{maxWidth}}: {productOnDepot['productVersion']}-{productOnDepot['packageVersion']}")
+				lines.append(f"    {depotId:<{maxWidth}}: {productOnDepot.productVersion}-{productOnDepot.packageVersion}")
 
 			if differs:
 				depotsInSync = False
@@ -1865,7 +1872,6 @@ class OpsiPackageManagerControl:
 			"suppressPackageContentFileGeneration": False,
 		}
 		if opsi_server:
-			self.config["logFile"] = "/var/log/opsi/opsi-package-manager.log"
 			self.config["deltaUpload"] = librsyncDeltaFile is not None
 			self.config["localDepotId"] = OpsiConfig(upgrade_config=False).get("host", "id")
 			self.config["depotIds"] = None

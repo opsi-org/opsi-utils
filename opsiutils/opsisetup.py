@@ -12,16 +12,7 @@ import getopt
 import os
 import sys
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.System import Posix
-from OPSI.Types import forceFilename
-from OPSI.Util.Task.BackendMigration import migrate_file_to_mysql
-from OPSI.Util.Task.CleanupBackend import cleanupBackend
-from OPSI.Util.Task.ConfigureBackend.ConfigDefaults import editConfigDefaults
-from OPSI.Util.Task.ConfigureBackend.DHCPD import configureDHCPD
-from OPSI.Util.Task.Rights import setRights
-from OPSI.Util.Task.Samba import configureSamba
-from OPSI.Util.Task.Sudoers import patchSudoersFileForOpsi
+from opsicommon.types import forceFilename
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
@@ -30,6 +21,11 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
+
+from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI.System import Posix  # type: ignore[import]
+from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
+
 from opsiutils import __version__
 
 init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
@@ -46,24 +42,11 @@ def usage():
 	print("   -V, --version  Show version info and exit.")
 	print("")
 	print("   --log-file <path>             path to log file")
-	print("   --backend-config <json hash>  overwrite backend config hash values")
-	print("   --register-depot              register depot at config server")
 	print("   --set-rights [path]           set default rights on opsi files (in [path] only)")
-	print("   --init-current-config         init current backend configuration")
-	print("   --update-mysql                update mysql backend")
-	print("   --configure-mysql             configure mysql backend")
-	print("   --file-to-mysql               migrate file to mysql backend and adjust dispatch.conf")
-	print("     --no-backup                 do not run a backup before migration")
-	print("     --no-restart                do not restart services on migration")
-	print("   --edit-config-defaults        edit global config defaults")
-	print("   --cleanup-backend             cleanup backend")
-	print("   --auto-configure-samba        patch smb.conf")
-	print("   --auto-configure-dhcpd        patch dhcpd.conf")
-	print("   --patch-sudoers-file	        patching sudoers file for tasks in opsiadmin context.")
 	print("")
 
 
-def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
+def opsisetup_main():  # pylint: disable=too-many-branches,too-many-return-statements
 	try:
 		(opts, args) = getopt.getopt(
 			sys.argv[1:],
@@ -97,10 +80,6 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 		raise
 
 	task = None
-	autoConfigureSamba = False
-	autoConfigureDhcpd = False
-	noBackup = False
-	noRestart = False
 
 	for (opt, arg) in opts:
 		if opt in ("-h", "--help"):
@@ -130,28 +109,26 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 			logger.warning("configure-mysql is deprecated. Use `opsiconfd setup --configure-mysql` instead.")
 			return
 		elif opt == "--update-mysql":
-			logger.warning("update-mysql is deprecated. The task is performed automatically at the start of opsiconfd.")
+			logger.warning("update-mysql is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'")
 			return
 		elif opt == "--file-to-mysql":
-			task = "file-to-mysql"
-		elif opt == "--edit-config-defaults":
-			task = "edit-config-defaults"
-		elif opt == "--cleanup-backend":
-			logger.warning("cleanup-backend is deprecated. The task is performed automatically at the start of opsiconfd.")
+			logger.warning("file-to-mysql is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'.")
 			return
-		elif opt == "--no-backup":
-			noBackup = True
-		elif opt == "--no-restart":
-			noRestart = True
+		elif opt == "--cleanup-backend":
+			logger.warning("cleanup-backend is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'.")
+			return
 		elif opt == "--update-from":
 			logger.warning("update-from is deprecated.")
 			return
 		elif opt == "--auto-configure-samba":
-			autoConfigureSamba = True
+			logger.warning("auto-configure-samba is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'.")
+			return
 		elif opt == "--auto-configure-dhcpd":
-			autoConfigureDhcpd = True
+			logger.warning("auto-configure-dhcp is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'. Please make sure that '"enabled": True' is set in /etc/opsi/backends/dhcpd.conf.")
+			return
 		elif opt == "--patch-sudoers-file":
-			task = "patch-sudoers-file"
+			logger.warning("patch-sudoers-file is deprecated. The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'.")
+			return
 
 	path = "/"
 	if len(args) > 0:
@@ -162,37 +139,8 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 			usage()
 			raise RuntimeError("Too many arguments")
 
-	if noBackup and task != "file-to-mysql":
-		raise RuntimeError("--no-backup only valid with --file-to-mysql")
-	if noRestart and task != "file-to-mysql":
-		raise RuntimeError("--no-restart only valid with --file-to-mysql")
-
-	if autoConfigureSamba:
-		configureSamba()
-
-	if autoConfigureDhcpd:
-		configureDHCPD()
-
 	if task == "set-rights":
 		setRights(path)
-
-	elif task == "file-to-mysql":
-		if not migrate_file_to_mysql(create_backup=not noBackup, restart_services=not noRestart):
-			# Nothing to do
-			sys.exit(2)
-
-	elif task == "edit-config-defaults":
-		editConfigDefaults()
-
-	elif task == "cleanup-backend":
-		cleanupBackend()
-
-	elif task == "patch-sudoers-file":
-		patchSudoersFileForOpsi()
-
-	elif not autoConfigureSamba and not autoConfigureDhcpd:
-		usage()
-		sys.exit(1)
 
 
 def main():

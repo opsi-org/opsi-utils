@@ -14,9 +14,7 @@ import re
 import socket
 
 from opsicommon.logging import get_logger, logging_config, secret_filter
-
-from OPSI import __version__
-from OPSI.Types import (
+from opsicommon.types import (
 	forceBool,
 	forceEmailAddress,
 	forceFilename,
@@ -27,7 +25,9 @@ from OPSI.Types import (
 	forceUnicode,
 	forceUrl,
 )
-from OPSI.Util.File import IniFile
+
+from OPSI import __version__  # type: ignore[import]
+from OPSI.Util.File import IniFile  # type: ignore[import]
 
 from .Exceptions import (
 	ConfigurationError,
@@ -298,12 +298,12 @@ overriden based on values in configuration file.
 			depots = self.backend.host_getObjects(type="OpsiDepotserver", id=opsiDepotId)
 			if not depots:
 				raise ConfigurationError(f"Depot '{opsiDepotId}' not found in backend")
-			if not depots[0].repositoryRemoteUrl:
+			if not depots[0]["repositoryRemoteUrl"]:
 				raise ConfigurationError(f"Repository remote url for depot '{opsiDepotId}' not found in backend")
 
 			repository = ProductRepositoryInfo(
 				name=repoName,
-				baseUrl=depots[0].repositoryRemoteUrl,
+				baseUrl=depots[0]["repositoryRemoteUrl"],
 				dirs=["/"],
 				username=self.depotId,
 				password=self.depotKey,

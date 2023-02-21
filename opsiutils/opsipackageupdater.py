@@ -13,22 +13,29 @@ import argparse
 import operator
 import sys
 
-from opsicommon.logging import logger, init_logging, logging_config, DEFAULT_COLORED_FORMAT
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	get_logger,
+	init_logging,
+	logging_config,
+)
 from opsicommon.system import ensure_not_already_running
+from opsicommon.types import forceProductId
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.Types import forceProductId
-from OPSI.Util import compareVersions
-
+from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI.Util import compareVersions  # type: ignore[import]
 from opsiutils import __version__
 from opsiutils.update_packages.Config import DEFAULT_CONFIG
 from opsiutils.update_packages.Exceptions import NoActiveRepositoryError
 from opsiutils.update_packages.Updater import OpsiPackageUpdater
 from opsiutils.update_packages.Util import getUpdatablePackages
 
+logger = get_logger("opsi-package-updater")
+
+
 class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
-	def listActiveRepos(self):
+	def listActiveRepos(self) -> None:
 		logger.notice("Active repositories:")
 		for repository in sorted(self.getActiveRepositories(), key=lambda repo: repo.name.lower()):
 			descr = ''
@@ -37,7 +44,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
 			print(f"{repository.name}: {repository.baseUrl} {descr}")
 
-	def listRepos(self):
+	def listRepos(self) -> None:
 		logger.notice("All repositories:")
 		for repository in sorted(self.getRepositories(), key=lambda repo: repo.name.lower()):
 			descr = ''
@@ -47,7 +54,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			status = 'active' if repository.active else 'inactive'
 			print(f"{repository.name} ({status}): {repository.baseUrl} {descr}")
 
-	def listPackagesUniqueInRepositories(self):
+	def listPackagesUniqueInRepositories(self) -> None:
 		"""
 		Lists the products available at the actives repositories.
 		Only display the newest version and where to get it.
@@ -63,7 +70,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		for name in sorted(data.keys()):
 			print(f"\t{name} (Version {data[name].get('version')} in {data[name].get('repository')})")
 
-	def listProductsInRepositories(self, withLocalInstallationStatus=False, productId=None):
+	def listProductsInRepositories(self, withLocalInstallationStatus: bool = False, productId: str | None = None) -> None:
 		"""
 		Lists the products available at the actives repositories.
 
@@ -77,7 +84,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		"""
 		if withLocalInstallationStatus:
 			localProducts = self.getInstalledProducts()
-			localProducts = {product['productId']: product for product in localProducts}
+			local_products_dict = {product.productId: product for product in localProducts}
 
 		for repository in self.getActiveRepositories():
 			logger.notice("Packages in %s:", repository.name)
@@ -97,13 +104,13 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			for package in packages:
 				if withLocalInstallationStatus:
 					try:
-						localProduct = localProducts[package['productId']]
+						localProduct = local_products_dict[package['productId']]
 					except KeyError as kerr:
 						logger.debug(kerr)
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, not installed)")
 						continue
 
-					localVersion = f"{localProduct.get('productVersion')}-{localProduct.get('packageVersion')}"
+					localVersion = f"{localProduct.productVersion}-{localProduct.packageVersion}"
 					if compareVersions(package['version'], '==', localVersion):
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, installed)")
 					else:
@@ -111,7 +118,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 				else:
 					print(f"\t{package.get('productId')} (Version {package.get('version')})")
 
-	def listProductsWithVersionDifference(self):
+	def listProductsWithVersionDifference(self) -> None:
 		"""
 		Lists the products available at the actives repositories.
 
@@ -120,29 +127,29 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		difference.
 		"""
 		localProducts = self.getInstalledProducts()
-		localProducts = {product['productId']: product for product in localProducts}
+		localProducts = {product.productId: product for product in localProducts}
 
 		for repository in self.getActiveRepositories():
 			repoMessageShown = False
 			packages = sorted(
 				self.getDownloadablePackagesFromRepository(repository),
-				key=operator.itemgetter('productId')
+				key=lambda entry: entry.productId
 			)
 			for package in packages:
 				try:
-					localProduct = localProducts[package['productId']]
+					localProduct = localProducts[package.productId]
 				except KeyError:
 					continue  # Not installed locally
 
-				localVersion = f"{localProduct['productVersion']}-{localProduct['packageVersion']}"
-				if not compareVersions(package['version'], '==', localVersion):
+				localVersion = f"{localProduct.productVersion}-{localProduct.packageVersion}"
+				if not compareVersions(package.version, '==', localVersion):
 					if not repoMessageShown:
 						print(f"Packages in {repository.name}:")
 						repoMessageShown = True
 
-					print(f"\t{package.get('productId')} (Version {package.get('version')}, installed {localVersion})")
+					print(f"\t{package.productId} (Version {package.version}, installed {localVersion})")
 
-	def listUpdatableProducts(self):
+	def listUpdatableProducts(self) -> None:
 		try:
 			updates = getUpdatablePackages(self)
 		except NoActiveRepositoryError:
@@ -166,7 +173,7 @@ parser = argparse.ArgumentParser(
 )
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
 	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
 	parser.add_argument(
 		'--config',
@@ -315,7 +322,7 @@ def parse_args():
 	return parser.parse_args()
 
 
-def updater_main():  # pylint: disable=too-many-branches,too-many-statements
+def updater_main() -> int:  # pylint: disable=too-many-branches,too-many-statements
 	config = DEFAULT_CONFIG.copy()
 	args = parse_args()
 
@@ -378,7 +385,7 @@ def updater_main():  # pylint: disable=too-many-branches,too-many-statements
 	return 0  # no errors encountered
 
 
-def main():
+def main() -> None:
 	try:
 		exitCode = updater_main()
 	except KeyboardInterrupt:

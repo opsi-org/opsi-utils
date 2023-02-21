@@ -12,8 +12,9 @@ import os
 import sys
 import traceback
 
-import OPSI.Backend.Manager._Manager  # type: ignore[import]
 import opsicommon.client.opsiservice
+
+import OPSI.Backend.Manager._Manager  # type: ignore[import]
 
 # Replace BackendManager with compatibilty class
 OPSI.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager  # type: ignore[attr-defined]  # pylint: disable=protected-access

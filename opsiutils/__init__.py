@@ -7,12 +7,12 @@ from opsicommon.logging import logger
 from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags
 from opsicommon.config import OpsiConfig
 
-__version__ = '4.3.0.1'
+__version__ = '4.3.0.2'
 
 SESSION_LIFETIME = 15
 
 
-def get_service_client(
+def get_service_client(  # pylint: disable=too-many-arguments
 	address: str | None = None,
 	username: str | None = None,
 	password: str | None = None,

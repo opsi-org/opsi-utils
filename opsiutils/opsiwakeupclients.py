@@ -18,8 +18,6 @@ from collections import defaultdict
 from contextlib import contextmanager
 from itertools import product
 
-from OPSI import __version__ as python_opsi_version  # type: ignore[import]
-from OPSI.Util.Ping import ping  # type: ignore[import]
 from opsicommon.client.jsonrpc import JSONRPCClient  # type: ignore[import]
 from opsicommon.logging import (  # type: ignore[import]
 	DEFAULT_COLORED_FORMAT,
@@ -28,6 +26,10 @@ from opsicommon.logging import (  # type: ignore[import]
 	logger,
 	logging_config,
 )
+
+from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI.Util.Ping import ping  # type: ignore[import]
+
 from opsiutils import __version__, get_service_client
 
 try:

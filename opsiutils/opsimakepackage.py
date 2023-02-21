@@ -16,15 +16,7 @@ import termios
 import tty
 from contextlib import contextmanager
 from pathlib import Path
-from typing import List
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.System import execute
-from OPSI.Types import forceFilename, forceUnicode
-from OPSI.Util import compareVersions, md5sum
-from OPSI.Util.File import ZsyncFile
-from OPSI.Util.Message import ProgressObserver, ProgressSubject
-from OPSI.Util.Task.Rights import setRights
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
@@ -36,6 +28,15 @@ from opsicommon.logging import (
 	logging_config,
 )
 from opsicommon.package import OpsiPackage
+
+from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI.System import execute  # type: ignore[import]
+from OPSI.Types import forceFilename  # type: ignore[import]
+from OPSI.Util import compareVersions, md5sum  # type: ignore[import]
+from OPSI.Util.File import ZsyncFile  # type: ignore[import]
+from OPSI.Util.Message import ProgressObserver, ProgressSubject  # type: ignore[import]
+from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
+
 from opsiutils import __version__
 
 try:
@@ -153,7 +154,7 @@ def print_info(product, customName, opsi_package):
 	print("")
 
 
-def parse_args(args: List[str] | None = None):
+def parse_args(args: list[str] | None = None) -> argparse.Namespace:
 	parser = argparse.ArgumentParser(
 		add_help=False,
 		description=(
@@ -180,9 +181,9 @@ def parse_args(args: List[str] | None = None):
 		"--archive-format",
 		"-F",
 		dest="format",
-		default="cpio",
-		choices=["cpio", "tar"],
-		help="Archive format to use. Default: cpio",
+		default="tar",
+		choices=["tar"],
+		help="DEPRECATED: Archive format to use. Default: tar",
 	)
 	parser.add_argument("--no-pigz", dest="disablePigz", default=False, action="store_true", help="Disable the usage of pigz")
 	parser.add_argument(
@@ -254,7 +255,7 @@ def parse_args(args: List[str] | None = None):
 	return args
 
 
-def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 	os.umask(0o022)
 
 	init_logging(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
@@ -277,19 +278,15 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 	customOnly = bool(args.customOnly)
 	if customOnly:
 		customName = args.customOnly
-	dereference = args.dereference  # pylint: disable=unused-variable # TODO proper symlink handling in opsicommon.package
 	logLevel = args.logLevel
 	compression = args.compression
 	quiet = args.quiet
 	tempDir = Path(forceFilename(args.tempDir))
-	arch_format = forceUnicode(args.format)
-	createMd5SumFile = args.createMd5SumFile
-	createZsyncFile = args.createZsyncFile
 	packageSourceDir = args.packageSourceDir
 
 	if args.no_compression:
 		raise ValueError("The option --no-compression has been removed. Default compression is zstd")
-	if args.disablePigz:  # TODO: --no-pigz is currently ignored (not needed for zstd or bz2)
+	if args.disablePigz:
 		logger.warning("The option --no-pigz is deprecated. Default is to try pigz with a fallback in case of error")
 
 	if args.verbose:
@@ -303,10 +300,6 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 	logger.info("Source dir: %s", packageSourceDir)
 	logger.info("Temp dir: %s", tempDir)
 	logger.info("Custom name: %s", customName)
-	logger.info("Archive format: %s", arch_format)
-
-	if arch_format not in ["tar", "cpio"]:
-		raise ValueError(f"Unsupported archive format: {arch_format}")
 
 	if not os.path.isdir(packageSourceDir):
 		raise OSError(f"No such directory: {packageSourceDir}")
@@ -448,7 +441,7 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 				progressSubject = ProgressSubject("packing")
 				progressSubject.attachObserver(ProgressNotifier())
 				print(_("Creating package file '%s'") % archive)
-			opsi_package.create_package_archive(Path(packageSourceDir), compression=compression)
+			opsi_package.create_package_archive(Path(packageSourceDir), compression=compression, dereference=args.dereference)
 			if not args.no_set_rights:
 				try:
 					setRights(archive)
@@ -456,7 +449,7 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 					logger.warning("Failed to set rights: %s", err)
 			if not quiet:
 				print("\n")
-			if createMd5SumFile:
+			if args.createMd5SumFile:
 				md5sumFile = f"{archive}.md5"
 				if not quiet:
 					print(_("Creating md5sum file '%s'") % md5sumFile)
@@ -469,7 +462,7 @@ def makepackage_main(args: List[str] | None = None):  # pylint: disable=too-many
 					except Exception as err:  # pylint: disable=broad-except
 						logger.warning("Failed to set rights: %s", err)
 
-			if createZsyncFile:
+			if args.createZsyncFile:
 				zsyncFilePath = f"{archive}.zsync"
 				if not quiet:
 					print(_("Creating zsync file '%s'") % zsyncFilePath)

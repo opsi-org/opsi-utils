@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opsi-utils"
-version = "4.3.0.1"
+version = "4.3.0.2"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
@@ -46,7 +46,7 @@ opsi-wakeup-clients = "opsiutils.opsiwakeupclients:main"
 opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^0.991"
+mypy = "^1.0"
 pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
 
