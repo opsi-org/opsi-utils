@@ -1042,11 +1042,11 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 										match = re.search(r"([a-z\d]{32})", response.content.decode("utf-8"))
 										if match:
 											foundMd5sum = match.group(1)
-											packages[i].md5sum = foundMd5sum
+											packages[i]["md5sum"] = foundMd5sum
 											logger.debug("Got md5sum for package %s: %s", filename, foundMd5sum)
 									elif isZsync:
 										zsyncFile = f"{url.rstrip('/')}/{link.lstrip('/')}"
-										packages[i].zsyncFile = zsyncFile
+										packages[i]["zsyncFile"] = zsyncFile
 										logger.debug("Found zsync file for package '%s': %s", filename, zsyncFile)
 
 									break
