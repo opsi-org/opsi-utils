@@ -248,11 +248,14 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
 		help="Set new product version for package",
 	)
 
-	args = parser.parse_args(args)  # falls back to sys.argv if None
-	if args.help:
+	args_namespace = parser.parse_args(args)  # falls back to sys.argv if None
+	if args_namespace.compression == "zstd" and Path("/etc/opsi/makepackage_marker_use_bz2").exists():
+		logger.warning("Overriding compression to use 'bz2' because of marker '/etc/opsi/makepackage_marker_use_bz2'")
+		args_namespace.compression = "bz2"
+	if args_namespace.help:
 		parser.print_help()
 		sys.exit(1)
-	return args
+	return args_namespace
 
 
 def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
