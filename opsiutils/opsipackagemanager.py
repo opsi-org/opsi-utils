@@ -789,7 +789,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			actionRequest = forceActionRequest(actionRequest)
 			clientIds = []
 			for clientToDepot in self.service_client.jsonrpc("configState_getClientToDepotserver", [[depotId]]):
-				clientIds.append(clientToDepot.clientId)
+				clientIds.append(clientToDepot["clientId"])
 
 			if not clientIds:
 				return
