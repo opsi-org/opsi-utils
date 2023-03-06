@@ -92,6 +92,7 @@ integration_test:
   script:
     - bash /entrypoint.sh &
     - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
+    - opsiconfd setup --rename-server  # to set hostid in /etc/opsi/opsi.conf
     - source /entrypoint.sh set_environment_vars  # to set hosts for redis/grafana
     - apt update
     - apt -y install zstd
