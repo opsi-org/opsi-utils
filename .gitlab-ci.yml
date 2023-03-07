@@ -84,7 +84,7 @@ integration_test:
     OPSI_HOST_ID: "test.uib.gmbh"
     OPSI_TFTPBOOT: "false"
     OPSICONFD_LOG_LEVEL: 6
-    OPSICONFD_RESTORE_BACKUP_URL: "http://binaryindex.uib.gmbh/development/testbackup/all/all/testbackup_all_all_1.0.tar.gz"
+    OPSICONFD_RESTORE_BACKUP_URL: "http://binaryindex.uib.gmbh/development/testbackup/all/all/testbackup_all_all_1.1.tar.gz"
   stage: integration_test
   image:
     name: docker.uib.gmbh/opsi/opsi-server:4.3-development
@@ -94,7 +94,7 @@ integration_test:
     - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
     - source /entrypoint.sh set_environment_vars  # to set hosts for redis/grafana
     - apt update
-    - apt -y install zstd
+    - apt -y install zstd zsync
     - for file in integration_tests/*.sh; do bash "$file"; done
 
 

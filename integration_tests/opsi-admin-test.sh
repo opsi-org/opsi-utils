@@ -1,6 +1,7 @@
 set -ex
 cd opsi-utils-amd64/
 
+cat /etc/opsi/opsi.conf
 ./opsi-admin -d method host_getObjects '[]' '{"type": "OpsiDepotserver"}'
 ./opsi-admin method product_getIdents
 ./opsi-admin task setupWhereInstalled "hwaudit"

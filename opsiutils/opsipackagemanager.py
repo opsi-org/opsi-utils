@@ -45,6 +45,7 @@ from opsicommon.types import (
 	forceUnicode,
 	forceUnicodeList,
 )
+from opsicommon.client.opsiservice import ServiceClient
 
 from OPSI.UI import SnackUI  # type: ignore[import]
 from OPSI.Util import md5sum  # type: ignore[import]
@@ -651,7 +652,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 		self.infoSubject.setMessage("opsi-package-manager")
 
-		self.depotConnections = {}
+		self.depotConnections: dict[str, ServiceClient] = {}
 
 		if not self.config["quiet"]:
 			logging_config(stderr_level=LOG_NONE)
@@ -676,7 +677,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		for connection in self.depotConnections.values():
 			connection.disconnect()
 
-	def getDepotConnection(self, depotId):
+	def getDepotConnection(self, depotId) -> ServiceClient:
 		try:
 			connection = self.depotConnections[depotId]
 		except KeyError:

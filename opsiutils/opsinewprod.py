@@ -647,8 +647,8 @@ def writeMaintainerInfo(ui, productDirectory, product, productDependencies, prod
 	opsi_package.product_dependencies = productDependencies
 	opsi_package.product_properties = productProperties
 	opsi_package.product = product
-	opsi_package.generate_control_file_legacy(Path(productDirectory) / "OPSI" / "control")
-	os.chmod(str(Path(productDirectory) / "OPSI" / "control"), 0o600)
+	opsi_package.generate_control_file(Path(productDirectory) / "OPSI" / "control.toml")
+	os.chmod(str(Path(productDirectory) / "OPSI" / "control.toml"), 0o600)
 
 
 def createTemplates(productDirectory, templateDirectory=None):
