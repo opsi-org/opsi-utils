@@ -25,7 +25,20 @@ from argparse import ArgumentParser
 from contextlib import contextmanager
 from pathlib import Path
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
+from urllib.parse import urlparse
 
+from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI.UI import SnackUI  # type: ignore[import]
+from OPSI.Util import md5sum  # type: ignore[import]
+from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
+from OPSI.Util.Message import (  # type: ignore[import]
+	MessageSubject,
+	ProgressObserver,
+	ProgressSubject,
+	SubjectsObserver,
+)
+from OPSI.Util.Repository import getRepository  # type: ignore[import]
+from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
@@ -45,20 +58,6 @@ from opsicommon.types import (
 	forceUnicode,
 	forceUnicodeList,
 )
-from opsicommon.client.opsiservice import ServiceClient
-
-from OPSI.UI import SnackUI  # type: ignore[import]
-from OPSI.Util import md5sum  # type: ignore[import]
-from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
-from OPSI.Util.Message import (  # type: ignore[import]
-	MessageSubject,
-	ProgressObserver,
-	ProgressSubject,
-	SubjectsObserver,
-)
-from OPSI.Util.Repository import getRepository  # type: ignore[import]
-
-from OPSI import __version__ as python_opsi_version  # type: ignore[import]
 
 try:
 	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
@@ -684,8 +683,9 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			logger.info("Establishing connection to depot %s", depotId)
 			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": depotId}])[0]
 
+			url = urlparse(depot.repositoryRemoteUrl)
 			connection = get_service_client(
-				address=depotId,
+				address=f"https://{url.hostname}:{url.port or 4447}",
 				username=depotId,
 				password=depot.opsiHostKey,
 				user_agent=USER_AGENT,
