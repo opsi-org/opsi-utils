@@ -38,6 +38,12 @@ from OPSI.Util.Message import (  # type: ignore[import]
 	SubjectsObserver,
 )
 from OPSI.Util.Repository import getRepository  # type: ignore[import]
+
+try:
+	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
+except ImportError:
+	librsyncDeltaFile = None
+
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import (
@@ -58,12 +64,6 @@ from opsicommon.types import (
 	forceUnicode,
 	forceUnicodeList,
 )
-
-try:
-	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
-except ImportError:
-	librsyncDeltaFile = None
-
 from opsiutils import __version__, get_service_client
 
 logger = get_logger("opsi-package-manager")
@@ -811,8 +811,8 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				return
 
 			clientIds = []
-			for idx, poc in enumerate(productOnClients):
-				productOnClients[idx].actionRequest = actionRequest
+			for poc in productOnClients:
+				poc.actionRequest = actionRequest
 				clientIds.append(poc.clientId)
 
 			clientIds.sort()
