@@ -114,7 +114,9 @@ package:
        chmod 755 ${DST}/rootfs/usr/bin/$i
     done
     echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-set-rights
+    echo "[ \"\$(id -u)\" -eq 0 ] || exec sudo \$0 \"\$@\""          >> ${DST}/rootfs/usr/bin/opsi-set-rights
     echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \"\$@\""  >> ${DST}/rootfs/usr/bin/opsi-set-rights
+
     chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
     echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-cli
     echo "exec /usr/lib/opsi-utils/opsi-cli \"\$@\""                 >> ${DST}/rootfs/usr/bin/opsi-cli
