@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opsi-utils"
-version = "4.3.0.6"
+version = "4.3.0.7"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
@@ -22,6 +22,7 @@ python = ">=3.10,<3.12"
 #python-opsi = {path = "python-opsi"}
 python-opsi = ">=4.3.0.0,<4.4"
 python-opsi-common = ">=4.3.0.0,<4.4"
+#python-opsi-common = {path = "../python-opsi-common"}
 python-magic = "^0.4"
 orjson = "^3.8"
 mysqlclient = "^2.0"
