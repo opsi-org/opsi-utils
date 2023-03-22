@@ -331,6 +331,8 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 			raise ValueError("control is newer than control.toml - Please update control.toml instead.")
 
 	archive = Path(opsi_package.package_archive_name())
+	if customName:
+		archive = archive.parent / f"{archive.stem}~{customName}.opsi"
 	lockPackage(tempDir, opsi_package)
 	try:  # pylint: disable=too-many-nested-blocks
 		while True:
@@ -444,7 +446,24 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 				progressSubject = ProgressSubject("packing")
 				progressSubject.attachObserver(ProgressNotifier())
 				print(_("Creating package file '%s'") % archive)
-			opsi_package.create_package_archive(Path(packageSourceDir), compression=compression, dereference=args.dereference)
+			base_dir = Path(packageSourceDir)
+			use_dirs = [base_dir / "CLIENT_DATA", base_dir / "SERVER_DATA", base_dir / "OPSI"]
+			if customName:
+				found = False
+				for _dir in use_dirs.copy():
+					if (base_dir / f"{_dir.name}.{customName}").exists():
+						if customOnly:
+							use_dirs.remove(_dir)
+						use_dirs.append(base_dir / f"{_dir.name}.{customName}")
+						found = True
+				if not found:
+					raise RuntimeError(f"No custom dirs found for '{customName}'")
+				logger.info("Packing directories: %s", use_dirs)
+			created_archive = opsi_package.create_package_archive(
+				base_dir, compression=compression, dereference=args.dereference, use_dirs=use_dirs
+			)
+			if archive != created_archive:
+				created_archive.rename(archive)
 			if not args.no_set_rights:
 				try:
 					setRights(archive)

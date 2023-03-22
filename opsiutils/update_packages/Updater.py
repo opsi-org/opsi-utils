@@ -233,7 +233,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 			sequence = []
 			for package in newPackages:
-				if not insideInstallWindow and package.productId not in self.config["installationWindowExceptions"]:
+				if not insideInstallWindow and package["productId"] not in self.config["installationWindowExceptions"]:
 					continue
 				sequence.append(package["productId"])
 
@@ -394,7 +394,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 						params = [
 							["installationStatus"],
 							{
-								"productId": package.productId,
+								"productId": package["productId"],
 								"productType": "LocalbootProduct",
 								"clientId": clientIds,
 								"installationStatus": ["installed"],
