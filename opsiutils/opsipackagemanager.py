@@ -24,6 +24,7 @@ import time
 from argparse import ArgumentParser
 from contextlib import contextmanager
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
+from urllib.parse import urlparse
 
 from OPSI import __version__ as python_opsi_version
 from OPSI.Backend.BackendManager import BackendManager
@@ -719,10 +720,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		except KeyError:
 			depot = self.backend.host_getObjects(type='OpsiDepotserver', id=depotId)[0]
 
+			url = urlparse(depot.repositoryRemoteUrl)
 			connection = JSONRPCBackend(
 				username=depotId,
 				password=depot.getOpsiHostKey(),
-				address=depotId,
+				address=f"https://{url.hostname}:{url.port or 4447}",
 				application=USER_AGENT,
 				compression=True
 			)
