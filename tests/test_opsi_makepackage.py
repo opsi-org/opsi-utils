@@ -52,7 +52,7 @@ def test_error_on_control_to_toml_present() -> None:
 		shutil.copy(orig_path / "tests" / "data" / "control", opsi_dir / "control")
 		shutil.copy(orig_path / "tests" / "data" / "control.toml", opsi_dir / "control.toml")
 		with pytest.raises(ValueError):
-			makepackage_main(("--no-set-rights", "--no-md5", "--no-zsync", "--control-to-toml"))
+			makepackage_main(["--no-set-rights", "--no-md5", "--no-zsync", "--control-to-toml"])
 		assert not Path("prod-1750_1.0-1.opsi").exists()
 
 
@@ -66,6 +66,6 @@ def test_error_on_control_newer_than_toml() -> None:
 					outfile.write(line if not line.startswith("version") else "version: 2\n")
 		shutil.copy(orig_path / "tests" / "data" / "control.toml", opsi_dir / "control.toml")
 		with pytest.raises(ValueError):
-			makepackage_main(("--no-set-rights", "--no-md5", "--no-zsync"))
+			makepackage_main(["--no-set-rights", "--no-md5", "--no-zsync"])
 		assert not Path("prod-1750_1.0-1.opsi").exists()
 		assert not Path("prod-1750_2-2.opsi").exists()
