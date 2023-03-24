@@ -1678,7 +1678,9 @@ class OpsiPackageManagerControl:
 				raise OSError(f"Destination directory '{packageDestinationDir}' already exists")
 			os.mkdir(packageDestinationDir)
 
-			opsi_package.extract_package_archive(Path(packageFile), destination=Path(packageDestinationDir), new_product_id=newProductId)
+			opsi_package.extract_package_archive(
+				Path(packageFile), destination=Path(packageDestinationDir), new_product_id=newProductId, custom_separated=True
+			)
 			if not self.config["quiet"]:
 				sys.stderr.write("\n\n")
 
