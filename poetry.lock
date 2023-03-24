@@ -988,7 +988,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi-common"
-version = "4.3.0.29"
+version = "4.3.0.30"
 description = "The opsi python common library"
 category = "main"
 optional = false
@@ -2225,8 +2225,8 @@ python-opsi = [
     {file = "python_opsi-4.3.0.11.tar.gz", hash = "sha256:c991c49f478d84aaba55a214c47d46703f0df9deecf44d8b3fcb1f1a4077bcbc"},
 ]
 python-opsi-common = [
-    {file = "python_opsi_common-4.3.0.29-py3-none-any.whl", hash = "sha256:e5d8ee3cc0788dd332ded80b391c65477462d2ea4f065d2044e24f89a45cd1f4"},
-    {file = "python_opsi_common-4.3.0.29.tar.gz", hash = "sha256:c2e02f2d279eeb7e655811ab294d773c07de6d389e1cfe86ebb8435cdc0bf7e2"},
+    {file = "python_opsi_common-4.3.0.30-py3-none-any.whl", hash = "sha256:5a724c81f3916a48b74fb1fdcab0cf34f19bea64ce8805a941e2a25badb8c854"},
+    {file = "python_opsi_common-4.3.0.30.tar.gz", hash = "sha256:5d2752207794b3f43d7e62cbcf316037c558dba1c61d501d52c0847323dbf1ce"},
 ]
 python-pam = [
     {file = "python-pam-2.0.2.tar.gz", hash = "sha256:97235235ba9b82dbae8068d1099508455949b275f77273ca22fdbd8b1fb5d950"},
