@@ -684,8 +684,12 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": depotId}])[0]
 
 			url = urlparse(depot.repositoryRemoteUrl)
+			hostname = url.hostname
+			if ":" in hostname:
+				# IPv6 address
+				hostname = f"[{hostname}]"
 			connection = get_service_client(
-				address=f"https://{url.hostname}:{url.port or 4447}",
+				address=f"https://{hostname}:{url.port or 4447}",
 				username=depotId,
 				password=depot.opsiHostKey,
 				user_agent=USER_AGENT,

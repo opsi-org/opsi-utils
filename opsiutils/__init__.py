@@ -3,11 +3,11 @@
 """
 opsiutils
 """
-from opsicommon.logging import logger
 from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags
 from opsicommon.config import OpsiConfig
+from opsicommon.logging import logger
 
-__version__ = '4.3.0.6'
+__version__ = '4.3.0.8'
 
 SESSION_LIFETIME = 15
 
