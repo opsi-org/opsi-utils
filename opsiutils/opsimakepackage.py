@@ -17,6 +17,13 @@ import tty
 from contextlib import contextmanager
 from pathlib import Path
 
+from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI.System import execute  # type: ignore[import]
+from OPSI.Types import forceFilename  # type: ignore[import]
+from OPSI.Util import compareVersions, md5sum  # type: ignore[import]
+from OPSI.Util.File import ZsyncFile  # type: ignore[import]
+from OPSI.Util.Message import ProgressObserver, ProgressSubject  # type: ignore[import]
+from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
@@ -28,15 +35,6 @@ from opsicommon.logging import (
 	logging_config,
 )
 from opsicommon.package import OpsiPackage
-
-from OPSI import __version__ as python_opsi_version  # type: ignore[import]
-from OPSI.System import execute  # type: ignore[import]
-from OPSI.Types import forceFilename  # type: ignore[import]
-from OPSI.Util import compareVersions, md5sum  # type: ignore[import]
-from OPSI.Util.File import ZsyncFile  # type: ignore[import]
-from OPSI.Util.Message import ProgressObserver, ProgressSubject  # type: ignore[import]
-from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
-
 from opsiutils import __version__
 
 try:
@@ -176,7 +174,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
 		help="Set log-level (0..9)",
 	)
 	parser.add_argument("--no-compression", "-n", action="store_true", default=False, help="Do not compress")
-	parser.add_argument("--compression", default="zstd", choices=["zstd", "bz2", "gz"], help="Compression format")
+	parser.add_argument("--compression", default=None, choices=["zstd", "bz2", "gz"], help="Compression format (default: zstd)")
 	parser.add_argument(
 		"--archive-format",
 		"-F",
@@ -249,9 +247,12 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
 	)
 
 	args_namespace = parser.parse_args(args)  # falls back to sys.argv if None
-	if args_namespace.compression == "zstd" and Path("/etc/opsi/makepackage_marker_use_gz").exists():
-		logger.warning("Overriding compression to use 'gz' because of marker '/etc/opsi/makepackage_marker_use_gz'")
-		args_namespace.compression = "gz"
+	if not args_namespace.compression:
+		if Path("/etc/opsi/makepackage_marker_use_gz").exists():
+			logger.warning("Overriding compression to use 'gz' because of marker '/etc/opsi/makepackage_marker_use_gz'")
+			args_namespace.compression = "gz"
+		else:
+			args_namespace.compression = "zstd"
 	if args_namespace.help:
 		parser.print_help()
 		sys.exit(1)
