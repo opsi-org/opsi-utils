@@ -108,9 +108,9 @@ obs_int:
   only:
     - tags
 
-#obs_ext:
-#  stage: publish
-#  script:
-#    - opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.3:development
-#  only:
-#    - tags
+obs_ext:
+  stage: publish
+  script:
+    - opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.3:development
+  only:
+    - tags
