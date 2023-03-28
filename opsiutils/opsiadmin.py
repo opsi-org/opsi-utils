@@ -1711,7 +1711,9 @@ class CommandTask(Command):
 		elif params[0] == "activateTOTP":
 			if len(params) < 2:
 				raise ValueError(_("Missing argument"))
-			for line in service_client.user_updateMultiFactorAuth(userId=params[1], type="totp", returnType="qrcode").split("\n"):
+			for line in service_client.user_updateMultiFactorAuth(  # pylint: disable=no-member
+				userId=params[1], type="totp", returnType="qrcode"
+			).split("\n"):
 				shell.appendLine(line)
 
 
