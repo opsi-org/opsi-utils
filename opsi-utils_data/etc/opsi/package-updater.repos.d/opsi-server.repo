@@ -5,8 +5,8 @@
 [repository_opsi_server]
 active = false
 opsiDepotId =
-autoInstall = true
+autoInstall = false
 autoUpdate = true
-autoSetup = true
+autoSetup = false
 ; Inherit ProductProperty defaults from given repository
 inheritProductProperties = false
