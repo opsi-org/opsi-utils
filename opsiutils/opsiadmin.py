@@ -27,20 +27,6 @@ import time
 from contextlib import closing, contextmanager
 from pathlib import Path
 
-from opsicommon.config import OpsiConfig
-from opsicommon.exceptions import OpsiRpcError
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG,
-	LOG_ERROR,
-	LOG_NONE,
-	LOG_WARNING,
-	logger,
-	logging_config,
-	secret_filter,
-)
-from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
-
 from OPSI import __version__ as python_opsi_version
 from OPSI.System import CommandNotFoundException
 from OPSI.System import execute as sys_execute
@@ -55,7 +41,19 @@ from OPSI.Util import (
 	toJson,
 )
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
-
+from opsicommon.config import OpsiConfig
+from opsicommon.exceptions import OpsiRpcError
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_DEBUG,
+	LOG_ERROR,
+	LOG_NONE,
+	LOG_WARNING,
+	logger,
+	logging_config,
+	secret_filter,
+)
+from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 from opsiutils import __version__, get_service_client
 
 COLOR_NORMAL = "\033[0;0;0m"
@@ -1497,6 +1495,7 @@ class CommandTask(Command):
 			("setActionRequestWithDependencies", "actionRequest", "productId", "clientId"),
 			("decodePcpatchPassword", "encodedPassword", "opsiHostKey"),
 			("setPcpatchPassword", "*password"),
+			("activateTOTP", "userId"),
 		)
 
 	def getDescription(self):
@@ -1708,6 +1707,12 @@ class CommandTask(Command):
 					sys_execute(smbpasswdCommand, stdin_data=f"{password}\n{password}\n".encode("utf8"))
 				else:
 					logger.warning("The user 'pcpatch' is not a local user, please change password also in Active Directory")
+
+		elif params[0] == "activateTOTP":
+			if len(params) < 2:
+				raise ValueError(_("Missing argument"))
+			for line in service_client.user_updateMultiFactorAuth(userId=params[1], type="totp", returnType="qrcode").split("\n"):
+				shell.appendLine(line)
 
 
 def main():
