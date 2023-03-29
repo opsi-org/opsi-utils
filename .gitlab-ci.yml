@@ -98,15 +98,15 @@ integration_test:
     - for file in integration_tests/*.sh; do bash "$file"; done
 
 
-obs_int:
-  stage: publish
-  script:
-    - opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.3:development
-    - opsi-dev-tool -l 7 --create-changelog output/
-    - opsi-dev-cli release-service register-package-version opsi-utils SERVER_PACKAGE --changelog-file output/debian-changelog
-    - opsi-dev-cli release-service push-repository-state opsi-utils SERVER_PACKAGE SERVER_PACKAGE-4.3-development
-  only:
-    - tags
+#obs_int:
+#  stage: publish
+#  script:
+#    - opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.3:development
+#    - opsi-dev-tool -l 7 --create-changelog output/
+#    - opsi-dev-cli release-service register-package-version opsi-utils SERVER_PACKAGE --changelog-file output/debian-changelog
+#    - opsi-dev-cli release-service push-repository-state opsi-utils SERVER_PACKAGE SERVER_PACKAGE-4.3-development
+#  only:
+#    - tags
 
 obs_ext:
   stage: publish
