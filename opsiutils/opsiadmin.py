@@ -278,7 +278,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		opsircConfig = readOpsirc(options.opsirc)
 		opsiconf = OpsiConfig()
 		username = options.username or opsircConfig.get("username") or opsiconf.get("host", "id")
-		password = options.password or opsircConfig.get("password") or opsiconf.get("host", "key")
+		password = options.password or opsircConfig.get("password")
 		address = options.address or opsircConfig.get("address") or opsiconf.get("service", "url")
 		if not username:
 			try:
@@ -287,11 +287,16 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 				logger.error("Failed to get username: %s", error)
 				raise
 		if not password:
-			try:
-				password = getpass.getpass()
-			except Exception as error:  # pylint: disable=broad-except
-				logger.error("Failed to get password: %s", error)
-				raise
+			# Use host key if username is host id
+			if username == opsiconf.get("host", "id"):
+				password = opsiconf.get("host", "key")
+			# otherwise prompt for password
+			else:
+				try:
+					password = getpass.getpass()
+				except Exception as error:  # pylint: disable=broad-except
+					logger.error("Failed to get password: %s", error)
+					raise
 
 		session_cookie = None
 		sessionFile = None
