@@ -27,23 +27,6 @@ from pathlib import Path
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
 from urllib.parse import urlparse
 
-from OPSI import __version__ as python_opsi_version  # type: ignore[import]
-from OPSI.UI import SnackUI  # type: ignore[import]
-from OPSI.Util import md5sum  # type: ignore[import]
-from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
-from OPSI.Util.Message import (  # type: ignore[import]
-	MessageSubject,
-	ProgressObserver,
-	ProgressSubject,
-	SubjectsObserver,
-)
-from OPSI.Util.Repository import getRepository  # type: ignore[import]
-
-try:
-	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
-except ImportError:
-	librsyncDeltaFile = None
-
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import (
@@ -64,6 +47,24 @@ from opsicommon.types import (
 	forceUnicode,
 	forceUnicodeList,
 )
+
+from OPSI import __version__ as python_opsi_version  # type: ignore
+from OPSI.UI import SnackUI  # type: ignore[import]
+from OPSI.Util import md5sum  # type: ignore[import]
+from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
+from OPSI.Util.Message import (  # type: ignore[import]
+	MessageSubject,
+	ProgressObserver,
+	ProgressSubject,
+	SubjectsObserver,
+)
+from OPSI.Util.Repository import getRepository  # type: ignore[import]
+
+try:
+	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
+except ImportError:
+	librsyncDeltaFile = None
+
 from opsiutils import __version__, get_service_client
 
 logger = get_logger("opsi-package-manager")
@@ -749,7 +750,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				self.infoSubject.setMessage(_("Opening package file %s") % packageFile.name)
 				self.productPackageFiles[packageFile.name] = OpsiPackage(packageFile, temp_dir=self.config.get("tempDir"))
 
-	def getOpsiPackage(self, packageFile):
+	def getOpsiPackage(self, packageFile: str) -> OpsiPackage:
 		filename = os.path.basename(packageFile)
 		try:
 			return self.productPackageFiles[filename]
@@ -1127,12 +1128,12 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			for dependency in self.getOpsiPackage(packageFile).package_dependencies:
 				try:
 					ppos = sequence.index(productId)
-					dpos = sequence.index(dependency["package"])
+					dpos = sequence.index(dependency.package)
 					if ppos < dpos:
-						sequence.remove(dependency["package"])
-						sequence.insert(ppos, dependency["package"])
+						sequence.remove(dependency.package)
+						sequence.insert(ppos, dependency.package)
 				except Exception as err:  # pylint: disable=broad-except
-					logger.debug("While processing package '%s', dependency '%s': %s", packageFile, dependency["package"], err)
+					logger.debug("While processing package '%s', dependency '%s': %s", packageFile, dependency.package, err)
 
 		sortedPackageFiles = []
 		for productId in sequence:

@@ -27,20 +27,6 @@ import time
 from contextlib import closing, contextmanager
 from pathlib import Path
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.System import CommandNotFoundException
-from OPSI.System import execute as sys_execute
-from OPSI.System import which
-from OPSI.Util import (
-	blowfishDecrypt,
-	deserialize,
-	fromJson,
-	objectToBash,
-	objectToBeautifiedText,
-	serialize,
-	toJson,
-)
-from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
 from opsicommon.config import OpsiConfig
 from opsicommon.exceptions import OpsiRpcError
 from opsicommon.logging import (
@@ -54,6 +40,22 @@ from opsicommon.logging import (
 	secret_filter,
 )
 from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
+
+from OPSI import __version__ as python_opsi_version  # type: ignore
+from OPSI.System import CommandNotFoundException  # type: ignore[import]
+from OPSI.System import execute as sys_execute  # type: ignore[import]
+from OPSI.System import which  # type: ignore[import]
+from OPSI.Util import (  # type: ignore[import]
+	blowfishDecrypt,
+	deserialize,
+	fromJson,
+	objectToBash,
+	objectToBeautifiedText,
+	serialize,
+	toJson,
+)
+from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc  # type: ignore[import]
+
 from opsiutils import __version__, get_service_client
 
 COLOR_NORMAL = "\033[0;0;0m"

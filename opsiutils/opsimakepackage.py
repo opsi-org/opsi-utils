@@ -17,13 +17,6 @@ import tty
 from contextlib import contextmanager
 from pathlib import Path
 
-from OPSI import __version__ as python_opsi_version  # type: ignore[import]
-from OPSI.System import execute  # type: ignore[import]
-from OPSI.Types import forceFilename  # type: ignore[import]
-from OPSI.Util import compareVersions, md5sum  # type: ignore[import]
-from OPSI.Util.File import ZsyncFile  # type: ignore[import]
-from OPSI.Util.Message import ProgressObserver, ProgressSubject  # type: ignore[import]
-from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
@@ -35,6 +28,15 @@ from opsicommon.logging import (
 	logging_config,
 )
 from opsicommon.package import OpsiPackage
+
+from OPSI import __version__ as python_opsi_version  # type: ignore
+from OPSI.System import execute  # type: ignore[import]
+from OPSI.Types import forceFilename  # type: ignore[import]
+from OPSI.Util import compareVersions, md5sum  # type: ignore[import]
+from OPSI.Util.File import ZsyncFile  # type: ignore[import]
+from OPSI.Util.Message import ProgressObserver, ProgressSubject  # type: ignore[import]
+from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
+
 from opsiutils import __version__
 
 try:
@@ -110,7 +112,7 @@ def print_info(product, customName, opsi_package):
 		% (
 			"package dependencies",
 			", ".join(
-				"{package}({condition}{version})".format(**dep)  # pylint: disable=consider-using-f-string
+				f"{dep.package}({dep.condition}{dep.version})"
 				for dep in opsi_package.package_dependencies
 			),
 		)
