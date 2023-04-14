@@ -28,6 +28,7 @@ from opsicommon.logging import (
 	logging_config,
 )
 from opsicommon.package import OpsiPackage
+from opsicommon.server.rights import set_rights
 
 from OPSI import __version__ as python_opsi_version  # type: ignore
 from OPSI.System import execute  # type: ignore[import]
@@ -35,7 +36,6 @@ from OPSI.Types import forceFilename  # type: ignore[import]
 from OPSI.Util import compareVersions, md5sum  # type: ignore[import]
 from OPSI.Util.File import ZsyncFile  # type: ignore[import]
 from OPSI.Util.Message import ProgressObserver, ProgressSubject  # type: ignore[import]
-from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
 
 from opsiutils import __version__
 
@@ -111,10 +111,7 @@ def print_info(product, customName, opsi_package):
 		"   %-20s : %s"  # pylint: disable=consider-using-f-string
 		% (
 			"package dependencies",
-			", ".join(
-				f"{dep.package}({dep.condition}{dep.version})"
-				for dep in opsi_package.package_dependencies
-			),
+			", ".join(f"{dep.package}({dep.condition}{dep.version})" for dep in opsi_package.package_dependencies),
 		)
 	)
 
@@ -469,7 +466,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 				created_archive.rename(archive)
 			if not args.no_set_rights:
 				try:
-					setRights(archive)
+					set_rights(archive)
 				except Exception as err:  # pylint: disable=broad-except
 					logger.warning("Failed to set rights: %s", err)
 			if not quiet:
@@ -483,7 +480,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 					file.write(md5)
 				if not args.no_set_rights:
 					try:
-						setRights(md5sumFile)
+						set_rights(md5sumFile)
 					except Exception as err:  # pylint: disable=broad-except
 						logger.warning("Failed to set rights: %s", err)
 
@@ -495,7 +492,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 				zsyncFile.generate(archive)
 				if not args.no_set_rights:
 					try:
-						setRights(zsyncFilePath)
+						set_rights(zsyncFilePath)
 					except Exception as err:  # pylint: disable=broad-except
 						logger.warning("Failed to set rights: %s", err)
 			break
