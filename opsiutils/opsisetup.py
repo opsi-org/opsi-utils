@@ -12,7 +12,9 @@ import getopt
 import os
 import sys
 
+from opsicommon import __version__ as python_opsi_common_version
 from opsicommon.types import forceFilename
+from opsicommon.server.rights import set_rights
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
@@ -22,15 +24,10 @@ from opsicommon.logging import (
 	logging_config,
 )
 
-from OPSI import __version__ as python_opsi_version  # type: ignore[import]
-from OPSI.System import Posix  # type: ignore[import]
-from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
-
 from opsiutils import __version__
 
-init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
-DHCPD_CONF = Posix.locateDHCPDConfig("/etc/dhcp3/dhcpd.conf")
+init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
 
 def usage():
@@ -86,7 +83,7 @@ def opsisetup_main():  # pylint: disable=too-many-branches,too-many-return-state
 			usage()
 			return
 		if opt in ("-V", "--version"):
-			print(f"{__version__} [python-opsi={python_opsi_version}]")
+			print(f"{__version__} [python-opsi-common={python_opsi_common_version}]")
 			return
 
 	if os.geteuid() != 0:
@@ -114,38 +111,48 @@ def opsisetup_main():  # pylint: disable=too-many-branches,too-many-return-state
 			)
 			return
 		elif opt == "--file-to-mysql":
-			logger.warning((
-				"file-to-mysql is deprecated. "
-				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
-			))
+			logger.warning(
+				(
+					"file-to-mysql is deprecated. "
+					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
+				)
+			)
 			return
 		elif opt == "--cleanup-backend":
-			logger.warning((
-				"cleanup-backend is deprecated. "
-				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
-			))
+			logger.warning(
+				(
+					"cleanup-backend is deprecated. "
+					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
+				)
+			)
 			return
 		elif opt == "--update-from":
 			logger.warning("update-from is deprecated.")
 			return
 		elif opt == "--auto-configure-samba":
-			logger.warning((
-				"auto-configure-samba is deprecated. "
-				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
-		))
+			logger.warning(
+				(
+					"auto-configure-samba is deprecated. "
+					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
+				)
+			)
 			return
 		elif opt == "--auto-configure-dhcpd":
-			logger.warning((
-				"auto-configure-dhcp is deprecated. "
-				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'. "
-				"Please make sure that '\"enabled\": True' is set in /etc/opsi/backends/dhcpd.conf."
-			))
+			logger.warning(
+				(
+					"auto-configure-dhcp is deprecated. "
+					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'. "
+					"Please make sure that '\"enabled\": True' is set in /etc/opsi/backends/dhcpd.conf."
+				)
+			)
 			return
 		elif opt == "--patch-sudoers-file":
-			logger.warning((
-				"patch-sudoers-file is deprecated. "
-				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
-			))
+			logger.warning(
+				(
+					"patch-sudoers-file is deprecated. "
+					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
+				)
+			)
 			return
 
 	path = "/"
@@ -158,7 +165,7 @@ def opsisetup_main():  # pylint: disable=too-many-branches,too-many-return-state
 			raise RuntimeError("Too many arguments")
 
 	if task == "set-rights":
-		setRights(path)
+		set_rights(path)
 
 
 def main():
