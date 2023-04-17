@@ -205,6 +205,12 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		default="https://localhost:4447/rpc",
 		help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"),
 	)
+	parser.add_argument(
+		"--no-check-certificate",
+		action="store_true",
+		default=False,
+		help=_("Ignore certificate checks when connecting to server."),
+	)
 	parser.add_argument("--username", "-u", help=_("Username (default: host_id or current user)"))
 	parser.add_argument("--password", "-p", help=_("Password (default: host_key or prompt for password)"))
 	parser.add_argument(
@@ -326,7 +332,13 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 				logger.error("Failed to read session file '%s': %s", sessionFile, err)
 				raise err
 
-		service_client = get_service_client(address=address, username=username, password=password, session_cookie=session_cookie)
+		service_client = get_service_client(
+			address=address,
+			username=username,
+			password=password,
+			session_cookie=session_cookie,
+			no_check_certificate=options.no_check_certificate
+		)
 
 		session_cookie = service_client.session_cookie
 		if session_cookie and sessionFile:

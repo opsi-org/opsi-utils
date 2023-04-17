@@ -25,6 +25,7 @@ from opsicommon.config.opsi import OpsiConfig
 from opsicommon.logging import get_logger, secret_filter
 from opsicommon.objects import NetbootProduct, ProductOnClient, ProductOnDepot
 from opsicommon.package import OpsiPackage
+from opsicommon.server.rights import set_rights
 from opsicommon.ssl import install_ca
 from opsicommon.types import forceProductId
 from opsicommon.utils import prepare_proxy_environment
@@ -36,7 +37,6 @@ from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[im
 from OPSI.Util.File import ZsyncFile  # type: ignore[import]
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
 from OPSI.Util.Path import cd  # type: ignore[import]
-from OPSI.Util.Task.Rights import setRights  # type: ignore[import]
 
 from opsiutils import get_service_client
 from opsiutils.update_packages.Config import DEFAULT_USER_AGENT, ConfigurationParser
@@ -859,7 +859,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		logger.info("Cleaning up in %s", self.config["packageDir"])
 
 		try:
-			setRights(self.config["packageDir"])
+			set_rights(self.config["packageDir"])
 		except Exception as err:  # pylint: disable=broad-except
 			logger.warning("Failed to set rights on directory '%s': %s", self.config["packageDir"], err)
 
@@ -889,7 +889,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		with open(md5sumFile, mode="w", encoding="utf-8") as hashFile:
 			hashFile.write(md5sum(packageFile))
 
-		setRights(md5sumFile)
+		set_rights(md5sumFile)
 
 		zsyncFile = f"{packageFile}.zsync"
 		logger.info("Creating zsync file '%s'", zsyncFile)

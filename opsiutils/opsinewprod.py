@@ -20,12 +20,12 @@ from opsicommon.package import OpsiPackage
 from opsicommon.objects import (
 	ProductDependency, LocalbootProduct, NetbootProduct, UnicodeProductProperty, BoolProductProperty
 )
+from opsicommon.server.rights import set_rights
 from opsicommon.types import forceEmailAddress, forceFilename, forceUnicode
-from OPSI import __version__ as python_opsi_version
-from OPSI.System import copy
-from OPSI.Util.File import ChangelogFile
-from OPSI.Util.Task.Rights import setRights
-from OPSI.UI import UIFactory
+from OPSI import __version__ as python_opsi_version  # type: ignore
+from OPSI.System import copy  # type: ignore[import]
+from OPSI.Util.File import ChangelogFile  # type: ignore[import]
+from OPSI.UI import UIFactory  # type: ignore[import]
 
 from opsiutils import __version__
 
@@ -108,7 +108,7 @@ def newprod_main():
 
 			createTemplates(productSourceDir, templateDirectory)
 			try:
-				setRights(productSourceDir)
+				set_rights(productSourceDir)
 			except Exception as err:  # pylint: disable=broad-except
 				logger.warning("Failed to set rights: %s", err)
 
