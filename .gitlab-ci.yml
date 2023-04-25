@@ -11,6 +11,7 @@ pytest-pylint:
   stage: test
   script:
     - apt update
+    - apt-get --yes --allow-downgrades install libsqlite3-0=3.16.2-5+deb9u1
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
     - poetry lock --no-update
@@ -23,6 +24,7 @@ linux-pyinstaller:
   stage: build
   script:
     - apt update
+    - apt-get --yes --allow-downgrades install libsqlite3-0=3.16.2-5+deb9u1
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
     - poetry lock --no-update
@@ -47,6 +49,7 @@ arm64-pyinstaller:
     - arm64
   script:
     - apt update
+    - apt-get --yes --allow-downgrades install libsqlite3-0=3.16.2-5+deb9u1
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
     - poetry lock --no-update
