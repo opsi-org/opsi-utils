@@ -13,7 +13,7 @@ pytest-pylint:
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
-    - poetry lock --no-update
+    - poetry lock --no-update --no-cache
     - poetry install
     - poetry run pylint --disable=R,fixme opsiutils
     - poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
@@ -25,7 +25,7 @@ linux-pyinstaller:
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
-    - poetry lock --no-update
+    - poetry lock --no-update --no-cache
     - poetry install
     - poetry run opsi-dev-cli -l info pyinstaller build
     - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-cli -l info binary push dist/opsi-utils --prerelease="$CI_JOB_ID"'
@@ -49,7 +49,7 @@ arm64-pyinstaller:
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - poetry config experimental.new-installer false
-    - poetry lock --no-update
+    - poetry lock --no-update --no-cache
     - poetry install
     - poetry run opsi-dev-cli -l info pyinstaller build
     - mv dist/opsi-utils ./opsi-utils-arm64
