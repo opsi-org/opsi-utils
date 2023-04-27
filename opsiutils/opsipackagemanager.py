@@ -1635,34 +1635,6 @@ class OpsiPackageManagerControl:
 				raise TaskError(f"{len(errors)} errors during the processing of tasks.")
 
 	def processExtractCommand(self):
-		progressSubject = ProgressSubject(id="extract", title="extracting")
-
-		class ProgressNotifier(ProgressObserver):
-			def __init__(self):  # pylint: disable=super-init-not-called
-				self.usedWidth = 60
-				try:
-					tty = os.popen("tty").readline().strip()
-					with open(tty, encoding="utf-8") as fd:
-						terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234"))[1]
-						self.usedWidth = min(self.usedWidth, terminalWidth)
-				except Exception:  # pylint: disable=broad-except
-					pass
-
-			def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):  # pylint: disable=too-many-arguments
-				barlen = self.usedWidth - 10
-				filledlen = int(round((barlen * percent / 100)))
-				barstr = "=" * filledlen + " " * (barlen - filledlen)
-				percent = f"{percent:0.2f}%"
-				sys.stderr.write(f"\r {percent:>8} [{barstr}]\r")
-				sys.stderr.flush()
-
-			def messageChanged(self, subject, message):
-				sys.stderr.write(f"\n{message}\n")
-				sys.stderr.flush()
-
-		if not self.config["quiet"]:
-			progressSubject.attachObserver(ProgressNotifier())
-
 		destinationDir = os.path.abspath(os.getcwd())
 		for packageFile in self.config["packageFiles"]:
 			opsi_package = OpsiPackage(Path(packageFile), temp_dir=self.config.get("tempDir"))
@@ -1682,8 +1654,6 @@ class OpsiPackageManagerControl:
 			opsi_package.extract_package_archive(
 				Path(packageFile), destination=Path(packageDestinationDir), new_product_id=newProductId, custom_separated=True
 			)
-			if not self.config["quiet"]:
-				sys.stderr.write("\n\n")
 
 	def processListCommand(self):  # pylint: disable=too-many-locals
 		terminalWidth = 60
