@@ -54,7 +54,6 @@ from OPSI.Util import md5sum  # type: ignore[import]
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
 from OPSI.Util.Message import (  # type: ignore[import]
 	MessageSubject,
-	ProgressObserver,
 	ProgressSubject,
 	SubjectsObserver,
 )
