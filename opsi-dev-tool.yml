@@ -82,6 +82,7 @@ package:
   depends:
     - zsync-curl
     - pigz
+    - zstd
     - librsync | librsync2 | librsync1
     - cpio
   conflicts:
