@@ -30,79 +30,86 @@ try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 	if os.path.exists(os.path.join(sp, "site-packages")):
 		sp = os.path.join(sp, "site-packages")
-	sp = os.path.join(sp, 'opsi-utils_data', 'locale')
-	translation = gettext.translation('opsi-utils', sp)
+	sp = os.path.join(sp, "opsi-utils_data", "locale")
+	translation = gettext.translation("opsi-utils", sp)
 	_ = translation.gettext
 except Exception as loc_err:  # pylint: disable=broad-except
 	logger.debug("Failed to load locale from %s: %s", sp, loc_err)
 
 	def _(string):
-		""" Fallback function """
+		"""Fallback function"""
 		return string
 
 
 def parseOptions():
 	parser = argparse.ArgumentParser(
-		description="Wakeup clients for software installation.",
-		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
+		description="Wakeup clients for software installation.", formatter_class=argparse.ArgumentDefaultsHelpFormatter
+	)
+	parser.add_argument("--version", "-V", action="version", version=f"{__version__} [python-opsi={python_opsi_version}]")
 
 	logGroup = parser.add_argument_group(title="Logging")
 	logGroup.add_argument(
-		'--verbose', '-v', dest="consoleLogLevel", default=4,
-		action="count", help="increase verbosity on console (can be used multiple times)")
-	logGroup.add_argument(
-		'--log-file', action="store", dest="logFile", default="/var/log/opsi/opsi-wakeup-clients.log",
-		help="Set log file path"
+		"--verbose",
+		"-v",
+		dest="consoleLogLevel",
+		default=4,
+		action="count",
+		help="increase verbosity on console (can be used multiple times)",
 	)
 	logGroup.add_argument(
-		'--log-level', '-l', dest="fileLogLevel", type=int, default=4,
-		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], help="Set the desired loglevel for the logfile.")
+		"--log-file", action="store", dest="logFile", default="/var/log/opsi/opsi-wakeup-clients.log", help="Set log file path"
+	)
+	logGroup.add_argument(
+		"--log-level",
+		"-l",
+		dest="fileLogLevel",
+		type=int,
+		default=4,
+		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		help="Set the desired loglevel for the logfile.",
+	)
 
 	timeoutGroup = parser.add_argument_group(title="Timeouts")
 	timeoutGroup.add_argument(
-		'--wol-timeout', dest="wolTimeout", default=300, type=int,
-		help='Time to wait until opsiclientd should be reachable.')
+		"--wol-timeout", dest="wolTimeout", default=300, type=int, help="Time to wait until opsiclientd should be reachable."
+	)
 	timeoutGroup.add_argument(
-		'--ping-timeout', dest="pingTimeout", default=300, type=int,
-		help='Time to wait until client should be pingable. 0 = skip ping test.')
+		"--ping-timeout",
+		dest="pingTimeout",
+		default=300,
+		type=int,
+		help="Time to wait until client should be pingable. 0 = skip ping test.",
+	)
 	timeoutGroup.add_argument(
-		'--connect-timeout', dest="connectTimeout", default=15, type=int,
-		help='Timeout for connecting to opsiclientd.')
+		"--connect-timeout", dest="connectTimeout", default=15, type=int, help="Timeout for connecting to opsiclientd."
+	)
 	timeoutGroup.add_argument(
-		'--event-timeout', dest="eventTimeout", default=300, type=int,
-		help='Time to wait until opsiclientd should be processing.')
+		"--event-timeout", dest="eventTimeout", default=300, type=int, help="Time to wait until opsiclientd should be processing."
+	)
 	timeoutGroup.add_argument(
-		'--reboot-timeout', dest="rebootTimeout", default=60, type=int,
-		help='Time to wait before opsiclientd will be reboot the client.')
+		"--reboot-timeout", dest="rebootTimeout", default=60, type=int, help="Time to wait before opsiclientd will be reboot the client."
+	)
 
+	parser.add_argument("--host-group-id", "-H", dest="hostGroupId", help="Group in which clients have to be to be waked up.")
+	parser.add_argument("--depot-id", "-D", dest="depotId", help="DepotId in which clients have to be registered to be waked up.")
+	parser.add_argument("--host-file", "-F", dest="inputFile", help="Filename with clients per line have to be waked up.")
+	parser.add_argument("--product-group-id", "-P", dest="productGroupId", help="ID of the product group to set to setup on a client")
+	parser.add_argument("--event", "-E", dest="eventName", help="Event to be triggered on the clients")
+	parser.add_argument("--reboot", "-X", dest="reboot", default=False, action="store_true", help="Triggering reboot on the clients")
 	parser.add_argument(
-		'--host-group-id', '-H', dest='hostGroupId',
-		help='Group in which clients have to be to be waked up.')
+		"--shutdownwanted",
+		"-s",
+		dest="shutdownwanted",
+		default=False,
+		action="store_true",
+		help="Triggering shutdown as last action (via Product shutdownwanted)",
+	)
 	parser.add_argument(
-		'--depot-id', '-D', dest='depotId',
-		help='DepotId in which clients have to be registered to be waked up.')
+		"--no-auto-update", "-N", dest="noAutoUpdate", default=False, action="store_true", help="Do not use opsi-auto-update product."
+	)
 	parser.add_argument(
-		'--host-file', '-F', dest='inputFile',
-		help='Filename with clients per line have to be waked up.')
-	parser.add_argument(
-		'--product-group-id', '-P', dest='productGroupId',
-		help="ID of the product group to set to setup on a client")
-	parser.add_argument(
-		'--event', '-E', dest='eventName',
-		help="Event to be triggered on the clients")
-	parser.add_argument(
-		'--reboot', '-X', dest='reboot', default=False, action='store_true',
-		help="Triggering reboot on the clients")
-	parser.add_argument(
-		'--shutdownwanted', '-s', dest='shutdownwanted', default=False, action='store_true',
-		help="Triggering shutdown as last action (via Product shutdownwanted)")
-	parser.add_argument(
-		'--no-auto-update', '-N', dest='noAutoUpdate', default=False, action='store_true',
-		help="Do not use opsi-auto-update product.")
-	parser.add_argument(
-		'--max-concurrent', dest="maxConcurrent", default=0, type=int,
-		help='Maximum number of concurrent client deployments.')
+		"--max-concurrent", dest="maxConcurrent", default=0, type=int, help="Maximum number of concurrent client deployments."
+	)
 
 	args = parser.parse_args()
 
@@ -112,16 +119,39 @@ def parseOptions():
 
 
 def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-	backend, depotId, inputFile, noAutoUpdate, shutdownwanted, reboot, rebootTimeout, hostGroupId, productGroupId,
-	eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout, maxConcurrent
+	backend,
+	depotId,
+	inputFile,
+	noAutoUpdate,
+	shutdownwanted,
+	reboot,
+	rebootTimeout,
+	hostGroupId,
+	productGroupId,
+	eventName,
+	wolTimeout,
+	eventTimeout,
+	connectTimeout,
+	pingTimeout,
+	maxConcurrent,
 ):
 	logger.info(
 		"Using params: depotId=%s, inputFile=%s, noAutoUpdate=%s, reboot=%s, rebootTimeout=%s, "
 		"hostGroupId=%s, productGroupId=%s, eventName=%s, wolTimeout=%s, eventTimeout=%s, "
 		"connectTimeout=%s, pingTimeout=%s, maxConcurrent=%s",
-		depotId, inputFile, noAutoUpdate, reboot, rebootTimeout,
-		hostGroupId, productGroupId, eventName,	wolTimeout, eventTimeout,
-		connectTimeout, pingTimeout, maxConcurrent
+		depotId,
+		inputFile,
+		noAutoUpdate,
+		reboot,
+		rebootTimeout,
+		hostGroupId,
+		productGroupId,
+		eventName,
+		wolTimeout,
+		eventTimeout,
+		connectTimeout,
+		pingTimeout,
+		maxConcurrent,
 	)
 	clientsToWake = []
 
@@ -197,13 +227,13 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 				if isinstance(thread.success, Exception):
 					exception = thread.success
 					if isinstance(exception, NoPingReceivedError):
-						reason = 'ping'
+						reason = "ping"
 					elif isinstance(exception, WaitForOpsiclientdError):
-						reason = 'opsiclientd start'
+						reason = "opsiclientd start"
 					elif isinstance(exception, WaitForEventTimeout):
-						reason = 'event start'
+						reason = "event start"
 					else:
-						reason = 'unspecified'
+						reason = "unspecified"
 					failed[reason].add(thread.clientId)
 					logger.info("Tasks on client '%s' failed with reason '%s' (%s)", thread.clientId, reason, exception)
 				else:
@@ -216,9 +246,10 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 	for reason, clientIds in list(failed.items()):
 		failcount = len(clientIds)
 		totalFails += failcount
-		logger.warning("%s clients failed because of %s error: %s", failcount, reason, ', '.join(clientIds))
+		logger.warning("%s clients failed because of %s error: %s", failcount, reason, ", ".join(clientIds))
 
 	logger.notice("Succesfully processed %s/%s clients", clientSum - totalFails, clientSum)
+
 
 def getClientIDsFromDepot(backend, depotId, groupName):
 	clientsFromGroup = []
@@ -228,23 +259,25 @@ def getClientIDsFromDepot(backend, depotId, groupName):
 	depotClients = backend.getClientsOnDepot(depotId)
 	if not clientsFromGroup:
 		return depotClients
-	return [ x for x in depotClients if x in clientsFromGroup ]
+	return [x for x in depotClients if x in clientsFromGroup]
+
 
 def getClientIDsFromFile(backend, inputFile):
 	if not os.path.exists(inputFile):
 		raise FileNotFoundError(f"Host-file '{inputFile}' not found")
 	knownIds = backend.host_getIdents(type="OpsiClient")
 	clientIds = []
-	with codecs.open(inputFile, 'r', "utf8") as file:
+	with codecs.open(inputFile, "r", "utf8") as file:
 		for line in file.readlines():
 			line = line.strip()
-			if not line or line.startswith('#'):
+			if not line or line.startswith("#"):
 				continue
 			if not line in knownIds:
 				logger.warning("Client '%s' from host-file not found in backend", line)
 				continue
 			clientIds.append(line)
 	return clientIds
+
 
 def getClientIDsFromGroup(backend, groupName):
 	group = backend.group_getObjects(id=groupName, type="HostGroup")
@@ -259,12 +292,12 @@ def getClientIDsFromGroup(backend, groupName):
 
 def configureOpsiAutoUpdate(backend, clientIds):
 	for clientId in clientIds:
-		backend.setProductProperty('opsi-auto-update', 'rebootflag', 0, clientId)
+		backend.setProductProperty("opsi-auto-update", "rebootflag", 0, clientId)
 
 
 def setShutdownwanted(backend, clientIds):
 	for clientId in clientIds:
-		backend.setProductActionRequest("shutdownwanted", clientId, 'setup')
+		backend.setProductActionRequest("shutdownwanted", clientId, "setup")
 
 
 def getProductsFromProductGroup(backend, productGroupId):
@@ -275,16 +308,20 @@ def getProductsFromProductGroup(backend, productGroupId):
 	except IndexError as err:
 		raise ValueError(f"Product group '{productGroupId}' not found") from err
 
-	return set([mapping.objectId for mapping in backend.objectToGroup_getObjects(groupId=group.id)])  # pylint: disable=consider-using-set-comprehension
+	return set(
+		[mapping.objectId for mapping in backend.objectToGroup_getObjects(groupId=group.id)]
+	)  # pylint: disable=consider-using-set-comprehension
 
 
 def requireProductInstallation(backend, clientIds, productIds):
 	for clientId, productId in product(clientIds, productIds):
-		backend.setProductActionRequestWithDependencies(productId, clientId, 'setup')
+		backend.setProductActionRequestWithDependencies(productId, clientId, "setup")
 
 
 class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-instance-attributes
-	def __init__(self, backend, clientId, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout):  # pylint: disable=too-many-arguments
+	def __init__(
+		self, backend, clientId, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout
+	):  # pylint: disable=too-many-arguments
 		threading.Thread.__init__(self)
 
 		self.backend = backend
@@ -383,7 +420,7 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 					res = sock.connect_ex((self.clientId, port))
 					sock.close()
 					if res != 0:
-						raise Exception(f"Port {port} unreachable")
+						raise Exception(f"Port {port} unreachable")  # pylint: disable=broad-exception-raised
 
 					backend = JSONRPCBackend(
 						address=address,
@@ -403,7 +440,7 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 
 	def triggerReboot(self):
 		if not self.opsiclientdbackend:
-			raise Exception(f"Connection to client '{self.clientId}' failed")
+			raise Exception(f"Connection to client '{self.clientId}' failed")  # pylint: disable=broad-exception-raised
 		logger.info("Triggering reboot on client '%s' with a delay of %s seconds", self.clientId, self.rebootTimeout)
 		self.opsiclientdbackend.reboot(str(self.rebootTimeout))  # pylint: disable=no-member
 
@@ -416,9 +453,7 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 		retryTimeout = 5
 
 		with timeoutThread(
-			self.eventTimeout,
-			timeout_event,
-			WaitForEventTimeout(f"Did not see running event '{self.eventName}' on '{self.clientId}'")
+			self.eventTimeout, timeout_event, WaitForEventTimeout(f"Did not see running event '{self.eventName}' on '{self.clientId}'")
 		):
 			start_timeout = 1
 			runs = 0
@@ -436,8 +471,8 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 					if self.opsiclientdbackend.isEventRunning(self.eventName):  # pylint: disable=no-member
 						logger.notice("Event '%s' is running on '%s'", self.eventName, self.clientId)
 						break
-					if self.opsiclientdbackend.isEventRunning(self.eventName+"{user_logged_in}"):  # pylint: disable=no-member
-						logger.notice("Event '%s' is running on '%s'", self.eventName+"{user_logged_in}", self.clientId)
+					if self.opsiclientdbackend.isEventRunning(self.eventName + "{user_logged_in}"):  # pylint: disable=no-member
+						logger.notice("Event '%s' is running on '%s'", self.eventName + "{user_logged_in}", self.clientId)
 						break
 				except Exception as exc:  # pylint: disable=broad-except
 					logger.debug("Failed to check running event on '%s': %s", self.clientId, exc)
@@ -494,16 +529,21 @@ def opsiwakeupclients_main():
 		wakeClientsForUpdate(
 			backend,
 			options.depotId,
-			options.inputFile, options.noAutoUpdate,
+			options.inputFile,
+			options.noAutoUpdate,
 			options.shutdownwanted,
-			options.reboot, options.rebootTimeout,
-			options.hostGroupId, options.productGroupId,
+			options.reboot,
+			options.rebootTimeout,
+			options.hostGroupId,
+			options.productGroupId,
 			options.eventName,
-			options.wolTimeout, options.eventTimeout,
+			options.wolTimeout,
+			options.eventTimeout,
 			options.connectTimeout,
 			options.pingTimeout,
-			options.maxConcurrent
+			options.maxConcurrent,
 		)
+
 
 def main():
 	try:
