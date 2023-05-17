@@ -819,17 +819,17 @@ reference = "uibpypi"
 
 [[package]]
 name = "pyopenssl"
-version = "22.0.0"
+version = "23.1.1"
 description = "Python wrapper module around the OpenSSL library"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-cryptography = ">=35.0"
+cryptography = ">=38.0.0,<41"
 
 [package.extras]
-docs = ["sphinx", "sphinx-rtd-theme"]
+docs = ["sphinx (!=5.2.0,!=5.2.0.post0)", "sphinx-rtd-theme"]
 test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
 [package.source]
@@ -912,11 +912,11 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi"
-version = "4.2.0.329"
+version = "4.2.0.330"
 description = "The opsi python library"
 category = "main"
 optional = false
-python-versions = ">=3.8,<3.11"
+python-versions = ">=3.10,<3.11"
 
 [package.dependencies]
 attrs = ">=21.2,<22.0"
@@ -933,7 +933,7 @@ pexpect = ">=4.8,<5.0"
 psutil = ">=5.8,<6.0"
 pyasn1 = ">=0.4,<0.5"
 pycryptodome = ">=3.10,<4.0"
-pyopenssl = ">=22.0,<23.0"
+pyopenssl = ">=23.0,<24.0"
 python-opsi-common = ">=4.2.0.294,<4.3"
 python-pam = ">=2.0,<3.0"
 pywin32 = {version = ">=303,<304", markers = "sys_platform == \"win32\""}
@@ -951,7 +951,7 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi-common"
-version = "4.2.0.303"
+version = "4.2.0.304"
 description = "The opsi python common library"
 category = "main"
 optional = false
@@ -966,7 +966,7 @@ orjson = ">=3.8.0,<4.0.0"
 packaging = ">=21.0,<=23.0"
 psutil = ">=5.8,<6.0"
 pycryptodome = ">=3.10,<4.0"
-pyopenssl = ">=22.0,<23.0"
+pyopenssl = ">=23.0,<24.0"
 pywin32 = {version = ">=303,<304", markers = "sys_platform == \"win32\""}
 requests = ">=2.26,<3.0"
 websocket-client = ">=1.4.0,<2.0.0"
@@ -2090,8 +2090,8 @@ pynacl = [
     {file = "PyNaCl-1.5.0.tar.gz", hash = "sha256:8ac7448f09ab85811607bdd21ec2464495ac8b7c66d146bf545b0f08fb9220ba"},
 ]
 pyopenssl = [
-    {file = "pyOpenSSL-22.0.0-py2.py3-none-any.whl", hash = "sha256:ea252b38c87425b64116f808355e8da644ef9b07e429398bfece610f893ee2e0"},
-    {file = "pyOpenSSL-22.0.0.tar.gz", hash = "sha256:660b1b1425aac4a1bea1d94168a85d99f0b3144c869dd4390d27629d0087f1bf"},
+    {file = "pyOpenSSL-23.1.1-py3-none-any.whl", hash = "sha256:9e0c526404a210df9d2b18cd33364beadb0dc858a739b885677bc65e105d4a4c"},
+    {file = "pyOpenSSL-23.1.1.tar.gz", hash = "sha256:841498b9bec61623b1b6c47ebbc02367c07d60e0e195f19790817f10cc8db0b7"},
 ]
 pyparsing = [
     {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
@@ -2110,12 +2110,12 @@ python-magic = [
     {file = "python_magic-0.4.27-py2.py3-none-any.whl", hash = "sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3"},
 ]
 python-opsi = [
-    {file = "python_opsi-4.2.0.329-py3-none-any.whl", hash = "sha256:c984b06666cb3d997e4a575d56e5af8750bfaf2e6bc4614436f60780b6ca7a7f"},
-    {file = "python_opsi-4.2.0.329.tar.gz", hash = "sha256:51f0c3c1680743353bed108527b62f32c1c62716eff75af40be991a2c8088226"},
+    {file = "python_opsi-4.2.0.330-py3-none-any.whl", hash = "sha256:b600d9cef05b2f287a01b4e247014c1d4ad17b4e26009a62dc95edd48c492c38"},
+    {file = "python_opsi-4.2.0.330.tar.gz", hash = "sha256:60228ae45dac355576fc33684baaa59233d1c2fd4499033807c8ee25703a876f"},
 ]
 python-opsi-common = [
-    {file = "python_opsi_common-4.2.0.303-py3-none-any.whl", hash = "sha256:1328f88c7b84c74bf127617bad508b979f4c94aa3c5e8479361d53ffbd20b793"},
-    {file = "python_opsi_common-4.2.0.303.tar.gz", hash = "sha256:0c24ca7bf586fb594ca2b92dfa8aa0e0c10dd3adf5665dd568dcdba38e240000"},
+    {file = "python_opsi_common-4.2.0.304-py3-none-any.whl", hash = "sha256:65e10863792846aad7204316ee859c7b372e266f8ffb25d708529fc69e6f4cf9"},
+    {file = "python_opsi_common-4.2.0.304.tar.gz", hash = "sha256:271ccbf0c6c230d80482a6ef8fea16dd26b88ea0ba23f1b517dfb427ad6204f9"},
 ]
 python-pam = [
     {file = "python-pam-2.0.2.tar.gz", hash = "sha256:97235235ba9b82dbae8068d1099508455949b275f77273ca22fdbd8b1fb5d950"},
