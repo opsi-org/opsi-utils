@@ -1000,6 +1000,7 @@ def opsisetup_main():  # pylint: disable=too-many-branches.too-many-statements
 		configureClientUser()
 		with BackendManager() as backend:
 			patchServiceUrlInDefaultConfigs(backend)
+			patchRootPasswordInDefaultConfigs(backend)
 
 	elif task == "configure-mysql":
 		configureMySQLBackend(unattended)
