@@ -50,7 +50,7 @@ from OPSI.Util.Task.ConfigureBackend.MySQL import (
 	configureMySQLBackend as configureMySQLBackendWithoutGUI,
 )
 from OPSI.Util.Task.ConfigureBootimage import patchServiceUrlInDefaultConfigs
-from OPSI.Util.Task.ConfigureBootimage import  patchRootPasswordInDefaultConfigs
+from OPSI.Util.Task.ConfigureBootimage import patchRootPasswordInDefaultConfigs
 from OPSI.Util.Task.InitializeBackend import _getServerConfig as getServerConfig
 from OPSI.Util.Task.InitializeBackend import initializeBackends
 from OPSI.Util.Task.Rights import setRights
