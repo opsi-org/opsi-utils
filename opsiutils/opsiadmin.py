@@ -281,7 +281,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 	global service_client  # pylint: disable=global-statement,invalid-name
 	try:
 		if options.direct:
-			logger.warning("Option --direct/-d is deprecated and can be omitted.")
+			logger.info("Option --direct/-d is deprecated and can be omitted.")
 
 		# Reading opsirc file.
 		# We should always prefer the settings from the commandline
