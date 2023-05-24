@@ -170,6 +170,8 @@ def signalHandler(signo, stackFrame):  # pylint: disable=unused-argument
 	if signo == SIGINT:
 		if global_shell:
 			global_shell.sigint()
+		else:
+			sys.exit(0)
 	elif signo == SIGQUIT:
 		sys.exit(0)
 
@@ -337,7 +339,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 			username=username,
 			password=password,
 			session_cookie=session_cookie,
-			no_check_certificate=options.no_check_certificate
+			no_check_certificate=options.no_check_certificate,
 		)
 
 		session_cookie = service_client.session_cookie
@@ -469,6 +471,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		self.cmdline = forceUnicode(cmdline)
 		self.shellCommand = ""
 		self.reverseSearch = None
+		self.exit_on_sigint = False
 		self.commands = [
 			CommandMethod(),
 			CommandSet(),
@@ -550,6 +553,8 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 			curses.endwin()
 
 	def sigint(self):
+		if self.exit_on_sigint:
+			sys.exit(0)
 		self.pos = 0
 		self.setCmdline("")
 		self.reverseSearch = None
@@ -1650,6 +1655,8 @@ class CommandTask(Command):
 		elif params[0] == "setPcpatchPassword":
 			# if os.getuid() != 0:
 			# 	raise RuntimeError(_("You have to be root to change pcpatch password!"))
+
+			shell.exit_on_sigint = True
 
 			password = ""
 			if len(params) < 2:
