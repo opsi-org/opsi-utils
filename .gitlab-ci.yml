@@ -112,5 +112,8 @@ obs_ext:
   stage: publish
   script:
     - opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.3:development
+    - opsi-dev-tool -l 5 --create-changelog output/
+    - opsi-dev-cli release-service register-package-version opsi-utils SERVER_PACKAGE --changelog-file output/changelog.md
+    - opsi-dev-cli release-service push-repository-state opsi-utils SERVER_PACKAGE SERVER_PACKAGE-4.3-development
   only:
     - tags
