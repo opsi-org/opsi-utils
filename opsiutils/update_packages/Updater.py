@@ -79,8 +79,9 @@ class HTTPRangeReader(BytesIO):
 
 		self.total_size = int(self.response.headers["Content-Length"])
 		ranges_len = sum(r.end - r.start + 1 for r in self.ranges)
-		if self.total_size != ranges_len:
-			raise RuntimeError(f"Expected Content-Length {ranges_len} bytes, got {self.total_size}")
+		logger.warning("Expected Content-Length %r bytes, got %r", ranges_len, self.total_size)
+		# if self.total_size != ranges_len:
+		# 	raise RuntimeError(f"Expected Content-Length {ranges_len} bytes, got {self.total_size}")
 
 		self.position = 0
 		self.percentage = -1
