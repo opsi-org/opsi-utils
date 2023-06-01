@@ -74,7 +74,7 @@ class HTTPRangeReader(BytesIO):
 		self.response = session.get(self.url.geturl(), headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
 		logger.debug("Received response: %r, headers: %r", self.response.status_code, dict(self.response.headers))
 		if self.response.status_code < 200 or self.response.status_code > 299:
-			raise RuntimeError(f"Failed to fetch ranges from {self.url.geturl()}: {self.response.status_code} - {self.response.read()}")
+			raise RuntimeError(f"Failed to fetch ranges from {self.url.geturl()}: {self.response.status_code} - {self.response.raw.read()}")
 
 		self.total_size = int(self.response.headers["Content-Length"])
 		self.position = 0
@@ -117,7 +117,7 @@ class HTTPRangeReader(BytesIO):
 			return_data = self.data[:size]
 			self.data = self.data[size:]
 		else:
-			return_data = self.response.read(size)
+			return_data = self.response.raw.read(size)
 
 		self.position += len(return_data)
 
