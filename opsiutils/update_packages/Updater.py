@@ -58,7 +58,7 @@ class HashsumMissmatchError(ValueError):
 	pass
 
 
-class HTTPRangeReader:  # pylint: disable=too-few-public-methods
+class HTTPRangeReader:  # pylint: disable=too-few-public-methods,too-many-instance-attributes
 	def __init__(self, session: Session, url: str, headers: dict[str, str], ranges: list[Range]) -> None:
 		self.ranges = sorted(ranges, key=lambda r: r.start)
 		for range_ in self.ranges:
@@ -71,6 +71,9 @@ class HTTPRangeReader:  # pylint: disable=too-few-public-methods
 			logger.error("Failed to fetch ranges from %s: %s - %s", url, self.response.status_code, self.response.text)
 			raise ConnectionError(f"Failed to fetch ranges from {url}: {self.response.status_code} - {self.response.text}")
 
+		self.total_size = int(self.response.headers["Content-Length"])
+		self.position = 0
+		self.percentage = 0
 		self.raw_data = b""
 		self.data = b""
 		self.in_body = False
@@ -108,6 +111,12 @@ class HTTPRangeReader:  # pylint: disable=too-few-public-methods
 
 		return_data = self.data[:size]
 		self.data = self.data[size:]
+		self.position += len(return_data)
+
+		percentage = int(self.position * 100 / self.total_size)
+		if percentage > self.percentage:
+			self.percentage = percentage
+			logger.info("Zsync position %s%% (%0.2f/%0.2f MB)", self.percentage, self.position / 1_000_000, self.total_size / 1_000_000)
 		return return_data
 
 

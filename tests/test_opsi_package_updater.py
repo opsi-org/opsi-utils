@@ -70,7 +70,7 @@ def test_get_packages(  # pylint: disable=redefined-outer-name,too-many-locals,t
 	md5sum_file = server_dir / "hwaudit_4.2.0.0-1.opsi.md5"
 	zsync_file = server_dir / "hwaudit_4.2.0.0-1.opsi.zsync"
 
-	parts = [b"a" * 2048, b"b" * 2048, b"c" * 2048, b"d" * 2048, b"e" * 2048]
+	parts = [b"a" * 2048 * 10, b"b" * 2048 * 10, b"c" * 2048 * 10, b"d" * 2048 * 10, b"e" * 2048 * 10]
 	server_package_file.write_bytes(parts[0] + parts[1] + parts[2] + parts[3] + parts[4])
 	local_package_file.write_bytes(parts[0] + parts[2])
 	local_old_zsync_tmp_file.write_bytes(parts[4])
@@ -135,6 +135,6 @@ def test_get_packages(  # pylint: disable=redefined-outer-name,too-many-locals,t
 		assert request["headers"].get("Authorization") == "Basic dXNlcjpwYXNz"
 		assert request["headers"]["Accept-Encoding"] == "identity"
 		if server_accept_ranges:
-			assert request["headers"]["Range"] == "bytes=2048-4095, 6144-8191"
+			assert request["headers"]["Range"] == "bytes=20480-40959, 61440-81919"
 		else:
 			assert "Range" not in request["headers"]
