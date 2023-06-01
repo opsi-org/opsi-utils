@@ -77,12 +77,7 @@ class HTTPRangeReader(BytesIO):
 		if self.response.status_code < 200 or self.response.status_code > 299:
 			raise RuntimeError(f"Failed to fetch ranges from {self.url.geturl()}: {self.response.status_code} - {self.response.raw.read()}")
 
-		self.total_size = int(self.response.headers["Content-Length"])
-		ranges_len = sum(r.end - r.start + 1 for r in self.ranges)
-		logger.warning("Expected Content-Length %r bytes, got %r", ranges_len, self.total_size)
-		# if self.total_size != ranges_len:
-		# 	raise RuntimeError(f"Expected Content-Length {ranges_len} bytes, got {self.total_size}")
-
+		self.total_size = sum(r.end - r.start + 1 for r in self.ranges)
 		self.position = 0
 		self.percentage = -1
 		self.raw_data = b""
