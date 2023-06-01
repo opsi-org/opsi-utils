@@ -60,16 +60,17 @@ class HashsumMissmatchError(ValueError):
 
 class HTTPRangeReader:  # pylint: disable=too-few-public-methods,too-many-instance-attributes
 	def __init__(self, session: Session, url: str, headers: dict[str, str], ranges: list[Range]) -> None:
+		self.url = url
 		self.ranges = sorted(ranges, key=lambda r: r.start)
 		for range_ in self.ranges:
 			logger.debug("Range %s-%s (size %s)", range_.start, range_.end, range_.end - range_.start + 1)
 		byte_ranges = ", ".join(f"{r.start}-{r.end}" for r in self.ranges)
 		headers["Range"] = f"bytes={byte_ranges}"
 		headers["Accept-Encoding"] = "identity"
-		self.response = session.get(url, headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
+		self.response = session.get(self.url, headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
 		if self.response.status_code < 200 or self.response.status_code > 299:
-			logger.error("Failed to fetch ranges from %s: %s - %s", url, self.response.status_code, self.response.text)
-			raise ConnectionError(f"Failed to fetch ranges from {url}: {self.response.status_code} - {self.response.text}")
+			logger.error("Failed to fetch ranges from %s: %s - %s", self.url, self.response.status_code, self.response.text)
+			raise ConnectionError(f"Failed to fetch ranges from {self.url}: {self.response.status_code} - {self.response.text}")
 
 		self.total_size = int(self.response.headers["Content-Length"])
 		self.position = 0
@@ -116,7 +117,9 @@ class HTTPRangeReader:  # pylint: disable=too-few-public-methods,too-many-instan
 		percentage = int(self.position * 100 / self.total_size)
 		if percentage > self.percentage:
 			self.percentage = percentage
-			logger.info("Zsync position %s%% (%0.2f/%0.2f MB)", self.percentage, self.position / 1_000_000, self.total_size / 1_000_000)
+			logger.info(
+				"Zsyncing %r: %s%% (%0.2f/%0.2f MB)", self.url, self.percentage, self.position / 1_000_000, self.total_size / 1_000_000
+			)
 		return return_data
 
 
@@ -807,67 +810,40 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		url = availablePackage["packageFile"]
 		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 
-		def get_connection(_url, _headers):
-			response = session.get(_url, headers=_headers, stream=True, timeout=3600 * 8)  # 8h timeout
-			if response.status_code < 200 or response.status_code > 299:
-				logger.error("Unable to download Package from %s: %s - %s", url, response.status_code, response.text)
-				raise ConnectionError(f"Unable to download Package from {url}: {response.status_code} - {response.text}")
-			return response
-
 		headers = self.httpHeaders.copy()
 		headers["Accept-Encoding"] = "identity"
-		response = get_connection(url, headers)
+		response = session.get(url, headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
+		if response.status_code < 200 or response.status_code > 299:
+			logger.error("Failed to download Package from %r: %s - %s", url, response.status_code, response.text)
+			raise RuntimeError(f"Failed to download Package from {url!r}: {response.status_code} - {response.text}")
 
-		size = int(response.headers.get("Content-Length", 0))
-		if size:
-			logger.info("Downloading %s (%s MB) to %s", url, round(size / (1024.0 * 1024.0), 2), outFile)
-		else:
-			logger.info("Downloading %s to %s", url, outFile)
+		size = int(response.headers["Content-Length"])
+		logger.info("Downloading %r (%0.2f MB) to %s", url, size / (1_000_000), outFile)
 
 		position = 0
 		percent = 0.0
 		last_time = time.time()
 		last_position = 0
 		last_percent = 0
-		start_position = 0
 		speed = 0
 
 		with open(outFile, "wb") as out:
-			for attempt in range(1, 11):  # pylint: disable=too-many-nested-blocks
-				for chunk in response.iter_content(chunk_size=32768):
-					position += len(chunk)
-					out.write(chunk)
+			for chunk in response.iter_content(chunk_size=32768):
+				position += len(chunk)
+				out.write(chunk)
+				percent = int(position * 100 / size)
+				if last_percent != percent:
+					last_percent = percent
+					now = time.time()
+					if not speed or now - last_time > 2:
+						speed = 8 * int(((position - last_position) / (now - last_time)) / 1000)
+						last_time = now
+						last_position = position
+					logger.info("Downloading %r: %d%% (%0.2f kbit/s)", url, percent, speed)
+			if size != position:
+				raise RuntimeError(f"Failed to complete download, only {position} of {size} bytes transferred")
 
-					if size > 0:
-						try:
-							percent = round(100 * position / size, 1)
-							if last_percent != percent:
-								last_percent = percent
-								now = time.time()
-								if not speed or (now - last_time) > 2:
-									speed = 8 * int(((position - last_position) / (now - last_time)) / 1024)
-									last_time = now
-									last_position = position
-								logger.debug("Downloading %s: %0.1f%% (%0.2f kbit/s)", url, percent, speed)
-						except Exception:  # pylint: disable=broad-except
-							pass
-				if not size or size == position:
-					break
-				error = f"Failed to complete download, only {position} of {size} bytes transferred"
-				if start_position == position or attempt >= 10:
-					raise RuntimeError(error)
-				if not response.headers.get("Accept-Ranges"):
-					raise RuntimeError(f"{error}, server does not support range requests")
-				logger.warning("%s, restarting transfer at position %d", error, position)
-				start_position = position
-				headers["Range"] = f"bytes={start_position}-"
-				response = get_connection(url, headers)
-
-		if size:
-			message = f"Download of '{url}' completed (~{formatFileSize(size, base=10)})"
-		else:
-			message = f"Download of '{url}' completed"
-
+		message = f"Download of {url!r} completed (~{formatFileSize(size, base=10)})"
 		logger.info(message)
 		if notifier:
 			notifier.appendLine(message)
