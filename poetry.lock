@@ -1819,6 +1819,27 @@ url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
+name = "pyzsync"
+version = "0.2.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyzsync-0.2.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:9476ba641977a7307bf7a4cd393abd68ceec7d051a221fc339cc6563c39311af"},
+    {file = "pyzsync-0.2.0-cp310-none-win32.whl", hash = "sha256:c0bec622e00c3185e6040d224644b70ffe5fb9bc08e3450b9b0760fb48d5e188"},
+    {file = "pyzsync-0.2.0-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:35105abb4f08079701e5c7744d460fe7b187a2dfbae7fbc219a41b304bac3976"},
+    {file = "pyzsync-0.2.0-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:5b7273b6a188037a673e4164b7b5a308ba5abafd0f9f637099754da4523283e2"},
+    {file = "pyzsync-0.2.0-cp311-none-win32.whl", hash = "sha256:4b215e3b9f977ad8280fe90260bac448545faff0bd52a2acd1ada5a5b9dd1dc0"},
+    {file = "pyzsync-0.2.0.tar.gz", hash = "sha256:45a4968dcc1bf907b60b2e81aee5ff4cd3f9d42b2f5cbe6e5474e4d25ccacef8"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.uib.gmbh/simple"
+reference = "uibpypi"
+
+[[package]]
 name = "requests"
 version = "2.31.0"
 description = "Python HTTP for Humans."
@@ -2461,4 +2482,4 @@ reference = "uibpypi"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "9df252e6ea373e7b1e74af0d9c0568da1799eca39e17bc5ae17a4653e93201db"
+content-hash = "756d986c560cbd501f1f5e4d00c46c7347e73a231bbba071dd5567d1f4dc09b7"
