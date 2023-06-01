@@ -21,7 +21,7 @@ url = "https://pypi.uib.gmbh/simple"
 python = ">=3.10,<3.12"
 #python-opsi = {path = "python-opsi"}
 python-opsi = ">=4.3.0.0,<4.4"
-python-opsi-common = ">=4.3.0.0,<4.4"
+python-opsi-common = ">=4.3.0.48,<4.4"
 #python-opsi-common = {path = "../python-opsi-common"}
 python-magic = "^0.4"
 mysqlclient = "^2.0"
