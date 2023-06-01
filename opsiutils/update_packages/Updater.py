@@ -8,6 +8,7 @@ Component for handling package updates.
 # pylint: disable=too-many-lines
 
 import datetime
+from io import BytesIO
 import json
 import os
 import os.path
@@ -15,8 +16,8 @@ import re
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
-from urllib.parse import quote
+from typing import Generator, cast
+from urllib.parse import quote, urlparse
 
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient
@@ -31,8 +32,7 @@ from opsicommon.utils import prepare_proxy_environment
 from requests import Response, Session  # type: ignore[import]
 from requests.packages import urllib3  # type: ignore[import]
 
-from pyzsync import create_zsync_file, read_zsync_file, get_patch_instructions, patch_file, Range  # type: ignore[import]
-
+from pyzsync import create_zsync_file, read_zsync_file, get_patch_instructions, patch_file, Range, SOURCE_REMOTE  # type: ignore[import]
 from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[import]
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
 
@@ -58,23 +58,27 @@ class HashsumMissmatchError(ValueError):
 	pass
 
 
-class HTTPRangeReader:  # pylint: disable=too-few-public-methods,too-many-instance-attributes
+class HTTPRangeReader(BytesIO):
+	"""File-like reader that reads chunks of bytes over HTTP controlled by a list of ranges."""
+
 	def __init__(self, session: Session, url: str, headers: dict[str, str], ranges: list[Range]) -> None:
-		self.url = url
+		self.url = urlparse(url)
 		self.ranges = sorted(ranges, key=lambda r: r.start)
-		for range_ in self.ranges:
-			logger.debug("Range %s-%s (size %s)", range_.start, range_.end, range_.end - range_.start + 1)
+		self.headers = cast(dict[str, str], headers or {})
+
 		byte_ranges = ", ".join(f"{r.start}-{r.end}" for r in self.ranges)
-		headers["Range"] = f"bytes={byte_ranges}"
-		headers["Accept-Encoding"] = "identity"
-		self.response = session.get(self.url, headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
+		self.headers["Range"] = f"bytes={byte_ranges}"
+		self.headers["Accept-Encoding"] = "identity"
+
+		logger.info("Sending GET request to %s", self.url.geturl())
+		self.response = session.get(self.url.geturl(), headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
+		logger.debug("Received response: %r, headers: %r", self.response.status_code, dict(self.response.headers))
 		if self.response.status_code < 200 or self.response.status_code > 299:
-			logger.error("Failed to fetch ranges from %s: %s - %s", self.url, self.response.status_code, self.response.text)
-			raise ConnectionError(f"Failed to fetch ranges from {self.url}: {self.response.status_code} - {self.response.text}")
+			raise RuntimeError(f"Failed to fetch ranges from {self.url.geturl()}: {self.response.status_code} - {self.response.read()}")
 
 		self.total_size = int(self.response.headers["Content-Length"])
 		self.position = 0
-		self.percentage = 0
+		self.percentage = -1
 		self.raw_data = b""
 		self.data = b""
 		self.in_body = False
@@ -86,39 +90,46 @@ class HTTPRangeReader:  # pylint: disable=too-few-public-methods,too-many-instan
 				raise ValueError("No boundary found in Content-Type")
 			self.boundary = boundary[0].encode("ascii")
 
-	def read(self, size: int) -> bytes:
-		if not self.boundary:
-			return self.response.raw.read(size)
+	def read(self, size: int | None = None) -> bytes:
+		if not size:
+			size = self.total_size - self.position
+		return_data = b""
+		if self.boundary:
+			while len(self.data) < size:
+				self.raw_data += self.response.raw.read(65536)
+				if not self.in_body:
+					idx = self.raw_data.find(self.boundary)
+					if idx == -1:
+						raise RuntimeError("Failed to read multipart")
+					idx = self.raw_data.find(b"\n\n", idx)
+					if idx == -1:
+						raise RuntimeError("Failed to read multipart")
+					self.raw_data = self.raw_data[idx + 2 :]
+					self.in_body = True
 
-		while len(self.data) < size:
-			self.raw_data += self.response.raw.read(65536)
-			if not self.in_body:
-				idx = self.raw_data.find(self.boundary)
+				idx = self.raw_data.find(b"\n--" + self.boundary)
 				if idx == -1:
-					raise RuntimeError("Failed to read multipart")
-				idx = self.raw_data.find(b"\n\n", idx)
-				if idx == -1:
-					raise RuntimeError("Failed to read multipart")
-				self.raw_data = self.raw_data[idx + 2 :]
-				self.in_body = True
+					self.data += self.raw_data
+				else:
+					self.data += self.raw_data[:idx]
+					self.raw_data = self.raw_data[idx:]
+					self.in_body = False
+			return_data = self.data[:size]
+			self.data = self.data[size:]
+		else:
+			return_data = self.response.read(size)
 
-			idx = self.raw_data.find(b"\n--" + self.boundary)
-			if idx == -1:
-				self.data += self.raw_data
-			else:
-				self.data += self.raw_data[:idx]
-				self.raw_data = self.raw_data[idx:]
-				self.in_body = False
-
-		return_data = self.data[:size]
-		self.data = self.data[size:]
 		self.position += len(return_data)
 
 		percentage = int(self.position * 100 / self.total_size)
 		if percentage > self.percentage:
 			self.percentage = percentage
 			logger.info(
-				"Zsyncing %r: %s%% (%0.2f/%0.2f MB)", self.url, self.percentage, self.position / 1_000_000, self.total_size / 1_000_000
+				"Zsyncing %r: %s%% (%0.2f/%0.2f MB)",
+				self.url.geturl(),
+				self.percentage,
+				self.position / 1_000_000,
+				self.total_size / 1_000_000,
 			)
 		return return_data
 
@@ -779,7 +790,6 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		if response.status_code < 200 or response.status_code > 299:
 			logger.error("Failed to fetch zsync file from %s: %s - %s", url, response.status_code, response.text)
 			raise ConnectionError(f"Failed to fetch zsync file from {url}: {response.status_code} - {response.text}")
-		# size = int(response.headers.get("Content-Length", 0))
 
 		zsync_file = package_file.with_name(f"{package_file.name}.zsync-download")
 		with zsync_file.open("wb") as file:
@@ -792,6 +802,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 		files = [package_file] + list(package_file.parent.glob(f"{package_file.name}.zsync-tmp*"))
 		instructions = get_patch_instructions(zsync_file_info, files)
+		remote_bytes = sum([i.size for i in instructions if i.source == SOURCE_REMOTE])  # pylint: disable=consider-using-generator
+		speedup = (zsync_file_info.length - remote_bytes) * 100 / zsync_file_info.length
+		logger.info("Need to fetch %d/%d bytes from remote, speedup is %0.1f%%", remote_bytes, zsync_file_info.length, speedup)
 
 		def fetch_function(remote_ranges: list[Range]):
 			url = availablePackage["packageFile"]
