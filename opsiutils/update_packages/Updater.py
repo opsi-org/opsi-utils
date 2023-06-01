@@ -61,43 +61,66 @@ class HashsumMissmatchError(ValueError):
 class HTTPRangeReader(BytesIO):
 	"""File-like reader that reads chunks of bytes over HTTP controlled by a list of ranges."""
 
-	def __init__(self, session: Session, url: str, headers: dict[str, str], ranges: list[Range]) -> None:
+	def __init__(self, session: Session, url: str, headers: dict[str, str], ranges: list[Range], max_ranges_per_request: int = 100) -> None:
+		self.session = session
 		self.url = urlparse(url)
-		self.ranges = sorted(ranges, key=lambda r: r.start)
-		self.headers = cast(dict[str, str], headers or {})
-
-		byte_ranges = ", ".join(f"{r.start}-{r.end}" for r in self.ranges)
-		self.headers["Range"] = f"bytes={byte_ranges}"
+		self.headers = cast(dict[str, str], (headers or {}).copy())
 		self.headers["Accept-Encoding"] = "identity"
 
-		logger.info("Sending GET request to %s", self.url.geturl())
-		logger.debug("Sending GET request with headers: %r", self.headers)
-		self.response = session.get(self.url.geturl(), headers=self.headers, stream=True, timeout=3600 * 8)  # 8h timeout
-		logger.debug("Received response: %r, headers: %r", self.response.status_code, dict(self.response.headers))
-		if self.response.status_code < 200 or self.response.status_code > 299:
-			raise RuntimeError(f"Failed to fetch ranges from {self.url.geturl()}: {self.response.status_code} - {self.response.raw.read()}")
-
-		self.total_size = sum(r.end - r.start + 1 for r in self.ranges)
-		self.position = 0
+		# Max header size ~ 4k
+		ranges = sorted(ranges, key=lambda r: r.start)
+		self.requests = [ranges[x : x + max_ranges_per_request] for x in range(0, len(ranges), max_ranges_per_request)]
+		self.request_index = -1
+		self.total_size = sum(r.end - r.start + 1 for r in ranges)
+		self.total_position = 0
+		self.content_size = 0
+		self.content_position = 0
 		self.percentage = -1
 		self.raw_data = b""
 		self.data = b""
 		self.in_body = False
 		self.boundary = b""
+		self.response = None
+		self.request()
+
+	def request(self):
+		self.request_index += 1
+		self.content_position = 0
+		self.boundary = b""
+		self.in_body = True
+		byte_ranges = ", ".join(f"{r.start}-{r.end}" for r in self.requests[self.request_index])
+		self.headers["Range"] = f"bytes={byte_ranges}"
+
+		logger.info("Sending GET request #%d to %s", self.request_index, self.url.geturl())
+		logger.debug("Sending GET request with headers: %r", self.headers)
+		self.response = self.session.get(self.url.geturl(), headers=self.headers, stream=True, timeout=3600 * 8)  # 8h timeout
+		logger.debug("Received response: %r, headers: %r", self.response.status_code, dict(self.response.headers))
+		if self.response.status_code < 200 or self.response.status_code > 299:
+			raise RuntimeError(f"Failed to fetch ranges from {self.url.geturl()}: {self.response.status_code} - {self.response.raw.read()}")
+
+		self.content_size = int(self.response.headers["Content-Length"])
 		ctype = self.response.headers["Content-Type"]
 		if ctype.startswith("multipart/byteranges"):
 			boundary = [p.split("=", 1)[1].strip() for p in ctype.split(";") if p.strip().startswith("boundary=")]
 			if not boundary:
 				raise ValueError("No boundary found in Content-Type")
 			self.boundary = boundary[0].encode("ascii")
+			self.in_body = False
 
 	def read(self, size: int | None = None) -> bytes:
 		if not size:
-			size = self.total_size - self.position
+			size = self.total_size - self.total_position
+
 		return_data = b""
-		if self.boundary:
-			while len(self.data) < size:
-				self.raw_data += self.response.raw.read(65536)
+		while len(self.data) < size:
+			if self.content_position >= self.content_size and self.request_index < len(self.requests) - 1:
+				self.request()
+
+			chunk = self.response.raw.read(65536)
+			self.content_position += len(chunk)
+
+			if self.boundary:
+				self.raw_data += chunk
 				if not self.in_body:
 					idx = self.raw_data.find(self.boundary)
 					if idx == -1:
@@ -115,21 +138,21 @@ class HTTPRangeReader(BytesIO):
 					self.data += self.raw_data[:idx]
 					self.raw_data = self.raw_data[idx:]
 					self.in_body = False
-			return_data = self.data[:size]
-			self.data = self.data[size:]
-		else:
-			return_data = self.response.raw.read(size)
+			else:
+				self.data += chunk
 
-		self.position += len(return_data)
+		return_data = self.data[:size]
+		self.data = self.data[size:]
+		self.total_position += len(return_data)
 
-		percentage = int(self.position * 100 / self.total_size)
+		percentage = int(self.total_position * 100 / self.total_size)
 		if percentage > self.percentage:
 			self.percentage = percentage
 			logger.info(
 				"Zsyncing %r: %s%% (%0.2f/%0.2f MB)",
 				self.url.geturl(),
 				self.percentage,
-				self.position / 1_000_000,
+				self.total_position / 1_000_000,
 				self.total_size / 1_000_000,
 			)
 		return return_data
