@@ -1722,14 +1722,14 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi-common"
-version = "4.3.0.48"
+version = "4.3.0.47"
 description = "The opsi python common library"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.12"
 files = [
-    {file = "python_opsi_common-4.3.0.48-py3-none-any.whl", hash = "sha256:baa5787e83fdc4c02154eddc9ca1b9cafaa80d1cea449a5906a2ff138ff5a39e"},
-    {file = "python_opsi_common-4.3.0.48.tar.gz", hash = "sha256:5fcb3081b770c26baffad5ba04b329556f18309e502794652bf921565beb9fac"},
+    {file = "python_opsi_common-4.3.0.47-py3-none-any.whl", hash = "sha256:307c790d375b0e554b33d55cb55c1a0e1a2a574d9f58c43f17529b14001497c5"},
+    {file = "python_opsi_common-4.3.0.47.tar.gz", hash = "sha256:a41bba121bc64a099007750bc65ee80ad8f6d9922449b00d84c4f4d268fd23dd"},
 ]
 
 [package.dependencies]
@@ -1742,7 +1742,6 @@ psutil = ">=5.8,<6.0"
 pycryptodome = ">=3.10,<4.0"
 pyopenssl = ">=23.0,<24.0"
 pywin32 = {version = ">=303", markers = "sys_platform == \"win32\""}
-pyzsync = ">=0.3,<0.4"
 requests = ">=2.26,<3.0"
 rich = ">=13.0,<14.0"
 websocket-client = ">=1.4,<2.0"
@@ -1819,18 +1818,18 @@ reference = "uibpypi"
 
 [[package]]
 name = "pyzsync"
-version = "0.3.0"
+version = "0.4.0"
 description = ""
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pyzsync-0.3.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:41b9d50312d7faef6060b464e43819c17a9be5ac1889e41fe4aa9838fe776b7d"},
-    {file = "pyzsync-0.3.0-cp310-none-win32.whl", hash = "sha256:7717c9623e6a4b6a3c5b735f484ba291ec99ba01a99e1f779d5d21cec68e28d0"},
-    {file = "pyzsync-0.3.0-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:6045fccbe1b3c26772e5258ca15c8babd8c9f1bdd7c34ae811d41e69c456b10a"},
-    {file = "pyzsync-0.3.0-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:186a2408b4c3758231d135b4e3cdc732483fba3243040fec9cc586ffbf48e34d"},
-    {file = "pyzsync-0.3.0-cp311-none-win32.whl", hash = "sha256:94cccce1eec8d958ebd38f97bb9539a6bfa104559bfa656f21c8384d558ff3c9"},
-    {file = "pyzsync-0.3.0.tar.gz", hash = "sha256:66b5037f0f975294ae970edf072eb0c3b1825e4709191e1f0a49db2f99ac45f7"},
+    {file = "pyzsync-0.4.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:4a6547fca96bd0ce3ec943b841df3304cf87f25e06f57042b8ad0163c2c1b83c"},
+    {file = "pyzsync-0.4.0-cp310-none-win32.whl", hash = "sha256:d2d78163bdf572b0eb9025fa88ada7fc60bab2be3266ba2169e14324276b5adb"},
+    {file = "pyzsync-0.4.0-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:0f43fa02ce71884b2bc55bbd520b72845be1f7b0e3b0c733339969391c631331"},
+    {file = "pyzsync-0.4.0-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:8c0f00fbcc917f5a18378863a073a6e297f5c51df92cda80e4750178fabdc5a8"},
+    {file = "pyzsync-0.4.0-cp311-none-win32.whl", hash = "sha256:4d0266c642044b3f96fed96801013f14f9966baf63dbcdd189393d8fdf61e11f"},
+    {file = "pyzsync-0.4.0.tar.gz", hash = "sha256:378b761127491e40ae505165210a7ea36d481adddc7643929023550644bdf81b"},
 ]
 
 [package.source]
@@ -2473,4 +2472,4 @@ reference = "uibpypi"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "2b06307a67125f296176b5a32336ed924abc3c697efb034e94bfa26aa654e24d"
+content-hash = "960f7390b2bfa48216ebd648f37e2a024a679701f3bcebc7c36663c09e0ecb7c"
