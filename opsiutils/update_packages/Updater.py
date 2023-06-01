@@ -8,16 +8,16 @@ Component for handling package updates.
 # pylint: disable=too-many-lines
 
 import datetime
+from io import BytesIO
 import json
 import os
 import os.path
 import re
-import subprocess
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
-from urllib.parse import quote
+from typing import Generator, cast
+from urllib.parse import quote, urlparse
 
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient
@@ -32,11 +32,9 @@ from opsicommon.utils import prepare_proxy_environment
 from requests import Response, Session  # type: ignore[import]
 from requests.packages import urllib3  # type: ignore[import]
 
-from OPSI import System  # type: ignore[import]
+from pyzsync import create_zsync_file, read_zsync_file, get_patch_instructions, patch_file, Range, SOURCE_REMOTE  # type: ignore[import]
 from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[import]
-from OPSI.Util.File import ZsyncFile  # type: ignore[import]
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
-from OPSI.Util.Path import cd  # type: ignore[import]
 
 from opsiutils import get_service_client
 from opsiutils.update_packages.Config import DEFAULT_USER_AGENT, ConfigurationParser
@@ -60,6 +58,82 @@ class HashsumMissmatchError(ValueError):
 	pass
 
 
+class HTTPRangeReader(BytesIO):
+	"""File-like reader that reads chunks of bytes over HTTP controlled by a list of ranges."""
+
+	def __init__(self, session: Session, url: str, headers: dict[str, str], ranges: list[Range]) -> None:
+		self.url = urlparse(url)
+		self.ranges = sorted(ranges, key=lambda r: r.start)
+		self.headers = cast(dict[str, str], headers or {})
+
+		byte_ranges = ", ".join(f"{r.start}-{r.end}" for r in self.ranges)
+		self.headers["Range"] = f"bytes={byte_ranges}"
+		self.headers["Accept-Encoding"] = "identity"
+
+		logger.info("Sending GET request to %s", self.url.geturl())
+		self.response = session.get(self.url.geturl(), headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
+		logger.debug("Received response: %r, headers: %r", self.response.status_code, dict(self.response.headers))
+		if self.response.status_code < 200 or self.response.status_code > 299:
+			raise RuntimeError(f"Failed to fetch ranges from {self.url.geturl()}: {self.response.status_code} - {self.response.read()}")
+
+		self.total_size = int(self.response.headers["Content-Length"])
+		self.position = 0
+		self.percentage = -1
+		self.raw_data = b""
+		self.data = b""
+		self.in_body = False
+		self.boundary = b""
+		ctype = self.response.headers["Content-Type"]
+		if ctype.startswith("multipart/byteranges"):
+			boundary = [p.split("=", 1)[1].strip() for p in ctype.split(";") if p.strip().startswith("boundary=")]
+			if not boundary:
+				raise ValueError("No boundary found in Content-Type")
+			self.boundary = boundary[0].encode("ascii")
+
+	def read(self, size: int | None = None) -> bytes:
+		if not size:
+			size = self.total_size - self.position
+		return_data = b""
+		if self.boundary:
+			while len(self.data) < size:
+				self.raw_data += self.response.raw.read(65536)
+				if not self.in_body:
+					idx = self.raw_data.find(self.boundary)
+					if idx == -1:
+						raise RuntimeError("Failed to read multipart")
+					idx = self.raw_data.find(b"\n\n", idx)
+					if idx == -1:
+						raise RuntimeError("Failed to read multipart")
+					self.raw_data = self.raw_data[idx + 2 :]
+					self.in_body = True
+
+				idx = self.raw_data.find(b"\n--" + self.boundary)
+				if idx == -1:
+					self.data += self.raw_data
+				else:
+					self.data += self.raw_data[:idx]
+					self.raw_data = self.raw_data[idx:]
+					self.in_body = False
+			return_data = self.data[:size]
+			self.data = self.data[size:]
+		else:
+			return_data = self.response.read(size)
+
+		self.position += len(return_data)
+
+		percentage = int(self.position * 100 / self.total_size)
+		if percentage > self.percentage:
+			self.percentage = percentage
+			logger.info(
+				"Zsyncing %r: %s%% (%0.2f/%0.2f MB)",
+				self.url.geturl(),
+				self.percentage,
+				self.position / 1_000_000,
+				self.total_size / 1_000_000,
+			)
+		return return_data
+
+
 class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 	def __init__(self, config: dict[str, str | None | list[ProductRepositoryInfo]]) -> None:
 		self.config = config
@@ -68,17 +142,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		self.depotId = OpsiConfig().get("host", "id")
 		self.errors: list[Exception] = []
 
-		try:
-			self.config["zsyncCommand"] = System.which("zsync-curl")
-			logger.info("Zsync command found: %s", self.config["zsyncCommand"])
-		except Exception:  # pylint: disable=broad-except
-			logger.warning("Command 'zsync-curl' not found")
-			self.config["zsyncCommand"] = None
-
 		# Proxy is needed for getConfigBackend which is needed for ConfigurationParser.parse
 		self.config["proxy"] = ConfigurationParser.get_proxy(self.config["configFile"])
 
-		depots = self.getConfigBackend().jsonrpc("host_getObjects", params = [[], {"type": "OpsiDepotserver", "id": self.depotId}])
+		depots = self.getConfigBackend().host_getObjects(type="OpsiDepotserver", id=self.depotId)  # pylint: disable=no-member
 		try:
 			self.depotKey = depots[0].opsiHostKey
 		except IndexError as err:
@@ -95,7 +162,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
 		try:
-			self.configBackend.jsonrpc("backend_exit")
+			self.configBackend.backend_exit()  # pylint: disable=no-member
 		except Exception:  # pylint: disable=broad-except
 			pass
 
@@ -140,7 +207,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		if not self.configBackend:
 			self.configBackend = get_service_client(proxy_url=self.config["proxy"])
 			try:
-				ca_crt = load_certificate(FILETYPE_PEM, self.configBackend.jsonrpc("getOpsiCACert"))
+				ca_crt = load_certificate(FILETYPE_PEM, self.configBackend.getOpsiCACert())  # pylint: disable=no-member
 				install_ca(ca_crt)
 			except Exception as err:  # pylint: disable=broad-except
 				logger.info("Failed to update opsi CA: %s", err)
@@ -159,10 +226,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		return result
 
 	def _useZsync(  # pylint: disable=too-many-return-statements
-		self,
-		session: Session,
-		availablePackage: dict[str, str | ProductRepositoryInfo],
-		localPackage: dict[str, str] | None
+		self, session: Session, availablePackage: dict[str, str | ProductRepositoryInfo], localPackage: dict[str, str] | None
 	) -> bool:
 		if not self.config["useZsync"]:
 			return False
@@ -171,9 +235,6 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			return False
 		if not availablePackage["zsyncFile"]:
 			logger.info("Cannot use zsync, no zsync file on server found")
-			return False
-		if not self.config["zsyncCommand"]:
-			logger.info("Cannot use zsync, command not found")
 			return False
 
 		response = session.head(availablePackage["packageFile"])
@@ -242,7 +303,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 					continue
 				packageFile = os.path.join(self.config["packageDir"], package["filename"])
 				productId = package["productId"]
-				opsi_package = OpsiPackage(Path(packageFile), temp_dir = Path(self.config.get("tempdir")) if self.config.get("tempdir") else None)
+				opsi_package = OpsiPackage(
+					Path(packageFile), temp_dir=Path(self.config.get("tempdir")) if self.config.get("tempdir") else None
+				)
 				for dependency in opsi_package.package_dependencies:
 					try:
 						ppos = sequence.index(productId)
@@ -275,14 +338,12 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 					try:
 						if package["repository"].inheritProductProperties and package["repository"].opsiDepotId:
 							logger.info("Trying to get product property defaults from repository")
-							productPropertyStates = backend.jsonrpc(
-								"productPropertyState_getObjects",
-								params=[[], {"productId": package["productId"], "objectId": package["repository"].opsiDepotId}]
+							productPropertyStates = backend.productPropertyState_getObjects(  # pylint: disable=no-member
+								productId=package["productId"], objectId=package["repository"].opsiDepotId
 							)
 						else:
-							productPropertyStates = backend.jsonrpc(
-								"productPropertyState_getObjects",
-								params=[[], {"productId": package["productId"], "objectId": self.depotId}]
+							productPropertyStates = backend.productPropertyState_getObjects(  # pylint: disable=no-member
+								productId=package["productId"], objectId=self.depotId
 							)
 						if productPropertyStates:
 							for pps in productPropertyStates:
@@ -295,22 +356,15 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 					backend.depot_installPackage(  # pylint: disable=no-member
 						filename=packageFile, propertyDefaultValues=propertyDefaultValues, tempDir=self.config.get("tempdir", "/tmp")
 					)
-					productOnDepots = backend.jsonrpc(
-						"productOnDepot_getObjects",
-						params=[[], {"depotId": self.depotId, "productId": package["productId"]}]
+					productOnDepots = backend.productOnDepot_getObjects(  # pylint: disable=no-member
+						depotId=self.depotId, productId=package["productId"]
 					)
 					if not productOnDepots:
 						raise ValueError(f"Product {package['productId']!r} not found on depot '{self.depotId}' after installation")
-					package["product"] = backend.jsonrpc(
-						"product_getObjects",
-						params=[
-							[],
-							{
-								"id": productOnDepots[0].productId,
-								"productVersion": productOnDepots[0].productVersion,
-								"packageVersion": productOnDepots[0].packageVersion,
-							}
-						]
+					package["product"] = backend.product_getObjects(  # pylint: disable=no-member
+						id=productOnDepots[0].productId,
+						productVersion=productOnDepots[0].productVersion,
+						packageVersion=productOnDepots[0].packageVersion,
 					)[0]
 
 					message = f"Package '{packageFile}' successfully installed"
@@ -389,17 +443,12 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				clientIds = set(ctd["clientId"] for ctd in clientToDepotserver if ctd["clientId"])
 
 				if clientIds:
-					productOnClients = backend.jsonrpc(
-						"productOnClient_getObjects",
-						params = [
-							["installationStatus"],
-							{
-								"productId": package["productId"],
-								"productType": "LocalbootProduct",
-								"clientId": clientIds,
-								"installationStatus": ["installed"],
-							}
-						]
+					productOnClients = backend.productOnClient_getObjects(  # pylint: disable=no-member
+						attributes=["installationStatus"],
+						productId=package["productId"],
+						productType="LocalbootProduct",
+						clientId=clientIds,
+						installationStatus=["installed"],
 					)
 					if productOnClients:
 						wolEnabled = self.config["wolAction"]
@@ -410,7 +459,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 							if wolEnabled and package["productId"] not in excludedWolProducts:
 								wakeOnLanClients.add(poc.clientId)
 
-						backend.jsonrpc("productOnClient_updateObjects", params=[productOnClients])
+						backend.productOnClient_updateObjects([productOnClients])  # pylint: disable=no-member
 						notifier.appendLine(
 							(
 								f"Product {package['productId']} set to 'setup' on clients: "
@@ -428,9 +477,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 						if self.config["wolShutdownWanted"] and shutdownProduct:
 							logger.info("Setting shutdownwanted to 'setup' for client '%s'", clientId)
 
-							backend.jsonrpc(
-								"productOnClient_updateObjects",
-								params = [
+							backend.productOnClient_updateObjects(  # pylint: disable=no-member
+								[
 									ProductOnClient(
 										productId=shutdownProduct.productId,
 										productType=shutdownProduct.productType,
@@ -441,7 +489,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 									)
 								]
 							)
-						backend.jsonrpc("hostControl_start",  params=[[clientId]])
+						backend.hostControl_start([clientId])  # pylint: disable=no-member
 						time.sleep(self.config["wolStartGap"])
 					except Exception as err:  # pylint: disable=broad-except
 						logger.error("Failed to power on client '%s': %s", clientId, err)
@@ -522,10 +570,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		return True
 
 	def get_installed_package(
-			self,
-			availablePackage: dict[str, str | ProductRepositoryInfo],
-			installedProducts: list[ProductOnDepot]
-		) -> ProductOnDepot | None:
+		self, availablePackage: dict[str, str | ProductRepositoryInfo], installedProducts: list[ProductOnDepot]
+	) -> ProductOnDepot | None:
 		logger.info("Testing if download/installation of package '%s' is needed", availablePackage["filename"])
 		for product in installedProducts:
 			if product.productId == availablePackage["productId"]:
@@ -540,10 +586,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		return None
 
 	def get_local_package(
-			self,
-			availablePackage: dict[str, str | ProductRepositoryInfo],
-			localPackages: list[dict[str, str]]
-		) -> dict[str, str] | None:
+		self, availablePackage: dict[str, str | ProductRepositoryInfo], localPackages: list[dict[str, str]]
+	) -> dict[str, str] | None:
 		for localPackage in localPackages:
 			if localPackage["productId"] == availablePackage["productId"]:
 				logger.debug("Found local package file '%s'", localPackage["filename"])
@@ -554,7 +598,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		self,
 		localPackageFound: dict[str, str],
 		availablePackage: dict[str, str | ProductRepositoryInfo],
-		notifier: BaseNotifier | None = None
+		notifier: BaseNotifier | None = None,
 	) -> bool:
 		if (
 			localPackageFound
@@ -639,9 +683,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		return False
 
 	def get_packages(  # pylint: disable=too-many-locals
-		self,
-		notifier: BaseNotifier,
-		all_packages: bool = False
+		self, notifier: BaseNotifier, all_packages: bool = False
 	) -> list[dict[str, str | ProductRepositoryInfo]]:
 		installedProducts = self.getInstalledProducts()
 		localPackages = self.getLocalPackages()
@@ -690,7 +732,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		localPackageFound: dict[str, str],
 		session: Session,
 		notifier: BaseNotifier | None = None,
-		zsync: bool = True
+		zsync: bool = True,
 	) -> None:
 		packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 		if zsync:
@@ -700,7 +742,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 			message = None
 			try:
-				self.zsyncPackage(availablePackage, packageFile)
+				self.zsyncPackage(availablePackage, packageFile, session)
 				message = f"Zsync of {availablePackage['packageFile']!r} completed"
 				logger.info(message)
 			except Exception as err:  # pylint: disable=broad-except
@@ -732,125 +774,89 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			if notifier and notifier.hasMessage():
 				notifier.notify()
 
-	def zsyncPackage(self, availablePackage: dict[str, str | ProductRepositoryInfo], packageFile: str) -> None:  # pylint: disable=too-many-locals
-		repository: ProductRepositoryInfo = availablePackage["repository"]
-		with cd(os.path.dirname(packageFile)):
-			logger.info("Zsyncing %s to %s", availablePackage["packageFile"], packageFile)
+	def zsyncPackage(  # pylint: disable=invalid-name
+		self, availablePackage: dict[str, str | ProductRepositoryInfo], packageFile: str, session: Session
+	) -> None:
+		package_file = Path(packageFile)
+		# raise Exception("Not implemented")
+		logger.info("Zsyncing %s to %s", availablePackage["packageFile"], package_file)
 
-			url = availablePackage["zsyncFile"]
-			if repository.username:
-				quoted_password = quote(repository.password)
-				secret_filter.add_secrets(quoted_password)
-				auth = f"{quote(repository.username)}:{quoted_password}"
-				tmp = url.split("://", 1)
-				url = f"{tmp[0]}://{auth}@{tmp[1]}"
-			cmd = [self.config["zsyncCommand"], "-o", packageFile, url]
+		if not package_file.exists():
+			raise FileNotFoundError(f"Package file {package_file} not found")
 
-			env = System.get_subprocess_environment()
-			if repository.proxy:
-				if repository.proxy != "system":
-					env.update({"http_proxy": repository.proxy, "https_proxy": repository.proxy})
-			else:
-				env.update({"http_proxy": "", "https_proxy": "", "no_proxy": "*"})
+		url = availablePackage["zsyncFile"]
+		logger.info("Fetching zsync file %s", url)
+		response = session.get(url, headers=self.httpHeaders, stream=True, timeout=1800)  # 30 minutes timeout
+		if response.status_code < 200 or response.status_code > 299:
+			logger.error("Failed to fetch zsync file from %s: %s - %s", url, response.status_code, response.text)
+			raise ConnectionError(f"Failed to fetch zsync file from {url}: {response.status_code} - {response.text}")
 
-			stateRegex = re.compile(r"\s([\d.]+)%\s+([\d.]+)\skBps(.*)$")
-			data = b""
-			buffer = b""
-			exit_code = 0
-			percent = 0
-			logger.info("Executing zsync command %r with env %r", cmd, env)
-			with subprocess.Popen(
-				cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env
-			) as proc:
-				while True:
-					inp = proc.stdout.read(16)
-					if inp:
-						data += inp
-						buffer += inp
-						match = stateRegex.search(buffer.decode("utf-8", "replace"))
-						if match:
-							buffer = match.group(3).encode()
-							new_percent = float(match.group(1))
-							speed = float(match.group(2)) * 8
-							if percent != new_percent:
-								percent = new_percent
-								logger.info("Zsyncing %s: %d%% (%d kbit/s)", availablePackage["packageFile"], percent, speed)
-					exit_code = proc.poll()
-					if exit_code is not None:
-						break
-			if exit_code != 0:
-				data = data.decode("utf-8", "replace")
-				raise RuntimeError(f"Command {cmd} failed with exit code {exit_code}: {data}")
+		zsync_file = package_file.with_name(f"{package_file.name}.zsync-download")
+		with zsync_file.open("wb") as file:
+			for chunk in response.iter_content(chunk_size=32768):
+				file.write(chunk)
+		logger.debug("Zsync file %s downloaded", zsync_file)
+
+		zsync_file_info = read_zsync_file(zsync_file)
+		zsync_file.unlink()
+
+		files = [package_file] + list(package_file.parent.glob(f"{package_file.name}.zsync-tmp*"))
+		instructions = get_patch_instructions(zsync_file_info, files)
+		remote_bytes = sum([i.size for i in instructions if i.source == SOURCE_REMOTE])  # pylint: disable=consider-using-generator
+		speedup = (zsync_file_info.length - remote_bytes) * 100 / zsync_file_info.length
+		logger.info("Need to fetch %d/%d bytes from remote, speedup is %0.1f%%", remote_bytes, zsync_file_info.length, speedup)
+
+		def fetch_function(remote_ranges: list[Range]):
+			url = availablePackage["packageFile"]
+			logger.info("Fetching ranges from %s", url)
+			reader = HTTPRangeReader(session=session, url=url, headers=self.httpHeaders, ranges=remote_ranges)
+			return reader
+
+		sha1_digest = patch_file(files, instructions, fetch_function=fetch_function)
+
+		if sha1_digest != zsync_file_info.sha1:
+			raise RuntimeError("Failed to patch file, SHA-1 mismatch")
 
 	def downloadPackage(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-		self,
-		availablePackage: dict[str, str | ProductRepositoryInfo],
-		session: Session,
-		notifier: BaseNotifier | None= None
+		self, availablePackage: dict[str, str | ProductRepositoryInfo], session: Session, notifier: BaseNotifier | None = None
 	) -> Response:
 		url = availablePackage["packageFile"]
 		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 
-		def get_connection(_url, _headers):
-			response = session.get(_url, headers=_headers, stream=True, timeout=3600 * 8)  # 8h timeout
-			if response.status_code < 200 or response.status_code > 299:
-				logger.error("Unable to download Package from %s: %s - %s", url, response.status_code, response.text)
-				raise ConnectionError(f"Unable to download Package from {url}: {response.status_code} - {response.text}")
-			return response
+		headers = self.httpHeaders.copy()
+		headers["Accept-Encoding"] = "identity"
+		response = session.get(url, headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
+		if response.status_code < 200 or response.status_code > 299:
+			logger.error("Failed to download Package from %r: %s - %s", url, response.status_code, response.text)
+			raise RuntimeError(f"Failed to download Package from {url!r}: {response.status_code} - {response.text}")
 
-		response = get_connection(url, self.httpHeaders)
-
-		size = int(response.headers.get("Content-Length", 0))
-		if size:
-			logger.info("Downloading %s (%s MB) to %s", url, round(size / (1024.0 * 1024.0), 2), outFile)
-		else:
-			logger.info("Downloading %s to %s", url, outFile)
+		size = int(response.headers["Content-Length"])
+		logger.info("Downloading %r (%0.2f MB) to %s", url, size / (1_000_000), outFile)
 
 		position = 0
 		percent = 0.0
 		last_time = time.time()
 		last_position = 0
 		last_percent = 0
-		start_position = 0
 		speed = 0
 
 		with open(outFile, "wb") as out:
-			for attempt in range(1, 11):  # pylint: disable=too-many-nested-blocks
-				for chunk in response.iter_content(chunk_size=32768):
-					position += len(chunk)
-					out.write(chunk)
+			for chunk in response.iter_content(chunk_size=32768):
+				position += len(chunk)
+				out.write(chunk)
+				percent = int(position * 100 / size)
+				if last_percent != percent:
+					last_percent = percent
+					now = time.time()
+					if not speed or now - last_time > 2:
+						speed = 8 * int(((position - last_position) / (now - last_time)) / 1000)
+						last_time = now
+						last_position = position
+					logger.info("Downloading %r: %d%% (%0.2f kbit/s)", url, percent, speed)
+			if size != position:
+				raise RuntimeError(f"Failed to complete download, only {position} of {size} bytes transferred")
 
-					if size > 0:
-						try:
-							percent = round(100 * position / size, 1)
-							if last_percent != percent:
-								last_percent = percent
-								now = time.time()
-								if not speed or (now - last_time) > 2:
-									speed = 8 * int(((position - last_position) / (now - last_time)) / 1024)
-									last_time = now
-									last_position = position
-								logger.debug("Downloading %s: %0.1f%% (%0.2f kbit/s)", url, percent, speed)
-						except Exception:  # pylint: disable=broad-except
-							pass
-				if not size or size == position:
-					break
-				error = f"Failed to complete download, only {position} of {size} bytes transferred"
-				if start_position == position or attempt >= 10:
-					raise RuntimeError(error)
-				if not response.headers.get("Accept-Ranges"):
-					raise RuntimeError(f"{error}, server does not support range requests")
-				logger.warning("%s, restarting transfer at position %d", error, position)
-				headers = self.httpHeaders.copy()
-				start_position = position
-				headers["Range"] = f"bytes={start_position}-"
-				response = get_connection(url, headers)
-
-		if size:
-			message = f"Download of '{url}' completed (~{formatFileSize(size, base=10)})"
-		else:
-			message = f"Download of '{url}' completed"
-
+		message = f"Download of {url!r} completed (~{formatFileSize(size, base=10)})"
 		logger.info(message)
 		if notifier:
 			notifier.appendLine(message)
@@ -867,7 +873,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			path = os.path.join(self.config["packageDir"], filename)
 			if not os.path.isfile(path):
 				continue
-			if path.endswith(".zs-old"):
+			if path.endswith(".zs-old") or path.endswith(".zsync-download"):
 				os.unlink(path)
 				continue
 
@@ -894,8 +900,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		zsyncFile = f"{packageFile}.zsync"
 		logger.info("Creating zsync file '%s'", zsyncFile)
 		try:
-			zsyncFile = ZsyncFile(zsyncFile)
-			zsyncFile.generate(packageFile)
+			create_zsync_file(packageFile, zsyncFile, legacy_mode=True)
 		except Exception as err:  # pylint: disable=broad-except
 			logger.error("Failed to create zsync file '%s': %s", zsyncFile, err)
 
@@ -923,7 +928,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		logger.info("Getting installed products")
 		products = []
 		configBackend = self.getConfigBackend()
-		for product in configBackend.jsonrpc("productOnDepot_getObjects", params=[[], {"depotId": self.depotId}]):
+		for product in configBackend.productOnDepot_getObjects(depotId=self.depotId):  # pylint: disable=no-member
 			logger.info("Found installed product '%s_%s-%s'", product.productId, product.productVersion, product.packageVersion)
 			products.append(product)
 		return products
@@ -936,7 +941,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				downloadablePackages.append(package)
 		return downloadablePackages
 
-	def getDownloadablePackagesFromRepository(self, repository: ProductRepositoryInfo) -> list[dict[str, str | ProductRepositoryInfo]]:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+	def getDownloadablePackagesFromRepository(
+		self, repository: ProductRepositoryInfo
+	) -> list[dict[str, str | ProductRepositoryInfo]]:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		with self.makeSession(repository) as session:
 			packages = []
 			errors = set()
