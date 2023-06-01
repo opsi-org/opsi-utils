@@ -71,15 +71,12 @@ class HTTPRangeReader(BytesIO):
 		self.headers["Accept-Encoding"] = "identity"
 
 		logger.info("Sending GET request to %s", self.url.geturl())
-		self.response = session.get(self.url.geturl(), headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
+		self.response = session.get(self.url.geturl(), headers=self.headers, stream=True, timeout=3600 * 8)  # 8h timeout
 		logger.debug("Received response: %r, headers: %r", self.response.status_code, dict(self.response.headers))
 		if self.response.status_code < 200 or self.response.status_code > 299:
 			raise RuntimeError(f"Failed to fetch ranges from {self.url.geturl()}: {self.response.status_code} - {self.response.raw.read()}")
 
-		content_length = int(self.response.headers["Content-Length"])
-		ranges_length = sum(r.end - r.start + 1 for r in self.ranges)
-		logger.info("content_length: %r, ranges_length: %r", content_length, ranges_length)
-		self.total_size = ranges_length
+		self.total_size = int(self.response.headers["Content-Length"])
 		self.position = 0
 		self.percentage = -1
 		self.raw_data = b""
