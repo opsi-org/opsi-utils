@@ -15,8 +15,8 @@ import re
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator, cast
-from urllib.parse import quote, urlparse
+from typing import Generator
+from urllib.parse import quote
 
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient
