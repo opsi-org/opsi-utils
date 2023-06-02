@@ -1722,14 +1722,14 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi-common"
-version = "4.3.0.49"
+version = "4.3.0.50"
 description = "The opsi python common library"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.12"
 files = [
-    {file = "python_opsi_common-4.3.0.49-py3-none-any.whl", hash = "sha256:8cffb173fbbe7d6a753b61eaf3c875735c43d3a5a614dfea6616185f01ce5e78"},
-    {file = "python_opsi_common-4.3.0.49.tar.gz", hash = "sha256:422b1ef0f3e15e545498d264ef2a846b9fa979cbcc238bbbab9ac65b69f6e6de"},
+    {file = "python_opsi_common-4.3.0.50-py3-none-any.whl", hash = "sha256:49f35eb9ab7e0abe3e3ca64570e4a3b2ff0b248a79e8bb56a37e409dd7909cc1"},
+    {file = "python_opsi_common-4.3.0.50.tar.gz", hash = "sha256:941214a1de974051941906eeb6c57590a917ddf279a8c15233e39c120cc91cfa"},
 ]
 
 [package.dependencies]
@@ -1819,18 +1819,18 @@ reference = "uibpypi"
 
 [[package]]
 name = "pyzsync"
-version = "0.4.0"
+version = "0.6.0"
 description = ""
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pyzsync-0.4.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:4a6547fca96bd0ce3ec943b841df3304cf87f25e06f57042b8ad0163c2c1b83c"},
-    {file = "pyzsync-0.4.0-cp310-none-win32.whl", hash = "sha256:d2d78163bdf572b0eb9025fa88ada7fc60bab2be3266ba2169e14324276b5adb"},
-    {file = "pyzsync-0.4.0-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:0f43fa02ce71884b2bc55bbd520b72845be1f7b0e3b0c733339969391c631331"},
-    {file = "pyzsync-0.4.0-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:8c0f00fbcc917f5a18378863a073a6e297f5c51df92cda80e4750178fabdc5a8"},
-    {file = "pyzsync-0.4.0-cp311-none-win32.whl", hash = "sha256:4d0266c642044b3f96fed96801013f14f9966baf63dbcdd189393d8fdf61e11f"},
-    {file = "pyzsync-0.4.0.tar.gz", hash = "sha256:378b761127491e40ae505165210a7ea36d481adddc7643929023550644bdf81b"},
+    {file = "pyzsync-0.6.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:1191aa01083dd8dda0dcfa4398fbffecd594846888d570e673fd51bc7c6e2bbc"},
+    {file = "pyzsync-0.6.0-cp310-none-win32.whl", hash = "sha256:8ad06da173d96531f261f8abaf226da3200ee5090129738a198a608d026990b6"},
+    {file = "pyzsync-0.6.0-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:17c53d048133d8e5126973e2596457cde792aceb0110c5ee40cca11c05b36cef"},
+    {file = "pyzsync-0.6.0-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:4fbfcb55e77e2598b4ba1e149da482799b498729f9a0d4d5e812ce078b8eb259"},
+    {file = "pyzsync-0.6.0-cp311-none-win32.whl", hash = "sha256:07b39e4f5c5279050682997c9e697bb018c5b7657cf9db666219ee4081125315"},
+    {file = "pyzsync-0.6.0.tar.gz", hash = "sha256:8c6e9e731b9ca145e51b6d714c87fef1444688153719a056ad9486a97242c0dd"},
 ]
 
 [package.source]
@@ -2176,14 +2176,14 @@ reference = "uibpypi"
 
 [[package]]
 name = "typing-extensions"
-version = "4.6.2"
+version = "4.6.3"
 description = "Backported and Experimental Type Hints for Python 3.7+"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "typing_extensions-4.6.2-py3-none-any.whl", hash = "sha256:3a8b36f13dd5fdc5d1b16fe317f5668545de77fa0b8e02006381fd49d731ab98"},
-    {file = "typing_extensions-4.6.2.tar.gz", hash = "sha256:06006244c70ac8ee83fa8282cb188f697b8db25bc8b4df07be1873c43897060c"},
+    {file = "typing_extensions-4.6.3-py3-none-any.whl", hash = "sha256:88a4153d8505aabbb4e13aacb7c486c2b4a33ca3b3f807914a9b4c844c471c26"},
+    {file = "typing_extensions-4.6.3.tar.gz", hash = "sha256:d91d5919357fe7f681a9f2b5b4cb2a5f1ef0a1e9f59c4d8ff0d3491e05c0ffd5"},
 ]
 
 [package.source]
@@ -2473,4 +2473,4 @@ reference = "uibpypi"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "446a0c9f7a2814684399009b3d0e8fd816b4cba3a4f42a1fafe212e44bf4cabd"
+content-hash = "24a630be84f4ae3fe5ff3cbe97c57e0523b8cdafd8286b4796fbcf18d60a7450"
