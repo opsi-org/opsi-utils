@@ -59,14 +59,6 @@ arm64-pyinstaller:
       - opsi-utils-arm64
     expire_in: 2 days
 
-
-obs_int:
-  stage: publish
-  script:
-    - opsi-dev-tool -l info --obs-update-package https://obs.uib.gmbh home:uibmz:opsi:4.2:development
-  only:
-    - tags
-
 obs_ext:
   stage: publish
   script:
