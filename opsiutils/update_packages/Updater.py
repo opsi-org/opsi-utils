@@ -8,7 +8,6 @@ Component for handling package updates.
 # pylint: disable=too-many-lines
 
 import datetime
-from io import BytesIO
 import json
 import os
 import os.path
@@ -16,8 +15,8 @@ import re
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator, cast
-from urllib.parse import quote, urlparse
+from typing import Generator
+from urllib.parse import quote
 
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient
@@ -32,7 +31,18 @@ from opsicommon.utils import prepare_proxy_environment
 from requests import Response, Session  # type: ignore[import]
 from requests.packages import urllib3  # type: ignore[import]
 
-from pyzsync import create_zsync_file, read_zsync_file, get_patch_instructions, patch_file, Range, SOURCE_REMOTE  # type: ignore[import]
+from pyzsync import (
+	create_zsync_file,
+	read_zsync_file,
+	get_patch_instructions,
+	patch_file,
+	Range,
+	SOURCE_REMOTE,
+	HTTPRangeReader,
+	ProgressListener,
+	RangeReader,
+	CaseInsensitiveDict,
+)
 from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[import]
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
 
@@ -58,80 +68,28 @@ class HashsumMissmatchError(ValueError):
 	pass
 
 
-class HTTPRangeReader(BytesIO):
-	"""File-like reader that reads chunks of bytes over HTTP controlled by a list of ranges."""
+class RequestsHTTPRangeReader(HTTPRangeReader):
+	def __init__(
+		self,
+		session: Session,
+		url: str,
+		ranges: list[Range],
+		headers: dict[str, str],
+		max_ranges_per_request: int = 100,
+		read_timeout: int = 8 * 3600,
+	) -> None:
+		super().__init__(url=url, ranges=ranges, headers=headers, max_ranges_per_request=max_ranges_per_request, read_timeout=read_timeout)
 
-	def __init__(self, session: Session, url: str, headers: dict[str, str], ranges: list[Range]) -> None:
-		self.url = urlparse(url)
-		self.ranges = sorted(ranges, key=lambda r: r.start)
-		self.headers = cast(dict[str, str], headers or {})
+		self._session: Session = session
+		self._response: Response | None = None
 
-		byte_ranges = ", ".join(f"{r.start}-{r.end}" for r in self.ranges)
-		self.headers["Range"] = f"bytes={byte_ranges}"
-		self.headers["Accept-Encoding"] = "identity"
+	def _send_request(self) -> tuple[int, CaseInsensitiveDict]:
+		self._response = self._session.get(self.url, headers=self._headers, stream=True, timeout=self._read_timeout)
+		return self._response.status_code, CaseInsensitiveDict(dict(self._response.headers))
 
-		logger.info("Sending GET request to %s", self.url.geturl())
-		self.response = session.get(self.url.geturl(), headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
-		logger.debug("Received response: %r, headers: %r", self.response.status_code, dict(self.response.headers))
-		if self.response.status_code < 200 or self.response.status_code > 299:
-			raise RuntimeError(f"Failed to fetch ranges from {self.url.geturl()}: {self.response.status_code} - {self.response.read()}")
-
-		self.total_size = int(self.response.headers["Content-Length"])
-		self.position = 0
-		self.percentage = -1
-		self.raw_data = b""
-		self.data = b""
-		self.in_body = False
-		self.boundary = b""
-		ctype = self.response.headers["Content-Type"]
-		if ctype.startswith("multipart/byteranges"):
-			boundary = [p.split("=", 1)[1].strip() for p in ctype.split(";") if p.strip().startswith("boundary=")]
-			if not boundary:
-				raise ValueError("No boundary found in Content-Type")
-			self.boundary = boundary[0].encode("ascii")
-
-	def read(self, size: int | None = None) -> bytes:
-		if not size:
-			size = self.total_size - self.position
-		return_data = b""
-		if self.boundary:
-			while len(self.data) < size:
-				self.raw_data += self.response.raw.read(65536)
-				if not self.in_body:
-					idx = self.raw_data.find(self.boundary)
-					if idx == -1:
-						raise RuntimeError("Failed to read multipart")
-					idx = self.raw_data.find(b"\n\n", idx)
-					if idx == -1:
-						raise RuntimeError("Failed to read multipart")
-					self.raw_data = self.raw_data[idx + 2 :]
-					self.in_body = True
-
-				idx = self.raw_data.find(b"\n--" + self.boundary)
-				if idx == -1:
-					self.data += self.raw_data
-				else:
-					self.data += self.raw_data[:idx]
-					self.raw_data = self.raw_data[idx:]
-					self.in_body = False
-			return_data = self.data[:size]
-			self.data = self.data[size:]
-		else:
-			return_data = self.response.read(size)
-
-		self.position += len(return_data)
-
-		percentage = int(self.position * 100 / self.total_size)
-		if percentage > self.percentage:
-			self.percentage = percentage
-			logger.info(
-				"Zsyncing %r: %s%% (%0.2f/%0.2f MB)",
-				self.url.geturl(),
-				self.percentage,
-				self.position / 1_000_000,
-				self.total_size / 1_000_000,
-			)
-		return return_data
+	def _read_response_data(self, size: int | None = None) -> bytes:
+		assert isinstance(self._response, Response)
+		return self._response.raw.read(size)
 
 
 class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
@@ -747,7 +705,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				logger.info(message)
 			except Exception as err:  # pylint: disable=broad-except
 				message = f"Zsync of {availablePackage['packageFile']!r} failed: {err}"
-				logger.error(message)
+				logger.error(message, exc_info=True)
 
 			if notifier and message:
 				notifier.appendLine(message)
@@ -806,13 +764,32 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		speedup = (zsync_file_info.length - remote_bytes) * 100 / zsync_file_info.length
 		logger.info("Need to fetch %d/%d bytes from remote, speedup is %0.1f%%", remote_bytes, zsync_file_info.length, speedup)
 
-		def fetch_function(remote_ranges: list[Range]):
+		class LoggingProgressListener(ProgressListener):
+			def __init__(self) -> None:
+				self.last_completed = 0
+
+			def progress_changed(self, reader: RangeReader, position: int, total: int, per_second: int) -> None:
+				completed = round(position * 100 / total)
+				if completed == self.last_completed:
+					return
+				self.last_completed = completed
+				logger.info(
+					"Zsyncing %r: %s%% - %0.2f/%0.2f MB - %0.f kB/s",
+					reader.url,
+					completed,
+					position / 1_000_000,
+					total / 1_000_000,
+					per_second / 1_000,
+				)
+
+		def range_reader_factory(remote_ranges: list[Range]) -> RequestsHTTPRangeReader:
 			url = availablePackage["packageFile"]
 			logger.info("Fetching ranges from %s", url)
-			reader = HTTPRangeReader(session=session, url=url, headers=self.httpHeaders, ranges=remote_ranges)
+			reader = RequestsHTTPRangeReader(session=session, url=url, ranges=remote_ranges, headers=self.httpHeaders)
+			reader.register_progress_listener(LoggingProgressListener())
 			return reader
 
-		sha1_digest = patch_file(files, instructions, fetch_function=fetch_function)
+		sha1_digest = patch_file(files, instructions, range_reader_factory=range_reader_factory)
 
 		if sha1_digest != zsync_file_info.sha1:
 			raise RuntimeError("Failed to patch file, SHA-1 mismatch")

@@ -1785,18 +1785,18 @@ reference = "uibpypi"
 
 [[package]]
 name = "pyzsync"
-version = "0.4.0"
+version = "0.6.1"
 description = ""
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pyzsync-0.4.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:4a6547fca96bd0ce3ec943b841df3304cf87f25e06f57042b8ad0163c2c1b83c"},
-    {file = "pyzsync-0.4.0-cp310-none-win32.whl", hash = "sha256:d2d78163bdf572b0eb9025fa88ada7fc60bab2be3266ba2169e14324276b5adb"},
-    {file = "pyzsync-0.4.0-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:0f43fa02ce71884b2bc55bbd520b72845be1f7b0e3b0c733339969391c631331"},
-    {file = "pyzsync-0.4.0-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:8c0f00fbcc917f5a18378863a073a6e297f5c51df92cda80e4750178fabdc5a8"},
-    {file = "pyzsync-0.4.0-cp311-none-win32.whl", hash = "sha256:4d0266c642044b3f96fed96801013f14f9966baf63dbcdd189393d8fdf61e11f"},
-    {file = "pyzsync-0.4.0.tar.gz", hash = "sha256:378b761127491e40ae505165210a7ea36d481adddc7643929023550644bdf81b"},
+    {file = "pyzsync-0.6.1-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:bff3d904df205ca287ad3f8b4b8594c5e73c3037dd2ceeec82bb2d9e03935118"},
+    {file = "pyzsync-0.6.1-cp310-none-win32.whl", hash = "sha256:54bb288bba21451a2d8d30061c880801f67129363c4f89af314b38893fbe1aa7"},
+    {file = "pyzsync-0.6.1-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:ebd38d9d16818b06ae8bdfaa7b0a6c38bea4beaf16b488b8c2f0f54cba93b923"},
+    {file = "pyzsync-0.6.1-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:c67dd6a43c557ab04cad3c98592400edc7d13a6f722f6f4b6cf7c9ca0d9f98c7"},
+    {file = "pyzsync-0.6.1-cp311-none-win32.whl", hash = "sha256:dc7edcb892f50bc7d435afc2c4e53c60dc5baa2f585335e815d415e19f965b82"},
+    {file = "pyzsync-0.6.1.tar.gz", hash = "sha256:a4e39729bc4ab3655ae41ffc5ccc7611976603f37bb301c45779ddf3b2ef40b0"},
 ]
 
 [package.source]
@@ -2422,4 +2422,4 @@ reference = "uibpypi"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "8b7a4e726776751eb43b951d3bec9bd2e9bf7deb9a6c7c52a44bc691d9f2f1e7"
+content-hash = "d6101cc96293b93e6efbfeea5d27603d55a73e1549a7da7c4099808b45fb39dc"

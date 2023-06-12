@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opsi-utils"
-version = "4.3.0.23"
+version = "4.3.0.25"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
@@ -27,7 +27,7 @@ python-magic = "^0.4"
 mysqlclient = "^2.0"
 distro = {platform = "linux", version = "^1.5"}
 paramiko = "^2.7"
-pyzsync = "^0.4"
+pyzsync = "^0.6"
 
 [tool.poetry.dev-dependencies]
 pyinstaller = "^5.3"
