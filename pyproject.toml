@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opsi-utils"
-version = "4.3.0.25"
+version = "4.3.0.26"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
@@ -18,7 +18,7 @@ name = "uibpypi"
 url = "https://pypi.uib.gmbh/simple"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
+python = ">=3.11,<3.12"
 #python-opsi = {path = "python-opsi"}
 python-opsi = ">=4.3.0.0,<4.4"
 python-opsi-common = ">=4.3.0.48,<4.4"

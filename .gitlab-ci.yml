@@ -12,7 +12,6 @@ pytest-pylint:
   script:
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
-    - poetry config experimental.new-installer false
     - poetry lock --no-update --no-cache
     - poetry install
     - poetry run pylint --disable=R,fixme opsiutils
@@ -24,7 +23,6 @@ linux-pyinstaller:
   script:
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
-    - poetry config experimental.new-installer false
     - poetry lock --no-update --no-cache
     - poetry install
     - poetry run opsi-dev-cli -l info pyinstaller build
@@ -48,7 +46,6 @@ arm64-pyinstaller:
   script:
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
-    - poetry config experimental.new-installer false
     - poetry lock --no-update --no-cache
     - poetry install
     - poetry run opsi-dev-cli -l info pyinstaller build
