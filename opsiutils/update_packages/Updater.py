@@ -196,8 +196,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			return False
 
 		response = session.head(availablePackage["packageFile"])
-		if not response.headers.get("Accept-Ranges"):
-			logger.info("Cannot use zsync, server or proxy does not accept ranges")
+		if response.headers.get("Accept-Ranges") != "bytes":
+			logger.info("Cannot use zsync, server or proxy does not accept byte ranges")
 			return False
 
 		return True
