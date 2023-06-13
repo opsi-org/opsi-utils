@@ -417,7 +417,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 							if wolEnabled and package["productId"] not in excludedWolProducts:
 								wakeOnLanClients.add(poc.clientId)
 
-						backend.productOnClient_updateObjects([productOnClients])  # pylint: disable=no-member
+						backend.productOnClient_updateObjects(productOnClients)  # pylint: disable=no-member
 						notifier.appendLine(
 							(
 								f"Product {package['productId']} set to 'setup' on clients: "
