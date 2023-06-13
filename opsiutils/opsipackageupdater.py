@@ -12,6 +12,7 @@ through a remote repository.
 import argparse
 import operator
 import sys
+from pathlib import Path
 
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
@@ -22,7 +23,7 @@ from opsicommon.logging import (
 from opsicommon.system import ensure_not_already_running
 from opsicommon.types import forceProductId
 
-from OPSI import __version__ as python_opsi_version  # type: ignore[import]
+from OPSI import __version__ as python_opsi_version  # type: ignore[import,attr-defined]
 from OPSI.Util import compareVersions  # type: ignore[import]
 from opsiutils import __version__
 from opsiutils.update_packages.Config import DEFAULT_CONFIG
@@ -32,7 +33,14 @@ from opsiutils.update_packages.Util import getUpdatablePackages
 
 logger = get_logger("opsi-package-updater")
 
-
+OFFICIAL_REPO_FILES = [
+	"uib-linux.repo",
+	"uib-windows.repo",
+	"uib-macos.repo",
+	"uib-local_image.repo",
+	"testing.repo",
+	"experimental.repo",
+]
 class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
 	def listActiveRepos(self) -> None:
@@ -214,6 +222,14 @@ def parse_args() -> argparse.Namespace:
 	)
 
 	parser.add_argument(
+		'--no-patch-repo-files',
+		help="Do not update repo files",
+		dest="noPatchRepoFiles",
+		action="store_true",
+		default=False,
+	)
+
+	parser.add_argument(
 		'--repo',
 		metavar="repository_name",
 		dest="repository",
@@ -322,6 +338,31 @@ def parse_args() -> argparse.Namespace:
 	return parser.parse_args()
 
 
+def patch_repo_files(base_path: Path) -> None:
+	"""
+	Patches the repo files to point to 4.3 repositories.
+	Old format example:
+		baseUrl = http://download.uib.de
+		dirs = opsi4.2/experimental/packages/linux/localboot/, opsi4.2/experimental/packages/linux/netboot/
+	New format example:
+		baseUrl = https://opsipackages.43.opsi.org
+		dirs = experimental/linux/localboot/, experimental/linux/netboot/
+	"""
+	for repo in OFFICIAL_REPO_FILES:
+		repo_file = base_path / repo
+		if not repo_file.exists():
+			continue
+		content = repo_file.read_text(encoding="utf-8")
+		if not "download.uib.de" in content or content.startswith("; This file has been patched by opsi-package-updater"):
+			continue
+		content = content.replace("http://download.uib.de", "https://opsipackages.43.opsi.org")
+		content = content.replace("https://download.uib.de", "https://opsipackages.43.opsi.org")
+		content = content.replace("/packages/", "/")
+		content = content.replace("opsi4.2/", "")
+		content = f"; This file has been patched by opsi-package-updater {__version__}\n{content}"
+		repo_file.write_text(content, encoding="utf-8")
+
+
 def updater_main() -> int:  # pylint: disable=too-many-branches,too-many-statements
 	config = DEFAULT_CONFIG.copy()
 	args = parse_args()
@@ -330,6 +371,9 @@ def updater_main() -> int:  # pylint: disable=too-many-branches,too-many-stateme
 	if args.mode == 'list' and args.logLevel < 4:
 		logging_config(stderr_level=4)
 	logger.debug("Running in %s mode", args.mode)
+
+	if not args.noPatchRepoFiles:
+		patch_repo_files(Path(str(DEFAULT_CONFIG["repositoryConfigDir"])))
 
 	config["configFile"] = args.configFile
 	config["installAllAvailable"] = args.mode == 'install'

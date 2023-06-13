@@ -31,11 +31,7 @@ files = [
 
 [package.dependencies]
 lazy-object-proxy = ">=1.4.0"
-typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.11\""}
-wrapt = [
-    {version = ">=1.11,<2", markers = "python_version < \"3.11\""},
-    {version = ">=1.14,<2", markers = "python_version >= \"3.11\""},
-]
+wrapt = {version = ">=1.14,<2", markers = "python_version >= \"3.11\""}
 
 [package.source]
 type = "legacy"
@@ -446,9 +442,6 @@ files = [
     {file = "coverage-7.2.7.tar.gz", hash = "sha256:924d94291ca674905fe9481f12294eb11f2d3d3fd1adb20314ba89e94f44ed59"},
 ]
 
-[package.dependencies]
-tomli = {version = "*", optional = true, markers = "python_full_version <= \"3.11.0a6\" and extra == \"toml\""}
-
 [package.extras]
 toml = ["tomli"]
 
@@ -535,26 +528,6 @@ files = [
     {file = "distro-1.8.0-py3-none-any.whl", hash = "sha256:99522ca3e365cac527b44bde033f64c6945d90eb9f769703caaec52b09bbd3ff"},
     {file = "distro-1.8.0.tar.gz", hash = "sha256:02e111d1dc6a50abb8eed6bf31c3e48ed8b0830d1ea2a1b78c61765c2513fdd8"},
 ]
-
-[package.source]
-type = "legacy"
-url = "https://pypi.uib.gmbh/simple"
-reference = "uibpypi"
-
-[[package]]
-name = "exceptiongroup"
-version = "1.1.1"
-description = "Backport of PEP 654 (exception groups)"
-category = "dev"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "exceptiongroup-1.1.1-py3-none-any.whl", hash = "sha256:232c37c63e4f682982c8b6459f33a8981039e5fb8756b2074364e5055c498c9e"},
-    {file = "exceptiongroup-1.1.1.tar.gz", hash = "sha256:d484c3090ba2889ae2928419117447a14daf3c1231d5e30d0aae34f354f01785"},
-]
-
-[package.extras]
-test = ["pytest (>=6)"]
 
 [package.source]
 type = "legacy"
@@ -886,14 +859,14 @@ reference = "uibpypi"
 
 [[package]]
 name = "markdown-it-py"
-version = "2.2.0"
+version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
 category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "markdown-it-py-2.2.0.tar.gz", hash = "sha256:7c9a5e412688bc771c67432cbfebcdd686c93ce6484913dccf06cb5a0bea35a1"},
-    {file = "markdown_it_py-2.2.0-py3-none-any.whl", hash = "sha256:5a35f8d1870171d9acc47b99612dc146129b631baf04970128b568f190d0cc30"},
+    {file = "markdown-it-py-3.0.0.tar.gz", hash = "sha256:e3f60a94fa066dc52ec76661e37c851cb232d92f9886b15cb560aaada2df8feb"},
+    {file = "markdown_it_py-3.0.0-py3-none-any.whl", hash = "sha256:355216845c60bd96232cd8d8c40e8f9765cc86f46880e43a8fd22dc1a1a8cab1"},
 ]
 
 [package.dependencies]
@@ -906,7 +879,7 @@ compare = ["commonmark (>=0.9,<1.0)", "markdown (>=3.4,<4.0)", "mistletoe (>=1.0
 linkify = ["linkify-it-py (>=1,<3)"]
 plugins = ["mdit-py-plugins"]
 profiling = ["gprof2dot"]
-rtd = ["attrs", "myst-parser", "pyyaml", "sphinx", "sphinx-copybutton", "sphinx-design", "sphinx_book_theme"]
+rtd = ["jupyter_sphinx", "mdit-py-plugins", "myst-parser", "pyyaml", "sphinx", "sphinx-copybutton", "sphinx-design", "sphinx_book_theme"]
 testing = ["coverage", "pytest", "pytest-cov", "pytest-regressions"]
 
 [package.source]
@@ -1115,7 +1088,6 @@ files = [
 
 [package.dependencies]
 mypy-extensions = ">=1.0.0"
-tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 typing-extensions = ">=3.10"
 
 [package.extras]
@@ -1253,19 +1225,19 @@ reference = "uibpypi"
 
 [[package]]
 name = "platformdirs"
-version = "3.5.1"
+version = "3.5.3"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "platformdirs-3.5.1-py3-none-any.whl", hash = "sha256:e2378146f1964972c03c085bb5662ae80b2b8c06226c54b2ff4aa9483e8a13a5"},
-    {file = "platformdirs-3.5.1.tar.gz", hash = "sha256:412dae91f52a6f84830f39a8078cecd0e866cb72294a5c66808e74d5e88d251f"},
+    {file = "platformdirs-3.5.3-py3-none-any.whl", hash = "sha256:0ade98a4895e87dc51d47151f7d2ec290365a585151d97b4d8d6312ed6132fed"},
+    {file = "platformdirs-3.5.3.tar.gz", hash = "sha256:e48fabd87db8f3a7df7150a4a5ea22c546ee8bc39bc2473244730d4b56d2cc4e"},
 ]
 
 [package.extras]
-docs = ["furo (>=2023.3.27)", "proselint (>=0.13)", "sphinx (>=6.2.1)", "sphinx-autodoc-typehints (>=1.23,!=1.23.4)"]
-test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.3.1)", "pytest-cov (>=4)", "pytest-mock (>=3.10)"]
+docs = ["furo (>=2023.5.20)", "proselint (>=0.13)", "sphinx (>=7.0.1)", "sphinx-autodoc-typehints (>=1.23,!=1.23.4)"]
+test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.3.1)", "pytest-cov (>=4.1)", "pytest-mock (>=3.10)"]
 
 [package.source]
 type = "legacy"
@@ -1465,24 +1437,24 @@ reference = "uibpypi"
 
 [[package]]
 name = "pyinstaller"
-version = "5.11.0"
+version = "5.12.0"
 description = "PyInstaller bundles a Python application and all its dependencies into a single package."
 category = "dev"
 optional = false
 python-versions = "<3.12,>=3.7"
 files = [
-    {file = "pyinstaller-5.11.0-py3-none-macosx_10_13_universal2.whl", hash = "sha256:8454bac8f3cb2219a3ce2227fd039bdaf943dcba60e8c55732958ea3a6d81263"},
-    {file = "pyinstaller-5.11.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:b3c6299fd7526c6ca87ea5f9017fb1928d47046df0b9f983d6bbd893801010dc"},
-    {file = "pyinstaller-5.11.0-py3-none-manylinux2014_i686.whl", hash = "sha256:e359571327bbef434fc61324891399f9117efbb685b5065234eebb01713650a8"},
-    {file = "pyinstaller-5.11.0-py3-none-manylinux2014_ppc64le.whl", hash = "sha256:a445a91b85c9a1ea3985268643a674900dd86f244cc4be4ff4ec4c6367ff99a9"},
-    {file = "pyinstaller-5.11.0-py3-none-manylinux2014_s390x.whl", hash = "sha256:2a1fe6d0da22f207cfa4b3221fe365503cba071c77aac19f76a75503f67d9ff9"},
-    {file = "pyinstaller-5.11.0-py3-none-manylinux2014_x86_64.whl", hash = "sha256:b4cac0e7b0d63c6a869843113008f59fd5b38b2959ffa6059e7fac4bb05de92b"},
-    {file = "pyinstaller-5.11.0-py3-none-musllinux_1_1_aarch64.whl", hash = "sha256:0af9d11a09ce217d32f95c79c984054457b310671387ff32bae1496876308556"},
-    {file = "pyinstaller-5.11.0-py3-none-musllinux_1_1_x86_64.whl", hash = "sha256:b8a4f6834e5c85150948e22c74dd3ab8b98aa4ccdf964d880ac14d2f78d9c1a4"},
-    {file = "pyinstaller-5.11.0-py3-none-win32.whl", hash = "sha256:049cdc3524aefb5ca015a63d2c81b6bf1567cc818ac066859fbfde702c6165d3"},
-    {file = "pyinstaller-5.11.0-py3-none-win_amd64.whl", hash = "sha256:42fdea67e4c2217cedd54d17d1d402736df3ba718db2b497df65df5a68ae4f93"},
-    {file = "pyinstaller-5.11.0-py3-none-win_arm64.whl", hash = "sha256:036a062a228af41f6bb6370a4e87cef34858cc839200a07ace7f8738ef64ad86"},
-    {file = "pyinstaller-5.11.0.tar.gz", hash = "sha256:cb87cee0b3c81ccd74d4bf3f4faf03b5e1e39bb91f1a894b2ce4cd22363bf779"},
+    {file = "pyinstaller-5.12.0-py3-none-macosx_10_13_universal2.whl", hash = "sha256:edcb6eb6618f3b763c11487db1d3516111d54bd5598b9470e295c1f628a95496"},
+    {file = "pyinstaller-5.12.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:303952c2a8ece894b655c2a0783a0bdc844282f47790707446bde3eaf355f0da"},
+    {file = "pyinstaller-5.12.0-py3-none-manylinux2014_i686.whl", hash = "sha256:7eed9996c12aeee7530cbc7c57350939f46391ecf714ac176579190dbd3ec7bf"},
+    {file = "pyinstaller-5.12.0-py3-none-manylinux2014_ppc64le.whl", hash = "sha256:96ad645347671c9fce190506c09523c02f01a503fe3ea65f79bb0cfe22a8c83e"},
+    {file = "pyinstaller-5.12.0-py3-none-manylinux2014_s390x.whl", hash = "sha256:c3ceb6c3a34b9407ba16fb68a32f83d5fd94f21d43d9fe38d8f752feb75ca5bb"},
+    {file = "pyinstaller-5.12.0-py3-none-manylinux2014_x86_64.whl", hash = "sha256:92eeacd052092a0a4368f50ddecbeb6e020b5a70cdf113243fbd6bd8ee25524e"},
+    {file = "pyinstaller-5.12.0-py3-none-musllinux_1_1_aarch64.whl", hash = "sha256:3605ac72311318455907a88efb4a4b334b844659673a2a371bbaac2d8b52843a"},
+    {file = "pyinstaller-5.12.0-py3-none-musllinux_1_1_x86_64.whl", hash = "sha256:d14c1c2b753af5efed96584f075a6740ea634ca55789113d325dc8c32aef50fe"},
+    {file = "pyinstaller-5.12.0-py3-none-win32.whl", hash = "sha256:b64d8a3056e6c7e4ed4d1f95e793ef401bf5b166ef00ad544b5812be0ac63b4b"},
+    {file = "pyinstaller-5.12.0-py3-none-win_amd64.whl", hash = "sha256:62d75bb70cdbeea1a0d55067d7201efa2f7d7c19e56c241291c03d551b531684"},
+    {file = "pyinstaller-5.12.0-py3-none-win_arm64.whl", hash = "sha256:2f70e2d9b032e5f24a336f41affcb4624e66a84cd863ba58f6a92bd6040653bb"},
+    {file = "pyinstaller-5.12.0.tar.gz", hash = "sha256:a1c2667120730604c3ad1e0739a45bb72ca4a502a91e2f5c5b220fbfbb05f0d4"},
 ]
 
 [package.dependencies]
@@ -1534,14 +1506,10 @@ files = [
 [package.dependencies]
 astroid = ">=2.15.4,<=2.17.0-dev0"
 colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
-dill = [
-    {version = ">=0.2", markers = "python_version < \"3.11\""},
-    {version = ">=0.3.6", markers = "python_version >= \"3.11\""},
-]
+dill = {version = ">=0.3.6", markers = "python_version >= \"3.11\""}
 isort = ">=4.2.5,<6"
 mccabe = ">=0.6,<0.8"
 platformdirs = ">=2.2.0"
-tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 tomlkit = ">=0.10.1"
 
 [package.extras]
@@ -1611,26 +1579,24 @@ reference = "uibpypi"
 
 [[package]]
 name = "pytest"
-version = "7.3.1"
+version = "7.3.2"
 description = "pytest: simple powerful testing with Python"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pytest-7.3.1-py3-none-any.whl", hash = "sha256:3799fa815351fea3a5e96ac7e503a96fa51cc9942c3753cda7651b93c1cfa362"},
-    {file = "pytest-7.3.1.tar.gz", hash = "sha256:434afafd78b1d78ed0addf160ad2b77a30d35d4bdf8af234fe621919d9ed15e3"},
+    {file = "pytest-7.3.2-py3-none-any.whl", hash = "sha256:cdcbd012c9312258922f8cd3f1b62a6580fdced17db6014896053d47cddf9295"},
+    {file = "pytest-7.3.2.tar.gz", hash = "sha256:ee990a3cc55ba808b80795a79944756f315c67c12b56abd3ac993a7b8c17030b"},
 ]
 
 [package.dependencies]
 colorama = {version = "*", markers = "sys_platform == \"win32\""}
-exceptiongroup = {version = ">=1.0.0rc8", markers = "python_version < \"3.11\""}
 iniconfig = "*"
 packaging = "*"
 pluggy = ">=0.12,<2.0"
-tomli = {version = ">=1.0.0", markers = "python_version < \"3.11\""}
 
 [package.extras]
-testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "xmlschema"]
+testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
 
 [package.source]
 type = "legacy"
@@ -1819,18 +1785,18 @@ reference = "uibpypi"
 
 [[package]]
 name = "pyzsync"
-version = "0.6.0"
+version = "0.6.1"
 description = ""
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pyzsync-0.6.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:1191aa01083dd8dda0dcfa4398fbffecd594846888d570e673fd51bc7c6e2bbc"},
-    {file = "pyzsync-0.6.0-cp310-none-win32.whl", hash = "sha256:8ad06da173d96531f261f8abaf226da3200ee5090129738a198a608d026990b6"},
-    {file = "pyzsync-0.6.0-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:17c53d048133d8e5126973e2596457cde792aceb0110c5ee40cca11c05b36cef"},
-    {file = "pyzsync-0.6.0-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:4fbfcb55e77e2598b4ba1e149da482799b498729f9a0d4d5e812ce078b8eb259"},
-    {file = "pyzsync-0.6.0-cp311-none-win32.whl", hash = "sha256:07b39e4f5c5279050682997c9e697bb018c5b7657cf9db666219ee4081125315"},
-    {file = "pyzsync-0.6.0.tar.gz", hash = "sha256:8c6e9e731b9ca145e51b6d714c87fef1444688153719a056ad9486a97242c0dd"},
+    {file = "pyzsync-0.6.1-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:bff3d904df205ca287ad3f8b4b8594c5e73c3037dd2ceeec82bb2d9e03935118"},
+    {file = "pyzsync-0.6.1-cp310-none-win32.whl", hash = "sha256:54bb288bba21451a2d8d30061c880801f67129363c4f89af314b38893fbe1aa7"},
+    {file = "pyzsync-0.6.1-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:ebd38d9d16818b06ae8bdfaa7b0a6c38bea4beaf16b488b8c2f0f54cba93b923"},
+    {file = "pyzsync-0.6.1-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:c67dd6a43c557ab04cad3c98592400edc7d13a6f722f6f4b6cf7c9ca0d9f98c7"},
+    {file = "pyzsync-0.6.1-cp311-none-win32.whl", hash = "sha256:dc7edcb892f50bc7d435afc2c4e53c60dc5baa2f585335e815d415e19f965b82"},
+    {file = "pyzsync-0.6.1.tar.gz", hash = "sha256:a4e39729bc4ab3655ae41ffc5ccc7611976603f37bb301c45779ddf3b2ef40b0"},
 ]
 
 [package.source]
@@ -1867,18 +1833,18 @@ reference = "uibpypi"
 
 [[package]]
 name = "rich"
-version = "13.4.1"
+version = "13.4.2"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 category = "main"
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "rich-13.4.1-py3-none-any.whl", hash = "sha256:d204aadb50b936bf6b1a695385429d192bc1fdaf3e8b907e8e26f4c4e4b5bf75"},
-    {file = "rich-13.4.1.tar.gz", hash = "sha256:76f6b65ea7e5c5d924ba80e322231d7cb5b5981aa60bfc1e694f1bc097fe6fe1"},
+    {file = "rich-13.4.2-py3-none-any.whl", hash = "sha256:8f87bc7ee54675732fa66a05ebfe489e27264caeeff3728c945d25971b6485ec"},
+    {file = "rich-13.4.2.tar.gz", hash = "sha256:d653d6bccede5844304c605d5aac802c7cf9621efd700b46c7ec2b51ea914898"},
 ]
 
 [package.dependencies]
-markdown-it-py = ">=2.2.0,<3.0.0"
+markdown-it-py = ">=2.2.0"
 pygments = ">=2.13.0,<3.0.0"
 
 [package.extras]
@@ -2063,23 +2029,6 @@ url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
-name = "tomli"
-version = "2.0.1"
-description = "A lil' TOML parser"
-category = "dev"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
-    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
-]
-
-[package.source]
-type = "legacy"
-url = "https://pypi.uib.gmbh/simple"
-reference = "uibpypi"
-
-[[package]]
 name = "tomlkit"
 version = "0.11.8"
 description = "Style preserving TOML library"
@@ -2193,14 +2142,14 @@ reference = "uibpypi"
 
 [[package]]
 name = "urllib3"
-version = "2.0.2"
+version = "2.0.3"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "urllib3-2.0.2-py3-none-any.whl", hash = "sha256:d055c2f9d38dc53c808f6fdc8eab7360b6fdbbde02340ed25cfbcd817c62469e"},
-    {file = "urllib3-2.0.2.tar.gz", hash = "sha256:61717a1095d7e155cdb737ac7bb2f4324a858a1e2e6466f6d03ff630ca68d3cc"},
+    {file = "urllib3-2.0.3-py3-none-any.whl", hash = "sha256:48e7fafa40319d358848e1bc6809b208340fafe2096f1725d05d67443d0483d1"},
+    {file = "urllib3-2.0.3.tar.gz", hash = "sha256:bee28b5e56addb8226c96f7f13ac28cb4c301dd5ea8a6ca179c0b9835e032825"},
 ]
 
 [package.extras]
@@ -2216,14 +2165,14 @@ reference = "uibpypi"
 
 [[package]]
 name = "websocket-client"
-version = "1.5.2"
+version = "1.5.3"
 description = "WebSocket client for Python with low level API options"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "websocket-client-1.5.2.tar.gz", hash = "sha256:c7d67c13b928645f259d9b847ab5b57fd2d127213ca41ebd880de1f553b7c23b"},
-    {file = "websocket_client-1.5.2-py3-none-any.whl", hash = "sha256:f8c64e28cd700e7ba1f04350d66422b6833b82a796b525a51e740b8cc8dab4b1"},
+    {file = "websocket-client-1.5.3.tar.gz", hash = "sha256:b96f3bce3e54e3486ebe6504bc22bd4c140392bd2eb71764db29be8f2639aa65"},
+    {file = "websocket_client-1.5.3-py3-none-any.whl", hash = "sha256:3566f8467cd350874c4913816355642a4942f6c1ed1e9406e3d42fae6d6c072a"},
 ]
 
 [package.extras]
@@ -2472,5 +2421,5 @@ reference = "uibpypi"
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.10,<3.12"
-content-hash = "24a630be84f4ae3fe5ff3cbe97c57e0523b8cdafd8286b4796fbcf18d60a7450"
+python-versions = ">=3.11,<3.12"
+content-hash = "d6101cc96293b93e6efbfeea5d27603d55a73e1549a7da7c4099808b45fb39dc"
