@@ -36,7 +36,6 @@ from pyzsync import (
 	read_zsync_file,
 	get_patch_instructions,
 	patch_file,
-	Range,
 	SOURCE_REMOTE,
 	HTTPPatcher,
 	PatchInstruction,
