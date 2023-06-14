@@ -15,7 +15,7 @@ import re
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
+from typing import Generator, BinaryIO
 from urllib.parse import quote
 
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate  # type: ignore[import]
@@ -38,9 +38,9 @@ from pyzsync import (
 	patch_file,
 	Range,
 	SOURCE_REMOTE,
-	HTTPRangeReader,
+	HTTPPatcher,
+	PatchInstruction,
 	ProgressListener,
-	RangeReader,
 	CaseInsensitiveDict,
 )
 from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[import]
@@ -68,17 +68,25 @@ class HashsumMissmatchError(ValueError):
 	pass
 
 
-class RequestsHTTPRangeReader(HTTPRangeReader):
+class RequestsHTTPPatcher(HTTPPatcher):
 	def __init__(
 		self,
 		session: Session,
 		url: str,
-		ranges: list[Range],
+		instructions: list[PatchInstruction],
+		target_file: BinaryIO,
 		headers: dict[str, str],
 		max_ranges_per_request: int = 100,
 		read_timeout: int = 8 * 3600,
 	) -> None:
-		super().__init__(url=url, ranges=ranges, headers=headers, max_ranges_per_request=max_ranges_per_request, read_timeout=read_timeout)
+		super().__init__(
+			instructions=instructions,
+			target_file=target_file,
+			url=url,
+			headers=headers,
+			max_ranges_per_request=max_ranges_per_request,
+			read_timeout=read_timeout,
+		)
 
 		self._session: Session = session
 		self._response: Response | None = None
@@ -768,28 +776,30 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			def __init__(self) -> None:
 				self.last_completed = 0
 
-			def progress_changed(self, reader: RangeReader, position: int, total: int, per_second: int) -> None:
+			def progress_changed(self, patcher: RequestsHTTPPatcher, position: int, total: int, per_second: int) -> None:
 				completed = round(position * 100 / total)
 				if completed == self.last_completed:
 					return
 				self.last_completed = completed
 				logger.info(
 					"Zsyncing %r: %s%% - %0.2f/%0.2f MB - %0.f kB/s",
-					reader.url,
+					patcher.url,
 					completed,
 					position / 1_000_000,
 					total / 1_000_000,
 					per_second / 1_000,
 				)
 
-		def range_reader_factory(remote_ranges: list[Range]) -> RequestsHTTPRangeReader:
+		def patcher_factory(instructions: list[PatchInstruction], target_file: BinaryIO) -> RequestsHTTPPatcher:
 			url = availablePackage["packageFile"]
 			logger.info("Fetching ranges from %s", url)
-			reader = RequestsHTTPRangeReader(session=session, url=url, ranges=remote_ranges, headers=self.httpHeaders)
-			reader.register_progress_listener(LoggingProgressListener())
-			return reader
+			patcher = RequestsHTTPPatcher(
+				session=session, url=url, instructions=instructions, target_file=target_file, headers=self.httpHeaders
+			)
+			patcher.register_progress_listener(LoggingProgressListener())
+			return patcher
 
-		sha1_digest = patch_file(files, instructions, range_reader_factory=range_reader_factory)
+		sha1_digest = patch_file(files, instructions, patcher_factory=patcher_factory)
 
 		if sha1_digest != zsync_file_info.sha1:
 			raise RuntimeError("Failed to patch file, SHA-1 mismatch")
