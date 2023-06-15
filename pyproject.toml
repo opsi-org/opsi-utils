@@ -27,7 +27,7 @@ python-magic = "^0.4"
 mysqlclient = "^2.0"
 distro = {platform = "linux", version = "^1.5"}
 paramiko = "^2.7"
-pyzsync = "^0.8"
+pyzsync = "^0.9"
 
 [tool.poetry.dev-dependencies]
 pyinstaller = "^5.3"
