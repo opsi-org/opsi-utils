@@ -766,6 +766,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		zsync_file.unlink()
 
 		files = [package_file] + list(package_file.parent.glob(f"{package_file.name}.zsync-tmp*"))
+		logger.info("Analyzing local files %r", files)
 		instructions = get_patch_instructions(zsync_file_info, files)
 		remote_bytes = sum([i.size for i in instructions if i.source == SOURCE_REMOTE])  # pylint: disable=consider-using-generator
 		speedup = (zsync_file_info.length - remote_bytes) * 100 / zsync_file_info.length
