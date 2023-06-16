@@ -16,7 +16,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator, BinaryIO
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 from OpenSSL.crypto import FILETYPE_PEM, load_certificate  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient
@@ -104,13 +104,19 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		self.config = config
 		self.httpHeaders = {"User-Agent": self.config.get("userAgent", DEFAULT_USER_AGENT)}
 		self.configBackend: ServiceClient | None = None
+		self.depotBackend: ServiceClient | None = None
 		self.depotId = OpsiConfig().get("host", "id")
+		self.depotServiceUrl = ""
+		self.isConfigServer = OpsiConfig().get("host", "server-role") == "configserver"
 		self.errors: list[Exception] = []
 
 		# Proxy is needed for getConfigBackend which is needed for ConfigurationParser.parse
 		self.config["proxy"] = ConfigurationParser.get_proxy(self.config["configFile"])
 
 		depots = self.getConfigBackend().host_getObjects(type="OpsiDepotserver", id=self.depotId)  # pylint: disable=no-member
+		if not self.isConfigServer:
+			url = urlparse(depots[0].repositoryRemoteUrl)
+			self.depotServiceUrl = f"https://localhost:{url.port or 4447}"
 		try:
 			self.depotKey = depots[0].opsiHostKey
 		except IndexError as err:
@@ -177,6 +183,14 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			except Exception as err:  # pylint: disable=broad-except
 				logger.info("Failed to update opsi CA: %s", err)
 		return self.configBackend
+
+	def getDepotBackend(self) -> ServiceClient:
+		if self.isConfigServer:
+			return self.getConfigBackend()
+
+		if not self.depotBackend:
+			self.depotBackend = get_service_client(address=self.depotServiceUrl)
+		return self.depotBackend
 
 	def get_new_packages_per_repository(self) -> dict[ProductRepositoryInfo, list[dict[str, str | ProductRepositoryInfo]]]:
 		downloadablePackages = self.getDownloadablePackages()
@@ -290,6 +304,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			newPackages = sortedPackages
 
 			backend = self.getConfigBackend()
+			depotBackend = self.getDepotBackend()
 			installedPackages = []
 			for package in newPackages:
 				packageFile = os.path.join(self.config["packageDir"], package["filename"])
@@ -318,7 +333,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 						logger.warning("Failed to get product property defaults: %s", err)
 
 					logger.info("Installing package '%s'", packageFile)
-					backend.depot_installPackage(  # pylint: disable=no-member
+					depotBackend.depot_installPackage(  # pylint: disable=no-member
 						filename=packageFile, propertyDefaultValues=propertyDefaultValues, tempDir=self.config.get("tempdir", "/tmp")
 					)
 					productOnDepots = backend.productOnDepot_getObjects(  # pylint: disable=no-member
