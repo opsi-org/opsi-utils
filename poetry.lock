@@ -1785,18 +1785,18 @@ reference = "uibpypi"
 
 [[package]]
 name = "pyzsync"
-version = "0.9.0"
+version = "0.9.1"
 description = ""
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pyzsync-0.9.0-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:f32ab092141aa3678997b9937c5c6bb44851d7cfe270826bfaa79445d265f39e"},
-    {file = "pyzsync-0.9.0-cp310-none-win32.whl", hash = "sha256:a1c7437eb278e75e6ff0afd026cbd3e6e1872f8b74ebf1f52596847488970428"},
-    {file = "pyzsync-0.9.0-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:506c184a0cdb6a6686b71445416fd0589403ed4a945c02d70c8f69825a8f865f"},
-    {file = "pyzsync-0.9.0-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:0a045507f55c41b9d176ab3bd179fece98a0a4bde91eabc7802f481eb5615555"},
-    {file = "pyzsync-0.9.0-cp311-none-win32.whl", hash = "sha256:3065e9339fcf991d6d5844ac2069feeadbb3bbb8eeaa7088f8c89742e56faed7"},
-    {file = "pyzsync-0.9.0.tar.gz", hash = "sha256:c431513fbaa7bedf3f054134f6ee8b99640c3d6feb9311f58adf8352306c3b80"},
+    {file = "pyzsync-0.9.1-cp310-cp310-manylinux_2_24_x86_64.whl", hash = "sha256:2c60762e3e9e72e20bd8492e7e78ad7ac60c0f441b49f2ac491de15dfdc32e4b"},
+    {file = "pyzsync-0.9.1-cp310-none-win32.whl", hash = "sha256:dc4559dcb304a0671296de887cbd8067acbedbc7af2ea88a447755051ffb7194"},
+    {file = "pyzsync-0.9.1-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:ceb775a2019574ae5f61ae333afd1379ed4e46ca9956514d642754b3e33215a8"},
+    {file = "pyzsync-0.9.1-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:1b3bb8b00b1708f1d24e4e295bf506aa2ad5e4023816f70832eb102002bba407"},
+    {file = "pyzsync-0.9.1-cp311-none-win32.whl", hash = "sha256:cb20dcf25aba8bf21e4f74187607bdb1e38a4b58810eb85d006a69b3150c3ab2"},
+    {file = "pyzsync-0.9.1.tar.gz", hash = "sha256:e491f6ea28a42d0b705136da43834577d89fa7077a1afd4aad10c6f0bfa79d99"},
 ]
 
 [package.source]
