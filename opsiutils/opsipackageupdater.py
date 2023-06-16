@@ -41,12 +41,13 @@ OFFICIAL_REPO_FILES = [
 	"testing.repo",
 	"experimental.repo",
 ]
-class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
+
+class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 	def listActiveRepos(self) -> None:
 		logger.notice("Active repositories:")
 		for repository in sorted(self.getActiveRepositories(), key=lambda repo: repo.name.lower()):
-			descr = ''
+			descr = ""
 			if repository.description:
 				descr = f"- {repository.description}"
 
@@ -55,11 +56,11 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 	def listRepos(self) -> None:
 		logger.notice("All repositories:")
 		for repository in sorted(self.getRepositories(), key=lambda repo: repo.name.lower()):
-			descr = ''
+			descr = ""
 			if repository.description:
 				descr = f"- {repository.description}"
 
-			status = 'active' if repository.active else 'inactive'
+			status = "active" if repository.active else "inactive"
 			print(f"{repository.name} ({status}): {repository.baseUrl} {descr}")
 
 	def listPackagesUniqueInRepositories(self) -> None:
@@ -96,30 +97,24 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
 		for repository in self.getActiveRepositories():
 			logger.notice("Packages in %s:", repository.name)
-			packages = sorted(
-				self.getDownloadablePackagesFromRepository(repository),
-				key=operator.itemgetter('productId')
-			)
+			packages = sorted(self.getDownloadablePackagesFromRepository(repository), key=operator.itemgetter("productId"))
 
 			if productId:
 				logger.debug("Filtering for product IDs matching %s...", productId)
 				productId = forceProductId(productId)
-				packages = [
-					package for package in packages
-					if productId in package['productId']
-				]
+				packages = [package for package in packages if productId in package["productId"]]
 
 			for package in packages:
 				if withLocalInstallationStatus:
 					try:
-						localProduct = local_products_dict[package['productId']]
+						localProduct = local_products_dict[package["productId"]]
 					except KeyError as kerr:
 						logger.debug(kerr)
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, not installed)")
 						continue
 
 					localVersion = f"{localProduct.productVersion}-{localProduct.packageVersion}"
-					if compareVersions(package['version'], '==', localVersion):
+					if compareVersions(package["version"], "==", localVersion):
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, installed)")
 					else:
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, installed {localVersion})")
@@ -139,23 +134,20 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
 		for repository in self.getActiveRepositories():
 			repoMessageShown = False
-			packages = sorted(
-				self.getDownloadablePackagesFromRepository(repository),
-				key=lambda entry: entry.productId
-			)
+			packages = sorted(self.getDownloadablePackagesFromRepository(repository), key=lambda entry: entry["productId"])
 			for package in packages:
 				try:
-					localProduct = localProducts[package.productId]
+					localProduct = localProducts[package["productId"]]
 				except KeyError:
 					continue  # Not installed locally
 
 				localVersion = f"{localProduct.productVersion}-{localProduct.packageVersion}"
-				if not compareVersions(package.version, '==', localVersion):
+				if not compareVersions(package["version"], "==", localVersion):
 					if not repoMessageShown:
 						print(f"Packages in {repository.name}:")
 						repoMessageShown = True
 
-					print(f"\t{package.productId} (Version {package.version}, installed {localVersion})")
+					print(f"\t{package['productId']} (Version {package['version']}, installed {localVersion})")
 
 	def listUpdatableProducts(self) -> None:
 		try:
@@ -182,27 +174,27 @@ parser = argparse.ArgumentParser(
 
 
 def parse_args() -> argparse.Namespace:
-	parser.add_argument('--version', '-V', action='version', version=f"{__version__} [python-opsi={python_opsi_version}]")
+	parser.add_argument("--version", "-V", action="version", version=f"{__version__} [python-opsi={python_opsi_version}]")
 	parser.add_argument(
-		'--config',
-		'-c',
+		"--config",
+		"-c",
 		help="Location of config file",
 		dest="configFile",
-		default='/etc/opsi/opsi-package-updater.conf',
+		default="/etc/opsi/opsi-package-updater.conf",
 	)
 
 	logGroup = parser.add_mutually_exclusive_group()
 	logGroup.add_argument(
-		'--verbose',
-		'-v',
+		"--verbose",
+		"-v",
 		dest="logLevel",
 		default=4,
 		action="count",
 		help="Increase verbosity on console (can be used multiple times)",
 	)
 	logGroup.add_argument(
-		'--log-level',
-		'-l',
+		"--log-level",
+		"-l",
 		dest="logLevel",
 		type=int,
 		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -210,8 +202,8 @@ def parse_args() -> argparse.Namespace:
 	)
 
 	parser.add_argument(
-		'--force-checksum-calculation',
-		dest='forceChecksumCalculation',
+		"--force-checksum-calculation",
+		dest="forceChecksumCalculation",
 		action="store_true",
 		default=False,
 		help=(
@@ -222,7 +214,7 @@ def parse_args() -> argparse.Namespace:
 	)
 
 	parser.add_argument(
-		'--no-patch-repo-files',
+		"--no-patch-repo-files",
 		help="Do not update repo files",
 		dest="noPatchRepoFiles",
 		action="store_true",
@@ -230,14 +222,10 @@ def parse_args() -> argparse.Namespace:
 	)
 
 	parser.add_argument(
-		'--repo',
-		metavar="repository_name",
-		dest="repository",
-		default=None,
-		help="Limit the actions the given repository."
+		"--repo", metavar="repository_name", dest="repository", default=None, help="Limit the actions the given repository."
 	)
 	parser.add_argument(
-		'--use-inactive-repository',
+		"--use-inactive-repository",
 		action="store_true",
 		dest="forceRepositoryActivation",
 		help="Force the activation of an otherwise disabled repository. The repository must be given through --repo.",
@@ -246,90 +234,90 @@ def parse_args() -> argparse.Namespace:
 		"--ignore-errors",
 		action="store_true",
 		dest="ignoreErrors",
-		help='Continue working even after download or installation of a package failed.'
+		help="Continue working even after download or installation of a package failed.",
 	)
 
 	parser.add_argument(
 		"--no-zsync",
-		dest='no_zsync',
+		dest="no_zsync",
 		action="store_true",
 		default=False,
 		help="Forces to not use zsync. Instead the fallback command is used.",
 	)
 
-	modeparsers = parser.add_subparsers(dest='mode', title="Mode")
+	modeparsers = parser.add_subparsers(dest="mode", title="Mode")
 	installparser = modeparsers.add_parser(
-		'install',
-		help='Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)',
+		"install",
+		help="Install all (or a given list of) downloadable packages from configured repositories (ignores excludes)",
 	)
 	installparser.add_argument(
-		'processProductIds',
-		nargs='*',
+		"processProductIds",
+		nargs="*",
 		metavar="productID",
 		help="Limit installation to products with the given IDs.",
 	)
 
-	updateparser = modeparsers.add_parser('update', help='Update already installed packages from repositories.')
+	updateparser = modeparsers.add_parser("update", help="Update already installed packages from repositories.")
 	updateparser.add_argument(
-		'processProductIds',
-		nargs='*',
+		"processProductIds",
+		nargs="*",
 		metavar="productID",
 		help="Limit updates to products with the given IDs.",
 	)
 
-	downloadParser = modeparsers.add_parser('download', help='Download packages from repositories. This will not install packages.')
+	downloadParser = modeparsers.add_parser("download", help="Download packages from repositories. This will not install packages.")
 	downloadParser.add_argument(
-		'--force',
+		"--force",
 		action="store_true",
 		dest="forceDownload",
-		help='Force the download of a product even though it would otherwise not be required.'
+		help="Force the download of a product even though it would otherwise not be required.",
 	)
-	downloadParser.add_argument('processProductIds', nargs='*', metavar="productID", help="Limit downloads to products with the given IDs.")
+	downloadParser.add_argument("processProductIds", nargs="*", metavar="productID", help="Limit downloads to products with the given IDs.")
 
-	listparser = modeparsers.add_parser('list', help='Listing information')
+	listparser = modeparsers.add_parser("list", help="Listing information")
 	listmgroup = listparser.add_mutually_exclusive_group()
-	listmgroup.add_argument('--repos', action="store_true", dest="listRepositories", help='Lists all repositories')
-	listmgroup.add_argument('--active-repos', action="store_true", dest="listActiveRepos", help='Lists all active repositories')
+	listmgroup.add_argument("--repos", action="store_true", dest="listRepositories", help="Lists all repositories")
+	listmgroup.add_argument("--active-repos", action="store_true", dest="listActiveRepos", help="Lists all active repositories")
 	listmgroup.add_argument(
-		'--packages',
-		'--products',
+		"--packages",
+		"--products",
 		action="store_true",
 		dest="listAvailableProducts",
-		help='Lists the repositories and the packages they provide.',
+		help="Lists the repositories and the packages they provide.",
 	)
 	listmgroup.add_argument(
-		'--packages-unique',
+		"--packages-unique",
 		action="store_true",
 		dest="listAvailablePackagesUnique",
-		help='Lists the repositories and the packages they provide.',
+		help="Lists the repositories and the packages they provide.",
 	)
 	listmgroup.add_argument(
-		'--packages-and-installationstatus',
-		'--products-and-installationstatus',
+		"--packages-and-installationstatus",
+		"--products-and-installationstatus",
 		action="store_true",
 		dest="listProductsWithInstallationStatus",
-		help='Lists the repositories with their provided packages and information about the local installation status.',
+		help="Lists the repositories with their provided packages and information about the local installation status.",
 	)
 	listmgroup.add_argument(
-		'--package-differences',
-		'--product-differences',
+		"--package-differences",
+		"--product-differences",
 		action="store_true",
 		dest="listProductsWithDifference",
-		help='Lists packages where local and remote version are different.'
+		help="Lists packages where local and remote version are different.",
 	)
 	listmgroup.add_argument(
-		'--updatable-packages',
-		'--updatable-products',
+		"--updatable-packages",
+		"--updatable-products",
 		action="store_true",
 		dest="listUpdatableProducts",
-		help='Lists packages that have updates in the remote repositories.',
+		help="Lists packages that have updates in the remote repositories.",
 	)
 	listmgroup.add_argument(
-		'--search-package',
-		'--search-product',
-		metavar='text',
+		"--search-package",
+		"--search-product",
+		metavar="text",
 		dest="searchForProduct",
-		help='Search for a package with the given name.',
+		help="Search for a package with the given name.",
 	)
 
 	# Setting a default to not stumble over possibly not present args.
@@ -368,7 +356,7 @@ def updater_main() -> int:  # pylint: disable=too-many-branches,too-many-stateme
 	args = parse_args()
 
 	init_logging(stderr_level=args.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
-	if args.mode == 'list' and args.logLevel < 4:
+	if args.mode == "list" and args.logLevel < 4:
 		logging_config(stderr_level=4)
 	logger.debug("Running in %s mode", args.mode)
 
@@ -376,7 +364,7 @@ def updater_main() -> int:  # pylint: disable=too-many-branches,too-many-stateme
 		patch_repo_files(Path(str(DEFAULT_CONFIG["repositoryConfigDir"])))
 
 	config["configFile"] = args.configFile
-	config["installAllAvailable"] = args.mode == 'install'
+	config["installAllAvailable"] = args.mode == "install"
 	if args.processProductIds:
 		config["processProductIds"] = set(args.processProductIds)
 
@@ -388,10 +376,10 @@ def updater_main() -> int:  # pylint: disable=too-many-branches,too-many-stateme
 
 		logger.warning("ATTENTION: Using an inactive repository!")
 
-	config['forceRepositoryActivation'] = args.forceRepositoryActivation
+	config["forceRepositoryActivation"] = args.forceRepositoryActivation
 	config["repositoryName"] = args.repository
 
-	if args.mode == 'download':
+	if args.mode == "download":
 		config["forceDownload"] = args.forceDownload
 
 	config["ignoreErrors"] = args.ignoreErrors
@@ -400,11 +388,11 @@ def updater_main() -> int:  # pylint: disable=too-many-branches,too-many-stateme
 	ensure_not_already_running("opsi-package-updater")
 
 	with OpsiPackageUpdaterClient(config) as opu:
-		if args.mode in ('install', 'update'):
+		if args.mode in ("install", "update"):
 			opu.processUpdates()
-		elif args.mode == 'download':
+		elif args.mode == "download":
 			opu.downloadPackages()
-		elif args.mode == 'list':
+		elif args.mode == "list":
 			if args.listActiveRepos:
 				opu.listActiveRepos()
 			elif args.listRepositories:
