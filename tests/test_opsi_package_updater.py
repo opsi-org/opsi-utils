@@ -86,8 +86,7 @@ def package_updater_class() -> Generator[type[OpsiPackageUpdater], None, None]:
 
 @pytest.mark.parametrize(
 	"server_accept_ranges",
-	# (True, False),
-	(True,),
+	(True, False),
 )
 def test_get_packages(  # pylint: disable=redefined-outer-name,too-many-locals,too-many-statements
 	tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], server_accept_ranges: bool
