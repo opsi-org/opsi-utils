@@ -81,7 +81,6 @@ package:
   name: opsi-utils
   type: binary
   depends:
-    - zsync-curl
     - pigz
     - librsync | librsync2 | librsync1
     - cpio
