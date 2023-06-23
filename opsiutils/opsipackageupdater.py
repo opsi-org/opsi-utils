@@ -27,7 +27,6 @@ from opsicommon.types import forceProductId
 
 from OPSI import __version__ as python_opsi_version  # type: ignore[import,attr-defined]
 from OPSI.Util import compareVersions  # type: ignore[import]
-from OPSI.Util.File import IniFile  # type: ignore[import]
 from opsiutils import __version__
 from opsiutils.update_packages.Config import DEFAULT_CONFIG
 from opsiutils.update_packages.Exceptions import NoActiveRepositoryError
