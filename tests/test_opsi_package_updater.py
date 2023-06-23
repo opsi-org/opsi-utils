@@ -5,6 +5,7 @@ tests for opsi-package-updater
 """
 
 import json
+import shutil
 from pathlib import Path
 from typing import Any, Generator
 from unittest import mock
@@ -13,6 +14,7 @@ import pytest
 from pyzsync import create_zsync_file
 
 from opsicommon.package.associated_files import md5sum
+from opsicommon.package.repo_meta import RepoMetaPackageCollection
 from opsicommon.testing.helpers import http_test_server
 from opsicommon.objects import OpsiDepotserver
 
@@ -88,7 +90,7 @@ def package_updater_class() -> Generator[type[OpsiPackageUpdater], None, None]:
 	"server_accept_ranges",
 	(True, False),
 )
-def test_get_packages(  # pylint: disable=redefined-outer-name,too-many-locals,too-many-statements
+def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-locals,too-many-statements
 	tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], server_accept_ranges: bool
 ) -> None:
 	config_file = tmp_path / "empty.conf"
@@ -186,6 +188,60 @@ def test_get_packages(  # pylint: disable=redefined-outer-name,too-many-locals,t
 			assert request["headers"]["Range"] == "bytes=18432-40959, 59392-81919, 100352-102399"
 		else:
 			assert "Range" not in request["headers"]
+
+
+@pytest.mark.parametrize(
+	"metafile, num_requests", (("packages.msgpack.zstd", 1), ("packages.json", 2), ("packages.msgpack", 3), ("packages.json.zstd", 4))
+)
+def test_server_repo_meta(  # pylint: disable=redefined-outer-name
+	tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], metafile: str, num_requests: int
+) -> None:
+	config_file = tmp_path / "empty.conf"
+	config_file.touch()
+	local_dir = tmp_path / "local_packages"
+	local_dir.mkdir()
+	server_dir = tmp_path / "server_packages"
+	shutil.copytree("tests/data/package-repo", server_dir)
+	repo_conf_path = tmp_path / "repos.d"
+	repo_conf_path.mkdir()
+	test_repo_conf = repo_conf_path / "test.repo"
+	server_log = tmp_path / "server.log"
+
+	config = DEFAULT_CONFIG.copy()
+	config["configFile"] = str(config_file)
+	config["packageDir"] = str(local_dir)
+
+	config_file.write_text(
+		data=("[general]\n" f"packageDir = {str(local_dir)}\n" f"repositoryConfigDir = {str(repo_conf_path)}\n"), encoding="utf-8"
+	)
+
+	rmpc = RepoMetaPackageCollection()
+	rmpc.scan_packages(server_dir)
+	rmpc.write_metafile(server_dir / metafile)
+
+	def write_repo_conf(base_url: str, proxy: str) -> None:
+		test_repo_conf.write_text(
+			data=(
+				f"[repository_test]\nactive = true\nbaseUrl = {base_url}\ndirs = /\nproxy = {proxy}\n"
+				"autoInstall = true\nusername = user\npassword = pass\n"
+			),
+			encoding="utf-8",
+		)
+
+	with http_test_server(serve_directory=server_dir, log_file=str(server_log)) as server:
+		base_url = f"http://localhost:{server.port}"
+		proxy = ""
+
+		write_repo_conf(base_url, proxy)
+
+		package_updater = package_updater_class(config)  # type: ignore[arg-type]
+		available_packages = package_updater.getDownloadablePackages()
+		# Next call must use cache
+		available_packages = package_updater.getDownloadablePackages()
+		assert len(available_packages) == 4
+		requests = [json.loads(line) for line in server_log.read_text(encoding="utf-8").rstrip().split("\n")]
+		assert len(requests) == num_requests
+		assert requests[num_requests - 1]["path"] == f"/{metafile}"
 
 
 def test_patch_repo_files(tmp_path: Path) -> None:

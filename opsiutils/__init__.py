@@ -7,7 +7,7 @@ from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlag
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import logger
 
-__version__ = '4.3.0.32'
+__version__ = '4.3.0.34'
 
 SESSION_LIFETIME = 15
 

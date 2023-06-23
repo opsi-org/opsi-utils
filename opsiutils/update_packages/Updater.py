@@ -8,13 +8,12 @@ Component for handling package updates.
 # pylint: disable=too-many-lines
 
 import datetime
-import json
 import os
 import os.path
 import re
 import time
 from contextlib import contextmanager
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Generator, BinaryIO
 from urllib.parse import quote, urlparse
 
@@ -28,6 +27,7 @@ from opsicommon.server.rights import set_rights
 from opsicommon.ssl import install_ca
 from opsicommon.types import forceProductId
 from opsicommon.utils import prepare_proxy_environment
+from opsicommon.package.repo_meta import RepoMetaPackageCollection
 from requests import Response, Session  # type: ignore[import]
 from requests.packages import urllib3  # type: ignore[import]
 
@@ -109,6 +109,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		self.depotServiceUrl = ""
 		self.isConfigServer = OpsiConfig().get("host", "server-role") == "configserver"
 		self.errors: list[Exception] = []
+		self.metafile_cache: dict[str, bytes] = {}
 
 		# Proxy is needed for getConfigBackend which is needed for ConfigurationParser.parse
 		self.config["proxy"] = ConfigurationParser.get_proxy(self.config["configFile"])
@@ -371,7 +372,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				try:
 					shutdownProduct = backend.productOnDepot_getObjects(  # pylint: disable=no-member
 						depotId=self.depotId, productId="shutdownwanted"
-					)[0]
+					)[
+						0
+					]
 					logger.info("Found 'shutdownwanted' product on depot '%s': %s", self.depotId, shutdownProduct)
 				except IndexError:
 					logger.error("Product 'shutdownwanted' not avaliable on depot '%s'", self.depotId)
@@ -943,6 +946,41 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				downloadablePackages.append(package)
 		return downloadablePackages
 
+	def read_repository_metafile(
+		self, repository: ProductRepositoryInfo, data: bytes
+	) -> list[dict[str, str | ProductRepositoryInfo]]:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+		packages = []
+		paths = {PurePosixPath(d.lstrip("/").lstrip(".").rstrip("/")) for d in repository.dirs}
+		# is_relative_to
+		col = RepoMetaPackageCollection()
+		col.read_metafile_data(data)
+		for package in col.get_packages():
+			path = PurePosixPath(package.url)
+			if not any(p for p in paths if path.is_relative_to(p)):
+				continue
+			logger.info("Found opsi package: %s", package.url)
+			pdict = {
+				"repository": repository,
+				"productId": package.product_id,
+				"version": package.version,
+				"packageFile": package.url,
+				"filename": path.name,
+				"md5sum": package.md5_hash,
+				"zsyncFile": package.zsync_url.rsplit("/", 1)[1] if package.zsync_url else None,
+			}
+			packages.append(pdict)
+		return packages
+
+	def fetch_repository_metafile(self, session: Session, url: str) -> list[dict[str, str | ProductRepositoryInfo]] | None:
+		if url not in self.metafile_cache:
+			response = session.get(url)
+			if response.status_code == 200:
+				logger.info("Found repository metafile: %s", url)
+				self.metafile_cache[url] = response.content
+			else:
+				self.metafile_cache[url] = None
+		return self.metafile_cache[url]
+
 	def getDownloadablePackagesFromRepository(
 		self, repository: ProductRepositoryInfo
 	) -> list[dict[str, str | ProductRepositoryInfo]]:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
@@ -950,37 +988,14 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			packages = []
 			errors = set()
 
+			for meta_file in ("packages.msgpack.zstd", "packages.json", "packages.msgpack", "packages.json.zstd"):
+				data = self.fetch_repository_metafile(session, f"{repository.baseUrl}/{meta_file}")
+				if data:
+					return self.read_repository_metafile(repository, data)
+
 			for url in repository.getDownloadUrls():  # pylint: disable=too-many-nested-blocks
 				try:
 					url = quote(url.encode("utf-8"), safe="/#%[]=:;$&()+,!?*@'~")
-					if str(os.environ.get("USE_REPOFILE")).lower() == "true":
-						logger.debug("Trying to retrieve packages.json from %s", url)
-						try:
-							repo_data = None
-							if url.startswith("http"):
-								repo_data = session.get(f"{url}/packages.json").content
-							elif url.startswith("file://"):
-								with open(f"{url[7:]}/packages.json", "rb") as file:
-									repo_data = file.read()
-							else:
-								raise ValueError(f"invalid repository url: {url}")
-
-							repo_packages = json.loads(repo_data.decode("utf-8"))["packages"]
-							for key, pdict in repo_packages.items():
-								link = ".".join([key, "opsi"])
-								pdict["repository"] = repository
-								pdict["productId"] = pdict.pop("product_id")
-								pdict["version"] = f"{pdict.pop('product_version')}-{pdict.pop('package_version')}"
-								pdict["packageFile"] = f"{url}/{link}"
-								pdict["filename"] = link
-								pdict["md5sum"] = pdict.pop("md5sum", None)
-								pdict["zsyncFile"] = pdict.pop("zsync_file", None)
-								packages.append(pdict)
-								logger.info("Found opsi package: %s/%s", url, link)
-							continue
-						except Exception:  # pylint: disable=broad-except
-							logger.warning("No repofile found, falling back to scanning the repository")
-
 					response = session.get(url, headers=self.httpHeaders)
 					content = response.content.decode("utf-8")
 					logger.debug("content: '%s'", content)
