@@ -10,8 +10,10 @@ through a remote repository.
 """
 
 import argparse
+import configparser
 import operator
 import sys
+
 from pathlib import Path
 
 from opsicommon.logging import (
@@ -25,6 +27,7 @@ from opsicommon.types import forceProductId
 
 from OPSI import __version__ as python_opsi_version  # type: ignore[import,attr-defined]
 from OPSI.Util import compareVersions  # type: ignore[import]
+from OPSI.Util.File import IniFile  # type: ignore[import]
 from opsiutils import __version__
 from opsiutils.update_packages.Config import DEFAULT_CONFIG
 from opsiutils.update_packages.Exceptions import NoActiveRepositoryError
@@ -333,21 +336,51 @@ def patch_repo_files(base_path: Path) -> None:
 		baseUrl = http://download.uib.de
 		dirs = opsi4.2/experimental/packages/linux/localboot/, opsi4.2/experimental/packages/linux/netboot/
 	New format example:
-		baseUrl = https://opsipackages.43.opsi.org
-		dirs = experimental/linux/localboot/, experimental/linux/netboot/
+		baseUrl = https://opsipackages.43.opsi.org/experimental
+		dirs = linux/localboot/, linux/netboot/
 	"""
 	for repo in OFFICIAL_REPO_FILES:
 		repo_file = base_path / repo
 		if not repo_file.exists():
 			continue
-		content = repo_file.read_text(encoding="utf-8")
-		if not "download.uib.de" in content or content.startswith("; This file has been patched by opsi-package-updater"):
+		content_lines = repo_file.read_text(encoding="utf-8").splitlines()
+		if (
+			content_lines[0].startswith("; This file has been patched by opsi-package-updater")
+			# correct patching problem introduced with 4.3.0.26  # my be removed at some point
+			and not content_lines[0] == ("; This file has been patched by opsi-package-updater 4.3.0.26")
+		):
 			continue
-		content = content.replace("http://download.uib.de", "https://opsipackages.43.opsi.org")
-		content = content.replace("https://download.uib.de", "https://opsipackages.43.opsi.org")
-		content = content.replace("/packages/", "/")
-		content = content.replace("opsi4.2/", "")
-		content = f"; This file has been patched by opsi-package-updater {__version__}\n{content}"
+		if content_lines[0].startswith("; This file has been patched by opsi-package-updater"):
+			content_lines.pop(0)  # remove automatically generated comment
+			repo_file.write_text("\n".join(content_lines), encoding="utf-8")
+
+		config_ini = configparser.ConfigParser()
+		# case-sensitive option keys!
+		config_ini.optionxform = str  # type: ignore
+		config_ini.read(repo_file)
+		for section in config_ini.sections():
+			if section == "DEFAULT":
+				continue
+			dirs = config_ini.get(section=section, option="dirs")
+			branch = "stable"
+			if "experimental" in dirs:
+				branch = "experimental"
+			if "testing" in dirs:
+				branch = "testing"
+
+			if (
+				config_ini.get(section=section, option="baseUrl") == "https://opsipackages.43.opsi.org"
+				or "download.uib.de" in config_ini.get(section=section, option="baseUrl")
+			):
+				config_ini.set(section=section, option="baseUrl", value=f"https://opsipackages.43.opsi.org/{branch}")
+
+			dirs = dirs.replace(f"{branch}/", "").replace("packages/", "").replace("opsi4.2/", "")
+			config_ini.set(section=section, option="dirs", value=dirs)
+
+		with open(repo_file, "w", encoding="utf-8") as configfile:
+			config_ini.write(configfile)
+
+		content = f"; This file has been patched by opsi-package-updater {__version__}\n{repo_file.read_text(encoding='utf-8')}"
 		repo_file.write_text(content, encoding="utf-8")
 
 

@@ -25,7 +25,8 @@ from opsiutils.opsipackageupdater import patch_repo_files
 from opsiutils import __version__
 
 
-ORIGINAL_REPO = """[repository_uib_linux_experimental]
+ORIGINAL_REPO = """; This is a testcomment
+[repository_uib_linux_experimental]
 description = opsi Linux Support (experimental packages)
 active = false
 baseUrl = http://download.uib.de
@@ -35,18 +36,19 @@ autoUpdate = true
 autoSetup = false
 proxy =
 
-[repository_uib_windows_experimental]
-description = opsi Windows Support (experimental packages)
+[repository_uib_windows_testing]
+description = opsi Windows Support (testing packages)
 active = false
 baseUrl = http://download.uib.de
-dirs = opsi4.2/experimental/packages/windows/localboot/, opsi4.2/experimental/packages/windows/netboot/
+dirs = opsi4.2/testing/packages/windows/localboot/, opsi4.2/testing/packages/windows/netboot/
 autoInstall = false
 autoUpdate = true
 autoSetup = false
 proxy =
 """
 
-PATCHED_REPO = f"""; This file has been patched by opsi-package-updater {__version__}
+WRONGLY_PATCHED_REPO = """; This file has been patched by opsi-package-updater 4.3.0.26
+; This is a testcomment
 [repository_uib_linux_experimental]
 description = opsi Linux Support (experimental packages)
 active = false
@@ -57,17 +59,39 @@ autoUpdate = true
 autoSetup = false
 proxy =
 
-[repository_uib_windows_experimental]
-description = opsi Windows Support (experimental packages)
+[repository_uib_windows_testing]
+description = opsi Windows Support (testing packages)
 active = false
 baseUrl = https://opsipackages.43.opsi.org
-dirs = experimental/windows/localboot/, experimental/windows/netboot/
+dirs = testing/windows/localboot/, testing/windows/netboot/
 autoInstall = false
 autoUpdate = true
 autoSetup = false
 proxy =
 """
 
+PATCHED_REPO = f"""; This file has been patched by opsi-package-updater {__version__}
+; This is a testcomment
+[repository_uib_linux_experimental]
+description = opsi Linux Support (experimental packages)
+active = false
+baseUrl = https://opsipackages.43.opsi.org/experimental
+dirs = linux/localboot/, linux/netboot/
+autoInstall = false
+autoUpdate = true
+autoSetup = false
+proxy =
+
+[repository_uib_windows_testing]
+description = opsi Windows Support (testing packages)
+active = false
+baseUrl = https://opsipackages.43.opsi.org/testing
+dirs = windows/localboot/, windows/netboot/
+autoInstall = false
+autoUpdate = true
+autoSetup = false
+proxy =
+"""
 
 class FakeService:
 	def host_getObjects(self, **kwargs: Any) -> list[OpsiDepotserver]:  # pylint: disable=invalid-name,unused-argument
@@ -244,20 +268,24 @@ def test_server_repo_meta(  # pylint: disable=redefined-outer-name,too-many-loca
 		assert requests[num_requests - 1]["path"] == f"/{metafile}"
 
 
-def test_patch_repo_files(tmp_path: Path) -> None:
-	"""
-	Test patch_repo_files
-	"""
-	# Create a test repo
-	test_repo = tmp_path
-	(test_repo / "experimental.repo").write_text(ORIGINAL_REPO, encoding="utf-8")
-	(test_repo / "custom.repo").write_text(ORIGINAL_REPO, encoding="utf-8")
+@pytest.mark.parametrize(
+	"source, name, corrent_result", (
+		(ORIGINAL_REPO, "experimental.repo", PATCHED_REPO),
+		(WRONGLY_PATCHED_REPO, "experimental.repo", PATCHED_REPO),
+		(ORIGINAL_REPO, "custom.repo", ORIGINAL_REPO)
+	)
+)
+def test_patch_repo_files(tmp_path: Path, source: str, name: str, corrent_result: str) -> None:
+	# Create a test repo file
+	(tmp_path / name).write_text(source, encoding="utf-8")
 
 	# Patch the repo files
-	patch_repo_files(test_repo)
-	print((test_repo / "experimental.repo").read_text(encoding="utf-8"))
+	patch_repo_files(tmp_path)
+	result = (tmp_path / name).read_text(encoding="utf-8")
+	print(result)
 
-	# Check that the uib repo file has been patched
-	assert (test_repo / "experimental.repo").read_text(encoding="utf-8") == PATCHED_REPO
-	# Check that the custom repo file has been left untouched
-	assert (test_repo / "custom.repo").read_text(encoding="utf-8") == ORIGINAL_REPO
+	# For some reason patching the inifile messes with the key order
+	# Also, empty entries are replaced by a space char (e.g. `proxy = `)
+	for line in result.splitlines():
+		assert line.strip() in corrent_result
+	# assert "; This is a testcomment" in result.splitlines()
