@@ -957,6 +957,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		for package in col.get_packages():
 			path = PurePosixPath(package.url)
 			if not any(p for p in paths if path.is_relative_to(p)):
+				logger.debug("Skipping package: %s", package.url)
 				continue
 			logger.info("Found opsi package: %s", package.url)
 			pdict = {
@@ -973,25 +974,31 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 	def fetch_repository_metafile(self, session: Session, url: str) -> list[dict[str, str | ProductRepositoryInfo]] | None:
 		if url not in self.metafile_cache:
+			logger.info("Trying to fetch repository metafile: %s", url)
 			response = session.get(url)
 			if response.status_code == 200:
-				logger.info("Found repository metafile: %s", url)
+				logger.notice("Repository metafile successfully fetched: %s", url)
 				self.metafile_cache[url] = response.content
 			else:
 				self.metafile_cache[url] = None
 		return self.metafile_cache[url]
 
-	def getDownloadablePackagesFromRepository(
+	def getDownloadablePackagesFromRepository(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements,invalid-name
 		self, repository: ProductRepositoryInfo
-	) -> list[dict[str, str | ProductRepositoryInfo]]:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+	) -> list[dict[str, str | ProductRepositoryInfo]]:
 		with self.makeSession(repository) as session:
-			packages = []
-			errors = set()
-
 			for meta_file in ("packages.msgpack.zstd", "packages.json", "packages.msgpack", "packages.json.zstd"):
 				data = self.fetch_repository_metafile(session, f"{repository.baseUrl}/{meta_file}")
-				if data:
-					return self.read_repository_metafile(repository, data)
+				if data is not None:
+					# None = repository metafile missing, b"" = repository metafile empty
+					if data:
+						return self.read_repository_metafile(repository, data)
+					break
+
+			logger.notice("No repository metafile found in repository: %s", repository.baseUrl)
+
+			packages = []
+			errors = set()
 
 			for url in repository.getDownloadUrls():  # pylint: disable=too-many-nested-blocks
 				try:
@@ -1088,7 +1095,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 	@contextmanager
 	def makeSession(self, repository: ProductRepositoryInfo) -> Session:
-		logger.info("opening session for repository '%s' (%s)", repository.name, repository.baseUrl)
+		logger.info("Opening session for repository '%s' (%s)", repository.name, repository.baseUrl)
 		try:
 			no_proxy_addresses = ["localhost", "127.0.0.1", "ip6-localhost", "::1"]
 			session = prepare_proxy_environment(repository.baseUrl, repository.proxy, no_proxy_addresses=no_proxy_addresses)

@@ -193,7 +193,7 @@ def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-lo
 @pytest.mark.parametrize(
 	"metafile, num_requests", (("packages.msgpack.zstd", 1), ("packages.json", 2), ("packages.msgpack", 3), ("packages.json.zstd", 4))
 )
-def test_server_repo_meta(  # pylint: disable=redefined-outer-name
+def test_server_repo_meta(  # pylint: disable=redefined-outer-name,too-many-locals
 	tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], metafile: str, num_requests: int
 ) -> None:
 	config_file = tmp_path / "empty.conf"
