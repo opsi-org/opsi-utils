@@ -1223,14 +1223,14 @@ reference = "uibpypi"
 
 [[package]]
 name = "platformdirs"
-version = "3.7.0"
+version = "3.8.0"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "platformdirs-3.7.0-py3-none-any.whl", hash = "sha256:cfd065ba43133ff103ab3bd10aecb095c2a0035fcd1f07217c9376900d94ba07"},
-    {file = "platformdirs-3.7.0.tar.gz", hash = "sha256:87fbf6473e87c078d536980ba970a472422e94f17b752cfad17024c18876d481"},
+    {file = "platformdirs-3.8.0-py3-none-any.whl", hash = "sha256:ca9ed98ce73076ba72e092b23d3c93ea6c4e186b3f1c3dad6edd98ff6ffcca2e"},
+    {file = "platformdirs-3.8.0.tar.gz", hash = "sha256:b0cabcb11063d21a0b261d557acb0a9d2126350e63b70cdf7db6347baea456dc"},
 ]
 
 [package.extras]
@@ -1687,14 +1687,14 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi-common"
-version = "4.3.0.51"
+version = "4.3.0.52"
 description = "The opsi python common library"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.12"
 files = [
-    {file = "python_opsi_common-4.3.0.51-py3-none-any.whl", hash = "sha256:825cc650deb8d806427362dedbd6040c894390c1d5256d798ea2bb85661dd1dd"},
-    {file = "python_opsi_common-4.3.0.51.tar.gz", hash = "sha256:d1624b8f78f77e0564e7959cf0a9dad37e583e0fb81d86dbd5dc14d760f160a2"},
+    {file = "python_opsi_common-4.3.0.52-py3-none-any.whl", hash = "sha256:0e35461e73b63e6537b4878c34e4bebe2cacf3aeee049654b7a69c206abfe60b"},
+    {file = "python_opsi_common-4.3.0.52.tar.gz", hash = "sha256:0b27305e979c1cbf470db5d24ae3c7ebd298de315e9947a65dfdf105d5d9e92b"},
 ]
 
 [package.dependencies]
