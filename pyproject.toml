@@ -29,6 +29,7 @@ mysqlclient = "2.1.1"
 distro = {platform = "linux", version = "^1.5"}
 paramiko = "^3.2"
 pyzsync = "^0.9"
+configupdater = "^3.1.1"
 
 [tool.poetry.dev-dependencies]
 pyinstaller = "^5.3"

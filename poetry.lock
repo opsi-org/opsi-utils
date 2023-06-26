@@ -356,6 +356,26 @@ url = "https://pypi.uib.gmbh/simple"
 reference = "uibpypi"
 
 [[package]]
+name = "configupdater"
+version = "3.1.1"
+description = "Parser like ConfigParser but for updating configuration files"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "ConfigUpdater-3.1.1-py2.py3-none-any.whl", hash = "sha256:805986dbeba317886c7a8d348b2e34986dc9e3128cd3761ecc35decbd372b286"},
+    {file = "ConfigUpdater-3.1.1.tar.gz", hash = "sha256:46f0c74d73efa723776764b43c9739f68052495dd3d734319c1d0eb58511f15b"},
+]
+
+[package.extras]
+testing = ["flake8", "pytest", "pytest-cov", "pytest-virtualenv", "pytest-xdist", "sphinx"]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.uib.gmbh/simple"
+reference = "uibpypi"
+
+[[package]]
 name = "constantly"
 version = "15.1.0"
 description = "Symbolic constants in Python"
@@ -2422,4 +2442,4 @@ reference = "uibpypi"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "7a5e0666d9f56a8b6cea7303b2af3f0dfab968b39a625a331a40b30feb49d224"
+content-hash = "088ff56be415c8685fceb4b873bbe77c9c7fdd6a07d80b7931f65f169ad0baf5"
