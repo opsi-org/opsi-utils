@@ -10,7 +10,7 @@ through a remote repository.
 """
 
 import argparse
-import configparser
+from configupdater import ConfigUpdater
 import operator
 import sys
 
@@ -351,16 +351,15 @@ def patch_repo_files(base_path: Path) -> None:
 			continue
 		if content_lines[0].startswith("; This file has been patched by opsi-package-updater"):
 			content_lines.pop(0)  # remove automatically generated comment
-			repo_file.write_text("\n".join(content_lines), encoding="utf-8")
 
-		config_ini = configparser.ConfigParser()
-		# case-sensitive option keys!
-		config_ini.optionxform = str  # type: ignore
-		config_ini.read(repo_file)
-		for section in config_ini.sections():
+		repo_config = ConfigUpdater()
+		data = "[DEFAULT]\n" + '\n'.join(content_lines)  # f-string expression cannot include backslash
+		repo_config.read_string(data)
+
+		for section in repo_config.sections():
 			if section == "DEFAULT":
 				continue
-			dirs = config_ini.get(section=section, option="dirs")
+			dirs = repo_config.get(section=section, option="dirs").value or ""
 			branch = "stable"
 			if "experimental" in dirs:
 				branch = "experimental"
@@ -368,18 +367,16 @@ def patch_repo_files(base_path: Path) -> None:
 				branch = "testing"
 
 			if (
-				config_ini.get(section=section, option="baseUrl") == "https://opsipackages.43.opsi.org"
-				or "download.uib.de" in config_ini.get(section=section, option="baseUrl")
+				repo_config.get(section=section, option="baseUrl") == "https://opsipackages.43.opsi.org"
+				or "download.uib.de" in (repo_config.get(section=section, option="baseUrl").value or "")
 			):
-				config_ini.set(section=section, option="baseUrl", value=f"https://opsipackages.43.opsi.org/{branch}")
+				repo_config.set(section=section, option="baseUrl", value=f"https://opsipackages.43.opsi.org/{branch}")
 
 			dirs = dirs.replace(f"{branch}/", "").replace("packages/", "").replace("opsi4.2/", "")
-			config_ini.set(section=section, option="dirs", value=dirs)
+			print(dirs)
+			repo_config.set(section=section, option="dirs", value=dirs)
 
-		with open(repo_file, "w", encoding="utf-8") as configfile:
-			config_ini.write(configfile)
-
-		content = f"; This file has been patched by opsi-package-updater {__version__}\n{repo_file.read_text(encoding='utf-8')}"
+		content = f"; This file has been patched by opsi-package-updater {__version__}\n" + str(repo_config).split('\n', 1)[1]
 		repo_file.write_text(content, encoding="utf-8")
 
 

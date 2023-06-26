@@ -269,13 +269,13 @@ def test_server_repo_meta(  # pylint: disable=redefined-outer-name,too-many-loca
 
 
 @pytest.mark.parametrize(
-	"source, name, corrent_result", (
+	"source, name, correct_result", (
 		(ORIGINAL_REPO, "experimental.repo", PATCHED_REPO),
 		(WRONGLY_PATCHED_REPO, "experimental.repo", PATCHED_REPO),
 		(ORIGINAL_REPO, "custom.repo", ORIGINAL_REPO)
 	)
 )
-def test_patch_repo_files(tmp_path: Path, source: str, name: str, corrent_result: str) -> None:
+def test_patch_repo_files(tmp_path: Path, source: str, name: str, correct_result: str) -> None:
 	# Create a test repo file
 	(tmp_path / name).write_text(source, encoding="utf-8")
 
@@ -284,8 +284,7 @@ def test_patch_repo_files(tmp_path: Path, source: str, name: str, corrent_result
 	result = (tmp_path / name).read_text(encoding="utf-8")
 	print(result)
 
-	# For some reason patching the inifile messes with the key order
-	# Also, empty entries are replaced by a space char (e.g. `proxy = `)
+	# empty entries are replaced by a space char (e.g. `proxy = `)
 	for line in result.splitlines():
-		assert line.strip() in corrent_result
-	# assert "; This is a testcomment" in result.splitlines()
+		assert line.strip() in correct_result
+	assert "; This is a testcomment" in result.splitlines()
