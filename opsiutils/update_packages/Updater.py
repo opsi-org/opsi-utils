@@ -224,6 +224,22 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 		return True
 
+	def check_dependency_sequence(self, sequence: list[str], productId: str, dependency: str) -> None:
+		try:
+			ppos = sequence.index(productId)
+			try:
+				dpos = sequence.index(dependency)
+				logger.debug("Dependency %s has index %s", dependency, dpos)
+			except ValueError:
+				logger.error("Dependency %s of package %s not in sequence. Adding it.", productId, dependency)
+				sequence.insert(ppos, dependency)
+			if ppos < dpos:
+				sequence.remove(dependency)
+				sequence.insert(ppos, dependency)
+		except Exception as err:  # pylint: disable=broad-except
+			logger.debug("While processing package '%s', product_dependency '%s': %s", productId, dependency, err)
+
+
 	def processUpdates(self) -> None:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		if not any(self.getActiveRepositories()):
 			logger.warning("No repositories configured, nothing to do")
@@ -287,14 +303,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 					Path(packageFile), temp_dir=Path(self.config.get("tempdir")) if self.config.get("tempdir") else None
 				)
 				for dependency in opsi_package.package_dependencies:
-					try:
-						ppos = sequence.index(productId)
-						dpos = sequence.index(dependency.package)
-						if ppos < dpos:
-							sequence.remove(dependency.package)
-							sequence.insert(ppos, dependency.package)
-					except Exception as err:  # pylint: disable=broad-except
-						logger.debug("While processing package '%s', dependency '%s': %s", packageFile, dependency.package, err)
+					self.check_dependency_sequence(sequence, productId, dependency.package)
+				for prod_dependency in opsi_package.product_dependencies:
+					self.check_dependency_sequence(sequence, productId, prod_dependency.requiredProductId)
 
 			sortedPackages: list[dict[str, str | ProductRepositoryInfo]] = []
 			for productId in sequence:
