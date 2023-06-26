@@ -964,10 +964,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				"repository": repository,
 				"productId": package.product_id,
 				"version": package.version,
-				"packageFile": package.url,
+				"packageFile": f"{repository.baseUrl}/{package.url}",
 				"filename": path.name,
 				"md5sum": package.md5_hash,
-				"zsyncFile": package.zsync_url.rsplit("/", 1)[1] if package.zsync_url else None,
+				"zsyncFile": f"{repository.baseUrl}/{package.zsync_url}" if package.zsync_url else None,
 			}
 			packages.append(pdict)
 		return packages

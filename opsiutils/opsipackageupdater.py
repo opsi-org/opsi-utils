@@ -373,7 +373,6 @@ def patch_repo_files(base_path: Path) -> None:
 				repo_config.set(section=section, option="baseUrl", value=f"https://opsipackages.43.opsi.org/{branch}")
 
 			dirs = dirs.replace(f"{branch}/", "").replace("packages/", "").replace("opsi4.2/", "")
-			print(dirs)
 			repo_config.set(section=section, option="dirs", value=dirs)
 
 		content = f"; This file has been patched by opsi-package-updater {__version__}\n" + str(repo_config).split('\n', 1)[1]
