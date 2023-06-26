@@ -10,11 +10,11 @@ through a remote repository.
 """
 
 import argparse
-from configupdater import ConfigUpdater
 import operator
 import sys
 
 from pathlib import Path
+from configupdater import ConfigUpdater
 
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
