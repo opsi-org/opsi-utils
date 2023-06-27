@@ -1006,7 +1006,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 						return self.read_repository_metafile(repository, data)
 					break
 
-			logger.notice("No repository metafile found in repository: %s", repository.baseUrl)
+			logger.info("No repository metafile found in repository: %s", repository.baseUrl)
 
 			packages = []
 			errors = set()
