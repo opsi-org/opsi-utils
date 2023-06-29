@@ -131,8 +131,8 @@ def print_info(product, customName, opsi_package):
 	print("   %-20s : %s" % ("advice", product.advice))  # pylint: disable=consider-using-f-string
 	print("   %-20s : %s" % ("priority", product.priority))  # pylint: disable=consider-using-f-string
 	print("   %-20s : %s" % ("licenseRequired", product.licenseRequired))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("product classes", ", ".join(product.productClassIds)))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("windows software ids", ", ".join(product.windowsSoftwareIds)))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("product classes", ", ".join(product.productClassIds or [])))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("windows software ids", ", ".join(product.windowsSoftwareIds or [])))  # pylint: disable=consider-using-f-string
 
 	if product.getType() == "NetbootProduct":
 		print("   %-20s : %s" % ("pxe config template", product.pxeConfigTemplate))  # pylint: disable=consider-using-f-string
