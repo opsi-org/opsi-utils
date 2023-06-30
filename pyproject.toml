@@ -25,7 +25,7 @@ python-opsi-common = ">=4.3.0.48,<4.4"
 #python-opsi-common = {path = "../python-opsi-common"}
 python-magic = "^0.4"
 # Lock to 2.1.1 (build problems with 2.2.0)
-mysqlclient = "2.1.1"
+mysqlclient = ">=2.0,<2.2"
 distro = {platform = "linux", version = "^1.5"}
 paramiko = "^3.2"
 pyzsync = "^0.9"
