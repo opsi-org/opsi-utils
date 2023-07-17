@@ -807,6 +807,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			per_second = (pos - ap_last_position) / elapsed if elapsed else 0.0
 			ap_per_second = int(ap_per_second * 0.7 + per_second * 0.3)
 			ap_last_time = now
+			logger.debug("Local file analyze speed: %0.3f MB/s", ap_per_second / 1_000_000)
 			# Check after 1MB if analyze speed is >= 1 MB/s (1.000.000 B/s)
 			if pos >= 1_000_000 and ap_per_second < 1_000_000:  # pylint: disable=chained-comparison
 				logger.warning(
