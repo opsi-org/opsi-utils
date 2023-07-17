@@ -27,7 +27,7 @@ priority = "primary"
 python = ">=3.11,<3.12"
 #python-opsi = {path = "python-opsi"}
 python-opsi = ">=4.3.0.0,<4.4"
-python-opsi-common = ">=4.3.0.48,<4.4"
+python-opsi-common = ">=4.3.0.63,<4.4"
 #python-opsi-common = {path = "../python-opsi-common"}
 python-magic = "^0.4"
 # Lock to 2.1.1 (build problems with 2.2.0)
