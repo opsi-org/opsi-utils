@@ -29,7 +29,7 @@ from opsicommon.types import forceProductId
 from opsicommon.utils import prepare_proxy_environment
 from opsicommon.package.repo_meta import RepoMetaPackageCollection
 from requests import Response, Session  # type: ignore[import]
-from requests.packages import urllib3  # type: ignore[import]
+from requests.packages import urllib3  # type: ignore[import,attr-defined]
 
 from pyzsync import (
 	create_zsync_file,
@@ -238,7 +238,6 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				sequence.insert(ppos, dependency)
 		except Exception as err:  # pylint: disable=broad-except
 			logger.debug("While processing package '%s', product_dependency '%s': %s", productId, dependency, err)
-
 
 	def processUpdates(self) -> None:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		if not any(self.getActiveRepositories()):
@@ -789,19 +788,39 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 		with zsync_file.open("wb") as file:
 			for chunk in response.iter_content(chunk_size=32768):
 				file.write(chunk)
-		logger.debug("Zsync file %s downloaded", zsync_file)
+		logger.debug("Zsync file '%s' downloaded", zsync_file)
 
 		zsync_file_info = read_zsync_file(zsync_file)
 		zsync_file.unlink()
 
 		files = [package_file] + list(package_file.parent.glob(f"{package_file.name}.zsync-tmp*"))
 		logger.info("Analyzing local files %r", files)
-		instructions = get_patch_instructions(zsync_file_info, files)
+
+		ap_last_time = time.time()
+		ap_last_position = 0
+		ap_per_second = 0
+
+		def progress_callback(pos: int, total: int) -> bool:  # pylint: disable=unused-argument
+			nonlocal ap_last_time, ap_last_position, ap_per_second
+			now = time.time()
+			elapsed = now - ap_last_time
+			per_second = (pos - ap_last_position) / elapsed if elapsed else 0.0
+			ap_per_second = int(ap_per_second * 0.7 + per_second * 0.3)
+			ap_last_time = now
+			# Check after 1MB if analyze speed is >= 1 MB/s (1.000.000 B/s)
+			if pos >= 1_000_000 and ap_per_second < 1_000_000:  # pylint: disable=chained-comparison
+				logger.warning(
+					"Your system is to slow (%0.3f MB/s) to analyze local files in time, aborting zsync.", ap_per_second / 1_000_000
+				)
+				return True
+			return False
+
+		instructions = get_patch_instructions(zsync_file_info, files, optimized=True, progress_callback=progress_callback)
 		remote_bytes = sum([i.size for i in instructions if i.source == SOURCE_REMOTE])  # pylint: disable=consider-using-generator
 		speedup = (zsync_file_info.length - remote_bytes) * 100 / zsync_file_info.length
 		logger.info("Need to fetch %d/%d bytes from remote, speedup is %0.1f%%", remote_bytes, zsync_file_info.length, speedup)
 
-		class LoggingProgressListener(ProgressListener):
+		class LoggingProgressListener(ProgressListener):  # pylint: disable=too-few-public-methods
 			def __init__(self) -> None:
 				self.last_completed = 0
 
