@@ -34,7 +34,7 @@ python-magic = "^0.4"
 mysqlclient = ">=2.0,<2.2"
 distro = {platform = "linux", version = "^1.5"}
 paramiko = "^3.2"
-pyzsync = "^0.9"
+pyzsync = "^1.2"
 configupdater = "^3.1.1"
 
 [tool.poetry.dev-dependencies]
