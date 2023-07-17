@@ -1660,7 +1660,7 @@ optional = false
 python-versions = ">=3.11,<3.12"
 files = [
     {file = "python_opsi_common-4.3.0.62-py3-none-any.whl", hash = "sha256:59976aa643ff5816028a7d5e2033b8cea3c30a544227dc9e2b978a3a2a7484b2"},
-    {file = "python_opsi_common-4.3.0.62.tar.gz", hash = "sha256:ba60b69dba8bd0434b7b1d309ce14e5e922e5072649b5324f266b93a68e2eb76"},
+    {file = "python_opsi_common-4.3.0.62.tar.gz", hash = "sha256:9f2862baa331bee7ee404283e4ee522222acbf0466767424d0a0e4fe1e8824a8"},
 ]
 
 [package.dependencies]
