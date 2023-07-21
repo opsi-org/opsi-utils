@@ -739,8 +739,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 				message = f"Zsync of {availablePackage['packageFile']!r} completed"
 				logger.info(message)
 			except Exception as err:  # pylint: disable=broad-except
-				message = f"Zsync of {availablePackage['packageFile']!r} failed: {err}"
-				logger.error(message, exc_info=True)
+				if str(err) == "Aborted by progress callback":
+					logger.info("Zsync aborted")
+				else:
+					logger.error("Zsync of %r failed: %s", availablePackage['packageFile'], err, exc_info=True)
 
 			if notifier and message:
 				notifier.appendLine(message)
