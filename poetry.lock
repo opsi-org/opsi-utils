@@ -1450,13 +1450,13 @@ reference = "uibpypi"
 
 [[package]]
 name = "pyinstaller-hooks-contrib"
-version = "2023.5"
+version = "2023.6"
 description = "Community maintained hooks for PyInstaller"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pyinstaller-hooks-contrib-2023.5.tar.gz", hash = "sha256:cca6cdc31e739954b5bbbf05ef3f71fe448e9cdacad3a2197243bcf99bea2c00"},
-    {file = "pyinstaller_hooks_contrib-2023.5-py2.py3-none-any.whl", hash = "sha256:e60185332a6b56691f471d364e9e9405b03091ca27c96e0dbebdedb7624457fd"},
+    {file = "pyinstaller-hooks-contrib-2023.6.tar.gz", hash = "sha256:596a72009d8692b043e0acbf5e1b476d93149900142ba01845dded91a0770cb5"},
+    {file = "pyinstaller_hooks_contrib-2023.6-py2.py3-none-any.whl", hash = "sha256:aa6d7d038814df6aa7bec7bdbebc7cb4c693d3398df858f6062957f0797d397b"},
 ]
 
 [package.source]
@@ -1654,13 +1654,13 @@ reference = "uibpypi"
 
 [[package]]
 name = "python-opsi-common"
-version = "4.3.0.63"
+version = "4.3.0.66"
 description = "The opsi python common library"
 optional = false
 python-versions = ">=3.11,<3.12"
 files = [
-    {file = "python_opsi_common-4.3.0.63-py3-none-any.whl", hash = "sha256:80fcae1534794684f553a627eae30bf0d49bc0820fdee95bb0a6270aa4e8b7f2"},
-    {file = "python_opsi_common-4.3.0.63.tar.gz", hash = "sha256:d14e037c8b8a51bde299fb567309e642f0534a2acb597042c72afb94d02eaa54"},
+    {file = "python_opsi_common-4.3.0.66-py3-none-any.whl", hash = "sha256:fe0586cff007ad84fce79ff7942ffb17ae0c9e0f4ada667db311456d181967d4"},
+    {file = "python_opsi_common-4.3.0.66.tar.gz", hash = "sha256:7abbfa2cbaf287ddf30acd4e9ee423a1a16f870dcf80356d80230e8a6159c7b1"},
 ]
 
 [package.dependencies]
@@ -1676,6 +1676,7 @@ pywin32 = {version = ">=303", markers = "sys_platform == \"win32\""}
 pyzsync = ">=1.2"
 requests = ">=2.26"
 rich = ">=13.0"
+tomlkit = ">=0.11.8,<0.12.0"
 websocket-client = ">=1.4"
 wmi = {version = ">=1.5", markers = "sys_platform == \"win32\""}
 zstandard = ">=0.21"
@@ -2090,13 +2091,13 @@ reference = "uibpypi"
 
 [[package]]
 name = "urllib3"
-version = "2.0.3"
+version = "2.0.4"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "urllib3-2.0.3-py3-none-any.whl", hash = "sha256:48e7fafa40319d358848e1bc6809b208340fafe2096f1725d05d67443d0483d1"},
-    {file = "urllib3-2.0.3.tar.gz", hash = "sha256:bee28b5e56addb8226c96f7f13ac28cb4c301dd5ea8a6ca179c0b9835e032825"},
+    {file = "urllib3-2.0.4-py3-none-any.whl", hash = "sha256:de7df1803967d2c2a98e4b11bb7d6bd9210474c46e8a0401514e3a42a75ebde4"},
+    {file = "urllib3-2.0.4.tar.gz", hash = "sha256:8d22f86aae8ef5e410d4f539fde9ce6b2113a001bb4d189e0aed70642d602b11"},
 ]
 
 [package.extras]
