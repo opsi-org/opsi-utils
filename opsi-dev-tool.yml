@@ -158,5 +158,5 @@ pull-binaries:
     destination: .
     extract: true
     post-script: []
-    version: 4.2.0.7
+    version: 4.2.0.12
     server-url: http://binaryindex.uib.gmbh
