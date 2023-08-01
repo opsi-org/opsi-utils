@@ -21,7 +21,7 @@ and this is a [link](https://www.uib.de/)
 version = "1.0"
 priority = 0
 licenseRequired = false
-productClasses = ["None"]
+productClasses = []
 setupScript = "setup.ins"
 windowsSoftwareIds = []
 

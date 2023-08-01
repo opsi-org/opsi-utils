@@ -8,6 +8,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from opsicommon.package import OpsiPackage
 from opsiutils.opsimakepackage import makepackage_main
 
 from .utils import temp_context
@@ -69,3 +70,20 @@ def test_error_on_control_newer_than_toml() -> None:
 			makepackage_main(["--no-set-rights", "--no-md5", "--no-zsync"])
 		assert not Path("prod-1750_1.0-1.opsi").exists()
 		assert not Path("prod-1750_2-2.opsi").exists()
+
+
+def test_makepackage_None_entries() -> None:
+	with temp_context() as orig_path:
+		opsi_dir = Path("OPSI")
+		opsi_dir.mkdir()
+		shutil.copy(orig_path / "tests" / "data" / "control.toml", opsi_dir / "control.toml")
+
+		package = OpsiPackage()
+		package.find_and_parse_control_file(opsi_dir)
+		assert package.product.onceScript is None
+		assert package.product.productClassIds == []
+
+		makepackage_main(["--no-set-rights", "--no-md5", "--no-zsync"])
+		old_control = (opsi_dir / "control").read_text(encoding="utf-8")
+		assert "onceScript: \n" in old_control
+		assert "productClasses: \n" in old_control
