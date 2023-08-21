@@ -1,10 +1,15 @@
-locale:
-  languages:
-    - de
-    - fr
-  source_files:
-    - opsiutils
-  install: opsi-utils_data/locale
+transifex:
+  upload_resources:
+    - organization: opsi-org
+      project: opsiorg
+      resource_name: opsi-utils.pot
+      scan_sources:
+        - opsiutils
+  download_translations:
+    - organization: opsi-org
+      project: opsiorg
+      resource_name: opsi-utils.pot
+      install_dir: opsi-utils_data/locale
 
 pyinstaller-poetry:
   one_file: no
