@@ -18,20 +18,23 @@ pytest-pylint:
     - poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
 
 
-linux-pyinstaller:
+linux-amd64-pyinstaller:
   stage: build
   script:
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
+    - curl -o opsi-dev-tools.tar.gz "$OPSIDEVTOOLS_URL_LINUX_X64"
+    - tar -xvf opsi-dev-tools.tar.gz
+    - mv opsi-dev-tool opsi-dev-cli
     - poetry lock --no-update --no-cache
     - poetry install
-    - poetry run opsi-dev-cli -l info pyinstaller build
-    - '[ "$CI_COMMIT_TAG" = "" ] && poetry run opsi-dev-cli -l info binary push dist/opsi-utils --prerelease="$CI_JOB_ID"'
-    - '[ "$CI_COMMIT_TAG" = "" ] || poetry run opsi-dev-cli -l info binary push dist/opsi-utils'
+    - poetry run ./opsi-dev-cli -l info pyinstaller build
+    - '[ "$CI_COMMIT_TAG" = "" ] && poetry run ./opsi-dev-cli -l info binary push dist/opsi-utils --prerelease="$CI_JOB_ID"'
+    - '[ "$CI_COMMIT_TAG" = "" ] || poetry run ./opsi-dev-cli -l info binary push dist/opsi-utils'
     - mv dist/opsi-utils ./opsi-utils-amd64
     # Check if binary is working
     - opsi-utils-amd64/opsi-admin --version
-    - opsi-dev-cli -l info binary pull
+    - ./opsi-dev-cli -l info binary pull
     - mv opsi-cli opsi-utils-amd64
   artifacts:
     name: 'opsi-utils-linux-pyinstaller'
@@ -39,20 +42,23 @@ linux-pyinstaller:
       - opsi-utils-amd64
     expire_in: 2 days
 
-arm64-pyinstaller:
+linux-arm64-pyinstaller:
   stage: build
   tags:
     - arm64
   script:
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
+    - curl -o opsi-dev-tools.tar.gz "$OPSIDEVTOOLS_URL_LINUX_ARM64"
+    - tar -xvf opsi-dev-tools.tar.gz
+    - mv opsi-dev-tool opsi-dev-cli
     - poetry lock --no-update --no-cache
     - poetry install
-    - poetry run opsi-dev-cli -l info pyinstaller build
+    - poetry run ./opsi-dev-cli -l info pyinstaller build
     - mv dist/opsi-utils ./opsi-utils-arm64
     # Check if binary is working
     - OPSI_HOSTNAME=test.uib.local opsi-utils-arm64/opsi-admin --version
-    - opsi-dev-cli -l info binary pull
+    - ./opsi-dev-cli -l info binary pull
     - mv opsi-cli opsi-utils-arm64
   artifacts:
     name: 'opsi-utils-arm64-pyinstaller'
