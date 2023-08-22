@@ -814,7 +814,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			# Check after 5MB if analyze speed is >= 1 MB/s (1.000.000 B/s)
 			if pos >= 5_000_000 and ap_per_second < 1_000_000:  # pylint: disable=chained-comparison
 				logger.warning(
-					"Your system is to slow (%0.3f MB/s) to analyze local files in time, aborting zsync at position %d.",
+					"Your system is too slow (%0.3f MB/s) to analyze local files in time, aborting zsync at position %d.",
 					ap_per_second / 1_000_000,
 					pos,
 				)
