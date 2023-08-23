@@ -10,6 +10,10 @@ transifex:
       project: opsiorg
       resource_name: opsi-utils.pot
       install_dir: opsi-utils_data/locale
+      min_review_rate: $TRANSIFEX_MIN_REVIEW_RATE
+      languages:
+        - de
+        - fr
 
 pyinstaller-poetry:
   one_file: no

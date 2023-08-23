@@ -21,6 +21,8 @@ pytest-pylint:
 linux-amd64-pyinstaller:
   stage: build
   script:
+    - TRANSIFEX_MIN_REVIEW_RATE=0.0
+    - '[ "$CI_COMMIT_TAG" = "" ] || TRANSIFEX_MIN_REVIEW_RATE=1.0'
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - curl -o opsi-dev-tools.tar.gz "$OPSIDEVTOOLS_URL_LINUX_X64"
@@ -47,6 +49,8 @@ linux-arm64-pyinstaller:
   tags:
     - arm64
   script:
+    - TRANSIFEX_MIN_REVIEW_RATE=0.0
+    - '[ "$CI_COMMIT_TAG" = "" ] || TRANSIFEX_MIN_REVIEW_RATE=1.0'
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - curl -o opsi-dev-tools.tar.gz "$OPSIDEVTOOLS_URL_LINUX_ARM64"
