@@ -2,15 +2,15 @@
 ; A description for the repository
 description = My opsi repository
 ; Activate/deactivate the repository
-active = true
+active = false
 ; If the repository is an opsi depot, opsiDepotId should be set
 ; In that case it is not required (but allowed) to set baseUrl, dirs, username and password
 opsiDepotId =
 ; The base url of a product package repository
-baseUrl = http://download.uib.de
+baseUrl = https://opsirepo.domain.tld/stable
 ; Comma separated directories to include in search for product packages
 ; Use / if search should be done in baseUrl
-dirs = opsi4.2/stable/packages/windows/localboot/, opsi4.2/stable/packages/windows/netboot/
+dirs = packages/windows/localboot/, packages/windows/netboot/
 ; Comma separated list of productIds that will be updated
 ; If a product package file matches this regular expression it will be downloaded.
 ; Regular Expressions made under excludes can override anything under this.
