@@ -2,20 +2,10 @@
 ; clients with opsi.
 
 [repository_uib_macos_stable]
-description = opsi macos packages in stable
+description = opsi macOS packages in stable
 active = false
-baseUrl = http://download.uib.de
-dirs = opsi4.2/stable/packages/macos/localboot/
-autoInstall = false
-autoUpdate = true
-autoSetup = false
-proxy =
-
-[repository_uib_macos_testing]
-description = opsi macos packages in testing
-active = false
-baseUrl = http://download.uib.de
-dirs = opsi4.2/testing/packages/macos/localboot/
+baseUrl = baseUrl = https://opsipackages.43.opsi.org/stable
+dirs = macos/localboot
 autoInstall = false
 autoUpdate = true
 autoSetup = false

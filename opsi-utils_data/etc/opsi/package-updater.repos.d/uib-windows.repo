@@ -4,8 +4,8 @@
 [repository_uib_windows]
 description = opsi Windows Support
 active = true
-baseUrl = http://download.uib.de
-dirs = opsi4.2/stable/packages/windows/localboot/, opsi4.2/stable/packages/windows/netboot/
+baseUrl = https://opsipackages.43.opsi.org/stable
+dirs = windows/localboot, windows/netboot
 autoInstall = false
 autoUpdate = true
 autoSetup = false

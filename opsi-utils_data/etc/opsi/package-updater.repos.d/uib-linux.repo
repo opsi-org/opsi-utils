@@ -4,8 +4,8 @@
 [repository_uib_linux]
 description = opsi Linux Support
 active = true
-baseUrl = http://download.uib.de
-dirs = opsi4.2/stable/packages/linux/localboot/, opsi4.2/stable/packages/linux/netboot/
+baseUrl = https://opsipackages.43.opsi.org/stable
+dirs = linux/localboot, linux/netboot
 autoInstall = false
 autoUpdate = true
 autoSetup = false

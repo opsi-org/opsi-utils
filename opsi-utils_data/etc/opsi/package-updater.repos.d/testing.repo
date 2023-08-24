@@ -3,8 +3,8 @@
 [repository_uib_linux_testing]
 description = opsi Linux Support (testing packages)
 active = false
-baseUrl = http://download.uib.de
-dirs = opsi4.2/testing/packages/linux/localboot/, opsi4.2/testing/packages/linux/netboot/
+baseUrl = https://opsipackages.43.opsi.org/testing
+dirs = linux/localboot, linux/netboot
 autoInstall = false
 autoUpdate = true
 autoSetup = false
@@ -13,8 +13,8 @@ proxy =
 [repository_uib_local_image_testing]
 description = opsi Local Image Backup extension (testing packages)
 active = false
-baseUrl = http://download.uib.de
-dirs = opsi4.2/testing/packages/opsi-local-image/localboot/, opsi4.2/testing/packages/opsi-local-image/netboot/
+baseUrl = https://opsipackages.43.opsi.org/testing
+dirs = opsi-local-image/localboot, opsi-local-image/netboot
 autoInstall = false
 autoUpdate = true
 autoSetup = false
@@ -23,8 +23,18 @@ proxy =
 [repository_uib_windows_testing]
 description = opsi Windows Support (testing packages)
 active = false
-baseUrl = http://download.uib.de
-dirs = opsi4.2/testing/packages/windows/localboot/, opsi4.2/testing/packages/windows/netboot/
+baseUrl = https://opsipackages.43.opsi.org/testing
+dirs = windows/localboot, windows/netboot
+autoInstall = false
+autoUpdate = true
+autoSetup = false
+proxy =
+
+[repository_uib_macos_testing]
+description = opsi macOS Support (testing packages)
+active = false
+baseUrl = https://opsipackages.43.opsi.org/testing
+dirs = macos/localboot
 autoInstall = false
 autoUpdate = true
 autoSetup = false
