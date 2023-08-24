@@ -704,7 +704,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 						packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 						verified = self._verifyDownloadedPackage(packageFile, availablePackage)
 						if not verified and zsync:
-							logger.warning("%s: zsync download has failed, trying full download", availablePackage["productId"])
+							logger.info("%s: zsync download has failed, trying full download", availablePackage["productId"])
 							self.get_package(availablePackage, localPackageFound, session, zsync=False, notifier=notifier)
 							verified = self._verifyDownloadedPackage(packageFile, availablePackage)
 						if not verified:
@@ -813,7 +813,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 			logger.debug("Local file analyze speed: %0.3f MB/s", ap_per_second / 1_000_000)
 			# Check after 5MB if analyze speed is >= 1 MB/s (1.000.000 B/s)
 			if pos >= 5_000_000 and ap_per_second < 1_000_000:  # pylint: disable=chained-comparison
-				logger.warning(
+				logger.info(
 					"Your system is too slow (%0.3f MB/s) to analyze local files in time, aborting zsync at position %d.",
 					ap_per_second / 1_000_000,
 					pos,
