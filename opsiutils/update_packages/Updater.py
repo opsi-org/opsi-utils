@@ -99,7 +99,7 @@ class RequestsHTTPPatcher(HTTPPatcher):
 		return self._response.raw.read(size)
 
 
-class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
+class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-instance-attributes
 	def __init__(self, config: dict[str, str | None | list[ProductRepositoryInfo]]) -> None:
 		self.config = config
 		self.httpHeaders = {"User-Agent": self.config.get("userAgent", DEFAULT_USER_AGENT)}
@@ -984,26 +984,34 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods
 
 	def read_repository_metafile(
 		self, repository: ProductRepositoryInfo, data: bytes
-	) -> list[dict[str, str | ProductRepositoryInfo]]:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-		packages = []
-		paths = {PurePosixPath(d.lstrip("/").lstrip(".").rstrip("/")) for d in repository.dirs}
+	) -> list[dict[str, str | ProductRepositoryInfo | None]]:
+		packages: list[dict[str, str | ProductRepositoryInfo | None]] = []
+		filter_dirs = {PurePosixPath(d.lstrip("/").lstrip(".").rstrip("/")) for d in repository.dirs}
 		# is_relative_to
 		col = RepoMetaPackageCollection()
 		col.read_metafile_data(data)
 		for package in col.get_packages():
-			path = PurePosixPath(package.url)
-			if not any(p for p in paths if path.is_relative_to(p)):
-				logger.debug("Skipping package: %s", package.url)
+			package_urls = package.url if isinstance(package.url, list) else [package.url]
+			package_zsync_urls = package.zsync_url if isinstance(package.zsync_url, list) else [package.zsync_url]
+			selected_path = None
+			selected_zsync_path = None
+			for path, zsync_path in zip(package_urls, package_zsync_urls):
+				if any(PurePosixPath(path).is_relative_to(fdir) for fdir in filter_dirs):
+					selected_path = PurePosixPath(path)
+					selected_zsync_path = PurePosixPath(zsync_path) if zsync_path else None
+					break
+			else:
+				logger.debug("Skipping package: %s", package_urls)
 				continue
-			logger.info("Found opsi package: %s", package.url)
-			pdict = {
+			logger.info("Found opsi package: %s", selected_path)
+			pdict: dict[str, str | ProductRepositoryInfo | None] = {
 				"repository": repository,
 				"productId": package.product_id,
 				"version": package.version,
-				"packageFile": f"{repository.baseUrl}/{package.url}",
-				"filename": path.name,
+				"packageFile": f"{repository.baseUrl}/{selected_path}",
+				"filename": selected_path.name,
 				"md5sum": package.md5_hash,
-				"zsyncFile": f"{repository.baseUrl}/{package.zsync_url}" if package.zsync_url else None,
+				"zsyncFile": f"{repository.baseUrl}/{selected_zsync_path}" if selected_zsync_path else None,
 			}
 			packages.append(pdict)
 		return packages
