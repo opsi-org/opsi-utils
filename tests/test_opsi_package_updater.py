@@ -295,8 +295,8 @@ def test_server_repo_meta_multiurl(  # pylint: disable=redefined-outer-name,too-
 		for package in available_packages:
 			if package["version"] != "1.0-1":
 				continue
-		assert available_packages[0]["packageFile"] == f"{base_url}/localboot_new_1.0-1.opsi"
-		assert available_packages[0]["zsyncFile"] == f"{base_url}/localboot_new_1.0-1.opsi.zsync"
+			assert package["packageFile"] == f"{base_url}/localboot_new_1.0-1.opsi"
+			assert package["zsyncFile"] == f"{base_url}/localboot_new_1.0-1.opsi.zsync"
 
 		write_repo_conf(updater_info.test_repo_conf, base_url, dirs="otherdir/")
 		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
