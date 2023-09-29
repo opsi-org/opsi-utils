@@ -4,7 +4,7 @@
 [repository_uib_macos_stable]
 description = opsi macOS packages in stable
 active = false
-baseUrl = baseUrl = https://opsipackages.43.opsi.org/stable
+baseUrl = https://opsipackages.43.opsi.org/stable
 dirs = macos/localboot
 autoInstall = false
 autoUpdate = true
