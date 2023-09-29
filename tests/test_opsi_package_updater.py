@@ -161,7 +161,7 @@ def prepare_updater(base_dir: Path, copy_files: bool = True) -> UpdaterInfo:
 	)
 
 
-def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpdater]) -> None:
+def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpdater]) -> None:  # pylint: disable=redefined-outer-name
 	updater_info = prepare_updater(tmp_path, copy_files=False)
 
 	server_package_file = updater_info.server_dir / "hwaudit_4.2.0.0-1.opsi"
