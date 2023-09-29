@@ -935,7 +935,6 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 
 		with open(md5sumFile, mode="w", encoding="utf-8") as hashFile:
 			hashFile.write(md5sum(packageFile))
-
 		set_rights(md5sumFile)
 
 		zsyncFile = f"{packageFile}.zsync"
@@ -944,6 +943,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 			create_zsync_file(packageFile, zsyncFile, legacy_mode=True)
 		except Exception as err:  # pylint: disable=broad-except
 			logger.error("Failed to create zsync file '%s': %s", zsyncFile, err)
+		set_rights(zsyncFile)
 
 	def onlyNewestPackages(self, packages: list[dict[str, str | ProductRepositoryInfo]]) -> list[dict[str, str | ProductRepositoryInfo]]:
 		newestPackages: list[dict[str, str | ProductRepositoryInfo]] = []
