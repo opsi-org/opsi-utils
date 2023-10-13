@@ -231,7 +231,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				dpos = sequence.index(dependency)
 				logger.debug("Dependency %s has index %s", dependency, dpos)
 			except ValueError:
-				logger.error("Dependency %s of package %s not in sequence. Adding it.", productId, dependency)
+				logger.error("Dependency %s of package %s not in sequence. Adding it.", dependency, productId)
 				sequence.insert(ppos, dependency)
 			if ppos < dpos:
 				sequence.remove(dependency)
