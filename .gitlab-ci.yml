@@ -94,7 +94,7 @@ integration_test:
     OPSICONFD_RESTORE_BACKUP_URL: "http://binaryindex.uib.gmbh/development/testbackup/all/all/testbackup_all_all_1.1.tar.gz"
   stage: integration_test
   image:
-    name: docker.uib.gmbh/opsi/opsi-server:4.3-stable
+    name: docker.uib.gmbh/opsi/opsi-server:4.3-development
     entrypoint: [""]
   script:
     - bash /entrypoint.sh &
