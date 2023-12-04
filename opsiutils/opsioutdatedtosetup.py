@@ -12,6 +12,7 @@ from subprocess import check_call
 
 from OPSI import __version__ as python_opsi_version
 from opsicommon.logging import logger, logging_config, DEFAULT_COLORED_FORMAT
+from opsicommon.utils import monkeypatch_subprocess_for_frozen
 
 from opsiutils import __version__
 
@@ -99,6 +100,7 @@ def main():
 			])
 
 		logging_config(stderr_level=args.log_level, stderr_format=DEFAULT_COLORED_FORMAT)
+		monkeypatch_subprocess_for_frozen()
 		logger.essential("Executing '%s'", " ".join(opsi_cli_call))
 		check_call(opsi_cli_call)
 	except Exception as err:  # pylint: disable=broad-except
