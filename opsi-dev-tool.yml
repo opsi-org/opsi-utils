@@ -161,6 +161,7 @@ pull-binaries:
     server-type: binaryindex
     destination: .
     extract: true
-    post-script: []
-    version: 4.2.0.14
+    post-script:
+      - mv opsi-cli-linux.run opsi-cli
+    version: 4.3.0.0
     server-url: http://binaryindex.uib.gmbh

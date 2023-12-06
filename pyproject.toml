@@ -4,7 +4,11 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "opsi-utils"
+<<<<<<< HEAD
 version = "4.3.0.50"
+=======
+version = "4.3.1.2"
+>>>>>>> e899c79653bc9df539027137bb80e57dc08b20de
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
