@@ -118,7 +118,7 @@ integration_test:
 obs_ext:
   stage: publish
   script:
-    - curl -o opsi-dev-tools.tar.gz "$OPSIDEVTOOLS_URL_LINUX_ARM64"
+    - curl -o opsi-dev-tools.tar.gz "$OPSIDEVTOOLS_URL_LINUX_X64"
     - tar -xvf opsi-dev-tools.tar.gz
     - cp opsi-dev-tool opsi-dev-cli
     - ./opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.3:development
