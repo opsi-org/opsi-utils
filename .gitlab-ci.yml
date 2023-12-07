@@ -118,9 +118,12 @@ integration_test:
 obs_ext:
   stage: publish
   script:
-    - opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.3:development
-    - opsi-dev-tool -l 5 --create-changelog output/
-    - opsi-dev-cli release-service register-package-version opsi-utils SERVER_PACKAGE --changelog-file output/changelog.md
-    - opsi-dev-cli release-service push-repository-state opsi-utils SERVER_PACKAGE SERVER_PACKAGE-4.3-development
+    - curl -o opsi-dev-tools.tar.gz "$OPSIDEVTOOLS_URL_LINUX_X64"
+    - tar -xvf opsi-dev-tools.tar.gz
+    - cp opsi-dev-tool opsi-dev-cli
+    - ./opsi-dev-tool -l info --obs-update-package https://build.opensuse.org home:uibmz:opsi:4.3:development
+    - ./opsi-dev-tool -l 5 --create-changelog output/
+    - ./opsi-dev-cli release-service register-package-version opsi-utils SERVER_PACKAGE --changelog-file output/changelog.md
+    - ./opsi-dev-cli release-service push-repository-state opsi-utils SERVER_PACKAGE SERVER_PACKAGE-4.3-development
   only:
     - tags
