@@ -915,7 +915,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			logger.info("Depot repository path is '%s'", depotRepositoryPath)
 			logger.info("Using '%s' as repository url", depot.repositoryRemoteUrl)
 
-			maxBandwidth = max(depot.maxBandwidth, 0)
+			maxBandwidth = max(depot.maxBandwidth or 0, 0)
 			if not maxBandwidth and self.config["maxBandwidth"]:
 				maxBandwidth = self.config["maxBandwidth"]
 			if maxBandwidth:
