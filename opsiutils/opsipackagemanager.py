@@ -27,6 +27,16 @@ from pathlib import Path
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
 from urllib.parse import urlparse
 
+from OPSI import __version__ as python_opsi_version  # type: ignore
+from OPSI.UI import SnackUI  # type: ignore[import]
+from OPSI.Util import md5sum  # type: ignore[import]
+from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
+from OPSI.Util.Message import (  # type: ignore[import]
+	MessageSubject,
+	ProgressSubject,
+	SubjectsObserver,
+)
+from OPSI.Util.Repository import getRepository  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import (
@@ -47,17 +57,6 @@ from opsicommon.types import (
 	forceUnicode,
 	forceUnicodeList,
 )
-
-from OPSI import __version__ as python_opsi_version  # type: ignore
-from OPSI.UI import SnackUI  # type: ignore[import]
-from OPSI.Util import md5sum  # type: ignore[import]
-from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
-from OPSI.Util.Message import (  # type: ignore[import]
-	MessageSubject,
-	ProgressSubject,
-	SubjectsObserver,
-)
-from OPSI.Util.Repository import getRepository  # type: ignore[import]
 
 try:
 	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
@@ -338,7 +337,7 @@ class CursesTextWindow(CursesWindow):
 	def resize(self, height, width, y, x):
 		CursesWindow.resize(self, height, width, y, x)
 		newLines = []
-		for (line, params) in self.lines:
+		for line, params in self.lines:
 			if len(line) > self.width:
 				line = line[: self.width - 1]
 			newLines.append((line, params))
@@ -1372,7 +1371,52 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			subject.setMessage(_("Error: %s") % installationError, severity=2)
 			raise
 
-	def uninstallPackages(self):
+	def purgePackages(self):
+		if self.config["productIds"]:
+			self.uninstallPackages(ignore_not_installed=True)
+
+		all_product_idents = self.service_client.product_getIdents(returnType="tuple")
+		all_product_ids = set(p[0] for p in all_product_idents)
+		# Remove all orphaned product on clients
+		for depot_id in self.config["depotIds"]:
+			client_ids = [c2d["clientId"] for c2d in self.service_client.configState_getClientToDepotserver(depotIds=[depot_id])]
+			if not client_ids:
+				continue
+			purge_product_ids = set(
+				p[0]
+				for p in self.service_client.productOnClient_getIdents(
+					returnType="tuple", productId=list(self.config["productIds"]), clientId=client_ids
+				)
+			)
+			if not purge_product_ids:
+				continue
+			installed_product_ids = set(
+				p[0] for p in self.service_client.productOnDepot_getIdents(returnType="tuple", depotId=depot_id, productId=list())
+			)
+			purge_product_ids -= installed_product_ids
+			if not purge_product_ids:
+				continue
+			logger.debug("Purging products %r on depot %r and clients %r", purge_product_ids, depot_id, client_ids)
+			logger.notice("Purging products %r on depot %r", purge_product_ids, depot_id)
+			self.service_client.productOnClient_delete(productId=list(purge_product_ids), clientId=client_ids)
+
+		# Remove all orphaned products
+		purge_product_idents = set(
+			tuple(p) for p in self.service_client.product_getIdents(returnType="tuple", id=list(self.config["productIds"]))
+		)
+		installed_product_idents = set(
+			(p[0], p[2], p[3])
+			for p in self.service_client.productOnDepot_getIdents(returnType="tuple", productId=list(self.config["productIds"]))
+		)
+		purge_product_idents -= installed_product_idents
+		if not purge_product_idents:
+			return
+
+		logger.notice("Purging products: %r", purge_product_idents)
+		purge_products = [{"id": p[0], "productVersion": p[1], "packageVersion": p[2]} for p in purge_product_idents]
+		self.service_client.product_deleteObjects(purge_products)
+
+	def uninstallPackages(self, ignore_not_installed=False):
 		for depotId in self.config["depotIds"]:
 			subject = self.getDepotSubject(depotId)
 			packageNotInstalled = False
@@ -1405,7 +1449,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			logger.info("Starting task queue '%s'", tq.name)
 			tq.start()
 		self.waitForTaskQueues()
-		if packageNotInstalled:
+		if packageNotInstalled and not ignore_not_installed:
 			logfilestring = ""
 			if self.config["logFile"]:
 				logfilestring = f", please check {self.config['logFile']} for more information"
@@ -1474,6 +1518,7 @@ class OpsiPackageManagerControl:
 		parser.add_argument("-l", "--list", action="store_true", dest="COMMAND_LIST")
 		parser.add_argument("-D", "--differences", action="store_true", dest="COMMAND_DIFFERENCES")
 		parser.add_argument("-r", "--remove", action="store_true", dest="COMMAND_REMOVE")
+		parser.add_argument("--purge", action="store_true", dest="COMMAND_PURGE")
 		parser.add_argument("-R", "--repo-remove", action="store_true", dest="COMMAND_REPOREMOVE")
 		parser.add_argument("-x", "--extract", action="store_true", dest="COMMAND_EXTRACT")
 		parser.add_argument("--new-product-id", action="store", dest="newProductId")
@@ -1512,6 +1557,7 @@ class OpsiPackageManagerControl:
 			self.opts.COMMAND_INSTALL
 			or self.opts.COMMAND_UPLOAD
 			or self.opts.COMMAND_REMOVE
+			or self.opts.COMMAND_PURGE
 			or self.opts.COMMAND_LIST
 			or self.opts.COMMAND_DIFFERENCES
 		)
@@ -1609,6 +1655,8 @@ class OpsiPackageManagerControl:
 				self.processInstallCommand()
 			elif command == "remove":
 				self.processRemoveCommand()
+			elif command == "purge":
+				self.processPurgeCommand()
 			elif command == "repo_remove":
 				self.processRepoRemoveCommand()
 			elif command == "extract":
@@ -1624,7 +1672,7 @@ class OpsiPackageManagerControl:
 			errors = self._opm.getTaskQueueErrors()
 			if errors:
 				print(_("Errors occurred: "), file=sys.stderr)
-				for (name, errs) in errors.items():
+				for name, errs in errors.items():
 					logger.error("Failure while processing %s:", name)
 					print("   " + (_("Failure while processing %s:") % name), file=sys.stderr)
 					for err in errs:
@@ -1697,7 +1745,7 @@ class OpsiPackageManagerControl:
 		if self.config["quiet"]:
 			return
 
-		for (depotId, values) in productOnDepotInfo.items():
+		for depotId, values in productOnDepotInfo.items():
 			print("-" * (len(depotId) + 4))
 			print(f"- {depotId} -")
 			print("-" * (len(depotId) + 4))
@@ -1809,6 +1857,13 @@ class OpsiPackageManagerControl:
 		finally:
 			self._opm.cleanup()
 
+	def processPurgeCommand(self):
+		self._opm = OpsiPackageManager(self.config, self.service_client)
+		try:
+			self._opm.purgePackages()
+		finally:
+			self._opm.cleanup()
+
 	def processRepoRemoveCommand(self):
 		BASE_PATH = "/var/lib/opsi/repository"
 		for product in self.config["productIds"]:
@@ -1915,6 +1970,10 @@ class OpsiPackageManagerControl:
 			if self.config["command"]:
 				raise ValueError("More than one command specified")
 			self.config["command"] = "remove"
+		if self.opts.COMMAND_PURGE:
+			if self.config["command"]:
+				raise ValueError("More than one command specified")
+			self.config["command"] = "purge"
 		if self.opts.COMMAND_REPOREMOVE:
 			if self.config["command"]:
 				raise ValueError("More than one command specified")
@@ -1934,7 +1993,7 @@ class OpsiPackageManagerControl:
 		if self.config["command"] in ("install", "upload", "extract"):
 			self.config["packageFiles"] = self.args
 
-		elif self.config["command"] in ("remove", "repo_remove", "list", "differences"):
+		elif self.config["command"] in ("remove", "purge", "repo_remove", "list", "differences"):
 			self.config["productIds"] = self.args
 
 	def signalHandler(self, signo, stackFrame):  # pylint: disable=unused-argument
@@ -1962,6 +2021,9 @@ class OpsiPackageManagerControl:
 		print("  -l, --list         <regex>                 list opsi packages matching regex")
 		print("  -D, --differences  <regex>                 show depot differences of opsi packages matching regex")
 		print("  -r, --remove       <opsi-product-id> ...   uninstall opsi packages")
+		print("      --purge        [opsi-product-id] ...   uninstall opsi packages and purge product data")
+		print("                                             if no products are specified, purge the product data")
+		print("                                             of all products that are not installed")
 		print("  -R, --repo-remove  <opsi-product-id> ...   remove opsi packages from local repository")
 		print("  -x, --extract      <opsi-package> ...      extract opsi packages to local directory")
 		print("  -V, --version                              show program's version info and exit")
