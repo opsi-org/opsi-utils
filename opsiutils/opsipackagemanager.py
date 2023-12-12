@@ -1398,6 +1398,9 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			logger.debug("Purging products %r on depot %r and clients %r", purge_product_ids, depot_id, client_ids)
 			logger.notice("Purging products %r on depot %r", purge_product_ids, depot_id)
 			self.service_client.productOnClient_delete(productId=list(purge_product_ids), clientId=client_ids)
+			self.service_client.productPropertyState_delete(
+				productId=list(purge_product_ids), propertyId=[], objectId=client_ids + [depot_id]
+			)
 
 		# Remove all orphaned products
 		purge_product_idents = set(
