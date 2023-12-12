@@ -37,6 +37,12 @@ from OPSI.Util.Message import (  # type: ignore[import]
 	SubjectsObserver,
 )
 from OPSI.Util.Repository import getRepository  # type: ignore[import]
+
+try:
+	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
+except ImportError:
+	librsyncDeltaFile = None
+
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import (
@@ -57,11 +63,6 @@ from opsicommon.types import (
 	forceUnicode,
 	forceUnicodeList,
 )
-
-try:
-	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
-except ImportError:
-	librsyncDeltaFile = None
 
 from opsiutils import __version__, get_service_client
 
@@ -1375,8 +1376,6 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		if self.config["productIds"]:
 			self.uninstallPackages(ignore_not_installed=True)
 
-		all_product_idents = self.service_client.product_getIdents(returnType="tuple")
-		all_product_ids = set(p[0] for p in all_product_idents)
 		# Remove all orphaned product on clients
 		for depot_id in self.config["depotIds"]:
 			client_ids = [c2d["clientId"] for c2d in self.service_client.configState_getClientToDepotserver(depotIds=[depot_id])]
