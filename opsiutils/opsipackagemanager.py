@@ -1165,7 +1165,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			products = {}
 			for packageFile in self.config["packageFiles"]:
 				product = self.getOpsiPackage(packageFile).product
-				for productProperty in self.getOpsiPackage(packageFile).product.product_properties:
+				for productProperty in self.getOpsiPackage(packageFile).product_properties:
 					productProperties.append(productProperty)
 					products[productProperty.getIdent(returnType="unicode")] = product
 
