@@ -673,6 +673,8 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		if self.userInterface:
 			self.userInterface.exit()
 
+		logging_config(stderr_level=self.config["consoleLogLevel"])
+
 		for connection in self.depotConnections.values():
 			connection.disconnect()
 
