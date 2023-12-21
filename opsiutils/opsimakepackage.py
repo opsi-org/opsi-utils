@@ -6,7 +6,6 @@
 opsi-makepackage - create opsi-packages for deployment.
 """
 
-import tempfile
 import argparse
 import fcntl
 import gettext
