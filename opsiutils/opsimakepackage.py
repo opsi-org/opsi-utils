@@ -460,7 +460,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 					raise RuntimeError(f"No custom dirs found for '{customName}'")
 				logger.info("Packing directories: %s", use_dirs)
 			created_archive = opsi_package.create_package_archive(
-				tempDir, compression=compression, dereference=args.dereference, use_dirs=use_dirs
+				base_dir, destination=tempDir, compression=compression, dereference=args.dereference, use_dirs=use_dirs
 			)
 			created_archive.rename(archive)
 			if not args.no_set_rights:
