@@ -6,6 +6,7 @@
 opsi-makepackage - create opsi-packages for deployment.
 """
 
+import tempfile
 import argparse
 import fcntl
 import gettext
@@ -460,10 +461,9 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 					raise RuntimeError(f"No custom dirs found for '{customName}'")
 				logger.info("Packing directories: %s", use_dirs)
 			created_archive = opsi_package.create_package_archive(
-				base_dir, compression=compression, dereference=args.dereference, use_dirs=use_dirs
+				tempDir, compression=compression, dereference=args.dereference, use_dirs=use_dirs
 			)
-			if archive != created_archive:
-				created_archive.rename(archive)
+			created_archive.rename(archive)
 			if not args.no_set_rights:
 				try:
 					set_rights(archive)
