@@ -12,6 +12,7 @@ import gettext
 import os
 import struct
 import sys
+import tempfile
 import termios
 import tty
 from contextlib import contextmanager
@@ -459,10 +460,15 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 				if not found:
 					raise RuntimeError(f"No custom dirs found for '{customName}'")
 				logger.info("Packing directories: %s", use_dirs)
-			created_archive = opsi_package.create_package_archive(
-				base_dir, destination=tempDir, compression=compression, dereference=args.dereference, use_dirs=use_dirs
-			)
-			created_archive.rename(archive)
+				with tempfile.TemporaryDirectory(dir=Path()) as local_tmp_dir:
+					created_archive = opsi_package.create_package_archive(
+						base_dir, compression=compression, dereference=args.dereference, use_dirs=use_dirs, destination=Path(local_tmp_dir)
+					)
+					created_archive.rename(archive)
+			else:
+				created_archive = opsi_package.create_package_archive(
+					base_dir, compression=compression, dereference=args.dereference, use_dirs=use_dirs
+				)
 			if not args.no_set_rights:
 				try:
 					set_rights(archive)
