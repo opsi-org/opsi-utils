@@ -1,32 +1,39 @@
+[build-system]
+requires = [ "poetry>=0.12",]
+build-backend = "poetry.masonry.api"
+
 [tool.poetry]
 name = "opsi-utils"
-version = "4.2.0.213"
+version = "4.2.0.214"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
-maintainers = ["uib GmbH <info@uib.de>"]
-authors = ["uib GmbH <info@uib.de>"]
-packages = [
-    { include = "opsiutils" }
-]
-include = [
-    "opsi-utils_data/**/*"
-]
+maintainers = [ "uib GmbH <info@uib.de>",]
+authors = [ "uib GmbH <info@uib.de>",]
+include = [ "opsi-utils_data/**/*",]
+[[tool.poetry.packages]]
+include = "opsiutils"
 
 [[tool.poetry.source]]
 name = "uibpypi"
 url = "https://pypi.uib.gmbh/simple"
 
+[tool.black]
+line-length = 140
+target-version = [ "py310",]
+use-tabs = true
+
+[tool.isort]
+profile = "black"
+indent = "\t"
+
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-#python-opsi = {path = "python-opsi", develop = true}
-#python-opsi = {path = "python-opsi"}
 python-opsi = ">=4.2.0.311,<4.3"
 python-opsi-common = ">=4.2.0.299,<4.3"
 python-magic = "^0.4"
 orjson = "^3.8"
 mysqlclient = "2.1.1"
-distro = {platform = "linux", version = "^1.5"}
 paramiko = "^2.7"
 
 [tool.poetry.dev-dependencies]
@@ -46,20 +53,11 @@ opsi-python = "opsiutils.opsipython:main"
 opsi-wakeup-clients = "opsiutils.opsiwakeupclients:main"
 opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
 
+[tool.poetry.dependencies.distro]
+platform = "linux"
+version = "^1.5"
+
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"
 pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
-
-[tool.black]
-line-length = 140
-target-version = ['py310']
-use-tabs = true
-
-[tool.isort]
-profile = "black"
-indent = "\t"
-
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
