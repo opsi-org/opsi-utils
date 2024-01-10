@@ -27,6 +27,7 @@ pyinstaller-poetry:
       # make packages available in opsi-python
       - crypt
       - paramiko
+      - opsicommon.client.opsiservice
     windows: []
     linux: []
     darwin: []
