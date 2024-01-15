@@ -340,7 +340,8 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 		if compareVersions(opsi_package_tmp.product.version, ">", opsi_package.product.version):
 			raise ValueError("control is newer than control.toml - Please update control.toml instead.")
 
-	archive = Path(opsi_package.package_archive_name())
+	destination_dir = Path.cwd()
+	archive = destination_dir / opsi_package.package_archive_name()
 	if customName:
 		archive = archive.parent / f"{archive.stem}~{customName}.opsi"
 	lockPackage(tempDir, opsi_package)
@@ -433,10 +434,10 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 						except Exception:  # pylint: disable=broad-except
 							print(_("Bad package version: %s") % newVersion)
 
-					keepVersions = True
-					needOneVersion = False
-					newProductVersion = newPackageVersion = None
-					newVersion = None
+				archive = destination_dir / opsi_package.package_archive_name()
+				if customName:
+					archive = archive.parent / f"{archive.stem}~{customName}.opsi"
+				if archive.exists():
 					continue
 
 			# Regenerating to fix encoding
