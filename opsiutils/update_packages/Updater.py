@@ -52,9 +52,7 @@ from opsiutils.update_packages.Notifier import (
 	DummyNotifier,
 	EmailNotifier,
 )
-from opsiutils.update_packages.Repository import LinksExtractor
-
-from .Repository import ProductRepositoryInfo
+from opsiutils.update_packages.Repository import LinksExtractor, sort_repository_list, ProductRepositoryInfo, TransferSlotHeartbeat
 
 urllib3.disable_warnings()
 
@@ -171,7 +169,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 
 	def readConfigFile(self) -> None:
 		parser = ConfigurationParser(
-			configFile=self.config["configFile"], backend=self.getConfigBackend(), depotId=self.depotId, depotKey=self.depotKey
+			configFile=self.config["configFile"],
+			backend=self.getConfigBackend(),
+			depotId=self.depotId,
+			depotKey=self.depotKey,
 		)
 		self.config = parser.parse(self.config)
 
@@ -193,7 +194,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 			self.depotBackend = get_service_client(address=self.depotServiceUrl)
 		return self.depotBackend
 
-	def get_new_packages_per_repository(self) -> dict[ProductRepositoryInfo, list[dict[str, str | ProductRepositoryInfo]]]:
+	def get_new_packages_per_repository(
+		self,
+	) -> dict[ProductRepositoryInfo, list[dict[str, str | ProductRepositoryInfo]]]:
 		downloadablePackages = self.getDownloadablePackages()
 		downloadablePackages = self.onlyNewestPackages(downloadablePackages)
 		downloadablePackages = self._filterProducts(downloadablePackages)
@@ -206,7 +209,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 		return result
 
 	def _useZsync(  # pylint: disable=too-many-return-statements
-		self, session: Session, availablePackage: dict[str, str | ProductRepositoryInfo], localPackage: dict[str, str] | None
+		self,
+		session: Session,
+		availablePackage: dict[str, str | ProductRepositoryInfo],
+		localPackage: dict[str, str] | None,
 	) -> bool:
 		if not self.config["useZsync"]:
 			return False
@@ -231,13 +237,22 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				dpos = sequence.index(dependency)
 				logger.debug("Dependency %s has index %s", dependency, dpos)
 			except ValueError:
-				logger.error("Dependency %s of package %s not in sequence. Adding it.", dependency, productId)
+				logger.error(
+					"Dependency %s of package %s not in sequence. Adding it.",
+					dependency,
+					productId,
+				)
 				sequence.insert(ppos, dependency)
 			if ppos < dpos:
 				sequence.remove(dependency)
 				sequence.insert(ppos, dependency)
 		except Exception as err:  # pylint: disable=broad-except
-			logger.debug("While processing package '%s', product_dependency '%s': %s", productId, dependency, err)
+			logger.debug(
+				"While processing package '%s', product_dependency '%s': %s",
+				productId,
+				dependency,
+				err,
+			)
 
 	def processUpdates(self) -> None:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 		if not any(self.getActiveRepositories()):
@@ -251,14 +266,22 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				logger.notice("No new packages available")
 				return
 
-			logger.info("New packages available: %s", ", ".join(sorted([np["productId"] for np in newPackages])))
+			logger.info(
+				"New packages available: %s",
+				", ".join(sorted([np["productId"] for np in newPackages])),
+			)
 
 			def in_installation_window(start_str, end_str):
 				now = datetime.datetime.now().time()
 				start = datetime.time(int(start_str.split(":")[0]), int(start_str.split(":")[1]))
 				end = datetime.time(int(end_str.split(":")[0]), int(end_str.split(":")[1]))
 
-				logger.debug("Installation window configuration: start=%s, end=%s, now=%s", start, end, now)
+				logger.debug(
+					"Installation window configuration: start=%s, end=%s, now=%s",
+					start,
+					end,
+					now,
+				)
 
 				in_window = False
 				if start <= end:
@@ -268,17 +291,30 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 					in_window = now >= start or now <= end
 
 				if in_window:
-					logger.info("Current time %s is within the configured installation window (%s-%s)", now, start, end)
+					logger.info(
+						"Current time %s is within the configured installation window (%s-%s)",
+						now,
+						start,
+						end,
+					)
 					return True
 
-				logger.info("Current time %s is outside the configured installation window (%s-%s)", now, start, end)
+				logger.info(
+					"Current time %s is outside the configured installation window (%s-%s)",
+					now,
+					start,
+					end,
+				)
 				return False
 
 			insideInstallWindow = True
 			# Times have to be specified in the form HH:MM, i.e. 06:30
 			if not self.config["installationWindowStartTime"] or not self.config["installationWindowEndTime"]:
 				logger.info("Installation time window is not defined, installing products and setting actions")
-			elif in_installation_window(self.config["installationWindowStartTime"], self.config["installationWindowEndTime"]):
+			elif in_installation_window(
+				self.config["installationWindowStartTime"],
+				self.config["installationWindowEndTime"],
+			):
 				logger.notice("Running inside installation time window, installing products and setting actions")
 			else:
 				logger.notice(
@@ -299,7 +335,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				packageFile = os.path.join(self.config["packageDir"], package["filename"])
 				productId = package["productId"]
 				opsi_package = OpsiPackage(
-					Path(packageFile), temp_dir=Path(self.config.get("tempdir")) if self.config.get("tempdir") else None
+					Path(packageFile),
+					temp_dir=Path(self.config.get("tempdir")) if self.config.get("tempdir") else None,
 				)
 				for dependency in opsi_package.package_dependencies:
 					self.check_dependency_sequence(sequence, productId, dependency.package)
@@ -321,7 +358,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				packageFile = os.path.join(self.config["packageDir"], package["filename"])
 
 				if package["repository"].onlyDownload:
-					logger.debug("Download only is set for repository, not installing package '%s'", packageFile)
+					logger.debug(
+						"Download only is set for repository, not installing package '%s'",
+						packageFile,
+					)
 					continue
 
 				try:
@@ -330,11 +370,13 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 						if package["repository"].inheritProductProperties and package["repository"].opsiDepotId:
 							logger.info("Trying to get product property defaults from repository")
 							productPropertyStates = backend.productPropertyState_getObjects(  # pylint: disable=no-member
-								productId=package["productId"], objectId=package["repository"].opsiDepotId
+								productId=package["productId"],
+								objectId=package["repository"].opsiDepotId,
 							)
 						else:
 							productPropertyStates = backend.productPropertyState_getObjects(  # pylint: disable=no-member
-								productId=package["productId"], objectId=self.depotId
+								productId=package["productId"],
+								objectId=self.depotId,
 							)
 						if productPropertyStates:
 							for pps in productPropertyStates:
@@ -345,7 +387,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 
 					logger.info("Installing package '%s'", packageFile)
 					depotBackend.depot_installPackage(  # pylint: disable=no-member
-						filename=packageFile, propertyDefaultValues=propertyDefaultValues, tempDir=self.config.get("tempdir", "/tmp")
+						filename=packageFile,
+						propertyDefaultValues=propertyDefaultValues,
+						tempDir=self.config.get("tempdir", "/tmp"),
 					)
 					productOnDepots = backend.productOnDepot_getObjects(  # pylint: disable=no-member
 						depotId=self.depotId, productId=package["productId"]
@@ -366,7 +410,12 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				except Exception as err:  # pylint: disable=broad-except
 					if not self.config.get("ignoreErrors"):
 						raise
-					logger.error("Ignoring error for package %s: %s", package["productId"], err, exc_info=True)
+					logger.error(
+						"Ignoring error for package %s: %s",
+						package["productId"],
+						err,
+						exc_info=True,
+					)
 					notifier.appendLine(f"Ignoring error for package {package['productId']}: {err}")
 
 			if not installedPackages:
@@ -382,12 +431,17 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				try:
 					shutdownProduct = backend.productOnDepot_getObjects(  # pylint: disable=no-member
 						depotId=self.depotId, productId="shutdownwanted"
-					)[
-						0
-					]
-					logger.info("Found 'shutdownwanted' product on depot '%s': %s", self.depotId, shutdownProduct)
+					)[0]
+					logger.info(
+						"Found 'shutdownwanted' product on depot '%s': %s",
+						self.depotId,
+						shutdownProduct,
+					)
 				except IndexError:
-					logger.error("Product 'shutdownwanted' not avaliable on depot '%s'", self.depotId)
+					logger.error(
+						"Product 'shutdownwanted' not avaliable on depot '%s'",
+						self.depotId,
+					)
 
 			wakeOnLanClients = set()
 			for package in installedPackages:
@@ -402,7 +456,15 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 						)
 						continue
 					if package["productId"].startswith(
-						("opsi-local-image-", "opsi-uefi-", "opsi-vhd-", "opsi-wim-", "windows10-upgrade", "opsi-auto-update", "windomain")
+						(
+							"opsi-local-image-",
+							"opsi-uefi-",
+							"opsi-vhd-",
+							"opsi-wim-",
+							"windows10-upgrade",
+							"opsi-auto-update",
+							"windomain",
+						)
 					):
 						logger.info(
 							"Not setting action 'setup' for product '%s' where installation status 'installed' "
@@ -413,7 +475,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 
 					if any(exclude.search(package["productId"]) for exclude in package["repository"].autoSetupExcludes):
 						logger.info(
-							"Not setting action 'setup' for product '%s' because it's excluded by regular expression", package["productId"]
+							"Not setting action 'setup' for product '%s' because it's excluded by regular expression",
+							package["productId"],
 						)
 						continue
 
@@ -455,8 +518,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 						backend.productOnClient_updateObjects(productOnClients)  # pylint: disable=no-member
 						notifier.appendLine(
 							(
-								f"Product {package['productId']} set to 'setup' on clients: "
-								", ".join(sorted(poc.clientId for poc in productOnClients))
+								f"Product {package['productId']} set to 'setup' on clients: " ", ".join(
+									sorted(poc.clientId for poc in productOnClients)
+								)
 							)
 						)
 
@@ -468,7 +532,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 					try:
 						logger.info("Powering on client '%s'", clientId)
 						if self.config["wolShutdownWanted"] and shutdownProduct:
-							logger.info("Setting shutdownwanted to 'setup' for client '%s'", clientId)
+							logger.info(
+								"Setting shutdownwanted to 'setup' for client '%s'",
+								clientId,
+							)
 
 							backend.productOnClient_updateObjects(  # pylint: disable=no-member
 								[
@@ -551,21 +618,32 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 
 		logger.info("Verifying download of package '%s'", packageFile)
 		if not availablePackage["md5sum"]:
-			logger.warning("%s: Cannot verify download of package: missing md5sum file", availablePackage["productId"])
+			logger.warning(
+				"%s: Cannot verify download of package: missing md5sum file",
+				availablePackage["productId"],
+			)
 			return True
 
 		md5 = md5sum(packageFile)
 		if md5 != availablePackage["md5sum"]:
-			logger.info("%s: md5sum mismatch, package download failed", availablePackage["productId"])
+			logger.info(
+				"%s: md5sum mismatch, package download failed",
+				availablePackage["productId"],
+			)
 			return False
 
 		logger.info("%s: md5sum match, package download verified", availablePackage["productId"])
 		return True
 
 	def get_installed_package(
-		self, availablePackage: dict[str, str | ProductRepositoryInfo], installedProducts: list[ProductOnDepot]
+		self,
+		availablePackage: dict[str, str | ProductRepositoryInfo],
+		installedProducts: list[ProductOnDepot],
 	) -> ProductOnDepot | None:
-		logger.info("Testing if download/installation of package '%s' is needed", availablePackage["filename"])
+		logger.info(
+			"Testing if download/installation of package '%s' is needed",
+			availablePackage["filename"],
+		)
 		for product in installedProducts:
 			if product.productId == availablePackage["productId"]:
 				logger.debug("Product '%s' is installed", availablePackage["productId"])
@@ -579,7 +657,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 		return None
 
 	def get_local_package(
-		self, availablePackage: dict[str, str | ProductRepositoryInfo], localPackages: list[dict[str, str]]
+		self,
+		availablePackage: dict[str, str | ProductRepositoryInfo],
+		localPackages: list[dict[str, str]],
 	) -> dict[str, str] | None:
 		for localPackage in localPackages:
 			if localPackage["productId"] == availablePackage["productId"]:
@@ -624,7 +704,11 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 			notifier.appendLine(message)
 		return True
 
-	def is_install_needed(self, availablePackage: dict[str, str | ProductRepositoryInfo], product: ProductOnDepot) -> bool:
+	def is_install_needed(
+		self,
+		availablePackage: dict[str, str | ProductRepositoryInfo],
+		product: ProductOnDepot,
+	) -> bool:
 		if not product:
 			if availablePackage["repository"].autoInstall:
 				logger.notice(
@@ -642,7 +726,11 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 			)
 			return False
 
-		if compareVersions(availablePackage["version"], ">", f"{product.productVersion}-{product.packageVersion}"):
+		if compareVersions(
+			availablePackage["version"],
+			">",
+			f"{product.productVersion}-{product.packageVersion}",
+		):
 			if availablePackage["repository"].autoUpdate:
 				logger.notice(
 					"%s - installation required: a more recent version of product '%s' was found"
@@ -686,7 +774,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 			logger.warning("No downloadable packages found")
 			return newPackages
 
-		for repository, downloadablePackages in pack_per_repo.items():
+		for repository in sort_repository_list(pack_per_repo.keys()):
+			downloadablePackages = pack_per_repo[repository]
 			logger.debug("Processing downloadable packages on repository %s", repository)
 			with self.makeSession(repository) as session:
 				for availablePackage in downloadablePackages:
@@ -700,12 +789,27 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 						localPackageFound = self.get_local_package(availablePackage, localPackages)
 						zsync = self._useZsync(session, availablePackage, localPackageFound)
 						if self.is_download_needed(localPackageFound, availablePackage, notifier=notifier):
-							self.get_package(availablePackage, localPackageFound, session, zsync=zsync, notifier=notifier)
+							self.get_package(
+								availablePackage,
+								localPackageFound,
+								session,
+								zsync=zsync,
+								notifier=notifier,
+							)
 						packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 						verified = self._verifyDownloadedPackage(packageFile, availablePackage)
 						if not verified and zsync:
-							logger.info("%s: zsync download has failed, trying full download", availablePackage["productId"])
-							self.get_package(availablePackage, localPackageFound, session, zsync=False, notifier=notifier)
+							logger.info(
+								"%s: zsync download has failed, trying full download",
+								availablePackage["productId"],
+							)
+							self.get_package(
+								availablePackage,
+								localPackageFound,
+								session,
+								zsync=False,
+								notifier=notifier,
+							)
 							verified = self._verifyDownloadedPackage(packageFile, availablePackage)
 						if not verified:
 							raise HashsumMissmatchError(f"{availablePackage['productId']}: md5sum mismatch")
@@ -713,7 +817,12 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 						newPackages.append(availablePackage)
 					except Exception as exc:  # pylint: disable=broad-except
 						if self.config.get("ignoreErrors"):
-							logger.error("Ignoring Error for package %s: %s", availablePackage["productId"], exc, exc_info=True)
+							logger.error(
+								"Ignoring Error for package %s: %s",
+								availablePackage["productId"],
+								exc,
+								exc_info=True,
+							)
 							notifier.appendLine(f"Ignoring Error for package {availablePackage['productId']}: {exc}")
 						else:
 							raise exc
@@ -730,7 +839,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 		packageFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
 		if zsync:
 			if localPackageFound["filename"] != availablePackage["filename"]:
-				os.rename(os.path.join(self.config["packageDir"], localPackageFound["filename"]), packageFile)
+				os.rename(
+					os.path.join(self.config["packageDir"], localPackageFound["filename"]),
+					packageFile,
+				)
 				localPackageFound["filename"] = availablePackage["filename"]
 
 			message = None
@@ -742,7 +854,12 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				if str(err) == "Aborted by progress callback":
 					logger.info("Zsync aborted")
 				else:
-					logger.error("Zsync of %r failed: %s", availablePackage["packageFile"], err, exc_info=True)
+					logger.error(
+						"Zsync of %r failed: %s",
+						availablePackage["packageFile"],
+						err,
+						exc_info=True,
+					)
 
 			if notifier and message:
 				notifier.appendLine(message)
@@ -770,7 +887,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				notifier.notify()
 
 	def zsyncPackage(  # pylint: disable=invalid-name
-		self, availablePackage: dict[str, str | ProductRepositoryInfo], packageFile: str, session: Session
+		self,
+		availablePackage: dict[str, str | ProductRepositoryInfo],
+		packageFile: str,
+		session: Session,
 	) -> None:
 		package_file = Path(packageFile)
 		# raise Exception("Not implemented")
@@ -783,7 +903,12 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 		logger.info("Fetching zsync file %s", url)
 		response = session.get(url, headers=self.httpHeaders, stream=True, timeout=1800)  # 30 minutes timeout
 		if response.status_code < 200 or response.status_code > 299:
-			logger.error("Failed to fetch zsync file from %s: %s - %s", url, response.status_code, response.text)
+			logger.error(
+				"Failed to fetch zsync file from %s: %s - %s",
+				url,
+				response.status_code,
+				response.text,
+			)
 			raise ConnectionError(f"Failed to fetch zsync file from {url}: {response.status_code} - {response.text}")
 
 		zsync_file = package_file.with_name(f"{package_file.name}.zsync-download")
@@ -824,13 +949,24 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 		instructions = get_patch_instructions(zsync_file_info, files, optimized=True, progress_callback=progress_callback)
 		remote_bytes = sum([i.size for i in instructions if i.source == SOURCE_REMOTE])  # pylint: disable=consider-using-generator
 		speedup = (zsync_file_info.length - remote_bytes) * 100 / zsync_file_info.length
-		logger.info("Need to fetch %d/%d bytes from remote, speedup is %0.1f%%", remote_bytes, zsync_file_info.length, speedup)
+		logger.info(
+			"Need to fetch %d/%d bytes from remote, speedup is %0.1f%%",
+			remote_bytes,
+			zsync_file_info.length,
+			speedup,
+		)
 
 		class LoggingProgressListener(ProgressListener):  # pylint: disable=too-few-public-methods
 			def __init__(self) -> None:
 				self.last_completed = 0
 
-			def progress_changed(self, patcher: RequestsHTTPPatcher, position: int, total: int, per_second: int) -> None:
+			def progress_changed(
+				self,
+				patcher: RequestsHTTPPatcher,
+				position: int,
+				total: int,
+				per_second: int,
+			) -> None:
 				completed = round(position * 100 / total)
 				if completed == self.last_completed:
 					return
@@ -848,7 +984,11 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 			url = availablePackage["packageFile"]
 			logger.info("Fetching ranges from %s", url)
 			patcher = RequestsHTTPPatcher(
-				session=session, url=url, instructions=instructions, target_file=target_file, headers=self.httpHeaders
+				session=session,
+				url=url,
+				instructions=instructions,
+				target_file=target_file,
+				headers=self.httpHeaders,
 			)
 			patcher.register_progress_listener(LoggingProgressListener())
 			return patcher
@@ -859,7 +999,10 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 			raise RuntimeError("Failed to patch file, SHA-1 mismatch")
 
 	def downloadPackage(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-		self, availablePackage: dict[str, str | ProductRepositoryInfo], session: Session, notifier: BaseNotifier | None = None
+		self,
+		availablePackage: dict[str, str | ProductRepositoryInfo],
+		session: Session,
+		notifier: BaseNotifier | None = None,
 	) -> Response:
 		url = availablePackage["packageFile"]
 		outFile = os.path.join(self.config["packageDir"], availablePackage["filename"])
@@ -868,7 +1011,12 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 		headers["Accept-Encoding"] = "identity"
 		response = session.get(url, headers=headers, stream=True, timeout=3600 * 8)  # 8h timeout
 		if response.status_code < 200 or response.status_code > 299:
-			logger.error("Failed to download Package from %r: %s - %s", url, response.status_code, response.text)
+			logger.error(
+				"Failed to download Package from %r: %s - %s",
+				url,
+				response.status_code,
+				response.text,
+			)
 			raise RuntimeError(f"Failed to download Package from {url!r}: {response.status_code} - {response.text}")
 
 		size = int(response.headers["Content-Length"])
@@ -908,7 +1056,11 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 		try:
 			set_rights(self.config["packageDir"])
 		except Exception as err:  # pylint: disable=broad-except
-			logger.warning("Failed to set rights on directory '%s': %s", self.config["packageDir"], err)
+			logger.warning(
+				"Failed to set rights on directory '%s': %s",
+				self.config["packageDir"],
+				err,
+			)
 
 		for filename in os.listdir(self.config["packageDir"]):
 			path = os.path.join(self.config["packageDir"], filename)
@@ -953,7 +1105,11 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 				if newPackage["productId"] == package["productId"]:
 					found = i
 					if compareVersions(package["version"], ">", newestPackages[i]["version"]):
-						logger.debug("Package version '%s' is newer than version '%s'", package["version"], newestPackages[i]["version"])
+						logger.debug(
+							"Package version '%s' is newer than version '%s'",
+							package["version"],
+							newestPackages[i]["version"],
+						)
 						newestPackages[i] = package
 					break
 
@@ -963,21 +1119,33 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 		return newestPackages
 
 	def getLocalPackages(self) -> list[dict[str, str]]:
-		return getLocalPackages(self.config["packageDir"], forceChecksumCalculation=self.config["forceChecksumCalculation"])
+		return getLocalPackages(
+			self.config["packageDir"],
+			forceChecksumCalculation=self.config["forceChecksumCalculation"],
+		)
 
 	def getInstalledProducts(self) -> list[ProductOnDepot]:
 		logger.info("Getting installed products")
 		products = []
 		configBackend = self.getConfigBackend()
 		for product in configBackend.productOnDepot_getObjects(depotId=self.depotId):  # pylint: disable=no-member
-			logger.info("Found installed product '%s_%s-%s'", product.productId, product.productVersion, product.packageVersion)
+			logger.info(
+				"Found installed product '%s_%s-%s'",
+				product.productId,
+				product.productVersion,
+				product.packageVersion,
+			)
 			products.append(product)
 		return products
 
 	def getDownloadablePackages(self) -> list[dict[str, str | ProductRepositoryInfo]]:
 		downloadablePackages = []
 		for repository in self.getActiveRepositories():
-			logger.info("Getting package infos from repository '%s' (%s)", repository.name, repository.baseUrl)
+			logger.info(
+				"Getting package infos from repository '%s' (%s)",
+				repository.name,
+				repository.baseUrl,
+			)
 			for package in self.getDownloadablePackagesFromRepository(repository):
 				downloadablePackages.append(package)
 		return downloadablePackages
@@ -1031,7 +1199,12 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 		self, repository: ProductRepositoryInfo
 	) -> list[dict[str, str | ProductRepositoryInfo]]:
 		with self.makeSession(repository) as session:
-			for meta_file in ("packages.msgpack.zstd", "packages.json", "packages.msgpack", "packages.json.zstd"):
+			for meta_file in (
+				"packages.msgpack.zstd",
+				"packages.json",
+				"packages.msgpack",
+				"packages.json.zstd",
+			):
 				data = self.fetch_repository_metafile(session, f"{repository.baseUrl}/{meta_file}")
 				if data is not None:
 					# None = repository metafile missing, b"" = repository metafile empty
@@ -1068,7 +1241,8 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 						if repository.includes:
 							if not any(include.search(link) for include in repository.includes):
 								logger.info(
-									"Package '%s' is not included. Please check your includeProductIds-entry in configurationfile.", link
+									"Package '%s' is not included. Please check your includeProductIds-entry in configurationfile.",
+									link,
 								)
 								continue
 
@@ -1114,15 +1288,26 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 								if package.get("filename") == filename:
 									if isMd5:
 										response = session.get(f"{url.rstrip('/')}/{link.lstrip('/')}")
-										match = re.search(r"([a-z\d]{32})", response.content.decode("utf-8"))
+										match = re.search(
+											r"([a-z\d]{32})",
+											response.content.decode("utf-8"),
+										)
 										if match:
 											foundMd5sum = match.group(1)
 											packages[i]["md5sum"] = foundMd5sum
-											logger.debug("Got md5sum for package %s: %s", filename, foundMd5sum)
+											logger.debug(
+												"Got md5sum for package %s: %s",
+												filename,
+												foundMd5sum,
+											)
 									elif isZsync:
 										zsyncFile = f"{url.rstrip('/')}/{link.lstrip('/')}"
 										packages[i]["zsyncFile"] = zsyncFile
-										logger.debug("Found zsync file for package '%s': %s", filename, zsyncFile)
+										logger.debug(
+											"Found zsync file for package '%s': %s",
+											filename,
+											zsyncFile,
+										)
 
 									break
 						except Exception as err:  # pylint: disable=broad-except
@@ -1133,26 +1318,76 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 					errors.add(str(err))
 
 			if errors:
-				logger.warning("Problems processing repository %s: %s", repository.name, "; ".join(str(e) for e in errors))
+				logger.warning(
+					"Problems processing repository %s: %s",
+					repository.name,
+					"; ".join(str(e) for e in errors),
+				)
 
 			return packages
 
 	@contextmanager
 	def makeSession(self, repository: ProductRepositoryInfo) -> Session:
-		logger.info("Opening session for repository '%s' (%s)", repository.name, repository.baseUrl)
+		logger.info(
+			"Opening session for repository '%s' (%s)",
+			repository.name,
+			repository.baseUrl,
+		)
 		try:
 			no_proxy_addresses = ["localhost", "127.0.0.1", "ip6-localhost", "::1"]
-			session = prepare_proxy_environment(repository.baseUrl, repository.proxy, no_proxy_addresses=no_proxy_addresses)
+			session = prepare_proxy_environment(
+				repository.baseUrl,
+				repository.proxy,
+				no_proxy_addresses=no_proxy_addresses,
+			)
 
 			if os.path.exists(repository.authcertfile) and os.path.exists(repository.authkeyfile):
-				logger.debug("setting session.cert to %s %s", repository.authcertfile, repository.authkeyfile)
+				logger.debug(
+					"setting session.cert to %s %s",
+					repository.authcertfile,
+					repository.authkeyfile,
+				)
 				session.cert = (repository.authcertfile, repository.authkeyfile)
 			session.verify = repository.verifyCert
 			session.auth = (repository.username, repository.password)
 			logger.debug("Initiating session with verify=%s", repository.verifyCert)
-			yield session
+			if repository.opsiDepotId:
+				with self.transfer_slot(repository.opsiDepotId):
+					yield session
+			else:
+				yield session
 		finally:
 			session.close()
+
+	@contextmanager
+	def transfer_slot(self, master_depot_id: str) -> None:
+		backend = self.getConfigBackend()
+		heartbeat_thread = None
+		try:
+			while True:
+				sleep_time = 0.0
+				if hasattr(backend, "depot_acquireTransferSlot"):
+					heartbeat_thread = TransferSlotHeartbeat(backend, master_depot_id, self.depotId)
+					logger.notice("Acquiring transfer slot")
+					response = heartbeat_thread.acquire()
+					sleep_time = response.get("retry_after")
+					logger.debug("depot_acquireTransferSlot produced response %s", response)
+				if not sleep_time:
+					break
+				logger.notice("Did not start download, server suggested waiting time of %s seconds", sleep_time)
+				time.sleep(sleep_time)
+			if heartbeat_thread:
+				logger.info("Starting transfer slot heartbeat thread")
+				heartbeat_thread.start()
+			logger.notice("Starting download")
+			yield
+		finally:
+			if heartbeat_thread:
+				logger.debug("Releasing transfer slot %s", heartbeat_thread.slot_id)
+				heartbeat_thread.should_stop = True
+				if heartbeat_thread.is_alive():
+					logger.debug("Joining transfer slot heartbeat thread")
+					heartbeat_thread.join()
 
 
 def getLocalPackages(packageDirectory: str, forceChecksumCalculation: bool = False) -> list[dict[str, str]]:
