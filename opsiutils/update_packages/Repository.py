@@ -143,7 +143,6 @@ class TransferSlotHeartbeat(threading.Thread):
 				end = datetime.now() + timedelta(seconds=wait_time)
 				while not self.should_stop and datetime.now() < end:
 					time.sleep(1.0)
-				time.sleep(wait_time)
 		finally:
 			if self.slot_id:
 				self.release()
