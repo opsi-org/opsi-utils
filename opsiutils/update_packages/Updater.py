@@ -1352,7 +1352,7 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 			session.auth = (repository.username, repository.password)
 			logger.debug("Initiating session with verify=%s", repository.verifyCert)
 			if repository.opsiDepotId:
-				with self.transfer_slot():
+				with self.transfer_slot(repository.opsiDepotId):
 					yield session
 			else:
 				yield session
