@@ -68,7 +68,6 @@ pylint = "^2.7"
 
 [tool.ruff]
 line-length = 140
-#ignore = [ "F401", "E402", "F811",]
 
 [tool.ruff.format]
 indent-style = "tab"

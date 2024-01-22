@@ -16,7 +16,7 @@ from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.logging import get_logger
 from OPSI.Types import forceBool, forceUnicode, forceUnicodeList
 
-__all__ = ("LinksExtractor", "ProductRepositoryInfo", "sort_repository_list")
+__all__ = ("LinksExtractor", "ProductRepositoryInfo", "sort_repository_list", "TransferSlotHeartbeat")
 logger = get_logger("opsi-package-updater")
 RETENTION_HEARTBEAT_INTERVAL_DIFF = 10.0
 MIN_HEARTBEAT_INTERVAL = 1.0
