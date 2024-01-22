@@ -10,6 +10,7 @@ import threading
 from typing import Iterator
 from html.parser import HTMLParser
 import time
+from datetime import datetime, timedelta
 
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.logging import get_logger
@@ -139,6 +140,9 @@ class TransferSlotHeartbeat(threading.Thread):
 					raise ConnectionError("TransferSlotHeartbeat lost transfer slot (and did not get new one)")
 				wait_time = max(response["retention"] - RETENTION_HEARTBEAT_INTERVAL_DIFF, MIN_HEARTBEAT_INTERVAL)
 				logger.debug("Waiting %s seconds before reaquiring slot", wait_time)
+				end = datetime.now() + timedelta(seconds=wait_time)
+				while not self.should_stop and datetime.now() < end:
+					time.sleep(1.0)
 				time.sleep(wait_time)
 		finally:
 			if self.slot_id:
