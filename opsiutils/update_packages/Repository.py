@@ -121,17 +121,13 @@ class TransferSlotHeartbeat(threading.Thread):
 		self.slot_id = None
 
 	def acquire(self) -> dict[str, str | float]:
-		response = self.service_connection.depot_acquireTransferSlot(
-			self.depot_id, self.host_id, self.slot_id, None, "opsi_package_updater"
-		)
+		response = self.service_connection.depot_acquireTransferSlot(self.depot_id, self.host_id, self.slot_id, "opsi_package_updater")
 		self.slot_id = response.get("slot_id")
 		logger.debug("Transfer slot Heartbeat %s, response: %s", self.slot_id, response)
 		return response
 
 	def release(self) -> None:
-		response = self.service_connection.depot_releaseTransferSlot(
-			self.depot_id, self.host_id, self.slot_id, None, "opsi_package_updater"
-		)
+		response = self.service_connection.depot_releaseTransferSlot(self.depot_id, self.host_id, self.slot_id, "opsi_package_updater")
 		logger.debug("releaseTransferSlot response: %s", response)
 
 	def run(self) -> None:

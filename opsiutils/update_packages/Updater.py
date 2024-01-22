@@ -1385,8 +1385,9 @@ class OpsiPackageUpdater:  # pylint: disable=too-many-public-methods,too-many-in
 			if heartbeat_thread:
 				logger.debug("Releasing transfer slot %s", heartbeat_thread.slot_id)
 				heartbeat_thread.should_stop = True
-				logger.debug("Joining transfer slot heartbeat thread")
-				heartbeat_thread.join()
+				if heartbeat_thread.is_alive():
+					logger.debug("Joining transfer slot heartbeat thread")
+					heartbeat_thread.join()
 
 
 def getLocalPackages(packageDirectory: str, forceChecksumCalculation: bool = False) -> list[dict[str, str]]:
