@@ -10,9 +10,13 @@ import os
 import sys
 import warnings
 
+print("FROZEN", getattr(sys, "frozen", False))
+
 
 def configure_warnings() -> None:
+	print("CONFIGURE WARNINGS")
 	if getattr(sys, "frozen", False):
+		print("SIMPLEFILTER")
 		# Disable resource and deprecation warnings if frozen
 		warnings.simplefilter("ignore", ResourceWarning)
 		warnings.simplefilter("ignore", DeprecationWarning)
