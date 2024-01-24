@@ -20,7 +20,7 @@ pytest-pylint:
     - poetry run pylint --disable=R,fixme opsiutils
     - poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
   rules:
-    - if: $SKIP_TESTS != "false"
+    - if: $SKIP_TESTS == "false"
 
 linux-amd64-pyinstaller:
   stage: build
@@ -107,7 +107,7 @@ integration_test:
     - apt -y install zstd
     - for file in integration_tests/*.sh; do echo "=== Running $file ==="; bash "$file"; done
   rules:
-    - if: $SKIP_TESTS != "false"
+    - if: $SKIP_TESTS == "false"
 
 #obs_int:
 #  stage: publish

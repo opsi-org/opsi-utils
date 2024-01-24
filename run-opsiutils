@@ -1,22 +1,7 @@
 #!/usr/bin/python3
 
-print("1")
 import sys
-
-print("2")
 import traceback
-
-print("3")
-import warnings
-
-print("4")
-if getattr(sys, "frozen", False):
-	print("5")
-	# Disable resource and deprecation warnings if frozen
-	warnings.simplefilter("ignore", ResourceWarning)
-	warnings.simplefilter("ignore", DeprecationWarning)
-
-print("6")
 
 try:
 	from opsiutils.__main__ import main
