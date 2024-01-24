@@ -1,5 +1,8 @@
 image: docker.uib.gmbh/opsi/dev/pybuilder:deb9-py3.11
 
+variables:
+  SKIP_TESTS: false
+
 stages:
   - test
   - build
@@ -16,7 +19,9 @@ pytest-pylint:
     - poetry install
     - poetry run pylint --disable=R,fixme opsiutils
     - poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
-
+  rules:
+    - if: $SKIP_TESTS
+      when: manual
 
 linux-amd64-pyinstaller:
   stage: build
@@ -70,7 +75,6 @@ linux-arm64-pyinstaller:
       - opsi-utils-arm64
     expire_in: 2 days
 
-
 integration_test:
   services:
     - name: mysql:latest
@@ -103,7 +107,9 @@ integration_test:
     - apt update
     - apt -y install zstd
     - for file in integration_tests/*.sh; do echo "=== Running $file ==="; bash "$file"; done
-
+  rules:
+    - if: $SKIP_TESTS
+      when: manual
 
 #obs_int:
 #  stage: publish
@@ -125,5 +131,5 @@ obs_ext:
     - ./opsi-dev-tool -l 5 --create-changelog output/
     - ./opsi-dev-cli release-service register-package-version opsi-utils SERVER_PACKAGE --changelog-file output/changelog.md
     - ./opsi-dev-cli release-service push-repository-state opsi-utils SERVER_PACKAGE SERVER_PACKAGE-4.3-development
-  only:
-    - tags
+  rules:
+    - if: '$CI_COMMIT_TAG != null'
