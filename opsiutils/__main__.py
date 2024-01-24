@@ -18,7 +18,7 @@ def configure_warnings() -> None:
 		warnings.simplefilter("ignore", DeprecationWarning)
 
 
-def main():  # pylint: disable=too-many-return-statements
+def main() -> None:  # pylint: disable=too-many-return-statements
 	configure_warnings()
 	name = os.path.splitext(os.path.basename(sys.argv[0]))[0].lower().replace("-", "")
 	if name == "opsiadmin":
