@@ -21,7 +21,6 @@ pytest-pylint:
     - poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
   rules:
     - if: $SKIP_TESTS != "false"
-      when: manual
 
 linux-amd64-pyinstaller:
   stage: build
@@ -109,7 +108,6 @@ integration_test:
     - for file in integration_tests/*.sh; do echo "=== Running $file ==="; bash "$file"; done
   rules:
     - if: $SKIP_TESTS != "false"
-      when: manual
 
 #obs_int:
 #  stage: publish
