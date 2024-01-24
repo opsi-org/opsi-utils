@@ -3,9 +3,10 @@ import sys
 import traceback
 import warnings
 
-# Disable resource and deprecation warnings if frozen
-warnings.simplefilter("ignore", ResourceWarning)
-warnings.simplefilter("ignore", DeprecationWarning)
+if getattr(sys, "frozen", False):
+	# Disable resource and deprecation warnings if frozen
+	warnings.simplefilter("ignore", ResourceWarning)
+	warnings.simplefilter("ignore", DeprecationWarning)
 
 
 try:
