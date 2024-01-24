@@ -13,8 +13,9 @@ import warnings
 
 def configure_warnings() -> None:
 	if getattr(sys, "frozen", False):
-		# Disable resource warnings if frozen
+		# Disable resource and deprecation warnings if frozen
 		warnings.simplefilter("ignore", ResourceWarning)
+		warnings.simplefilter("ignore", DeprecationWarning)
 
 
 def main():  # pylint: disable=too-many-return-statements
