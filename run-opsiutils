@@ -1,17 +1,23 @@
 #!/usr/bin/python3
-
 import sys
 import traceback
+import warnings
+
+# Disable resource and deprecation warnings if frozen
+warnings.simplefilter("ignore", ResourceWarning)
+warnings.simplefilter("ignore", DeprecationWarning)
+
 
 try:
 	from opsiutils.__main__ import main
+
 	main()
 except SystemExit as err:
 	sys.exit(err.code)
 except KeyboardInterrupt:
 	print("Interrupted", file=sys.stderr)
 	sys.exit(1)
-except Exception as err:  # pylint: disable=broad-except
+except Exception:  # pylint: disable=broad-except
 	# Do not let pyinstaller handle exceptions and print:
 	# "Failed to execute script run-opsiutils"
 	traceback.print_exc()

@@ -8,22 +8,9 @@ opsiutils.__main__
 
 import os
 import sys
-import warnings
-
-print("FROZEN", getattr(sys, "frozen", False))
-
-
-def configure_warnings() -> None:
-	print("CONFIGURE WARNINGS")
-	if getattr(sys, "frozen", False):
-		print("SIMPLEFILTER")
-		# Disable resource and deprecation warnings if frozen
-		warnings.simplefilter("ignore", ResourceWarning)
-		warnings.simplefilter("ignore", DeprecationWarning)
 
 
 def main() -> None:  # pylint: disable=too-many-return-statements
-	configure_warnings()
 	name = os.path.splitext(os.path.basename(sys.argv[0]))[0].lower().replace("-", "")
 	if name == "opsiadmin":
 		# pylint: disable=import-outside-toplevel
