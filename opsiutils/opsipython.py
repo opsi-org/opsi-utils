@@ -7,17 +7,15 @@ opsi-python interpreter for custom opsi python scripts
 """
 
 import argparse
-import codecs
 import os
 import sys
 import traceback
 
+import OPSI.Backend.Manager._Manager  # type: ignore[import]
 import opsicommon.client.opsiservice
 
-import OPSI.Backend.Manager._Manager  # type: ignore[import]
-
 # Replace BackendManager with compatibilty class
-OPSI.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager  # type: ignore[attr-defined]  # pylint: disable=protected-access
+OPSI.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager  # type: ignore[attr-defined]
 
 
 def add_systempackages_to_path() -> None:
@@ -41,15 +39,15 @@ def run_script() -> None:
 	new_module.__dict__["__name__"] = "__main__"
 	new_module.__dict__["__file__"] = script
 
-	with codecs.open(script, "r", "utf-8") as file:
+	with open(script, "r", encoding="utf-8") as file:
 		code = file.read()
 
 	add_systempackages_to_path()
-	exec(code, new_module.__dict__)  # pylint: disable=exec-used
+	exec(code, new_module.__dict__)
 
 
 def run_interactive() -> None:
-	import code  # pylint: disable=import-outside-toplevel
+	import code
 
 	add_systempackages_to_path()
 	code.interact(local=locals())
@@ -80,10 +78,10 @@ def main() -> None:
 
 		if args.c:
 			add_systempackages_to_path()
-			exec(args.c)  # pylint: disable=exec-used
+			exec(args.c)
 			return
 
 		run_interactive()
-	except Exception:  # pylint: disable=broad-except
+	except Exception:
 		traceback.print_exc()
 		sys.exit(1)

@@ -49,7 +49,7 @@ def get_opsiconfd_config() -> dict[str, str]:
 	return config
 
 
-def get_service_client(  # pylint: disable=too-many-arguments
+def get_service_client(
 	address: str | None = None,
 	username: str | None = None,
 	password: str | None = None,

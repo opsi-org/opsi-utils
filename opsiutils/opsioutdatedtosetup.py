@@ -10,11 +10,13 @@ import sys
 from argparse import ArgumentParser, Namespace
 from subprocess import check_call
 
-from opsicommon.logging import logger, logging_config, DEFAULT_COLORED_FORMAT
-from opsicommon.utils import monkeypatch_subprocess_for_frozen
 from opsicommon import __version__ as python_opsi_common_version
+from opsicommon.logging import DEFAULT_COLORED_FORMAT, get_logger, logging_config
+from opsicommon.utils import patch_popen
 
 from opsiutils import __version__
+
+logger = get_logger()
 
 
 def parse_args() -> Namespace:
@@ -73,9 +75,9 @@ def main() -> None:
 			opsi_cli_call.extend(["--setup-on-action", args.setup_on_action])
 
 		logging_config(stderr_level=args.log_level, stderr_format=DEFAULT_COLORED_FORMAT)
-		monkeypatch_subprocess_for_frozen()
+		patch_popen()
 		logger.essential("Executing '%s'", " ".join(opsi_cli_call))
 		check_call(opsi_cli_call)
-	except Exception as err:  # pylint: disable=broad-except
+	except Exception as err:
 		logger.error(err)
 		sys.exit(1)

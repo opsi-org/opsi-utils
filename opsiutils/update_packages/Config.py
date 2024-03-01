@@ -12,7 +12,12 @@ import os
 import os.path
 import re
 import socket
+from configparser import ConfigParser
+from typing import Any, Generator
 
+from OPSI import __version__  # type: ignore[import]
+from OPSI.Util.File import IniFile  # type: ignore[import]
+from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.logging import get_logger, logging_config, secret_filter
 from opsicommon.types import (
 	forceBool,
@@ -21,13 +26,11 @@ from opsicommon.types import (
 	forceHostAddress,
 	forceHostId,
 	forceInt,
+	forceList,
 	forceProductId,
 	forceUnicode,
 	forceUrl,
 )
-
-from OPSI import __version__  # type: ignore[import]
-from OPSI.Util.File import IniFile  # type: ignore[import]
 
 from .Exceptions import (
 	ConfigurationError,
@@ -39,7 +42,7 @@ from .Repository import ProductRepositoryInfo
 __all__ = ("DEFAULT_CONFIG", "DEFAULT_USER_AGENT", "ConfigurationParser")
 
 DEFAULT_USER_AGENT = f"opsi-package-updater/{__version__}"
-DEFAULT_CONFIG = {
+DEFAULT_CONFIG: dict[str, str | int | bool | list[ProductRepositoryInfo] | None] = {
 	"userAgent": DEFAULT_USER_AGENT,
 	"packageDir": "/var/lib/opsi/products",
 	"configFile": "/etc/opsi/opsi-package-updater.conf",
@@ -75,7 +78,7 @@ DEFAULT_CONFIG = {
 logger = get_logger("opsi.general")
 
 
-def getRepoConfigs(repoDir):
+def getRepoConfigs(repoDir: str) -> Generator[str, None, None]:
 	try:
 		for entry in os.listdir(repoDir):
 			filePath = os.path.join(repoDir, entry)
@@ -85,35 +88,33 @@ def getRepoConfigs(repoDir):
 		logger.warning("Problem listing %s: %s", repoDir, oserr)
 
 
-def splitAndStrip(string, sep):
+def splitAndStrip(string: str, sep: str) -> Generator[str, None, None]:
 	for singleValue in string.split(sep):
 		singleValue = singleValue.strip()
 		if singleValue:
 			yield singleValue
 
 
-class ConfigurationParser:  # pylint: disable=too-few-public-methods
-
+class ConfigurationParser:
 	TIME_REGEX = re.compile(r"^\d{1,2}:\d{1,2}$")
 
-	def __init__(self, configFile, backend=None, depotId=None, depotKey=None):
+	def __init__(self, configFile: str, backend: ServiceClient, depotId: str, depotKey: str) -> None:
 		self.configFile = configFile
 		self.backend = backend
 		self.depotId = depotId
 		self.depotKey = depotKey
 
 	@staticmethod
-	def get_proxy(configFile):
+	def get_proxy(configFile: str) -> str | None:
 		iniFile = IniFile(filename=configFile, raw=True)
 		configIni = iniFile.parse()
 		return configIni.get(section="general", option="proxy", fallback=None) or None
 
-	def parse(self, configuration=None):  # pylint: disable=too-many-branches,too-many-statements
+	def parse(self, configuration: dict | None = None) -> dict[str, Any]:
 		"""
 		Parse the configuration file.
 
-		:param confiuration: Predefined configuration. Contents may be \
-overriden based on values in configuration file.
+		:param confiuration: Predefined configuration. Contents may be overriden based on values in configuration file.
 		:rtype: dict
 		"""
 		logger.info("Reading config file '%s'", self.configFile)
@@ -126,12 +127,12 @@ overriden based on values in configuration file.
 
 		config["repositories"] = []
 
-		try:  # pylint: disable=too-many-nested-blocks
+		try:
 			iniFile = IniFile(filename=self.configFile, raw=True)
 			configIni = iniFile.parse()
 			for section in configIni.sections():
 				if section.lower() == "general":
-					for (option, value) in configIni.items(section):
+					for option, value in configIni.items(section):
 						if option.lower() == "packagedir":
 							config["packageDir"] = forceFilename(value.strip())
 						elif option.lower() == "logfile":
@@ -154,7 +155,7 @@ overriden based on values in configuration file.
 							config["ignoreErrors"] = forceBool(value.strip())
 
 				elif section.lower() == "notification":
-					for (option, value) in configIni.items(section):
+					for option, value in configIni.items(section):
 						if option.lower() == "active":
 							config["notification"] = forceBool(value)
 						elif option.lower() == "smtphost":
@@ -165,7 +166,7 @@ overriden based on values in configuration file.
 							config["smtpuser"] = forceUnicode(value.strip())
 						elif option.lower() == "smtppassword":
 							config["smtppassword"] = forceUnicode(value.strip())
-							secret_filter.add_secrets(config["smtppassword"])
+							secret_filter.add_secrets(str(config["smtppassword"]))
 						elif option.lower() == "subject":
 							config["subject"] = forceUnicode(value.strip())
 						elif option.lower() == "use_starttls":
@@ -173,23 +174,21 @@ overriden based on values in configuration file.
 						elif option.lower() == "sender":
 							config["sender"] = forceEmailAddress(value.strip())
 						elif option.lower() == "receivers":
-							config["receivers"] = [forceEmailAddress(receiver) for receiver in splitAndStrip(value, ",")]
+							config["receivers"] = [forceEmailAddress(receiver) for receiver in splitAndStrip(str(value), ",")]  # type: ignore[misc]
 
 				elif section.lower() == "wol":
-					for (option, value) in configIni.items(section):
+					for option, value in configIni.items(section):
 						if option.lower() == "active":
 							config["wolAction"] = forceBool(value.strip())
 						elif option.lower() == "excludeproductids":
-							config["wolActionExcludeProductIds"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]
+							config["wolActionExcludeProductIds"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]  # type: ignore[misc]
 						elif option.lower() == "shutdownwanted":
 							config["wolShutdownWanted"] = forceBool(value.strip())
 						elif option.lower() == "startgap":
-							config["wolStartGap"] = forceInt(value.strip())
-							if config["wolStartGap"] < 0:
-								config["wolStartGap"] = 0
+							config["wolStartGap"] = max(0, forceInt(value.strip()))
 
 				elif section.lower() == "installation":
-					for (option, value) in configIni.items(section):
+					for option, value in configIni.items(section):
 						if option.lower() == "windowstart":
 							if not value.strip():
 								continue
@@ -203,30 +202,30 @@ overriden based on values in configuration file.
 								raise ValueError(f"End time '{value.strip()}' not in needed format 'HH:MM'")
 							config["installationWindowEndTime"] = value.strip()
 						elif option.lower() == "exceptproductids":
-							config["installationWindowExceptions"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]
+							config["installationWindowExceptions"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]  # type: ignore[misc]
 				elif section.lower().startswith("repository"):
 					try:
 						repository = self._getRepository(
 							config=configIni,
 							section=section,
-							forceRepositoryActivation=config["forceRepositoryActivation"],
-							repositoryName=config["repositoryName"],
-							installAllAvailable=config["installAllAvailable"],
-							proxy=config["proxy"],
+							forceRepositoryActivation=bool(config["forceRepositoryActivation"]),
+							repositoryName=str(config["repositoryName"]),
+							installAllAvailable=bool(config["installAllAvailable"]),
+							proxy=str(config["proxy"]) if config["proxy"] else None,
 						)
-						config["repositories"].append(repository)
+						config["repositories"] = forceList(config["repositories"]) + [repository]
 					except MissingConfigurationValueError as mcverr:
 						logger.debug("Configuration for %s incomplete: %s", section, mcverr)
 					except ConfigurationError as cerr:
 						logger.error("Configuration problem in %s: %s", section, cerr)
-					except Exception as err:  # pylint: disable=broad-except
+					except Exception as err:
 						logger.error("Can't load repository from %s: %s", section, err)
 				else:
 					logger.error("Unhandled section '%s'", section)
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			raise RuntimeError(f"Failed to read config file '{self.configFile}': {err}") from err
 
-		for configFile in getRepoConfigs(config["repositoryConfigDir"]):
+		for configFile in getRepoConfigs(str(config["repositoryConfigDir"])):
 			iniFile = IniFile(filename=configFile, raw=True)
 
 			try:
@@ -239,31 +238,37 @@ overriden based on values in configuration file.
 						repository = self._getRepository(
 							config=repoConfig,
 							section=section,
-							forceRepositoryActivation=config["forceRepositoryActivation"],
-							repositoryName=config["repositoryName"],
-							installAllAvailable=config["installAllAvailable"],
-							proxy=config["proxy"],
+							forceRepositoryActivation=bool(config["forceRepositoryActivation"]),
+							repositoryName=str(config["repositoryName"]),
+							installAllAvailable=bool(config["installAllAvailable"]),
+							proxy=str(config["proxy"]) if config["proxy"] else None,
 						)
-						config["repositories"].append(repository)
+						config["repositories"] = forceList(config["repositories"]) + [repository]
 					except MissingConfigurationValueError as err:
 						logger.debug("Configuration for %s in %s incomplete: %s", section, configFile, err)
 					except ConfigurationError as err:
 						logger.error("Configuration problem in %s in %s: %s", section, configFile, err)
-					except Exception as err:  # pylint: disable=broad-except
+					except Exception as err:
 						logger.error("Can't load repository from %s in %s: %s", section, configFile, err)
-			except Exception as err:  # pylint: disable=broad-except
+			except Exception as err:
 				logger.error("Unable to load repositories from %s: %s", configFile, err)
 
 		return config
 
-	def _getRepository(  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-		self, config, section, forceRepositoryActivation=False, repositoryName=None, installAllAvailable=False, proxy=None
-	):
+	def _getRepository(
+		self,
+		config: ConfigParser,
+		section: str,
+		forceRepositoryActivation: bool = False,
+		repositoryName: str | None = None,
+		installAllAvailable: bool = False,
+		proxy: str | None = None,
+	) -> ProductRepositoryInfo:
 		active = False
 		verifyCert = False
 		baseUrl = None
 		opsiDepotId = None
-		for (option, value) in config.items(section):
+		for option, value in config.items(section):
 			option = option.lower()
 			value = value.strip()
 			if option == "active":
@@ -295,7 +300,7 @@ overriden based on values in configuration file.
 			if not self.backend:
 				raise RequiringBackendError(f"Repository section '{section}' supplied an depot ID but we have no backend to check.")
 
-			depots = self.backend.host_getObjects(type="OpsiDepotserver", id=opsiDepotId)
+			depots = self.backend.host_getObjects(type="OpsiDepotserver", id=opsiDepotId)  # type: ignore[attr-defined]
 			if not depots:
 				raise ConfigurationError(f"Depot '{opsiDepotId}' not found in backend")
 			if not depots[0].repositoryRemoteUrl:
@@ -320,7 +325,7 @@ overriden based on values in configuration file.
 		else:
 			raise MissingConfigurationValueError(f"Repository section '{section}': neither baseUrl nor opsiDepotId set")
 
-		for (option, value) in config.items(section):
+		for option, value in config.items(section):
 			if option.lower() == "username":
 				repository.username = forceUnicode(value.strip())
 			elif option.lower() == "password":

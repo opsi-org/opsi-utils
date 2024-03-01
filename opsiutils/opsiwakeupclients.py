@@ -5,9 +5,9 @@
 """
 opsi-wakeup-clients - wakeup clients for deployment tasks
 """
+from __future__ import annotations
 
 import argparse
-import codecs
 import gettext
 import os
 import socket
@@ -17,21 +17,23 @@ import time
 from collections import defaultdict
 from contextlib import contextmanager
 from itertools import product
-
-from opsicommon.client.jsonrpc import JSONRPCClient  # type: ignore[import]
-from opsicommon.logging import (  # type: ignore[import]
-	DEFAULT_COLORED_FORMAT,
-	LOG_ERROR,
-	init_logging,
-	logger,
-	logging_config,
-)
+from typing import Generator
 
 from OPSI import __version__ as python_opsi_version  # type: ignore[import]
 from OPSI.Util.Ping import ping  # type: ignore[import]
+from opsicommon.client.jsonrpc import JSONRPCClient
+from opsicommon.client.opsiservice import ServiceClient
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_ERROR,
+	get_logger,
+	init_logging,
+	logging_config,
+)
 
 from opsiutils import __version__, get_service_client
 
+logger = get_logger("")
 try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 	if os.path.exists(os.path.join(sp, "site-packages")):
@@ -39,15 +41,15 @@ try:
 	sp = os.path.join(sp, "opsi-utils_data", "locale")
 	translation = gettext.translation("opsi-utils", sp)
 	_ = translation.gettext
-except Exception as loc_err:  # pylint: disable=broad-except
+except Exception as loc_err:
 	logger.debug("Failed to load locale from %s: %s", sp, loc_err)
 
-	def _(string):
+	def _(message: str) -> str:
 		"""Fallback function"""
-		return string
+		return message
 
 
-def parseOptions():
+def parseOptions() -> argparse.Namespace:
 	parser = argparse.ArgumentParser(
 		description="Wakeup clients for software installation.", formatter_class=argparse.ArgumentDefaultsHelpFormatter
 	)
@@ -124,23 +126,23 @@ def parseOptions():
 	return args
 
 
-def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
-	service_client,
-	depotId,
-	inputFile,
-	noAutoUpdate,
-	shutdownwanted,
-	reboot,
-	rebootTimeout,
-	hostGroupId,
-	productGroupId,
-	eventName,
-	wolTimeout,
-	eventTimeout,
-	connectTimeout,
-	pingTimeout,
-	maxConcurrent,
-):
+def wakeClientsForUpdate(
+	service_client: ServiceClient,
+	depotId: str,
+	inputFile: str,
+	noAutoUpdate: bool,
+	shutdownwanted: bool,
+	reboot: bool,
+	rebootTimeout: int,
+	hostGroupId: str,
+	productGroupId: str,
+	eventName: str,
+	wolTimeout: int,
+	eventTimeout: int,
+	connectTimeout: int,
+	pingTimeout: int,
+	maxConcurrent: int,
+) -> None:
 	logger.info(
 		(
 			"Using params: depotId=%s, inputFile=%s, noAutoUpdate=%s, reboot=%s, rebootTimeout=%s, "
@@ -194,7 +196,7 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 		logger.notice("Setting shutdownwanted for clients")
 		setShutdownwanted(service_client, clientsToWake)
 
-	productIds = set()
+	productIds: set[str] = set()
 	if productGroupId:
 		logger.notice("Getting list of products to set to setup by product group '%s'", productGroupId)
 		productIds = getProductsFromProductGroup(service_client, productGroupId)
@@ -204,19 +206,19 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 		logger.notice("No products to set to setup")
 
 	clientSum = len(clientsToWake)
-	runningThreads = []
-	failed = defaultdict(set)
+	runningThreads: list[ClientMonitoringThread] = []
+	failed: dict[str, set[str]] = defaultdict(set)
 
 	logger.info("Starting to wake up clients")
 
 	while runningThreads or clientsToWake:
 		# Start new threads
-		newClients = []
+		newClients: list[str] = []
 		while clientsToWake and (maxConcurrent == 0 or len(runningThreads) + len(newClients) < maxConcurrent):
 			newClients.append(clientsToWake.pop())
 		if newClients:
 			if productIds:
-				requireProductInstallation(service_client, newClients, productIds)
+				requireProductInstallation(service_client, newClients, list(productIds))
 			for client in newClients:
 				thread = ClientMonitoringThread(
 					service_client, client, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout
@@ -259,7 +261,7 @@ def wakeClientsForUpdate(  # pylint: disable=too-many-arguments,too-many-locals,
 	logger.notice("Succesfully processed %s/%s clients", clientSum - totalFails, clientSum)
 
 
-def getClientIDsFromDepot(service_client, depotId, groupName):
+def getClientIDsFromDepot(service_client: ServiceClient, depotId: str, groupName: str) -> list[str]:
 	clientsFromGroup = []
 	if groupName:
 		clientsFromGroup = getClientIDsFromGroup(service_client, groupName)
@@ -270,12 +272,12 @@ def getClientIDsFromDepot(service_client, depotId, groupName):
 	return [x for x in depotClients if x in clientsFromGroup]
 
 
-def getClientIDsFromFile(service_client, inputFile):
+def getClientIDsFromFile(service_client: ServiceClient, inputFile: str) -> list[str]:
 	if not os.path.exists(inputFile):
 		raise FileNotFoundError(f"Host-file '{inputFile}' not found")
 	knownIds = service_client.jsonrpc("host_getIdents", [[], {"type": "OpsiClient"}])
 	clientIds = []
-	with codecs.open(inputFile, "r", "utf8") as file:
+	with open(inputFile, "r", encoding="utf8") as file:
 		for line in file.readlines():
 			line = line.strip()
 			if not line or line.startswith("#"):
@@ -287,7 +289,7 @@ def getClientIDsFromFile(service_client, inputFile):
 	return clientIds
 
 
-def getClientIDsFromGroup(service_client, groupName):
+def getClientIDsFromGroup(service_client: ServiceClient, groupName: str) -> list[str]:
 	group = service_client.jsonrpc("group_getObjects", [[], {"id": groupName, "type": "HostGroup"}])
 
 	try:
@@ -298,17 +300,17 @@ def getClientIDsFromGroup(service_client, groupName):
 	return [mapping.objectId for mapping in service_client.jsonrpc("objectToGroup_getObjects", [[], {"groupId": group.id}])]
 
 
-def configureOpsiAutoUpdate(service_client, clientIds):
+def configureOpsiAutoUpdate(service_client: ServiceClient, clientIds: list[str]) -> None:
 	for clientId in clientIds:
 		service_client.jsonrpc("setProductProperty", ["opsi-auto-update", "rebootflag", 0, clientId])
 
 
-def setShutdownwanted(service_client, clientIds):
+def setShutdownwanted(service_client: ServiceClient, clientIds: list[str]) -> None:
 	for clientId in clientIds:
 		service_client.jsonrpc("setProductActionRequest", ["shutdownwanted", clientId, "setup"])
 
 
-def getProductsFromProductGroup(service_client, productGroupId):
+def getProductsFromProductGroup(service_client: ServiceClient, productGroupId: str) -> set[str]:
 	group = service_client.jsonrpc("group_getObjects", [[], {"id": productGroupId, "type": "ProductGroup"}])
 
 	try:
@@ -319,19 +321,28 @@ def getProductsFromProductGroup(service_client, productGroupId):
 	return {mapping.objectId for mapping in service_client.jsonrpc("objectToGroup_getObjects", [[], {"groupId": group.id}])}
 
 
-def requireProductInstallation(service_client, clientIds, productIds):
+def requireProductInstallation(service_client: ServiceClient, clientIds: list[str], productIds: list[str]) -> None:
 	for clientId, productId in product(clientIds, productIds):
 		service_client.jsonrpc("setProductActionRequestWithDependencies", [productId, clientId, "setup"])
 
 
-class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-instance-attributes
+class ClientMonitoringThread(threading.Thread):
 	def __init__(
-		self, service_client, clientId, reboot, rebootTimeout, eventName, wolTimeout, eventTimeout, connectTimeout, pingTimeout
-	):  # pylint: disable=too-many-arguments
+		self,
+		service_client: ServiceClient,
+		clientId: str,
+		reboot: bool,
+		rebootTimeout: int,
+		eventName: str,
+		wolTimeout: int,
+		eventTimeout: int,
+		connectTimeout: int,
+		pingTimeout: int,
+	):
 		threading.Thread.__init__(self)
 
 		self.service_client = service_client
-		self.opsiclientdbackend = None
+		self.opsiclientdbackend: JSONRPCClient | None = None
 		self.clientId = clientId
 		self.hostKey = None
 
@@ -346,9 +357,9 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 
 		self.connectTimeout = connectTimeout
 
-		self.success = None
+		self.success: Exception | bool | None = None
 
-	def run(self):
+	def run(self) -> None:
 		try:
 			if self.reboot:
 				try:
@@ -356,12 +367,12 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 					self.triggerReboot()
 					time.sleep(self.rebootTimeout + 20)
 					self.waitForOpsiclientd()
-				except Exception as err:  # pylint: disable=broad-except
+				except Exception as err:
 					logger.error("Failed to trigger reboot on client %s: %s, trying to wake the client", self.clientId, err)
 					self.wakeClient()
 			else:
 				self.wakeClient()
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			self.success = err
 			logger.error("Failed to wake client %s: %s", self.clientId, err)
 			return
@@ -369,14 +380,14 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 		if self.eventName:
 			try:
 				self.triggerEvent()
-			except Exception as err:  # pylint: disable=broad-except
+			except Exception as err:
 				self.success = err
 				logger.error("Failed to trigger event on client %s: %s", self.clientId, err)
 				return
 
 		self.success = True
 
-	def wakeClient(self):
+	def wakeClient(self) -> None:
 		logger.notice("Waking up client '%s'", self.clientId)
 		self.service_client.jsonrpc("hostControlSafe_start", [self.clientId])
 
@@ -388,7 +399,7 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 				logger.debug("Did not try to ping client '%s'", self.clientId)
 		self.waitForOpsiclientd()
 
-	def waitForPing(self):
+	def waitForPing(self) -> None:
 		logger.notice("Waiting for ping response of '%s'", self.clientId)
 		timeout_event = threading.Event()
 		retryTimeout = 10
@@ -403,10 +414,10 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 					if delay:
 						logger.notice("Succesfully pinged '%s'", self.clientId)
 						break
-				except Exception as err:  # pylint: disable=broad-except
+				except Exception as err:
 					logger.debug("Failed to ping client '%s': %s", self.clientId, err)
 
-	def waitForOpsiclientd(self):
+	def waitForOpsiclientd(self) -> None:
 		logger.notice("Connecting to opsi-client-agent on '%s'", self.clientId)
 		port = 4441
 		address = f"https://{self.clientId}:{port}/opsiclientd"  # We expect the FQDN here
@@ -441,20 +452,21 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 					self.opsiclientdbackend = backend
 					logger.notice("Connection to client '%s' established", self.clientId)
 					break
-				except Exception as err:  # pylint: disable=broad-except
-					logger.debug("Failed to connect to client '%s': %s", self.clientId, err)  # pylint: disable=broad-except
+				except Exception as err:
+					logger.debug("Failed to connect to client '%s': %s", self.clientId, err)
 
-	def triggerReboot(self):
+	def triggerReboot(self) -> None:
 		if not self.opsiclientdbackend:
 			raise RuntimeError(f"Connection to client '{self.clientId}' failed")
 		logger.info("Triggering reboot on client '%s' with a delay of %s seconds", self.clientId, self.rebootTimeout)
-		self.opsiclientdbackend.reboot(str(self.rebootTimeout))  # pylint: disable=no-member
+		self.opsiclientdbackend.reboot(str(self.rebootTimeout))  # type: ignore[attr-defined]
 
-	def triggerEvent(self):
+	def triggerEvent(self) -> None:
 		"""
 		Trigger an event and wait for it to run.
 		"""
 		logger.notice("Triggering event '%s' on '%s'", self.eventName, self.clientId)
+		assert self.opsiclientdbackend
 		timeout_event = threading.Event()
 		retryTimeout = 5
 
@@ -469,26 +481,26 @@ class ClientMonitoringThread(threading.Thread):  # pylint: disable=too-many-inst
 				if runs % 3 == 0:
 					logger.debug("Triggering event '%s' on '%s'", self.eventName, self.clientId)
 					try:
-						self.opsiclientdbackend.fireEvent(self.eventName)  # pylint: disable=no-member
-					except Exception as exc:  # pylint: disable=broad-except
+						self.opsiclientdbackend.fireEvent(self.eventName)  # type: ignore[attr-defined]
+					except Exception as exc:
 						logger.debug("Failed to trigger event on '%s': %s", self.clientId, exc)
 
 				try:
-					if self.opsiclientdbackend.isEventRunning(self.eventName):  # pylint: disable=no-member
+					if self.opsiclientdbackend.isEventRunning(self.eventName):  # type: ignore[attr-defined]
 						logger.notice("Event '%s' is running on '%s'", self.eventName, self.clientId)
 						break
-					if self.opsiclientdbackend.isEventRunning(self.eventName + "{user_logged_in}"):  # pylint: disable=no-member
+					if self.opsiclientdbackend.isEventRunning(self.eventName + "{user_logged_in}"):  # type: ignore[attr-defined]
 						logger.notice("Event '%s' is running on '%s'", self.eventName + "{user_logged_in}", self.clientId)
 						break
-				except Exception as exc:  # pylint: disable=broad-except
+				except Exception as exc:
 					logger.debug("Failed to check running event on '%s': %s", self.clientId, exc)
 
 				runs += 1
 
 
 @contextmanager
-def timeoutThread(timeout, stop_event, exception=None):
-	def stop_program():
+def timeoutThread(timeout: int, stop_event: threading.Event, exception: Exception | None = None) -> Generator[None, None, None]:
+	def stop_program() -> None:
 		logger.debug("General timeout reached. Stopping.")
 		stop_event.set()
 
@@ -521,7 +533,7 @@ class WaitForEventTimeout(TimeoutError):
 	pass
 
 
-def opsiwakeupclients_main():
+def opsiwakeupclients_main() -> None:
 	options = parseOptions()
 
 	if options.consoleLogLevel:
@@ -554,12 +566,12 @@ def opsiwakeupclients_main():
 		service_client.disconnect()
 
 
-def main():
+def main() -> None:
 	try:
 		opsiwakeupclients_main()
 	except SystemExit as err:
 		sys.exit(err.code)
-	except Exception as err:  # pylint: disable=broad-except
+	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
 		logger.error(err, exc_info=True)
 		print(f"ERROR: {err}", file=sys.stderr)

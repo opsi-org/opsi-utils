@@ -6,12 +6,9 @@
 Exceptions used in updating packages.
 """
 
-from OPSI.Exceptions import OpsiError
+from opsicommon.exceptions import OpsiError
 
-__all__ = (
-	'ConfigurationError', 'MissingConfigurationValueError',
-	'RequiringBackendError'
-)
+__all__ = ("ConfigurationError", "MissingConfigurationValueError", "RequiringBackendError")
 
 
 class ConfigurationError(ValueError):

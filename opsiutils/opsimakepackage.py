@@ -5,6 +5,7 @@
 """
 opsi-makepackage - create opsi-packages for deployment.
 """
+from __future__ import annotations
 
 import argparse
 import fcntl
@@ -17,27 +18,31 @@ import termios
 import tty
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Generator
 
 from OPSI import __version__ as python_opsi_version  # type: ignore
 from OPSI.System import execute  # type: ignore[import]
 from OPSI.Types import forceFilename  # type: ignore[import]
 from OPSI.Util import compareVersions, md5sum  # type: ignore[import]
 from OPSI.Util.File import ZsyncFile  # type: ignore[import]
-from OPSI.Util.Message import ProgressObserver, ProgressSubject  # type: ignore[import]
+from OPSI.Util.Message import ProgressObserver, ProgressSubject, Subject  # type: ignore[import]
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
 	LOG_ERROR,
 	LOG_NONE,
 	LOG_WARNING,
+	get_logger,
 	init_logging,
-	logger,
 	logging_config,
 )
+from opsicommon.objects import NetbootProduct, Product
 from opsicommon.package import OpsiPackage
 from opsicommon.server.rights import set_rights
 
 from opsiutils import __version__
+
+logger = get_logger()
 
 try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -46,12 +51,12 @@ try:
 	sp = os.path.join(sp, "opsi-utils_data", "locale")
 	translation = gettext.translation("opsi-utils", sp)
 	_ = translation.gettext
-except Exception as loc_err:  # pylint: disable=broad-except
+except Exception as loc_err:
 	logger.debug("Failed to load locale from %s: %s", sp, loc_err)
 
-	def _(string):
+	def _(message: str) -> str:
 		"""Fallback function"""
-		return string
+		return message
 
 
 class CancelledByUserError(Exception):
@@ -59,35 +64,35 @@ class CancelledByUserError(Exception):
 
 
 class ProgressNotifier(ProgressObserver):
-	def __init__(self):  # pylint: disable=super-init-not-called
+	def __init__(self) -> None:
 		self.usedWidth = 60
 		try:
 			with os.popen("tty") as proc:
 				_tty = proc.readline().strip()
 			with open(_tty, "rb") as fd:
-				terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234"))[1]
+				terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, b"1234"))[1]
 			self.usedWidth = min(self.usedWidth, terminalWidth)
-		except Exception:  # pylint: disable=broad-except
+		except Exception:
 			pass
 
-	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):  # pylint: disable=too-many-arguments
+	def progressChanged(self, subject: Subject, state: int, percent: float, timeSpend: int, timeLeft: int, speed: float) -> None:
 		if subject.getEnd() <= 0:
 			return
 
 		barlen = self.usedWidth - 10
 		filledlen = round(barlen * percent / 100)
 		_bar = "=" * filledlen + " " * (barlen - filledlen)
-		percent = f"{percent:0.2f}%"
-		sys.stderr.write(f"\r {percent:>8} [{_bar}]\r")
+		percent_str = f"{percent:0.2f}%"
+		sys.stderr.write(f"\r {percent_str:>8} [{_bar}]\r")
 		sys.stderr.flush()
 
-	def messageChanged(self, subject, message):
+	def messageChanged(self, subject: Subject, message: str) -> None:
 		sys.stderr.write(f"\n{message}\n")
 		sys.stderr.flush()
 
 
 @contextmanager
-def raw_tty():
+def raw_tty() -> Generator[None, None, None]:
 	fd = sys.stdin.fileno()
 	# fl = fcntl.fcntl(fd, fcntl.F_GETFL)
 	at = termios.tcgetattr(fd)
@@ -101,14 +106,14 @@ def raw_tty():
 		termios.tcsetattr(fd, termios.TCSANOW, at)
 
 
-def print_info(product, customName, opsi_package):
+def print_info(product: Product, customName: str, opsi_package: OpsiPackage) -> None:
 	print("")
 	print(_("Package info"))
 	print("----------------------------------------------------------------------------")
-	print("   %-20s : %s" % ("version", product.packageVersion))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("custom package name", customName))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("version", product.packageVersion))
+	print("   %-20s : %s" % ("custom package name", customName))
 	print(
-		"   %-20s : %s"  # pylint: disable=consider-using-f-string
+		"   %-20s : %s"
 		% (
 			"package dependencies",
 			", ".join(f"{dep.package}({dep.condition}{dep.version})" for dep in opsi_package.package_dependencies),
@@ -118,36 +123,36 @@ def print_info(product, customName, opsi_package):
 	print("")
 	print(_("Product info"))
 	print("----------------------------------------------------------------------------")
-	print("   %-20s : %s" % ("product id", product.id))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("product id", product.id))
 
 	if product.getType() == "LocalbootProduct":
-		print("   %-20s : %s" % ("product type", "localboot"))  # pylint: disable=consider-using-f-string
+		print("   %-20s : %s" % ("product type", "localboot"))
 	elif product.getType() == "NetbootProduct":
-		print("   %-20s : %s" % ("product type", "netboot"))  # pylint: disable=consider-using-f-string
+		print("   %-20s : %s" % ("product type", "netboot"))
 
-	print("   %-20s : %s" % ("version", product.productVersion))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("name", product.name))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("description", product.description))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("advice", product.advice))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("priority", product.priority))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("licenseRequired", product.licenseRequired))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("product classes", ", ".join(product.productClassIds or [])))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("windows software ids", ", ".join(product.windowsSoftwareIds or [])))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("version", product.productVersion))
+	print("   %-20s : %s" % ("name", product.name))
+	print("   %-20s : %s" % ("description", product.description))
+	print("   %-20s : %s" % ("advice", product.advice))
+	print("   %-20s : %s" % ("priority", product.priority))
+	print("   %-20s : %s" % ("licenseRequired", product.licenseRequired))
+	print("   %-20s : %s" % ("product classes", ", ".join(product.productClassIds or [])))
+	print("   %-20s : %s" % ("windows software ids", ", ".join(product.windowsSoftwareIds or [])))
 
-	if product.getType() == "NetbootProduct":
-		print("   %-20s : %s" % ("pxe config template", product.pxeConfigTemplate))  # pylint: disable=consider-using-f-string
+	if isinstance(product, NetbootProduct):
+		print("   %-20s : %s" % ("pxe config template", product.pxeConfigTemplate))
 
 	print("")
 	print(_("Product scripts"))
 	print("----------------------------------------------------------------------------")
-	print("   %-20s : %s" % ("setup", product.setupScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("uninstall", product.uninstallScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("update", product.updateScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("always", product.alwaysScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("once", product.onceScript))  # pylint: disable=consider-using-f-string
-	print("   %-20s : %s" % ("custom", product.customScript))  # pylint: disable=consider-using-f-string
+	print("   %-20s : %s" % ("setup", product.setupScript))
+	print("   %-20s : %s" % ("uninstall", product.uninstallScript))
+	print("   %-20s : %s" % ("update", product.updateScript))
+	print("   %-20s : %s" % ("always", product.alwaysScript))
+	print("   %-20s : %s" % ("once", product.onceScript))
+	print("   %-20s : %s" % ("custom", product.customScript))
 	if product.getType() == "LocalbootProduct":
-		print("   %-20s : %s" % ("user login", product.userLoginScript))  # pylint: disable=consider-using-f-string
+		print("   %-20s : %s" % ("user login", product.userLoginScript))
 	print("")
 
 
@@ -268,12 +273,12 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
 	return args_namespace
 
 
-def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+def makepackage_main(str_args: list[str] | None = None) -> None:
 	os.umask(0o022)
 
 	init_logging(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
 
-	args = parse_args(args)
+	args = parse_args(str_args)
 
 	keepVersions = args.keepVersions
 	needOneVersion = False
@@ -345,7 +350,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 	if customName:
 		archive = archive.parent / f"{archive.stem}~{customName}.opsi"
 	lockPackage(tempDir, opsi_package)
-	try:  # pylint: disable=too-many-nested-blocks
+	try:
 		while True:
 			if not quiet:
 				print_info(opsi_package.product, customName, opsi_package)
@@ -353,7 +358,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 				print(_("Package file '%s' already exists.") % archive)
 				print(_("Press <O> to overwrite, <C> to abort or <N> to specify a new version:"), end=" ")
 				sys.stdout.flush()
-				newVersion = False
+				newVersion: str | bool = False
 				if keepVersions and needOneVersion:
 					newVersion = True
 				elif keepVersions:
@@ -384,7 +389,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 				if newVersion:
 					while True:
 						print(
-							"\r%s"  # pylint: disable=consider-using-f-string
+							"\r%s"
 							% _("Please specify new product version, press <ENTER> to keep current version (%s):")
 							% opsi_package.product.productVersion,
 							end=" ",
@@ -402,19 +407,19 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 
 						try:
 							if newVersion:
-								opsi_package.product.setProductVersion(newVersion)
+								opsi_package.product.setProductVersion(str(newVersion))
 								opsi_package.generate_control_file(packageControlFilePath)
 							break
-						except Exception:  # pylint: disable=broad-except
+						except Exception:
 							print(_("Bad product version: %s") % newVersion)
 
 					while True:
 						print(
-							"\r%s"  # pylint: disable=consider-using-f-string
+							"\r%s"
 							% _("Please specify new package version, press <ENTER> to keep current version (%s):")
 							% opsi_package.product.packageVersion,
 							end=" ",
-						)  # pylint: disable=consider-using-f-string
+						)
 						newVersion = newPackageVersion
 						if not keepVersions and not needOneVersion:
 							newVersion = sys.stdin.readline().strip()
@@ -428,10 +433,10 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 
 						try:
 							if newVersion:
-								opsi_package.product.setPackageVersion(newVersion)
+								opsi_package.product.setPackageVersion(str(newVersion))
 								opsi_package.generate_control_file(packageControlFilePath)
 							break
-						except Exception:  # pylint: disable=broad-except
+						except Exception:
 							print(_("Bad package version: %s") % newVersion)
 
 				archive = destination_dir / opsi_package.package_archive_name()
@@ -482,7 +487,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 			if not args.no_set_rights:
 				try:
 					set_rights(archive)
-				except Exception as err:  # pylint: disable=broad-except
+				except Exception as err:
 					logger.warning("Failed to set rights: %s", err)
 			if not quiet:
 				print("\n")
@@ -496,7 +501,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 				if not args.no_set_rights:
 					try:
 						set_rights(md5sumFile)
-					except Exception as err:  # pylint: disable=broad-except
+					except Exception as err:
 						logger.warning("Failed to set rights: %s", err)
 
 			if args.createZsyncFile:
@@ -508,7 +513,7 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 				if not args.no_set_rights:
 					try:
 						set_rights(zsyncFilePath)
-					except Exception as err:  # pylint: disable=broad-except
+					except Exception as err:
 						logger.warning("Failed to set rights: %s", err)
 			break
 	finally:
@@ -519,8 +524,8 @@ def makepackage_main(args: list[str] | None = None) -> None:  # pylint: disable=
 			print("")
 
 
-def lockPackage(tempDir, packageControlFile):
-	lockFile = os.path.join(tempDir, f".opsi-makepackage.lock.{packageControlFile.product.id}")
+def lockPackage(tempDir: Path, opsiPackage: OpsiPackage) -> None:
+	lockFile = os.path.join(tempDir, f".opsi-makepackage.lock.{opsiPackage.product.id}")
 	# Test if other processes are accessing same product
 	try:
 		with open(lockFile, "r", encoding="utf-8") as file:
@@ -534,7 +539,7 @@ def lockPackage(tempDir, packageControlFile):
 				if pid == line.split()[0].strip():
 					pName = line.split()[-1].strip()
 					# process is running
-					raise RuntimeError(f"Product '{packageControlFile.product.id}' is currently locked by process {pName} ({pid}).")
+					raise RuntimeError(f"Product '{opsiPackage.product.id}' is currently locked by process {pName} ({pid}).")
 
 	except IOError:
 		pass
@@ -544,18 +549,18 @@ def lockPackage(tempDir, packageControlFile):
 		file.write(str(os.getpid()))
 
 
-def unlockPackage(tempDir, opsi_package):
+def unlockPackage(tempDir: Path, opsi_package: OpsiPackage) -> None:
 	lockFile = os.path.join(tempDir, f".opsi-makepackage.lock.{opsi_package.product.id}")
 	if os.path.isfile(lockFile):
 		os.unlink(lockFile)
 
 
-def main():
+def main() -> None:
 	try:
 		makepackage_main()
 	except SystemExit as err:
 		sys.exit(err.code)
-	except Exception as err:  # pylint: disable=broad-except
+	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
 		logger.error(err, exc_info=True)
 		print(f"ERROR: {err}", file=sys.stderr)

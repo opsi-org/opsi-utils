@@ -94,6 +94,7 @@ autoSetup = false
 proxy =
 """
 
+
 class FakeService:
 	def host_getObjects(self, **kwargs: Any) -> list[OpsiDepotserver]:  # pylint: disable=invalid-name,unused-argument
 		depot = OpsiDepotserver(id="depot.opsi.org")
@@ -120,7 +121,6 @@ def package_updater_class() -> Generator[type[OpsiPackageUpdater], None, None]:
 		yield cls
 
 
-
 def write_repo_conf(repo_conf: Path, base_url: str, proxy: str = "", dirs: str = "/") -> None:
 	repo_conf.write_text(
 		data=(
@@ -132,7 +132,7 @@ def write_repo_conf(repo_conf: Path, base_url: str, proxy: str = "", dirs: str =
 
 
 def prepare_updater(base_dir: Path, copy_files: bool = True) -> UpdaterInfo:
-	""" returns tuple of test_repo_conf and server_log """
+	"""returns tuple of test_repo_conf and server_log"""
 	config_file = base_dir / "empty.conf"
 	config_file.touch()
 	local_dir = base_dir / "local_packages"
@@ -153,11 +153,11 @@ def prepare_updater(base_dir: Path, copy_files: bool = True) -> UpdaterInfo:
 		data=("[general]\n" f"packageDir = {str(local_dir)}\n" f"repositoryConfigDir = {str(repo_conf_path)}\n"), encoding="utf-8"
 	)
 	return UpdaterInfo(
-		test_repo_conf = repo_conf_path / "test.repo",
-		server_log = base_dir / "server.log",
-		server_dir = server_dir,
-		local_dir = local_dir,
-		config = config,
+		test_repo_conf=repo_conf_path / "test.repo",
+		server_log=base_dir / "server.log",
+		server_dir=server_dir,
+		local_dir=local_dir,
+		config=config,
 	)
 
 
@@ -253,8 +253,7 @@ def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-lo
 		with package_updater.makeSession(package["repository"]) as session:  # type: ignore[arg-type,var-annotated]
 			assert (
 				# pylint: disable=protected-access
-				package_updater._useZsync(session, package, local_packages[0])
-				== server_accept_ranges
+				package_updater._useZsync(session, package, local_packages[0]) == server_accept_ranges
 			)
 
 		if "localhost" in base_url:
@@ -317,7 +316,7 @@ def test_server_repo_meta_multiurl(  # pylint: disable=redefined-outer-name,too-
 	rmpc.packages["localboot_new"]["1.0-1"].url = [
 		"localboot_new_1.0-1.opsi",
 		"dir/localboot_new_1.0-1.opsi",
-		"otherdir/localboot_new_1.0-1.opsi"
+		"otherdir/localboot_new_1.0-1.opsi",
 	]
 	rmpc.packages["localboot_new"]["1.0-1"].zsync_url = ["localboot_new_1.0-1.opsi.zsync", "dir/localboot_new_1.0-1.opsi.zsync", None]
 	rmpc.write_metafile(updater_info.server_dir / "packages.json")
@@ -342,12 +341,14 @@ def test_server_repo_meta_multiurl(  # pylint: disable=redefined-outer-name,too-
 		assert available_packages[0]["packageFile"] == f"{base_url}/otherdir/localboot_new_1.0-1.opsi"
 		assert available_packages[0]["zsyncFile"] is None
 
+
 @pytest.mark.parametrize(
-	"source, name, correct_result", (
+	"source, name, correct_result",
+	(
 		(ORIGINAL_REPO, "experimental.repo", PATCHED_REPO),
 		(WRONGLY_PATCHED_REPO, "experimental.repo", PATCHED_REPO),
-		(ORIGINAL_REPO, "custom.repo", ORIGINAL_REPO)
-	)
+		(ORIGINAL_REPO, "custom.repo", ORIGINAL_REPO),
+	),
 )
 def test_patch_repo_files(tmp_path: Path, source: str, name: str, correct_result: str) -> None:
 	# Create a test repo file

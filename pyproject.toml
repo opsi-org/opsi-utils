@@ -21,19 +21,13 @@ priority = "primary"
 
 [[tool.poetry.source]]
 name = "PyPI"
-priority = "primary"
-
-[tool.black]
-line-length = 140
-target-version = [ "py310",]
-use-tabs = true
-
-[tool.isort]
-profile = "black"
-indent = "\t"
+priority = "supplemental"
 
 [tool.ruff]
 line-length = 140
+
+[tool.ruff.format]
+indent-style = "tab"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
@@ -58,9 +52,6 @@ opsi-python = "opsiutils.opsipython:main"
 opsi-wakeup-clients = "opsiutils.opsiwakeupclients:main"
 opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
 
-[tool.ruff.format]
-indent-style = "tab"
-
 [tool.poetry.dependencies.distro]
 platform = "linux"
 version = "^1.5"
@@ -69,5 +60,5 @@ version = "^1.5"
 mypy = "^1.0"
 pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
-pyinstaller = "^5.3"
-pylint = "^2.7"
+pyinstaller = "^6.3"
+ruff = "^0.2"

@@ -5,7 +5,7 @@
 """
 opsi-package-manager
 """
-# pylint: disable=too-many-lines
+from __future__ import annotations
 
 import base64
 import curses
@@ -25,6 +25,8 @@ from argparse import ArgumentParser
 from contextlib import contextmanager
 from pathlib import Path
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
+from types import FrameType
+from typing import Any, Callable, Generator
 from urllib.parse import urlparse
 
 from OPSI import __version__ as python_opsi_version  # type: ignore
@@ -34,15 +36,10 @@ from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
 from OPSI.Util.Message import (  # type: ignore[import]
 	MessageSubject,
 	ProgressSubject,
+	Subject,
 	SubjectsObserver,
 )
 from OPSI.Util.Repository import getRepository  # type: ignore[import]
-
-try:
-	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
-except ImportError:
-	librsyncDeltaFile = None
-
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import (
@@ -52,6 +49,7 @@ from opsicommon.logging import (
 	get_logger,
 	logging_config,
 )
+from opsicommon.objects import Product, ProductOnDepot, ProductProperty
 from opsicommon.package import OpsiPackage
 from opsicommon.types import (
 	forceActionRequest,
@@ -60,11 +58,17 @@ from opsicommon.types import (
 	forceInt,
 	forceList,
 	forceProductId,
+	forceStringList,
 	forceUnicode,
-	forceUnicodeList,
 )
 
 from opsiutils import __version__, get_service_client
+
+try:
+	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
+except ImportError:
+	librsyncDeltaFile = None
+
 
 logger = get_logger("opsi-package-manager")
 
@@ -77,12 +81,12 @@ try:
 	sp = os.path.join(sp, "opsi-utils_data", "locale")
 	translation = gettext.translation("opsi-utils", sp)
 	_ = translation.gettext
-except Exception as error:  # pylint: disable=broad-except
+except Exception as error:
 	logger.debug("Failed to load locale from %s: %s", sp, error)
 
-	def _(string):
+	def _(message: str) -> str:
 		"""Fallback function"""
-		return string
+		return message
 
 
 class TaskError(RuntimeError):
@@ -90,22 +94,22 @@ class TaskError(RuntimeError):
 
 
 class Task:
-	def __init__(self, name, opsiPackageManager, method, params):
+	def __init__(self, name: str, opsiPackageManager: OpsiPackageManager, method: Callable, params: list[Any]):
 		self.name = forceUnicode(name)
 		self.opsiPackageManager = opsiPackageManager
 		self.method = method
 		self.params = forceList(params)
 		self.started = False
 		self.ended = False
-		self.exception = None
+		self.exception: Exception | None = None
 
-	def abort(self):
+	def abort(self) -> None:
 		pass
 
-	def isRunning(self):
+	def isRunning(self) -> bool:
 		return self.started and not self.ended
 
-	def start(self):
+	def start(self) -> None:
 		logger.debug("Task start()")
 		self.started = True
 		try:
@@ -121,45 +125,45 @@ class Task:
 
 
 class UploadTask(Task):
-	def __init__(self, name, opsiPackageManager, method, params):
+	def __init__(self, name: str, opsiPackageManager: OpsiPackageManager, method: Callable, params: list[Any]) -> None:
 		Task.__init__(self, name, opsiPackageManager, method, params)
 
-	def start(self):
+	def start(self) -> None:
 		while self.opsiPackageManager.maxTransfersReached():
 			logger.debug("Maximum number transfers reached, waiting")
 			time.sleep(1)
 		Task.start(self)
 
-	def abort(self):
+	def abort(self) -> None:
 		pass
 
 
 class InstallTask(Task):
-	def __init__(self, name, opsiPackageManager, method, params):
+	def __init__(self, name: str, opsiPackageManager: OpsiPackageManager, method: Callable, params: list[Any]) -> None:
 		Task.__init__(self, name, opsiPackageManager, method, params)
 
 
 class UninstallTask(Task):
-	def __init__(self, name, opsiPackageManager, method, params):
+	def __init__(self, name: str, opsiPackageManager: OpsiPackageManager, method: Callable, params: list[Any]) -> None:
 		Task.__init__(self, name, opsiPackageManager, method, params)
 
 
-class CursesWindow:  # pylint: disable=too-many-instance-attributes
-	def __init__(self, height, width, y, x, title="", border=False):  # pylint: disable=too-many-arguments,invalid-name
+class CursesWindow:
+	def __init__(self, height: int, width: int, y: int, x: int, title: str = "", border: bool = False) -> None:
 		self.height = forceInt(height)
 		self.width = forceInt(width)
-		self.y = forceInt(y)  # pylint: disable=invalid-name
-		self.x = forceInt(x)  # pylint: disable=invalid-name
+		self.y = forceInt(y)
+		self.x = forceInt(x)
 		self.title = forceUnicode(title)
 		self.border = forceBool(border)
-		self.color = None
+		self.color: int | None = None
 		self.win = curses.newwin(self.height, self.width, self.y, self.x)
 		if self.border:
 			self.win.border()
 		self.setTitle(self.title)
 		self.refresh()
 
-	def resize(self, height, width, y, x):  # pylint: disable=invalid-name
+	def resize(self, height: int, width: int, y: int, x: int) -> None:
 		self.height = forceInt(height)
 		self.width = forceInt(width)
 		self.y = forceInt(y)
@@ -169,10 +173,10 @@ class CursesWindow:  # pylint: disable=too-many-instance-attributes
 			self.win.mvwin(y, x)
 			self.win.redrawwin()
 			self.win.refresh()
-		except Exception:  # pylint: disable=broad-except
+		except Exception:
 			pass
 
-	def setTitle(self, title):
+	def setTitle(self, title: str) -> None:
 		self.title = forceUnicode(title)
 		if not self.title:
 			return
@@ -184,10 +188,10 @@ class CursesWindow:  # pylint: disable=too-many-instance-attributes
 			attr |= self.color
 		try:
 			self.win.addstr(0, int((self.width - len(self.title)) / 2), self.title, attr)
-		except Exception:  # pylint: disable=broad-except
+		except Exception:
 			pass
 
-	def setColor(self, colorPair):
+	def setColor(self, colorPair: int) -> None:
 		if not curses.has_colors():
 			return
 		self.color = colorPair
@@ -199,70 +203,62 @@ class CursesWindow:  # pylint: disable=too-many-instance-attributes
 		self.setTitle(self.title)
 		self.refresh()
 
-	def setScrollable(self, scrollable):
-		if scrollable:
-			scrollable = 1
-		else:
-			scrollable = 0
+	def setScrollable(self, scrollable: bool) -> None:
 		self.win.scrollok(scrollable)
 		self.win.idlok(scrollable)
 
-	def addstr(self, *attr):
+	def addstr(self, _str: str, attr: int | None = None) -> None:
 		try:
-			newAttr = []
-			for idx, val in enumerate(attr):
-				if idx == 0:
-					newAttr.append(forceUnicode(val))
-				else:
-					newAttr.append(val)
-			newAttr = tuple(newAttr)
-			self.win.addstr(*newAttr)
-		except Exception:  # pylint: disable=broad-except
+			if attr:
+				self.win.addstr(forceUnicode(_str), attr)
+			else:
+				self.win.addstr(forceUnicode(_str))
+		except Exception:
 			pass
 
-	def clrtoeol(self):
+	def clrtoeol(self) -> None:
 		try:
 			self.win.clrtoeol()
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.trace(err)
 
-	def move(self, y, x):  # pylint: disable=invalid-name
+	def move(self, y: int, x: int) -> None:
 		try:
 			self.win.move(y, x)
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.trace(err)
 
-	def clear(self):
+	def clear(self) -> None:
 		try:
 			self.win.clear()
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.trace(err)
 
-	def refresh(self):
+	def refresh(self) -> None:
 		try:
 			self.win.refresh()
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.trace(err)
 
-	def redraw(self):
+	def redraw(self) -> None:
 		try:
 			self.win.redrawwin()
 			self.win.refresh()
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.trace(err)
 
 
 class CursesMainWindow(CursesWindow):
-	def __init__(self):  # pylint: disable=super-init-not-called
+	def __init__(self) -> None:
 		self.initScreen()
 
-	def __del__(self):
+	def __del__(self) -> None:
 		self.exitScreen()
 
-	def initScreen(self):
+	def initScreen(self) -> None:
 		try:
 			self.win = curses.initscr()
-		except Exception:  # pylint: disable=broad-except
+		except Exception:
 			# setupterm: could not find terminal
 			os.environ["TERM"] = "linux"
 			self.win = curses.initscr()
@@ -270,27 +266,27 @@ class CursesMainWindow(CursesWindow):
 		(self.x, self.y) = (0, 0)
 		curses.noecho()
 		curses.cbreak()
-		self.win.keypad(1)
+		self.win.keypad(True)
 		curses.start_color()
 		self.refresh()
 
-	def exitScreen(self):
+	def exitScreen(self) -> None:
 		curses.nocbreak()
-		self.win.keypad(0)
+		self.win.keypad(False)
 		curses.echo()
 		curses.endwin()
 
-	def resize(self):  # pylint: disable=arguments-differ
+	def resize(self) -> None:  # type: ignore[override]
 		return
 
 
 class CursesTextWindow(CursesWindow):
-	def __init__(self, height, width, y, x, title="", border=False):  # pylint: disable=too-many-arguments
+	def __init__(self, height: int, width: int, y: int, x: int, title: str = "", border: bool = False):
 		CursesWindow.__init__(self, height, width, y, x, title, border)
-		self.lines = []
+		self.lines: list[tuple[str, tuple[int, ...]]] = []
 		self._lock = threading.Lock()
 
-	def addLine(self, line, *params):
+	def addLine(self, line: str, *params: int) -> None:
 		line = forceUnicode(line)
 		with self._lock:
 			if len(line) > self.width:
@@ -298,8 +294,8 @@ class CursesTextWindow(CursesWindow):
 				self.lines.append((line, params))
 			self.build()
 
-	def addLines(self, lines, *params):
-		lines = forceUnicodeList(lines)
+	def addLines(self, lines: list[str], *params: int) -> None:
+		lines = forceStringList(lines)
 		with self._lock:
 			for line in lines:
 				if len(line) > self.width:
@@ -307,8 +303,8 @@ class CursesTextWindow(CursesWindow):
 				self.lines.append((line, params))
 			self.build()
 
-	def setLines(self, lines, *params):
-		lines = forceUnicodeList(lines)
+	def setLines(self, lines: list[str], *params: int) -> None:
+		lines = forceStringList(lines)
 		with self._lock:
 			self.lines = []
 			for line in lines:
@@ -317,10 +313,10 @@ class CursesTextWindow(CursesWindow):
 				self.lines.append((line, params))
 			self.build()
 
-	def getLines(self):
+	def getLines(self) -> list[tuple[str, tuple[int, ...]]]:
 		return self.lines
 
-	def build(self):
+	def build(self) -> None:
 		if len(self.lines) > self.height:
 			self.lines = self.lines[-1 * self.height :]
 
@@ -335,7 +331,7 @@ class CursesTextWindow(CursesWindow):
 			else:
 				self.addstr(line)
 
-	def resize(self, height, width, y, x):
+	def resize(self, height: int, width: int, y: int, x: int) -> None:
 		CursesWindow.resize(self, height, width, y, x)
 		newLines = []
 		for line, params in self.lines:
@@ -345,15 +341,15 @@ class CursesTextWindow(CursesWindow):
 		self.lines = newLines
 
 
-class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attributes
-	def __init__(self, config={}, subjects=[]):  # pylint: disable=dangerous-default-value
+class UserInterface(SubjectsObserver):
+	def __init__(self, config: dict | None = None, subjects: list[Subject] | None = None):
 		SubjectsObserver.__init__(self)
-		self.config = config
-		self.opmSubjects = subjects
-		self.mainWindow = None
+		self.config = config or {}
+		self.opmSubjects: list[Subject] = subjects or []
+		self.mainWindow: CursesMainWindow | None = None
 		self.initScreen()
 
-	def initScreen(self):
+	def initScreen(self) -> None:
 		# Important for ncurses to use the right encoding!?
 		try:
 			locale.setlocale(locale.LC_ALL, "")
@@ -424,7 +420,10 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 		signal(SIGWINCH, self.resized)
 		logger.info("UserInterface initialized")
 
-	def resized(self, signo, stackFrame):  # pylint: disable=unused-argument
+	def resized(self, signo: int, stackFrame: FrameType | None) -> None:
+		assert self.mainWindow
+		assert self.loggerHeaderWindow
+		assert self.loggerWindow
 		try:
 			self.mainWindow.resize()
 			self.infoWindow.resize(height=1, width=self.mainWindow.width, x=0, y=0)
@@ -437,23 +436,24 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 				self.loggerWindow.resize(
 					height=self.loggerWindowHeight, width=self.mainWindow.width, x=0, y=self.mainWindow.height - self.loggerWindowHeight
 				)
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.trace(err)
 
 		try:
 			self.subjectsChanged(self.getSubjects())
-		except Exception:  # pylint: disable=broad-except
+		except Exception:
 			pass
 
-	def subjectsChanged(self, subjects):
+	def subjectsChanged(self, subjects: list[Subject]) -> None:
 		for subject in subjects:
 			if subject.getMessage():
 				self.messageChanged(subject, subject.getMessage())
 
-	def progressChanged(self, subject, state, percent, timeSpend, timeLeft, speed):  # pylint: disable=too-many-arguments
+	def progressChanged(self, subject: Subject, state: int, percent: float, timeSpend: float, timeLeft: float, speed: float) -> None:
 		self.showProgress()
 
-	def messageChanged(self, subject, message):
+	def messageChanged(self, subject: Subject, message: str) -> None:
+		assert self.loggerWindow
 		if not message:
 			logger.warning("Message deleted: %s %s", subject.getType(), subject.getId())
 
@@ -487,19 +487,19 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 		else:
 			self.showProgress()
 
-	def exit(self):
+	def exit(self) -> None:
 		for subject in self.getSubjects():
 			subject.detachObserver(self)
 		self.exitScreen()
 
-	def exitScreen(self):
+	def exitScreen(self) -> None:
 		logger.debug("UserInterface: exitScreen()")
 		if not self.mainWindow:
 			return
 		self.mainWindow.exitScreen()
 		self.mainWindow = None
 
-	def showProgress(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+	def showProgress(self) -> None:
 		if self.__lock.locked():
 			return
 
@@ -517,7 +517,7 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 			ids.sort()
 			maxIdLength = max([len(currentID) for currentID in ids] or [0])
 
-			y = 0  # pylint: disable=invalid-name
+			y = 0
 			for currentID in ids:
 				subject = subjects[currentID]
 				if y >= self.progressWindow.height:
@@ -525,7 +525,7 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 					logger.debug("Screen to small to display all progresses")
 					break
 
-				x = 0  # pylint: disable=invalid-name
+				x = 0
 				self.progressWindow.move(y, x)
 
 				idString = f"{subject.getId():{maxIdLength}} | "
@@ -535,7 +535,7 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 
 				if len(idString) < self.progressWindow.width:
 					color = None
-					x += len(idString)  # pylint: disable=invalid-name
+					x += len(idString)
 					self.progressWindow.move(y, x)
 					maxSize = self.progressWindow.width - len(idString)
 					message = subject.getMessage()
@@ -562,36 +562,36 @@ class UserInterface(SubjectsObserver):  # pylint: disable=too-many-instance-attr
 						self.progressWindow.addstr(message, color)
 					else:
 						self.progressWindow.addstr(message)
-					x += len(message)  # pylint: disable=invalid-name
+					x += len(message)
 					self.progressWindow.move(y, x)
 					self.progressWindow.clrtoeol()
-				y += 1  # pylint: disable=invalid-name
+				y += 1
 
 			self.progressWindow.refresh()
 
 
 class TaskQueue(threading.Thread):
-	def __init__(self, name):
+	def __init__(self, name: str) -> None:
 		threading.Thread.__init__(self)
 		self.name = forceUnicode(name)
-		self.tasks = []
+		self.tasks: list[Task] = []
 		self.started = False
 		self.ended = False
-		self.errors = []
+		self.errors: list[Exception] = []
 		self.currentTaskNumber = -1
 
-	def abort(self):
+	def abort(self) -> None:
 		self.ended = True
 		task = self.getCurrentTask()
 		if task:
 			task.abort()
 
-	def getCurrentTask(self):
+	def getCurrentTask(self) -> Task | None:
 		if self.currentTaskNumber < 0:
 			return None
 		return self.tasks[self.currentTaskNumber]
 
-	def run(self):
+	def run(self) -> None:
 		self.currentTaskNumber = -1
 		if not self.tasks:
 			raise RuntimeError("No tasks in queue")
@@ -608,7 +608,7 @@ class TaskQueue(threading.Thread):
 				self.currentTaskNumber += 1
 				task.start()
 				logger.debug("Task '%s' ended", task.name)
-			except Exception as err:  # pylint: disable=broad-except
+			except Exception as err:
 				logger.error("Task '%s' failed: %s", task.name, err)
 				self.errors.append(err)
 				if i < (len(self.tasks) - 1) and isinstance(task, UploadTask) and isinstance(self.tasks[i + 1], InstallTask):
@@ -623,30 +623,30 @@ class TaskQueue(threading.Thread):
 			i += 1
 		self.ended = True
 
-	def addTask(self, task):
+	def addTask(self, task: Task) -> None:
 		if not isinstance(task, Task):
 			raise ValueError(f"Task wanted, '{task}' passed")
 		self.tasks.append(task)
 
 
-class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-many-public-methods
-	def __init__(self, config, service_client):
+class OpsiPackageManager:
+	def __init__(self, config: dict[str, Any], service_client: ServiceClient) -> None:
 		self.config = config
 		self.service_client = service_client
 
 		self.aborted = False
 		self.userInterface = None
-		self.taskQueues = []
-		self.productPackageFiles = {}
-		self.productPackageFileMd5sums = {}  # pylint: disable=invalid-name
+		self.taskQueues: list[TaskQueue] = []
+		self.productPackageFiles: dict[str, OpsiPackage] = {}
+		self.productPackageFileMd5sums: dict[str, str] = {}
 		self.runningTransfers = 0
 
 		self.infoSubject = MessageSubject("info")
 		self.transferSubject = MessageSubject("transfers")
-		self.depotSubjects = {}
+		self.depotSubjects: dict[str, MessageSubject] = {}
 
 		self.productPackageFilesLock = threading.Lock()
-		self.productPackageFilesMd5sumLock = threading.Lock()  # pylint: disable=invalid-name
+		self.productPackageFilesMd5sumLock = threading.Lock()
 		self.runningTransfersLock = threading.Lock()
 
 		self.infoSubject.setMessage("opsi-package-manager")
@@ -658,7 +658,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			self.userInterface = UserInterface(config=self.config, subjects=[self.infoSubject, self.transferSubject])
 		logger.info("OpsiPackageManager initiated")
 
-	def abort(self):
+	def abort(self) -> None:
 		self.aborted = True
 		running = True
 		while running:
@@ -668,7 +668,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					logger.notice("Aborting task queue '%s'", tq.name)
 					tq.abort()
 
-	def cleanup(self):
+	def cleanup(self) -> None:
 		logger.info("Cleaning up")
 		if self.userInterface:
 			self.userInterface.exit()
@@ -678,7 +678,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 		for connection in self.depotConnections.values():
 			connection.disconnect()
 
-	def getDepotConnection(self, depotId) -> ServiceClient:
+	def getDepotConnection(self, depotId: str) -> ServiceClient:
 		try:
 			connection = self.depotConnections[depotId]
 		except KeyError:
@@ -700,37 +700,37 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 		return connection
 
-	def getRunningTransfers(self):
+	def getRunningTransfers(self) -> int:
 		with self.runningTransfersLock:
 			return self.runningTransfers
 
-	def setRunningTransfers(self, num):
+	def setRunningTransfers(self, num: int) -> None:
 		with self.runningTransfersLock:
 			self.runningTransfers = num
 		self.updateRunningTransfersSubject()
 
-	def addRunningTransfer(self):
+	def addRunningTransfer(self) -> None:
 		with self.runningTransfersLock:
 			self.runningTransfers += 1
 		self.updateRunningTransfersSubject()
 
-	def removeRunningTransfer(self):
+	def removeRunningTransfer(self) -> None:
 		with self.runningTransfersLock:
 			self.runningTransfers -= 1
 		self.updateRunningTransfersSubject()
 
-	def updateRunningTransfersSubject(self):
+	def updateRunningTransfersSubject(self) -> None:
 		if self.config["maxTransfers"]:
 			self.transferSubject.setMessage(_("%d/%d transfers running") % (self.runningTransfers, self.config["maxTransfers"]))
 		else:
 			self.transferSubject.setMessage(_("%d transfers running") % self.runningTransfers)
 
-	def maxTransfersReached(self):
+	def maxTransfersReached(self) -> bool:
 		if self.config["maxTransfers"] and (self.getRunningTransfers() >= self.config["maxTransfers"]):
 			return True
 		return False
 
-	def createDepotSubjects(self):
+	def createDepotSubjects(self) -> None:
 		if self.depotSubjects and self.userInterface:
 			for subject in list(self.depotSubjects.values()):
 				self.userInterface.removeSubject(subject)
@@ -740,16 +740,19 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			if self.userInterface:
 				self.userInterface.addSubject(self.depotSubjects[depotId])
 
-	def getDepotSubject(self, depotId):
+	def getDepotSubject(self, depotId: str) -> MessageSubject:
 		if depotId not in self.depotSubjects:
 			self.createDepotSubjects()
-		return self.depotSubjects.get(depotId)
+		return self.depotSubjects[depotId]
 
-	def openProductPackageFile(self, packageFile: Path):
+	def openProductPackageFile(self, packageFile: Path) -> None:
+		temp_dir = None
+		if self.config.get("tempDir"):
+			temp_dir = Path(str(self.config["tempDir"]))
 		with self.productPackageFilesLock:
 			if packageFile.name not in self.productPackageFiles:
 				self.infoSubject.setMessage(_("Opening package file %s") % packageFile.name)
-				self.productPackageFiles[packageFile.name] = OpsiPackage(packageFile, temp_dir=self.config.get("tempDir"))
+				self.productPackageFiles[packageFile.name] = OpsiPackage(packageFile, temp_dir=temp_dir)
 
 	def getOpsiPackage(self, packageFile: str) -> OpsiPackage:
 		filename = os.path.basename(packageFile)
@@ -759,7 +762,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			self.openProductPackageFile(Path(packageFile))
 			return self.productPackageFiles[filename]
 
-	def getPackageMd5Sum(self, packageFile):
+	def getPackageMd5Sum(self, packageFile: str) -> str:
 		filename = os.path.basename(packageFile)
 		with self.productPackageFilesMd5sumLock:
 			try:
@@ -770,7 +773,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 			return checksum
 
-	def waitForTaskQueues(self):
+	def waitForTaskQueues(self) -> None:
 		self.infoSubject.setMessage(_("Waiting for task queues to finish up"))
 		running = 1
 		while running:
@@ -781,7 +784,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			self.infoSubject.setMessage(_("%d/%d task queues running") % (running, len(self.taskQueues)))
 			time.sleep(1)
 
-	def getTaskQueueErrors(self):
+	def getTaskQueueErrors(self) -> dict[str, list[Exception]]:
 		errors = {}
 		for tq in self.taskQueues:
 			if not tq.errors:
@@ -789,7 +792,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			errors[tq.name] = tq.errors
 		return errors
 
-	def setActionRequestWhereInstalled(self, productId, depotId, actionRequest="setup", dependency=False):
+	def setActionRequestWhereInstalled(self, productId: str, depotId: str, actionRequest: str = "setup", dependency: bool = False) -> None:
 		try:
 			subject = self.getDepotSubject(depotId)
 			subject.setMessage(_("Setting action setup for product %s where installed") % productId)
@@ -830,7 +833,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			subject.setMessage(_("Error: %s") % err, severity=2)
 			raise
 
-	def purgeProductPropertyStates(self, productId, depotId):
+	def purgeProductPropertyStates(self, productId: str, depotId: str) -> None:
 		try:
 			subject = self.getDepotSubject(depotId)
 			subject.setMessage(_("Purging product property states for product %s") % productId)
@@ -855,12 +858,12 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			subject.setMessage(_("Purging product property states for product '%s' on client(s): %s") % (productId, ", ".join(clientIds)))
 
 			self.service_client.jsonrpc("productPropertyState_deleteObjects", [productPropertyStates])
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.error(err)
 			subject.setMessage(_("Error: %s") % err, severity=2)
 			raise
 
-	def uploadToRepositories(self):
+	def uploadToRepositories(self) -> None:
 		for packageFile in self.config["packageFiles"]:
 			self.openProductPackageFile(Path(packageFile))
 
@@ -882,11 +885,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				tq.start()
 		self.waitForTaskQueues()
 
-	def uploadToRepository(self, packageFile, depotId):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+	def uploadToRepository(self, packageFile: str, depotId: str) -> None:
 		subject = self.getDepotSubject(depotId)
 		repository = None
 
-		try:  # pylint: disable=too-many-nested-blocks
+		try:
 			# Process upload
 			if self.maxTransfersReached():
 				logger.notice("Waiting for free upload slot for upload of '%s' to depot '%s'", os.path.basename(packageFile), depotId)
@@ -944,7 +947,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 							# Sizes match => check md5sum
 							logger.info("Size of source and destination matches on depot '%s'", depotId)
 							depotConnection = self.getDepotConnection(depotId)
-							remoteChecksum = depotConnection.depot_getMD5Sum(depotRepositoryPath + "/" + destination)
+							remoteChecksum = depotConnection.depot_getMD5Sum(depotRepositoryPath + "/" + destination)  # type: ignore[attr-defined]
 							if localChecksum == remoteChecksum:
 								# md5sum match => do not overwrite
 								logger.info("MD5sum of source and destination matches on depot '%s'", depotId)
@@ -961,7 +964,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					break
 
 			depotConnection = self.getDepotConnection(depotId)
-			info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
+			info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)  # type: ignore[attr-defined]
 			if info["available"] < packageSize:
 				subject.setMessage(
 					_("Not enough disk space: %dMB needed, %dMB available")
@@ -994,7 +997,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 						logger.notice("Getting librsync signature of '%s' on depot '%s'", oldPackage, depotId)
 						subject.setMessage(_("Getting librsync signature of %s") % oldPackage)
 
-						sig = depotConnection.depot_librsyncSignature(depotRepositoryPath + "/" + oldPackage)
+						sig = depotConnection.depot_librsyncSignature(depotRepositoryPath + "/" + oldPackage)  # type: ignore[attr-defined]
 						if not isinstance(sig, bytes):
 							sig = sig.encode("ascii")
 						sig = base64.b64decode(sig)
@@ -1039,7 +1042,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 						logger.notice("Patching '%s'", oldPackage)
 						subject.setMessage(_("Patching %s") % oldPackage)
 
-						depotConnection.depot_librsyncPatchFile(
+						depotConnection.depot_librsyncPatchFile(  # type: ignore[attr-defined]
 							f"{depotRepositoryPath}/{oldPackage}",
 							f"{depotRepositoryPath}/{deltaFilename}",
 							f"{depotRepositoryPath}/{destination}",
@@ -1073,7 +1076,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					try:
 						logger.notice("Deleting '%s' from depot '%s'", oldPackage, depotId)
 						repository.delete(oldPackage)
-					except Exception as err:  # pylint: disable=broad-except
+					except Exception as err:
 						logger.error("Failed to delete '%s' from depot '%s': %s", oldPackage, depotId, err)
 
 				logger.notice("Verifying upload")
@@ -1081,8 +1084,8 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 				remotePackageFile = f"{depotRepositoryPath}/{destination}"
 				depotConnection = self.getDepotConnection(depotId)
-				remoteChecksum = depotConnection.depot_getMD5Sum(remotePackageFile)
-				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)
+				remoteChecksum = depotConnection.depot_getMD5Sum(remotePackageFile)  # type: ignore[attr-defined]
+				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)  # type: ignore[attr-defined]
 				if localChecksum != remoteChecksum:
 					raise ValueError(
 						f"MD5sum of source '{localChecksum}' and destination '{remoteChecksum}'" f"differ after upload to depot '{depotId}'"
@@ -1097,14 +1100,14 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 				remotePackageMd5sumFile = remotePackageFile + ".md5"
 				try:
-					depotConnection.depot_createMd5SumFile(remotePackageFile, remotePackageMd5sumFile)
-				except Exception as err:  # pylint: disable=broad-except
+					depotConnection.depot_createMd5SumFile(remotePackageFile, remotePackageMd5sumFile)  # type: ignore[attr-defined]
+				except Exception as err:
 					logger.warning("Failed to create md5sum file '%s': %s", remotePackageMd5sumFile, err)
 
 				remotePackageZsyncFile = remotePackageFile + ".zsync"
 				try:
-					depotConnection.depot_createZsyncFile(remotePackageFile, remotePackageZsyncFile)
-				except Exception as err:  # pylint: disable=broad-except
+					depotConnection.depot_createZsyncFile(remotePackageFile, remotePackageZsyncFile)  # type: ignore[attr-defined]
+				except Exception as err:
 					logger.warning("Failed to create zsync file '%s': %s", remotePackageZsyncFile, err)
 			finally:
 				self.removeRunningTransfer()
@@ -1118,10 +1121,10 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				logger.debug("Closing repository connection")
 				try:
 					repository.disconnect()
-				except Exception as upload_error:  # pylint:disable=broad-except
+				except Exception as upload_error:
 					logger.error("Failed to disconnect from repository: %s", upload_error, exc_info=True)
 
-	def installOnDepots(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+	def installOnDepots(self) -> None:
 		sequence = [self.getOpsiPackage(packageFile).product.id for packageFile in self.config["packageFiles"]]
 
 		for packageFile in self.config["packageFiles"]:
@@ -1133,7 +1136,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 					if ppos < dpos:
 						sequence.remove(dependency.package)
 						sequence.insert(ppos, dependency.package)
-				except Exception as err:  # pylint: disable=broad-except
+				except Exception as err:
 					logger.debug("While processing package '%s', dependency '%s': %s", packageFile, dependency.package, err)
 
 		sortedPackageFiles = []
@@ -1160,8 +1163,8 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				nwl = "\n"
 				raise RuntimeError(f"{nwl}{nwl.join(errors)}{nwl}Use --force to force installation")
 
-		if self.userInterface and (self.config["properties"] == "ask"):  # pylint: disable=too-many-nested-blocks
-			productProperties = []
+		if self.userInterface and (self.config["properties"] == "ask"):
+			productProperties: list[ProductProperty] = []
 			products = {}
 			for packageFile in self.config["packageFiles"]:
 				product = self.getOpsiPackage(packageFile).product
@@ -1192,7 +1195,11 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 						entries = []
 						for possibleValue in productProperty.possibleValues:
 							entries.append(
-								{"name": possibleValue, "value": possibleValue, "selected": possibleValue in productProperty.defaultValues}
+								{
+									"name": possibleValue,
+									"value": possibleValue,
+									"selected": possibleValue in (productProperty.defaultValues or []),
+								}
 							)
 						radio = not productProperty.multiValue
 						if productProperty.editable:
@@ -1227,7 +1234,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 							i = max(i, 0)
 							continue
 
-						possibleValues = productProperties[i].getPossibleValues()
+						possibleValues = productProperties[i].getPossibleValues() or []
 						if value not in possibleValues:
 							possibleValues.append(value)
 							productProperties[i].setPossibleValues(possibleValues)
@@ -1268,7 +1275,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				tq.start()
 		self.waitForTaskQueues()
 
-	def installPackage(self, packageFile, depotId):  # pylint: disable=too-many-branches,too-many-statements
+	def installPackage(self, packageFile: str, depotId: str) -> None:
 		subject = self.getDepotSubject(depotId)
 		depotPackageFile = packageFile
 
@@ -1330,7 +1337,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				installationParameters["suppressPackageContentFileGeneration"] = self.config["suppressPackageContentFileGeneration"]
 
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)
+			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)  # type: ignore[attr-defined]
 
 			if self.config["newProductId"]:
 				logger.notice(
@@ -1374,43 +1381,45 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 			subject.setMessage(_("Error: %s") % installationError, severity=2)
 			raise
 
-	def purgePackages(self):
+	def purgePackages(self) -> None:
 		if self.config["productIds"]:
 			self.uninstallPackages(ignore_not_installed=True)
 
 		# Remove all orphaned product on clients
 		for depot_id in self.config["depotIds"]:
-			client_ids = [c2d["clientId"] for c2d in self.service_client.configState_getClientToDepotserver(depotIds=[depot_id])]
+			client_ids = [c2d["clientId"] for c2d in self.service_client.configState_getClientToDepotserver(depotIds=[depot_id])]  # type: ignore[attr-defined]
 			if not client_ids:
 				continue
 			purge_product_ids = set(
 				p[0]
-				for p in self.service_client.productOnClient_getIdents(
+				for p in self.service_client.productOnClient_getIdents(  # type: ignore[attr-defined]
 					returnType="tuple", productId=list(self.config["productIds"]), clientId=client_ids
 				)
 			)
 			if not purge_product_ids:
 				continue
 			installed_product_ids = set(
-				p[0] for p in self.service_client.productOnDepot_getIdents(returnType="tuple", depotId=depot_id, productId=list())
+				p[0]
+				for p in self.service_client.productOnDepot_getIdents(returnType="tuple", depotId=depot_id, productId=list())  # type: ignore[attr-defined]
 			)
 			purge_product_ids -= installed_product_ids
 			if not purge_product_ids:
 				continue
 			logger.debug("Purging products %r on depot %r and clients %r", purge_product_ids, depot_id, client_ids)
 			logger.notice("Purging products %r on depot %r", purge_product_ids, depot_id)
-			self.service_client.productOnClient_delete(productId=list(purge_product_ids), clientId=client_ids)
-			self.service_client.productPropertyState_delete(
+			self.service_client.productOnClient_delete(productId=list(purge_product_ids), clientId=client_ids)  # type: ignore[attr-defined]
+			self.service_client.productPropertyState_delete(  # type: ignore[attr-defined]
 				productId=list(purge_product_ids), propertyId=[], objectId=client_ids + [depot_id]
 			)
 
 		# Remove all orphaned products
 		purge_product_idents = set(
-			tuple(p) for p in self.service_client.product_getIdents(returnType="tuple", id=list(self.config["productIds"]))
+			tuple(p)
+			for p in self.service_client.product_getIdents(returnType="tuple", id=list(self.config["productIds"]))  # type: ignore[attr-defined]
 		)
 		installed_product_idents = set(
 			(p[0], p[2], p[3])
-			for p in self.service_client.productOnDepot_getIdents(returnType="tuple", productId=list(self.config["productIds"]))
+			for p in self.service_client.productOnDepot_getIdents(returnType="tuple", productId=list(self.config["productIds"]))  # type: ignore[attr-defined]
 		)
 		purge_product_idents -= installed_product_idents
 		if not purge_product_idents:
@@ -1418,9 +1427,9 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 		logger.notice("Purging products: %r", purge_product_idents)
 		purge_products = [{"id": p[0], "productVersion": p[1], "packageVersion": p[2]} for p in purge_product_idents]
-		self.service_client.product_deleteObjects(purge_products)
+		self.service_client.product_deleteObjects(purge_products)  # type: ignore[attr-defined]
 
-	def uninstallPackages(self, ignore_not_installed=False):
+	def uninstallPackages(self, ignore_not_installed: bool = False) -> None:
 		for depotId in self.config["depotIds"]:
 			subject = self.getDepotSubject(depotId)
 			packageNotInstalled = False
@@ -1459,7 +1468,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				logfilestring = f", please check {self.config['logFile']} for more information"
 			raise ValueError(f"At least one package failed to uninstall{logfilestring}")
 
-	def uninstallPackage(self, productId, depotId):
+	def uninstallPackage(self, productId: str, depotId: str) -> None:
 		subject = self.getDepotSubject(depotId)
 
 		try:
@@ -1481,7 +1490,7 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 				repository.delete(destination)
 
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_uninstallPackage(
+			depotConnection.depot_uninstallPackage(  # type: ignore[attr-defined]
 				productId, force=self.config["forceUninstall"], deleteFiles=self.config["deleteFilesOnUninstall"]
 			)
 
@@ -1497,12 +1506,12 @@ class OpsiPackageManager:  # pylint: disable=too-many-instance-attributes,too-ma
 
 
 class OpsiPackageManagerControl:
-	def __init__(self):  # pylint: disable=too-many-branches,too-many-statements
+	def __init__(self) -> None:
 		logger.debug("OpsiPackageManagerControl")
 		# Set umask
 		os.umask(0o077)
 		self._pid = 0
-		self._opm = None
+		self._opm: OpsiPackageManager | None = None
 
 		# Call signalHandler on signal SIGTERM, SIGINT
 		signal(SIGTERM, self.signalHandler)
@@ -1544,7 +1553,7 @@ class OpsiPackageManagerControl:
 		try:
 			self.opts = parser.parse_args()
 			self.args = self.opts.args
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			print(err, file=sys.stderr)
 			self.usage()
 			sys.exit(1)
@@ -1570,9 +1579,9 @@ class OpsiPackageManagerControl:
 		self.setCommandlineConfig()
 
 		logging_config(
-			log_file=self.config["logFile"],
-			file_level=self.config["fileLogLevel"],
-			stderr_level=self.config["consoleLogLevel"],
+			log_file=str(self.config["logFile"]),
+			file_level=int(self.config["fileLogLevel"]),  # type: ignore[arg-type]
+			stderr_level=int(self.config["consoleLogLevel"]),  # type: ignore[arg-type]
 			stderr_format=DEFAULT_COLORED_FORMAT,
 		)
 
@@ -1583,7 +1592,7 @@ class OpsiPackageManagerControl:
 			try:
 				if not self.config["depotIds"]:
 					try:
-						self.config["depotIds"] = [self.config["localDepotId"]]
+						self.config["depotIds"] = [str(self.config["localDepotId"])]
 					except KeyError as err:
 						raise RuntimeError(f"Failed to get local depot id: {err}") from err
 				else:
@@ -1591,11 +1600,11 @@ class OpsiPackageManagerControl:
 
 				knownDepotIds = set(self.service_client.jsonrpc("host_getIdents", ["unicode", {"type": "OpsiDepotserver"}]))
 
-				if any(depotId.lower() == "all" for depotId in self.config["depotIds"]):
+				if any(depotId.lower() == "all" for depotId in forceStringList(self.config["depotIds"])):
 					self.config["depotIds"] = list(knownDepotIds)
 				else:
 					cleanedDepotIds = set()
-					for depotId in self.config["depotIds"]:
+					for depotId in forceStringList(self.config["depotIds"]):
 						depotId = forceHostId(depotId)
 						if depotId not in knownDepotIds:
 							raise RuntimeError(f"Depot '{depotId}' not in list of known depots: {','.join(knownDepotIds)}")
@@ -1603,13 +1612,14 @@ class OpsiPackageManagerControl:
 
 					self.config["depotIds"] = list(cleanedDepotIds)
 
-				self.config["depotIds"].sort()
+				self.config["depotIds"] = sorted(forceStringList(self.config["depotIds"]))
 			except Exception:
 				if self.service_client:
 					self.service_client.disconnect()
 				raise
 		try:
 			if self.config["command"] in ("install", "upload", "extract"):
+				assert isinstance(self.config["packageFiles"], list)
 				if len(self.config["packageFiles"]) < 1:
 					raise ValueError("No opsi package given")
 				if self.config["command"] in ("install", "upload", "extract"):
@@ -1626,7 +1636,7 @@ class OpsiPackageManagerControl:
 			elif self.config["command"] in ("list", "differences"):
 				if not self.config["productIds"]:
 					self.config["productIds"] = ["*"]
-				if self.config["command"] == "differences" and len(self.config["depotIds"]) <= 1:
+				if self.config["command"] == "differences" and len(forceStringList(self.config["depotIds"])) <= 1:
 					raise ValueError("More than one depot id needed to display differences")
 
 			elif self.config["command"] in ("remove", "repo_remove"):
@@ -1646,7 +1656,7 @@ class OpsiPackageManagerControl:
 			if self.service_client:
 				self.service_client.disconnect()
 
-	def processCommand(self):  # pylint: disable=too-many-branches
+	def processCommand(self) -> None:
 		try:
 			command = self.config["command"]
 			if command == "list":
@@ -1669,7 +1679,7 @@ class OpsiPackageManagerControl:
 			for thread in threading.enumerate():
 				try:
 					thread.join(5)
-				except Exception:  # pylint: disable=broad-except
+				except Exception:
 					pass
 
 		if self._opm:
@@ -1685,10 +1695,13 @@ class OpsiPackageManagerControl:
 
 				raise TaskError(f"{len(errors)} errors during the processing of tasks.")
 
-	def processExtractCommand(self):
+	def processExtractCommand(self) -> None:
 		destinationDir = os.path.abspath(os.getcwd())
-		for packageFile in self.config["packageFiles"]:
-			opsi_package = OpsiPackage(Path(packageFile), temp_dir=self.config.get("tempDir"))
+		temp_dir = None
+		if self.config.get("tempDir"):
+			temp_dir = Path(str(self.config["tempDir"]))
+		for packageFile in forceStringList(self.config["packageFiles"]):
+			opsi_package = OpsiPackage(Path(packageFile), temp_dir=temp_dir)
 
 			productId = opsi_package.product.id
 			if not productId:
@@ -1706,14 +1719,15 @@ class OpsiPackageManagerControl:
 				Path(packageFile), destination=Path(packageDestinationDir), new_product_id=newProductId, custom_separated=True
 			)
 
-	def processListCommand(self):  # pylint: disable=too-many-locals
+	def processListCommand(self) -> None:
+		assert self.service_client
 		terminalWidth = 60
 		try:
 			with os.popen("tty") as fd:
 				tty = fd.readline().strip()
 			with open(tty, encoding="utf-8") as fd:
-				terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234"))[1]
-		except Exception:  # pylint: disable=broad-except
+				terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, b"1234"))[1]
+		except Exception:
 			pass
 
 		indent = "   "
@@ -1726,7 +1740,7 @@ class OpsiPackageManagerControl:
 		)
 		products = self.service_client.jsonrpc("product_getObjects", [[], {"id": self.config["productIds"]}])
 
-		productInfo = {}
+		productInfo: dict[str, dict[str, dict[str, Product]]] = {}
 		for product in products:
 			if product.id not in productInfo:
 				productInfo[product.id] = {}
@@ -1740,8 +1754,8 @@ class OpsiPackageManagerControl:
 
 		nameWidth = terminalWidth - len(indent) - idWidth - versionWidth - 4
 
-		productOnDepotInfo = {}
-		for depotId in self.config["depotIds"]:
+		productOnDepotInfo: dict[str, dict[str, ProductOnDepot]] = {}
+		for depotId in forceStringList(self.config["depotIds"]):
 			productOnDepotInfo[depotId] = {}
 		for productOnDepot in productOnDepots:
 			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
@@ -1754,7 +1768,7 @@ class OpsiPackageManagerControl:
 			print(f"- {depotId} -")
 			print("-" * (len(depotId) + 4))
 			print(
-				"%s%*s %*s %*s"  # pylint: disable=consider-using-f-string
+				"%s%*s %*s %*s"
 				% (
 					indent,
 					-1 * idWidth,
@@ -1786,17 +1800,18 @@ class OpsiPackageManagerControl:
 				)
 			print("")
 
-	def processDifferencesCommand(self):  # pylint: disable=too-many-locals
+	def processDifferencesCommand(self) -> None:
 		if self.config["quiet"]:
 			return
 
-		depotIds = self.config["depotIds"]
+		assert self.service_client
+		depotIds = forceStringList(self.config["depotIds"])
 		productOnDepots = self.service_client.jsonrpc(
 			"productOnDepot_getObjects", [[], {"depotId": depotIds, "productId": self.config["productIds"]}]
 		)
 
 		productIds = set()
-		productOnDepotInfo = {depotId: {} for depotId in depotIds}
+		productOnDepotInfo: dict[str, dict[str, dict[str, ProductOnDepot]]] = {depotId: {} for depotId in depotIds}
 		for productOnDepot in productOnDepots:
 			productIds.add(productOnDepot.productId)
 			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
@@ -1840,37 +1855,41 @@ class OpsiPackageManagerControl:
 			syncMessage = _("There are no differences between the depots")
 			print(syncMessage)
 
-	def processUploadCommand(self):
+	def processUploadCommand(self) -> None:
+		assert self.service_client
 		self._opm = OpsiPackageManager(self.config, self.service_client)
 		try:
 			self._opm.uploadToRepositories()
 		finally:
 			self._opm.cleanup()
 
-	def processInstallCommand(self):
+	def processInstallCommand(self) -> None:
+		assert self.service_client
 		self._opm = OpsiPackageManager(self.config, self.service_client)
 		try:
 			self._opm.installOnDepots()
 		finally:
 			self._opm.cleanup()
 
-	def processRemoveCommand(self):
+	def processRemoveCommand(self) -> None:
+		assert self.service_client
 		self._opm = OpsiPackageManager(self.config, self.service_client)
 		try:
 			self._opm.uninstallPackages()
 		finally:
 			self._opm.cleanup()
 
-	def processPurgeCommand(self):
+	def processPurgeCommand(self) -> None:
+		assert self.service_client
 		self._opm = OpsiPackageManager(self.config, self.service_client)
 		try:
 			self._opm.purgePackages()
 		finally:
 			self._opm.cleanup()
 
-	def processRepoRemoveCommand(self):
+	def processRepoRemoveCommand(self) -> None:
 		BASE_PATH = "/var/lib/opsi/repository"
-		for product in self.config["productIds"]:
+		for product in forceStringList(self.config["productIds"]):
 			path = os.path.join(BASE_PATH, f"{product}_*")
 			matches = glob.glob(path)
 			if not matches:
@@ -1880,8 +1899,8 @@ class OpsiPackageManagerControl:
 				logger.notice("Deleting %s", filename)
 				os.remove(filename)
 
-	def setDefaultConfig(self, opsi_server=True):
-		self.config = {
+	def setDefaultConfig(self, opsi_server: bool = True) -> None:
+		self.config: dict[str, str | int | bool | list[str] | None] = {
 			"fileLogLevel": LOG_WARNING,
 			"consoleLogLevel": LOG_NONE,
 			"logFile": None,
@@ -1912,7 +1931,7 @@ class OpsiPackageManagerControl:
 			self.config["localDepotId"] = OpsiConfig(upgrade_config=False).get("host", "id")
 			self.config["depotIds"] = None
 
-	def setCommandlineConfig(self):  # pylint: disable=too-many-branches, too-many-statements
+	def setCommandlineConfig(self) -> None:
 		if self.opts.properties == "ask" and self.opts.quiet:
 			raise ValueError("You cannot use properties=ask in quiet mode")
 
@@ -1927,7 +1946,7 @@ class OpsiPackageManagerControl:
 		if self.opts.fileLogLevel:
 			self.config["fileLogLevel"] = forceInt(self.opts.fileLogLevel)
 		if self.opts.tempDir:
-			self.config["tempDir"] = Path(self.opts.tempDir)
+			self.config["tempDir"] = str(self.opts.tempDir)
 		if self.opts.depots:
 			self.config["depotIds"] = self.opts.depots.split(",")
 		if self.opts.newProductId:
@@ -2000,7 +2019,7 @@ class OpsiPackageManagerControl:
 		elif self.config["command"] in ("remove", "purge", "repo_remove", "list", "differences"):
 			self.config["productIds"] = self.args
 
-	def signalHandler(self, signo, stackFrame):  # pylint: disable=unused-argument
+	def signalHandler(self, signo: int, stackFrame: FrameType | None) -> None:
 		for thread in threading.enumerate():
 			logger.debug("Running thread before signal: %s", thread)
 
@@ -2014,7 +2033,7 @@ class OpsiPackageManagerControl:
 		for thread in threading.enumerate():
 			logger.debug("Running thread after signal: %s", thread)
 
-	def usage(self):
+	def usage(self) -> None:
 		print(f"\nUsage: {os.path.basename(sys.argv[0])} [options] <command>")
 		print("")
 		print("Manage opsi packages")
@@ -2050,7 +2069,7 @@ class OpsiPackageManagerControl:
 		print('  -S, --setup                             set action "setup" on hosts where installation status is "installed"')
 		print(
 			'  -s, --setup-with-dependencies           set action "setup" on hosts where installation status is "installed" with dependencies'
-		)  # pylint: disable=line-too-long
+		)
 		print("  -o, --overwrite                         overwrite existing package on upload even if size matches")
 		print("  -n, --no-delta                          full package transfers on uploads (do not use librsync)")
 		print("  -k, --keep-files                        do not delete client data dir on uninstall")
@@ -2066,13 +2085,13 @@ class OpsiPackageManagerControl:
 		print("")
 
 
-def main():
+def main() -> None:
 	@contextmanager
-	def keepOriginalTerminalSettings():
+	def keepOriginalTerminalSettings() -> Generator[None, None, None]:
 		try:
 			fileno = sys.stdin.fileno()
 			originalTerminalSettings = termios.tcgetattr(fileno)
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			# Exception (25, 'Inappropriate ioctl for device') can happen on ssh connections
 			logger.debug(err)
 			originalTerminalSettings = None
@@ -2088,13 +2107,13 @@ def main():
 			OpsiPackageManagerControl()
 	except SystemExit as err:
 		sys.exit(err.code)
-	except Exception as err:  # pylint: disable=broad-except
+	except Exception as err:
 		logger.error(err, exc_info=True)
 		print(f"\nERROR: {err}\n", file=sys.stderr)
 		sys.exit(1)
 
 
-def set_product_cache_outdated(depotId, service_client):
+def set_product_cache_outdated(depotId: str, service_client: ServiceClient) -> None:
 	logger.debug("mark redis product cache as dirty for depot: %s", depotId)
 	config_id = f"opsiconfd.{depotId}.product.cache.outdated"
 	service_client.jsonrpc("config_createBool", [config_id, "", [True]])

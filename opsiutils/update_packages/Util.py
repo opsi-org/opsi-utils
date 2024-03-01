@@ -6,8 +6,8 @@
 Utility functions for package updates.
 """
 
-from opsicommon.logging import get_logger
 from OPSI.Util import compareVersions  # type: ignore[import]
+from opsicommon.logging import get_logger
 
 from .Exceptions import NoActiveRepositoryError
 from .Repository import ProductRepositoryInfo
@@ -18,7 +18,7 @@ __all__ = ("getUpdatablePackages",)
 logger = get_logger("opsi.general")
 
 
-def getUpdatablePackages(updater: OpsiPackageUpdater) -> dict[str, dict[str, str | ProductRepositoryInfo]]:
+def getUpdatablePackages(updater: OpsiPackageUpdater) -> dict[str, dict[str, str | ProductRepositoryInfo | None]]:
 	"""
 	Returns information about updatable packages from the given `updater`.
 
@@ -26,23 +26,23 @@ def getUpdatablePackages(updater: OpsiPackageUpdater) -> dict[str, dict[str, str
 	:raises NoActiveRepositoryError: If not active repositories are found.
 	:param updater: The update to use.
 	:type updater: OpsiPackageUpdater
-	:returns: A dict containing the productId as key and the value is \
-another dict with the keys _productId_, _newVersion_, _oldVersion_ and \
-_repository_.
+	:returns: A dict containing the productId as key and the value is another dict with the keys _productId_, _newVersion_, _oldVersion_ and _repository_.
 	:rtype: {str: {}
 	"""
 	if not any(updater.getActiveRepositories()):
 		raise NoActiveRepositoryError("No active repository configured.")
 
-	updates = {}
+	updates: dict[str, dict[str, str | ProductRepositoryInfo | None]] = {}
 	try:
 		installedProducts = updater.getInstalledProducts()
 		downloadablePackages = updater.getDownloadablePackages()
 		downloadablePackages = updater.onlyNewestPackages(downloadablePackages)
-		downloadablePackages = updater._filterProducts(downloadablePackages)  # pylint: disable=protected-access
+		downloadablePackages = updater._filterProducts(downloadablePackages)
 
 		for availablePackage in downloadablePackages:
-			productId = availablePackage["productId"]
+			repository = availablePackage["repository"]
+			assert isinstance(repository, ProductRepositoryInfo)
+			productId = str(availablePackage["productId"])
 			for product in installedProducts:
 				if product.productId == productId:
 					logger.debug("Product '%s' is installed", productId)
@@ -61,7 +61,7 @@ _repository_.
 							"productId": productId,
 							"newVersion": f"{availablePackage['version']}",
 							"oldVersion": f"{product.productVersion}-{product.packageVersion}",
-							"repository": availablePackage["repository"].name,
+							"repository": repository.name,
 						}
 					break
 	except Exception as error:

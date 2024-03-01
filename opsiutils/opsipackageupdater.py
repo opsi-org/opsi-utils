@@ -8,14 +8,16 @@ opsi-package-updater
 This tool can be used to update the packages on an opsi server
 through a remote repository.
 """
+from __future__ import annotations
 
 import argparse
 import operator
 import sys
-
 from pathlib import Path
-from configupdater import ConfigUpdater
 
+from configupdater import ConfigUpdater
+from OPSI import __version__ as python_opsi_version  # type: ignore[import,attr-defined]
+from OPSI.Util import compareVersions  # type: ignore[import]
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	get_logger,
@@ -25,11 +27,10 @@ from opsicommon.logging import (
 from opsicommon.system import ensure_not_already_running
 from opsicommon.types import forceProductId
 
-from OPSI import __version__ as python_opsi_version  # type: ignore[import,attr-defined]
-from OPSI.Util import compareVersions  # type: ignore[import]
 from opsiutils import __version__
 from opsiutils.update_packages.Config import DEFAULT_CONFIG
 from opsiutils.update_packages.Exceptions import NoActiveRepositoryError
+from opsiutils.update_packages.Repository import ProductRepositoryInfo
 from opsiutils.update_packages.Updater import OpsiPackageUpdater
 from opsiutils.update_packages.Util import getUpdatablePackages
 
@@ -46,6 +47,9 @@ OFFICIAL_REPO_FILES = [
 
 
 class OpsiPackageUpdaterClient(OpsiPackageUpdater):
+	def __enter__(self) -> OpsiPackageUpdaterClient:
+		return self
+
 	def listActiveRepos(self) -> None:
 		logger.notice("Active repositories:")
 		for repository in sorted(self.getActiveRepositories(), key=lambda repo: repo.name.lower()):
@@ -71,12 +75,12 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		Only display the newest version and where to get it.
 		"""
 
-		data = {}
+		data: dict[str, dict[str, str]] = {}
 		for repository in self.getActiveRepositories():
 			for package in self.getDownloadablePackagesFromRepository(repository):
-				name = package.get("productId")
+				name = str(package.get("productId"))
 				if name not in data or compareVersions(package.get("version"), ">", data[name].get("version")):
-					data[name] = {"version": package.get("version"), "repository": repository.name}
+					data[name] = {"version": str(package.get("version")), "repository": repository.name}
 
 		for name in sorted(data.keys()):
 			print(f"\t{name} (Version {data[name].get('version')} in {data[name].get('repository')})")
@@ -104,12 +108,12 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			if productId:
 				logger.debug("Filtering for product IDs matching %s...", productId)
 				productId = forceProductId(productId)
-				packages = [package for package in packages if productId in package["productId"]]
+				packages = [package for package in packages if productId in str(package["productId"])]
 
 			for package in packages:
 				if withLocalInstallationStatus:
 					try:
-						localProduct = local_products_dict[package["productId"]]
+						localProduct = local_products_dict[str(package["productId"])]
 					except KeyError as kerr:
 						logger.debug(kerr)
 						print(f"\t{package.get('productId')} (Version {package.get('version')}, not installed)")
@@ -131,15 +135,14 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		repository to the one locally installed and show if there is a
 		difference.
 		"""
-		localProducts = self.getInstalledProducts()
-		localProducts = {product.productId: product for product in localProducts}
+		localProducts = {product.productId: product for product in self.getInstalledProducts()}
 
 		for repository in self.getActiveRepositories():
 			repoMessageShown = False
-			packages = sorted(self.getDownloadablePackagesFromRepository(repository), key=lambda entry: entry["productId"])
+			packages = sorted(self.getDownloadablePackagesFromRepository(repository), key=lambda entry: str(entry["productId"]))
 			for package in packages:
 				try:
-					localProduct = localProducts[package["productId"]]
+					localProduct = localProducts[str(package["productId"])]
 				except KeyError:
 					continue  # Not installed locally
 
@@ -353,7 +356,7 @@ def patch_repo_files(base_path: Path) -> None:
 			content_lines.pop(0)  # remove automatically generated comment
 
 		repo_config = ConfigUpdater()
-		data = "[DEFAULT]\n" + '\n'.join(content_lines)  # f-string expression cannot include backslash
+		data = "[DEFAULT]\n" + "\n".join(content_lines)  # f-string expression cannot include backslash
 		repo_config.read_string(data)
 
 		for section in repo_config.sections():
@@ -366,21 +369,20 @@ def patch_repo_files(base_path: Path) -> None:
 			if "testing" in dirs:
 				branch = "testing"
 
-			if (
-				repo_config.get(section=section, option="baseUrl") == "https://opsipackages.43.opsi.org"
-				or "download.uib.de" in (repo_config.get(section=section, option="baseUrl").value or "")
+			if repo_config.get(section=section, option="baseUrl") == "https://opsipackages.43.opsi.org" or "download.uib.de" in (
+				repo_config.get(section=section, option="baseUrl").value or ""
 			):
 				repo_config.set(section=section, option="baseUrl", value=f"https://opsipackages.43.opsi.org/{branch}")
 
 			dirs = dirs.replace(f"{branch}/", "").replace("packages/", "").replace("opsi4.2/", "")
 			repo_config.set(section=section, option="dirs", value=dirs)
 
-		content = f"; This file has been patched by opsi-package-updater {__version__}\n" + str(repo_config).split('\n', 1)[1]
+		content = f"; This file has been patched by opsi-package-updater {__version__}\n" + str(repo_config).split("\n", 1)[1]
 		repo_file.write_text(content, encoding="utf-8")
 
 
-def updater_main() -> int:  # pylint: disable=too-many-branches,too-many-statements
-	config = DEFAULT_CONFIG.copy()
+def updater_main() -> int:
+	config: dict[str, str | int | bool | list[ProductRepositoryInfo] | None] = DEFAULT_CONFIG.copy()
 	args = parse_args()
 
 	init_logging(stderr_level=args.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
@@ -394,7 +396,7 @@ def updater_main() -> int:  # pylint: disable=too-many-branches,too-many-stateme
 	config["configFile"] = args.configFile
 	config["installAllAvailable"] = args.mode == "install"
 	if args.processProductIds:
-		config["processProductIds"] = set(args.processProductIds)
+		config["processProductIds"] = list(set(args.processProductIds))
 
 	config["forceChecksumCalculation"] = args.forceChecksumCalculation
 
@@ -450,7 +452,7 @@ def main() -> None:
 		exitCode = updater_main()
 	except KeyboardInterrupt:
 		exitCode = 1
-	except Exception as exc:  # pylint: disable=broad-except
+	except Exception as exc:
 		logger.error(exc, exc_info=True)
 		print(f"ERROR: {exc}", file=sys.stderr)
 		exitCode = 1

@@ -13,8 +13,6 @@ import os
 import sys
 
 from opsicommon import __version__ as python_opsi_common_version
-from opsicommon.types import forceFilename
-from opsicommon.server.rights import set_rights
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_DEBUG,
@@ -23,9 +21,10 @@ from opsicommon.logging import (
 	logger,
 	logging_config,
 )
+from opsicommon.server.rights import set_rights
+from opsicommon.types import forceFilename
 
 from opsiutils import __version__
-
 
 init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
@@ -43,7 +42,7 @@ def usage():
 	print("")
 
 
-def opsisetup_main():  # pylint: disable=too-many-branches,too-many-return-statements
+def opsisetup_main():
 	try:
 		(opts, args) = getopt.getopt(
 			sys.argv[1:],
@@ -78,7 +77,7 @@ def opsisetup_main():  # pylint: disable=too-many-branches,too-many-return-state
 
 	task = None
 
-	for (opt, arg) in opts:
+	for opt, arg in opts:
 		if opt in ("-h", "--help"):
 			usage()
 			return
@@ -89,7 +88,7 @@ def opsisetup_main():  # pylint: disable=too-many-branches,too-many-return-state
 	if os.geteuid() != 0:
 		raise RuntimeError("This script must be startet as root")
 
-	for (opt, arg) in opts:
+	for opt, arg in opts:
 		if opt == "--log-file":
 			logging_config(log_file=arg, file_level=LOG_DEBUG)
 		elif opt == "-l":
@@ -173,7 +172,7 @@ def main():
 		opsisetup_main()
 	except SystemExit as err:
 		sys.exit(err.code)
-	except Exception as err:  # pylint: disable=broad-except
+	except Exception as err:
 		logger.error(err, exc_info=True)
 		print(f"\nERROR: {err}\n", file=sys.stderr)
 		sys.exit(1)

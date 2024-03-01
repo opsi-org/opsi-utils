@@ -11,8 +11,7 @@ import smtplib
 import time
 
 from opsicommon.logging import SECRET_REPLACEMENT_STRING, get_logger, secret_filter
-
-from OPSI.Types import forceInt, forceUnicode, forceUnicodeList
+from opsicommon.types import forceInt, forceStringList, forceUnicode
 
 __all__ = ("DummyNotifier", "EmailNotifier")
 
@@ -20,10 +19,10 @@ logger = get_logger("opsi.general")
 
 
 class BaseNotifier:
-	def __init__(self):
+	def __init__(self) -> None:
 		self.message = ""
 
-	def appendLine(self, line, pre=""):
+	def appendLine(self, line: str, pre: str = "") -> None:
 		"""
 		Add another line to the message.
 
@@ -39,7 +38,7 @@ class BaseNotifier:
 
 		self.message += f"{pre}{now} {filtered_line}\n"
 
-	def hasMessage(self):
+	def hasMessage(self) -> bool:
 		"""
 		Check if the notifier already collected a message.
 
@@ -47,7 +46,10 @@ class BaseNotifier:
 		"""
 		return bool(self.message)
 
-	def notify(self):
+	def notify(self) -> None:
+		raise NotImplementedError("Has to be implemented by subclass")
+
+	def setSubject(self, new_subject: str) -> None:
 		raise NotImplementedError("Has to be implemented by subclass")
 
 
@@ -56,39 +58,44 @@ class DummyNotifier(BaseNotifier):
 	Notifier that does nothing on `notify()`.
 	"""
 
-	def notify(self):
+	def notify(self) -> None:
 		pass  # Doing nothing
 
-	def setSubject(self, new_subject):
+	def setSubject(self, new_subject: str) -> None:
 		pass  # Doing nothing
 
 
-class EmailNotifier(BaseNotifier):  # pylint: disable=too-many-instance-attributes
+class EmailNotifier(BaseNotifier):
 	"""
 	Notify by sending an email.
 	"""
 
 	def __init__(
-		self, smtphost="localhost", smtpport=25, subject="opsi product updater", sender="", receivers=None
-	):  # pylint: disable=too-many-arguments
+		self,
+		smtphost: str = "localhost",
+		smtpport: int = 25,
+		subject: str = "opsi product updater",
+		sender: str = "",
+		receivers: list[str] | None = None,
+	) -> None:
 		super().__init__()
 
-		self.receivers = forceUnicodeList(receivers or [])
+		self.receivers = forceStringList(receivers or [])
 		if not self.receivers:
 			raise ValueError("List of mail recipients empty")
 		self.smtphost = forceUnicode(smtphost)
 		self.smtpport = forceInt(smtpport)
 		self.sender = forceUnicode(sender)
 		self.subject = forceUnicode(subject)
-		self.username = None
-		self.password = None
+		self.username: str | None = None
+		self.password: str | None = None
 		self.useStarttls = False
 
-	def setSubject(self, new_subject):
+	def setSubject(self, new_subject: str) -> None:
 		logger.info("Setting new subject %s", new_subject)
 		self.subject = forceUnicode(new_subject)
 
-	def notify(self):
+	def notify(self) -> None:
 		logger.notice("Sending mail notification")
 		mail = f"From: {self.sender}\n"
 		mail += f'To: {",".join(self.receivers)}\n'

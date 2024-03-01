@@ -7,9 +7,9 @@ opsi-admin - a commandline tool for accessing opsi.
 """
 
 # pylint: disable=too-many-lines
+from __future__ import annotations
 
 import argparse
-import codecs
 import curses
 import fcntl
 import getpass
@@ -26,25 +26,15 @@ import sys
 import time
 from contextlib import closing, contextmanager
 from pathlib import Path
-
-from opsicommon.config import OpsiConfig
-from opsicommon.exceptions import OpsiRpcError
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG,
-	LOG_ERROR,
-	LOG_NONE,
-	LOG_WARNING,
-	logger,
-	logging_config,
-	secret_filter,
-)
-from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
+from types import FrameType
+from typing import Any, Generator
 
 from OPSI import __version__ as python_opsi_version  # type: ignore
-from OPSI.System import CommandNotFoundException  # type: ignore[import]
+from OPSI.System import (  # type: ignore[import]
+	CommandNotFoundException,  # type: ignore[import]
+	which,  # type: ignore[import]
+)
 from OPSI.System import execute as sys_execute  # type: ignore[import]
-from OPSI.System import which  # type: ignore[import]
 from OPSI.Util import (  # type: ignore[import]
 	blowfishDecrypt,
 	deserialize,
@@ -55,6 +45,19 @@ from OPSI.Util import (  # type: ignore[import]
 	toJson,
 )
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc  # type: ignore[import]
+from opsicommon.config import OpsiConfig
+from opsicommon.exceptions import OpsiRpcError
+from opsicommon.logging import (
+	DEFAULT_COLORED_FORMAT,
+	LOG_DEBUG,
+	LOG_ERROR,
+	LOG_NONE,
+	LOG_WARNING,
+	get_logger,
+	logging_config,
+	secret_filter,
+)
+from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 
 from opsiutils import __version__, get_service_client
 
@@ -95,18 +98,19 @@ COLORS_AVAILABLE = [
 	COLOR_LIGHT_WHITE,
 ]
 
-service_client = None  # pylint: disable=invalid-name
-exitZero = False  # pylint: disable=invalid-name
-global_shell = None  # pylint: disable=invalid-name
-logFile = None  # pylint: disable=invalid-name
-interactive = False  # pylint: disable=invalid-name
+logger = get_logger()
+service_client = None
+exitZero = False
+global_shell = None
+logFile = None
+interactive = False
 
-outEncoding = sys.stdout.encoding  # pylint: disable=invalid-name
-inEncoding = sys.stdin.encoding  # pylint: disable=invalid-name
+outEncoding = sys.stdout.encoding
+inEncoding = sys.stdin.encoding
 if not outEncoding or outEncoding == "ascii":
 	outEncoding = locale.getpreferredencoding()
 if not outEncoding or outEncoding == "ascii":
-	outEncoding = "utf-8"  # pylint: disable=invalid-name
+	outEncoding = "utf-8"
 
 if not inEncoding or (inEncoding == "ascii"):
 	inEncoding = outEncoding
@@ -138,9 +142,7 @@ UNCOLORED_LOGO = f"""\
                              -~||=__:.-..:__|||~ .
                                 -~+++||||++~--
           opsi-admin {__version__}
-""".split(
-	"\n"
-)
+""".split("\n")
 
 LOGO = [{"color": COLOR_CYAN, "text": line} for line in UNCOLORED_LOGO]
 
@@ -151,20 +153,20 @@ try:
 	sp = os.path.join(sp, "opsi-utils_data", "locale")
 	translation = gettext.translation("opsi-utils", sp)
 	_ = translation.gettext
-except Exception as loc_err:  # pylint: disable=broad-except
+except Exception as loc_err:
 	logger.debug("Failed to load locale from %s: %s", sp, loc_err)
 
-	def _(string):
+	def _(message: str) -> str:
 		"""Fallback function"""
-		return string
+		return message
 
 
 class ErrorInResultException(Exception):
 	"Indicates that there is an error in the result."
 
 
-def signalHandler(signo, stackFrame):  # pylint: disable=unused-argument
-	from signal import SIGINT, SIGQUIT  # pylint: disable=import-outside-toplevel
+def signalHandler(signo: int, stackFrame: FrameType | None) -> None:
+	from signal import SIGINT, SIGQUIT
 
 	logger.info("Received signal %s", signo)
 	if signo == SIGINT:
@@ -176,11 +178,11 @@ def signalHandler(signo, stackFrame):  # pylint: disable=unused-argument
 		sys.exit(0)
 
 
-def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+def shell_main() -> None:
 	os.umask(0o077)
-	global interactive  # pylint: disable=global-statement,invalid-name
-	global exitZero  # pylint: disable=global-statement,invalid-name
-	global logFile  # pylint: disable=global-statement,invalid-name
+	global interactive
+	global exitZero
+	global logFile
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument(
@@ -278,7 +280,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 
 	logging_config(stderr_level=LOG_NONE if interactive else options.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 
-	global service_client  # pylint: disable=global-statement,invalid-name
+	global service_client
 	try:
 		if options.direct:
 			logger.info("Option --direct/-d is deprecated and can be omitted.")
@@ -293,7 +295,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		if not username:
 			try:
 				username = forceUnicode(pwd.getpwuid(os.getuid())[0])
-			except Exception as error:  # pylint: disable=broad-except
+			except Exception as error:
 				logger.error("Failed to get username: %s", error)
 				raise
 		if not password:
@@ -304,7 +306,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 			else:
 				try:
 					password = getpass.getpass()
-				except Exception as error:  # pylint: disable=broad-except
+				except Exception as error:
 					logger.error("Failed to get password: %s", error)
 					raise
 
@@ -321,7 +323,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 
 			sessionFile = opsiadminUserDir / "session"
 			try:
-				with codecs.open(sessionFile, "r", "utf-8") as session:
+				with open(sessionFile, "r", encoding="utf-8") as session:
 					for line in session:
 						line = line.strip()
 						if line:
@@ -330,7 +332,7 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 			except IOError as err:
 				if err.errno != 2:  # 2 is No such file or directory
 					logger.error("Failed to read session file '%s': %s", sessionFile, err)
-			except Exception as err:  # pylint: disable=broad-except
+			except Exception as err:
 				logger.error("Failed to read session file '%s': %s", sessionFile, err)
 				raise err
 
@@ -345,9 +347,9 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 		session_cookie = service_client.session_cookie
 		if session_cookie and sessionFile:
 			try:
-				with codecs.open(sessionFile, "w", "utf-8") as session:
+				with open(sessionFile, "w", encoding="utf-8") as session:
 					session.write(f"{session_cookie}\n")
-			except Exception as err:  # pylint: disable=broad-except
+			except Exception as err:
 				logger.error("Failed to write session file '%s': %s", sessionFile, err)
 
 		cmdline = ""
@@ -377,20 +379,21 @@ def shell_main():  # pylint: disable=too-many-locals,too-many-branches,too-many-
 
 		logger.debug("cmdline: '%s'", cmdline)
 
-		global global_shell  # pylint: disable=global-statement,invalid-name
+		global global_shell
 		if interactive:
 			try:
 				logger.notice("Starting interactive mode")
 				global_shell = Shell(prompt=f"{username}@opsi-admin>", output=output, color=color, cmdline=cmdline)
 				global_shell.setInfoline(f"Connected to {address}")
 
-				for line in LOGO:
-					global_shell.appendLine(line.get("text"), line.get("color"))
+				for logo_line in LOGO:
+					global_shell.appendLine(logo_line.get("text", ""), logo_line.get("color"))
 
-				welcomeMessage = """\
-Welcome to the interactive mode of opsi-admin.
-You can use syntax completion via [TAB]. \
-To exit opsi-admin please type 'exit'."""
+				welcomeMessage = (
+					"Welcome to the interactive mode of opsi-admin.\n"
+					"You can use syntax completion via [TAB].\n"
+					"To exit opsi-admin please type 'exit'.\n"
+				)
 
 				for line in welcomeMessage.split("\n"):
 					global_shell.appendLine(line, COLOR_NORMAL)
@@ -400,7 +403,7 @@ To exit opsi-admin please type 'exit'."""
 				raise
 		elif cmdline:
 
-			def searchForError(obj):
+			def searchForError(obj: Any) -> None:
 				if isinstance(obj, dict):
 					try:
 						if obj.get("error"):
@@ -420,8 +423,8 @@ To exit opsi-admin please type 'exit'."""
 						global_shell.execute()
 
 				logger.debug("Shell lines are: '%s'", global_shell.getLines())
-				for line in global_shell.lines:
-					print(line["text"].rstrip())
+				for gsline in global_shell.lines:
+					print(gsline["text"].rstrip())
 
 				try:
 					resultAsJSON = json.loads("\n".join([line["text"] for line in global_shell.lines]))
@@ -437,22 +440,22 @@ To exit opsi-admin please type 'exit'."""
 		if service_client:
 			try:
 				service_client.disconnect()
-			except Exception:  # pylint: disable=broad-except
+			except Exception:
 				pass
 
 
-def startLogFile(log_file, logLevel):
-	with codecs.open(log_file, "w", "utf-8") as log:
+def startLogFile(log_file: str, logLevel: int) -> None:
+	with open(log_file, "w", encoding="utf-8") as log:
 		log.write(f"Starting log at: {time.strftime('%a, %d %b %Y %H:%M:%S')}")
 	logging_config(log_file=log_file, file_level=logLevel)
 
 
-class Shell:  # pylint: disable=too-many-instance-attributes
-	def __init__(self, prompt="opsi-admin>", output="JSON", color=True, cmdline=""):
+class Shell:
+	def __init__(self, prompt: str = "opsi-admin>", output: str = "JSON", color: bool = True, cmdline: str = "") -> None:
 		self.color = forceBool(color)
 		self.output = forceUnicode(output)
 		self.running = False
-		self.screen = None
+		self.screen: curses._CursesWindow | None = None
 		self.cmdBufferSize = 1024
 		self.userConfigDir = None
 		self.prompt = forceUnicode(prompt)
@@ -460,19 +463,19 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		self.yMax = 0
 		self.xMax = 0
 		self.pos = len(cmdline)
-		self.lines = []
+		self.lines: list[dict[str, str]] = []
 		self.linesBack = 0
 		self.linesMax = 0
-		self.params = []
+		self.params: list[str] = []
 		self.paramPos = -1
-		self.currentParam = None
+		self.currentParam: str | None = None
 		self.cmdListPos = 0
 		self.cmdList = []
 		self.cmdline = forceUnicode(cmdline)
 		self.shellCommand = ""
-		self.reverseSearch = None
+		self.reverseSearch: str | None = None
 		self.exit_on_sigint = False
-		self.commands = [
+		self.commands: list[Command] = [
 			CommandMethod(),
 			CommandSet(),
 			CommandHelp(),
@@ -498,9 +501,11 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		else:
 			logger.error("Failed to get home directory from environment!")
 
-		historyFile = forceFilename(os.path.join(self.userConfigDir, "history"))
 		try:
-			with codecs.open(historyFile, "r", "utf-8", "replace") as history:
+			if not self.userConfigDir:
+				raise ValueError("User config dir not set")
+			historyFile = forceFilename(os.path.join(self.userConfigDir, "history"))
+			with open(historyFile, "r", encoding="utf-8", errors="replace") as history:
 				for line in history:
 					if not line:
 						continue
@@ -508,29 +513,29 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 					self.cmdListPos += 1
 		except FileNotFoundError:
 			logger.debug("History %s file not found.", historyFile)
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.error("Failed to read history file '%s': %s", historyFile, err)
 
-	def setColor(self, color):
+	def setColor(self, color: bool) -> None:
 		color = forceBool(color)
 		if color != self.color:
 			self.color = color
 			self.initScreen()
 
-	def getLines(self):
+	def getLines(self) -> list[dict[str, str]]:
 		return self.lines
 
-	def initScreen(self):
+	def initScreen(self) -> None:
 		if not self.screen:
 			try:
 				self.screen = curses.initscr()
-			except Exception:  # pylint: disable=broad-except
+			except Exception:
 				# setupterm: could not find terminal
 				os.environ["TERM"] = "linux"
 				self.screen = curses.initscr()
 		curses.noecho()
 		curses.cbreak()
-		self.screen.keypad(1)
+		self.screen.keypad(True)
 		self.screen.clear()
 
 		self.yMax, self.xMax = self.screen.getmaxyx()
@@ -545,21 +550,22 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 			curses.init_pair(4, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
 			curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
 
-	def exitScreen(self):
-		if self.screen:
-			curses.nocbreak()
-			self.screen.keypad(0)
-			curses.echo()
-			curses.endwin()
+	def exitScreen(self) -> None:
+		if not self.screen:
+			return
+		curses.nocbreak()
+		self.screen.keypad(False)
+		curses.echo()
+		curses.endwin()
 
-	def sigint(self):
+	def sigint(self) -> None:
 		if self.exit_on_sigint:
 			sys.exit(0)
 		self.pos = 0
 		self.setCmdline("")
 		self.reverseSearch = None
 
-	def run(self):
+	def run(self) -> None:
 		self.running = True
 
 		self.initScreen()
@@ -571,7 +577,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 				if self.cmdline:
 					try:
 						self.execute()
-					except Exception as err:  # pylint: disable=broad-except
+					except Exception as err:
 						lines = str(err).split("\n")
 						lines[0] = f"ERROR: {lines[0]}"
 						for line in lines:
@@ -585,7 +591,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		while self.running:
 			self.getCommand()
 
-	def exit(self):
+	def exit(self) -> None:
 		if interactive and logFile and os.path.exists(logFile):
 			if self.question(_("Delete log-file '%s'?") % logFile):
 				try:
@@ -593,23 +599,25 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 				except OSError as err:
 					logger.error("Failed to delete log-file '%s': %s", logFile, err)
 
-		historyFilePath = os.path.join(self.userConfigDir, "history")
 		try:
-			with codecs.open(historyFilePath, "w", "utf-8") as history:
+			if not self.userConfigDir:
+				raise ValueError("User config dir not set")
+			historyFilePath = os.path.join(self.userConfigDir, "history")
+			with open(historyFilePath, "w", encoding="utf-8") as history:
 				for line in self.cmdList:
 					if not line or line in ("quit", "exit"):
 						continue
 					history.write(f"{line}\n")
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.error("Failed to write history file '%s': %s", historyFilePath, err)
 
 		self.exitScreen()
 		self.running = False
 
-	def bell(self):
+	def bell(self) -> None:
 		sys.stderr.write("\a")
 
-	def display(self):  # pylint: disable=too-many-branches,too-many-statements
+	def display(self) -> None:
 		if not self.screen:
 			return
 		self.screen.move(0, 0)
@@ -617,7 +625,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		shellLine = self.infoline + (self.xMax - len(self.infoline)) * " "
 		try:
 			self.screen.addstr(shellLine, curses.A_REVERSE)
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.error("Failed to add string '%s': %s", shellLine, err)
 
 		height = int(len(self.prompt + " " + self.cmdline) / self.xMax) + 1
@@ -629,18 +637,18 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		shellLine = f"{self.prompt} {self.cmdline}{' ' * clear}"
 		try:
 			self.screen.addstr(shellLine, curses.A_BOLD)
-		except Exception as err:  # pylint: disable=broad-except
+		except Exception as err:
 			logger.error("Failed to add string '%s': %s", shellLine, err)
 
-		for i in range(0, self.linesMax):
-			self.screen.move(self.linesMax - i, 0)
+		for idx in range(0, self.linesMax):
+			self.screen.move(self.linesMax - idx, 0)
 			self.screen.clrtoeol()
 			shellLine = ""
-			color = None
-			if len(self.lines) - self.linesBack > i:
-				shellLine = self.lines[len(self.lines) - self.linesBack - 1 - i]["text"]
+			color: str | int | None = None
+			if len(self.lines) - self.linesBack > idx:
+				shellLine = self.lines[len(self.lines) - self.linesBack - 1 - idx]["text"]
 				if self.color:
-					color = self.lines[len(self.lines) - self.linesBack - 1 - i]["color"]
+					color = self.lines[len(self.lines) - self.linesBack - 1 - idx]["color"]
 
 			if color:
 				if color == COLOR_NORMAL:
@@ -660,10 +668,10 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 
 			try:
 				if color is not None:
-					self.screen.addstr(shellLine, color)
+					self.screen.addstr(shellLine, int(color))
 				else:
 					self.screen.addstr(shellLine)
-			except Exception as err:  # pylint: disable=broad-except
+			except Exception as err:
 				logger.error("Failed to add string '%s': %s", shellLine, err)
 
 		moveY = self.yMax - height + int((len(self.prompt + " ") + self.pos) / self.xMax)
@@ -671,7 +679,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		self.screen.move(moveY, moveX)
 		self.screen.refresh()
 
-	def appendLine(self, line, color=None, refresh=True):
+	def appendLine(self, line: str, color: str | None = None, refresh: bool = True) -> None:
 		line = forceUnicode(line)
 
 		if not color:
@@ -694,34 +702,34 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 			line = line.replace(availableColor, "")
 
 		while self.xMax and (len(line) > self.xMax):
-			self.lines.append({"text": line[: self.xMax], "color": color})
+			self.lines.append({"text": line[: self.xMax], "color": str(color)})
 			line = line[self.xMax :]
 
-		self.lines.append({"text": line, "color": color})
+		self.lines.append({"text": line, "color": str(color)})
 		if refresh:
 			self.display()
 
-	def setCmdline(self, cmdline, refresh=True):
+	def setCmdline(self, cmdline: str, refresh: bool = True) -> None:
 		self.cmdline = forceUnicode(cmdline)
 		if refresh:
 			self.display()
 
-	def setInfoline(self, infoline, refresh=True):
+	def setInfoline(self, infoline: str, refresh: bool = True) -> None:
 		self.infoline = forceUnicode(infoline)
 		if refresh:
 			self.display()
 
-	def getParams(self):
+	def getParams(self) -> list[str]:
 		self.parseCmdline()
 		return self.params
 
-	def getParam(self, i):
+	def getParam(self, idx: int) -> str:
 		self.parseCmdline()
-		if len(self.params) > i:
-			return self.params[i]
+		if len(self.params) > idx:
+			return self.params[idx]
 		return ""
 
-	def parseCmdline(self):  # pylint: disable=too-many-branches,too-many-statements
+	def parseCmdline(self) -> None:
 		self.params = []
 		self.currentParam = None
 		self.paramPos = -1
@@ -801,7 +809,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 			)
 			self.paramPos = len(self.params) - 1
 
-	def execute(self):
+	def execute(self) -> None:
 		logger.info("Execute: '%s'", self.cmdline)
 		self.cmdList.append(self.cmdline)
 		if len(self.cmdList) > self.cmdBufferSize:
@@ -822,7 +830,8 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		if invalid:
 			raise ValueError(_("Invalid command: '%s'") % self.getParam(0))
 
-	def question(self, question):
+	def question(self, question: str) -> bool:
+		assert self.screen
 		question = forceUnicode(question)
 		if interactive:
 			self.screen.move(self.yMax - 1, 0)
@@ -839,7 +848,8 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 						return False
 		return False
 
-	def getPassword(self):
+	def getPassword(self) -> str:
+		assert self.screen
 		password1 = ""
 		password2 = ""
 		while not password1 or (password1 != password2):
@@ -848,13 +858,13 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 				self.screen.clrtoeol()
 				self.screen.addstr(_("Please type password:"))
 				self.screen.refresh()
-				password1 = self.screen.getstr()
+				password1 = self.screen.getstr().decode("utf-8")
 
 				self.screen.move(self.yMax - 1, 0)
 				self.screen.clrtoeol()
 				self.screen.addstr(_("Please retype password:"))
 				self.screen.refresh()
-				password2 = self.screen.getstr()
+				password2 = self.screen.getstr().decode("utf-8")
 
 				if password1 != password2:
 					self.screen.move(self.yMax - 1, 0)
@@ -868,13 +878,14 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		logger.confidential("Got password '%s'", password1)
 		return password1
 
-	def getCommand(self):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-		char = None
+	def getCommand(self) -> None:
+		assert self.screen
+		char: int | str | None = None
 		self.pos = 0
 		self.setCmdline("")
 		self.reverseSearch = None
 
-		while not char or (char != 10):  # pylint: disable=too-many-nested-blocks
+		while not char or (char != 10):
 			if not self.running:
 				return
 
@@ -963,7 +974,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 				completions = []
 
 				params = self.getParams()
-				if self.paramPos >= 0:
+				if self.paramPos >= 0 and self.currentParam:
 					params[self.paramPos] = self.currentParam
 
 				for command in self.commands:
@@ -1011,20 +1022,23 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 							pf = "%s %-" + str(longest) + "s"
 							curLine = pf % (curLine, completions[i])
 							i += 1
-						lines.append({"text": curLine, "color": None})
+						lines.append({"text": curLine, "color": ""})
 						curLine = ""
 
 					if self.paramPos < 0:
 						self.currentParam = ""
 
-					text = f"{self.prompt} {self.cmdline[:self.pos - len(self.currentParam)]}" f"{match.strip()}{self.cmdline[self.pos:]}"
-					self.lines.append({"text": text, "color": None})
+					text = (
+						f"{self.prompt} {self.cmdline[:self.pos - len(self.currentParam or '')]}"
+						f"{match.strip()}{self.cmdline[self.pos:]}"
+					)
+					self.lines.append({"text": text, "color": ""})
 
 					self.lines.extend(lines)
 
-					self.setCmdline(self.cmdline[: self.pos - len(self.currentParam)] + match.strip() + self.cmdline[self.pos :])
+					self.setCmdline(self.cmdline[: self.pos - len(self.currentParam or "")] + match.strip() + self.cmdline[self.pos :])
 
-					self.pos += len(match) - len(self.currentParam)
+					self.pos += len(match) - len(self.currentParam or "")
 
 					self.setCmdline(self.cmdline)
 				else:
@@ -1059,7 +1073,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 						if not isinstance(char, str):
 							try:
 								char = str(char)
-							except Exception:  # pylint: disable=broad-except
+							except Exception:
 								char += self.screen.getkey()
 								char = str(char)
 
@@ -1068,7 +1082,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 						else:
 							newPos = self.pos + 1
 							newCmdline = self.cmdline[0 : self.pos] + char + self.cmdline[self.pos :]
-					except Exception as err:  # pylint: disable=broad-except
+					except Exception as err:
 						logger.error("Failed to add char %r: %s", char, err)
 
 				try:
@@ -1087,7 +1101,7 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 
 					self.pos = newPos
 					self.setCmdline(newCmdline)
-				except Exception as err:  # pylint: disable=broad-except
+				except Exception as err:
 					self.setInfoline(str(err))
 
 			if not textInput:
@@ -1101,75 +1115,79 @@ class Shell:  # pylint: disable=too-many-instance-attributes
 		if self.cmdline:
 			try:
 				self.execute()
-			except Exception as err:  # pylint: disable=broad-except
-				lines = str(err).split("\n")
-				lines[0] = f"ERROR: {lines[0]}"
-				for line in lines:
-					self.appendLine(line, COLOR_RED)
+			except Exception as err:
+				err_lines = str(err).split("\n")
+				err_lines[0] = f"ERROR: {err_lines[0]}"
+				for err_line in err_lines:
+					self.appendLine(err_line, COLOR_RED)
 
 		if len(self.lines) > self.yMax - 2:
 			self.linesBack = 0
 
 
 class Command:
-	def __init__(self, name):
+	def __init__(self, name: str) -> None:
 		self.name = forceUnicode(name)
 
-	def getName(self):
+	def getName(self) -> str:
 		return self.name
 
-	def getDescription(self):
+	def getDescription(self) -> str:
 		return ""
 
-	def completion(self, params, paramPos):  # pylint: disable=unused-argument
+	def completion(self, params: list[str], paramPos: int) -> list[str]:
 		return []
 
-	def help(self, shell):  # pylint: disable=unused-argument,redefined-outer-name
+	def help(self, shell: Shell) -> None:
 		shell.appendLine("")
 
-	def execute(self, shell, params):  # pylint: disable=unused-argument,redefined-outer-name
+	def execute(self, shell: Shell, params: list[str]) -> None:
 		raise NotImplementedError("Nothing to do.")
 
 
 class CommandMethod(Command):
-	def __init__(self):
+	def __init__(self) -> None:
 		Command.__init__(self, "method")
+		assert service_client
 		self.interface = service_client.jsonrpc_interface
 
-	def getDescription(self):
+	def getDescription(self) -> str:
 		return _("Execute a config-interface-method")
 
-	def help(self, shell):  # pylint: disable=redefined-outer-name
+	def help(self, shell: Shell) -> None:
 		shell.appendLine(f'\r{_("Methods are:")}\n')
+		assert service_client
 		for method in service_client.jsonrpc_interface:
 			logger.debug(method)
 			shell.appendLine(f"\r{method.get('name')}\n")
 
-	def completion(self, params, paramPos):
+	def completion(self, params: list[str], paramPos: int) -> list[str]:
 		completions = []
 
 		if paramPos == 0:
 			completions.append("list")
 			for param in self.interface:
-				completions.append(param.get("name"))
+				if comp := param.get("name"):
+					completions.append(comp)
 
 		elif paramPos == 1:
 			if "list".startswith(params[0]):
 				completions.append("list")
 			for param in self.interface:
-				if param.get("name").startswith(params[0]):
-					completions.append(param.get("name"))
+				comp = param.get("name")
+				if comp and comp.startswith(params[0]):
+					completions.append(comp)
 
 		elif paramPos >= 2:
 			for param in self.interface:
 				if param.get("name") == params[0]:
-					if len(param.get("params")) >= len(params) - 1:
-						completions = [param.get("params")[paramPos - 2]]
+					if len(param.get("params", [])) >= len(params) - 1:
+						completions = [param["params"][paramPos - 2]]
 					break
 
 		return completions
 
-	def execute(self, shell, params):  # pylint: disable=too-many-statements,redefined-outer-name,too-many-locals,too-many-branches
+	def execute(self, shell: Shell, params: list[str]) -> None:
 		if len(params) <= 0:
 			shell.appendLine(_("No method defined"))
 			return
@@ -1178,7 +1196,7 @@ class CommandMethod(Command):
 
 		if methodName == "list":
 			for methodDescription in self.interface:
-				shell.appendLine(f"{methodDescription.get('name')}{tuple(methodDescription.get('params'))}", refresh=False)
+				shell.appendLine(f"{methodDescription.get('name')}{tuple(methodDescription.get('params', []))}", refresh=False)
 			shell.display()
 			return
 
@@ -1190,7 +1208,7 @@ class CommandMethod(Command):
 			raise OpsiRpcError(f"Method '{methodName}' is not valid")
 
 		params = params[1:]
-		keywords = {}
+		keywords: dict[str, str] = {}
 		if methodInterface["keywords"]:
 			parameters = 0
 			if methodInterface["args"]:
@@ -1204,14 +1222,14 @@ class CommandMethod(Command):
 				if not isinstance(params[-1], dict):
 					raise ValueError(f"kwargs param is not a dict: {params[-1]}")
 
-				for (key, value) in params.pop(-1).items():
+				for key, value in params.pop(-1).items():
 					keywords[str(key)] = deserialize(value)
 
-		def createObjectOrString(obj):
+		def createObjectOrString(obj: Any) -> str:
 			"Tries to return object from JSON. If this fails returns unicode."
 			try:
 				return fromJson(obj)
-			except Exception as err:  # pylint: disable=broad-except
+			except Exception as err:
 				logger.debug("Not a json string '%s': %s", obj, err)
 				return forceUnicode(obj)
 
@@ -1242,7 +1260,7 @@ class CommandMethod(Command):
 		result = serialize(result)
 		logger.trace("Serialized result: '%s'", result)
 
-		if result is not None:  # pylint: disable=too-many-nested-blocks
+		if result is not None:
 			lines = []
 			if shell.output == "RAW":
 				lines.append(toJson(result))
@@ -1253,23 +1271,21 @@ class CommandMethod(Command):
 			elif shell.output == "SHELL":
 				bashVars = objectToBash(result, {})
 				for index in range(len(bashVars) - 1, -2, -1):
-					if index == -1:
-						index = ""
-
-					value = bashVars.get(f"RESULT{index}")
+					str_index = str(index) if index != -1 else ""
+					value = bashVars.get(f"RESULT{str_index}")
 					if value:
-						lines.append(f"RESULT{index}={value}")
+						lines.append(f"RESULT{str_index}={value}")
 
 			elif shell.output == "SIMPLE":
 				if isinstance(result, dict):
-					for (key, value) in result.items():
+					for key, value in result.items():
 						if isinstance(value, bool):
 							value = forceUnicodeLower(value)
 						lines.append(f"{key}={value}")
 				elif isinstance(result, (tuple, list, set)):
 					for resultElement in result:
 						if isinstance(resultElement, dict):
-							for (key, value) in resultElement.items():
+							for key, value in resultElement.items():
 								if isinstance(value, bool):
 									value = forceUnicodeLower(value)
 								lines.append(f"{key}={value}")
@@ -1286,13 +1302,16 @@ class CommandMethod(Command):
 			if shell.shellCommand:
 				logger.notice("Executing: '%s'", shell.shellCommand)
 
-				proc = subprocess.Popen(  # pylint: disable=consider-using-with
+				proc = subprocess.Popen(
 					shell.shellCommand,
 					shell=True,
 					stdin=subprocess.PIPE,
 					stdout=subprocess.PIPE,
 					stderr=subprocess.PIPE,
 				)
+				assert proc.stdout
+				assert proc.stderr
+				assert proc.stdin
 
 				flags = fcntl.fcntl(proc.stdout, fcntl.F_GETFL)
 				fcntl.fcntl(proc.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
@@ -1300,11 +1319,9 @@ class CommandMethod(Command):
 				flags = fcntl.fcntl(proc.stderr, fcntl.F_GETFL)
 				fcntl.fcntl(proc.stderr, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
-				encoding = proc.stdout.encoding or inEncoding
-
 				exitCode = None
-				buf = ""
-				serr = ""
+				buf = b""
+				serr = b""
 
 				while exitCode is None:
 					exitCode = proc.poll()
@@ -1333,22 +1350,22 @@ class CommandMethod(Command):
 
 				if exitCode != 0:
 					nwl = "\n"
-					raise RuntimeError(f"Exitcode: {exitCode * -1}{nwl}{serr.decode(encoding, 'replace')}")
+					raise RuntimeError(f"Exitcode: {exitCode * -1}{nwl}{serr.decode(inEncoding, 'replace')}")
 
-				lines = buf.decode(encoding, "replace").split("\n")
+				lines = buf.decode(inEncoding, "replace").split("\n")
 
 			for line in lines:
 				shell.appendLine(line, COLOR_GREEN)
 
 
 class CommandSet(Command):
-	def __init__(self):
+	def __init__(self) -> None:
 		Command.__init__(self, "set")
 
-	def getDescription(self):
+	def getDescription(self) -> str:
 		return _("Settings")
 
-	def completion(self, params, paramPos):
+	def completion(self, params: list[str], paramPos: int) -> list[str]:
 		completions = []
 
 		if paramPos == 0 or not params[0]:
@@ -1372,8 +1389,8 @@ class CommandSet(Command):
 
 		return completions
 
-	def execute(self, shell, params):
-		global logFile  # pylint: disable=global-statement,invalid-name
+	def execute(self, shell: Shell, params: list[str]) -> None:
+		global logFile
 
 		if len(params) <= 0:
 			raise ValueError(_("Missing option"))
@@ -1404,13 +1421,13 @@ class CommandSet(Command):
 
 
 class CommandHelp(Command):
-	def __init__(self):
+	def __init__(self) -> None:
 		Command.__init__(self, "help")
 
-	def getDescription(self):
+	def getDescription(self) -> str:
 		return _("Show this text")
 
-	def execute(self, shell, params):
+	def execute(self, shell: Shell, params: list[str]) -> None:
 		shell.appendLine("\r" + _("Commands are:") + "\n", refresh=False)
 		for cmd in shell.commands:
 			shell.appendLine(f"\r\t{(cmd.getName() + ':'):<20)}{cmd.getDescription()}\n", refresh=False)
@@ -1418,29 +1435,29 @@ class CommandHelp(Command):
 
 
 class CommandQuit(Command):
-	def __init__(self):
+	def __init__(self) -> None:
 		Command.__init__(self, "quit")
 
-	def getDescription(self):
+	def getDescription(self) -> str:
 		return _("Exit opsi-admin")
 
-	def execute(self, shell, params):
+	def execute(self, shell: Shell, params: list[str]) -> None:
 		shell.exit()
 
 
 class CommandExit(CommandQuit):
-	def __init__(self):  # pylint: disable=super-init-not-called
-		Command.__init__(self, "exit")  # pylint: disable=non-parent-init-called
+	def __init__(self) -> None:
+		Command.__init__(self, "exit")
 
 
 class CommandHistory(Command):
-	def __init__(self):
+	def __init__(self) -> None:
 		Command.__init__(self, "history")
 
-	def getDescription(self):
+	def getDescription(self) -> str:
 		return _("show / clear command history")
 
-	def completion(self, params, paramPos):
+	def completion(self, params: list[str], paramPos: int) -> list[str]:
 		completions = []
 
 		if paramPos == 0 or not params[0]:
@@ -1454,7 +1471,7 @@ class CommandHistory(Command):
 
 		return completions
 
-	def execute(self, shell, params):
+	def execute(self, shell: Shell, params: list[str]) -> None:
 		if len(params) <= 0:
 			# By default: show history
 			params = ["show"]
@@ -1471,13 +1488,13 @@ class CommandHistory(Command):
 
 
 class CommandLog(Command):
-	def __init__(self):
+	def __init__(self) -> None:
 		Command.__init__(self, "log")
 
-	def getDescription(self):
+	def getDescription(self) -> str:
 		return _("show log")
 
-	def completion(self, params, paramPos):
+	def completion(self, params: list[str], paramPos: int) -> list[str]:
 		completions = []
 
 		if paramPos == 0 or not params[0]:
@@ -1489,7 +1506,7 @@ class CommandLog(Command):
 
 		return completions
 
-	def execute(self, shell, params):
+	def execute(self, shell: Shell, params: list[str]) -> None:
 		if len(params) <= 0:
 			# By default: show log
 			params = ["show"]
@@ -1507,7 +1524,7 @@ class CommandLog(Command):
 
 
 class CommandTask(Command):
-	def __init__(self):
+	def __init__(self) -> None:
 		Command.__init__(self, "task")
 		self._tasks = (  # TODO: are these deprecated methods still needed?
 			("setupWhereInstalled", "productId"),
@@ -1522,13 +1539,13 @@ class CommandTask(Command):
 			("activateTOTP", "userId"),
 		)
 
-	def getDescription(self):
+	def getDescription(self) -> str:
 		return _("execute a task")
 
-	def help(self, shell):
+	def help(self, shell: Shell) -> None:
 		shell.appendLine("")
 
-	def completion(self, params, paramPos):
+	def completion(self, params: list[str], paramPos: int) -> list[str]:
 		completions = []
 
 		if paramPos == 0 or not params[0]:
@@ -1547,7 +1564,8 @@ class CommandTask(Command):
 
 		return completions
 
-	def execute(self, shell, params):  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+	def execute(self, shell: Shell, params: list[str]) -> None:
+		assert service_client
 		tasknames = {task[0] for task in self._tasks}
 
 		if len(params) <= 0:
@@ -1714,13 +1732,13 @@ class CommandTask(Command):
 				smbldapCommand = f"{which('smbldap-passwd')} pcpatch"
 				sys_execute(smbldapCommand, stdin_data=f"{password}\n{password}\n".encode("utf8"))
 				password_set = True
-			except Exception as err:  # pylint: disable=broad-except
+			except Exception as err:
 				logger.debug("Setting password through smbldap failed: %s", err)
 
 			if not password_set:
 				# unix
 				is_local_user = False
-				with codecs.open("/etc/passwd", "r", "utf-8") as file:
+				with open("/etc/passwd", "r", encoding="utf-8") as file:
 					for line in file.readlines():
 						if line.startswith("pcpatch:"):
 							is_local_user = True
@@ -1737,30 +1755,29 @@ class CommandTask(Command):
 		elif params[0] == "activateTOTP":
 			if len(params) < 2:
 				raise ValueError(_("Missing argument"))
-			for line in service_client.user_updateMultiFactorAuth(  # pylint: disable=no-member
-				userId=params[1], type="totp", returnType="qrcode"
-			).split("\n"):
+			for line in service_client.user_updateMultiFactorAuth(userId=params[1], type="totp", returnType="qrcode").split("\n"):  # type: ignore[attr-defined]
 				shell.appendLine(line)
 
 
-def main():
+def main() -> None:
 	@contextmanager
-	def shellExit():
+	def shellExit() -> Generator[None, None, None]:
 		try:
 			yield
 		finally:
-			try:
-				global_shell.exit()
-			except Exception:  # pylint: disable=broad-except
-				pass
+			if global_shell:
+				try:
+					global_shell.exit()
+				except Exception:
+					pass
 
 	try:
 		locale.setlocale(locale.LC_ALL, "")
-	except Exception:  # pylint: disable=broad-except
+	except Exception:
 		pass
 
 	if os.name == "posix":
-		from signal import SIGINT, SIGQUIT, signal  # pylint: disable=import-outside-toplevel
+		from signal import SIGINT, SIGQUIT, signal
 
 		signal(SIGINT, signalHandler)
 		signal(SIGQUIT, signalHandler)
@@ -1772,7 +1789,7 @@ def main():
 	except ErrorInResultException as error:
 		logger.warning("Error in result: %s", error)
 		exitCode = 2
-	except Exception as err:  # pylint: disable=broad-except
+	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
 		logger.error("Error during execution: %s", err, exc_info=True)
 		exitCode = 1

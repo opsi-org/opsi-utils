@@ -6,15 +6,15 @@
 Handling repositories.
 """
 
+import re
 import threading
-from typing import Iterator
-from html.parser import HTMLParser
 import time
 from datetime import datetime, timedelta
+from html.parser import HTMLParser
 
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.logging import get_logger
-from OPSI.Types import forceBool, forceUnicode, forceUnicodeList
+from opsicommon.types import forceBool, forceStringList, forceUnicode
 
 __all__ = ("LinksExtractor", "ProductRepositoryInfo", "sort_repository_list", "TransferSlotHeartbeat")
 logger = get_logger("opsi-package-updater")
@@ -22,32 +22,32 @@ RETENTION_HEARTBEAT_INTERVAL_DIFF = 10.0
 MIN_HEARTBEAT_INTERVAL = 1.0
 
 
-class ProductRepositoryInfo:  # pylint: disable=dangerous-default-value,too-many-instance-attributes,too-few-public-methods,too-many-arguments,too-many-locals
+class ProductRepositoryInfo:
 	def __init__(
 		self,
-		name,
-		baseUrl,
-		dirs=[],
-		username="",
-		password="",
-		authcertfile="",
-		authkeyfile="",
-		opsiDepotId=None,
-		autoInstall=False,
-		autoUpdate=True,
-		autoSetup=False,
-		proxy=None,
-		excludes=[],
-		includes=[],
-		active=False,
-		autoSetupExcludes=[],
-		verifyCert=False,
+		name: str,
+		baseUrl: str,
+		dirs: list[str] | None = None,
+		username: str = "",
+		password: str = "",
+		authcertfile: str = "",
+		authkeyfile: str = "",
+		opsiDepotId: str | None = None,
+		autoInstall: bool = False,
+		autoUpdate: bool = True,
+		autoSetup: bool = False,
+		proxy: str | None = None,
+		excludes: list[re.Pattern] | None = None,
+		includes: list[re.Pattern] | None = None,
+		active: bool = False,
+		autoSetupExcludes: list[re.Pattern] | None = None,
+		verifyCert: bool = False,
 	):
 		self.name = forceUnicode(name)
 		self.baseUrl = forceUnicode(baseUrl)
-		self.dirs = forceUnicodeList(dirs)
-		self.excludes = excludes
-		self.includes = includes
+		self.dirs = forceStringList(dirs or [])
+		self.excludes = excludes or []
+		self.includes = includes or []
 		self.username = forceUnicode(username)
 		self.password = forceUnicode(password)
 		self.authcertfile = forceUnicode(authcertfile)
@@ -55,10 +55,10 @@ class ProductRepositoryInfo:  # pylint: disable=dangerous-default-value,too-many
 		self.autoInstall = autoInstall
 		self.autoUpdate = autoUpdate
 		self.autoSetup = autoSetup
-		self.autoSetupExcludes = autoSetupExcludes
+		self.autoSetupExcludes = autoSetupExcludes or []
 		self.opsiDepotId = opsiDepotId
-		self.onlyDownload = None
-		self.inheritProductProperties = None
+		self.onlyDownload = False
+		self.inheritProductProperties = False
 		self.description = ""
 		self.active = forceBool(active)
 		self.verifyCert = forceBool(verifyCert)
@@ -69,7 +69,7 @@ class ProductRepositoryInfo:  # pylint: disable=dangerous-default-value,too-many
 		if self.baseUrl.startswith("webdav"):
 			self.baseUrl = f"http{self.baseUrl[6:]}"
 
-	def getDownloadUrls(self):
+	def getDownloadUrls(self) -> set[str]:
 		urls = set()
 		for directory in self.dirs:
 			if directory in ("", "/", "."):
@@ -82,12 +82,12 @@ class ProductRepositoryInfo:  # pylint: disable=dangerous-default-value,too-many
 		return urls
 
 
-class LinksExtractor(HTMLParser):  # pylint: disable=abstract-method
-	def __init__(self):
+class LinksExtractor(HTMLParser):
+	def __init__(self) -> None:
 		super().__init__()
-		self.links = set()
+		self.links: set[str] = set()
 
-	def handle_starttag(self, tag, attrs):
+	def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
 		if tag != "a":
 			return
 
@@ -95,13 +95,14 @@ class LinksExtractor(HTMLParser):  # pylint: disable=abstract-method
 			if attr[0] != "href":
 				continue
 			link = attr[1]
-			self.links.add(link)
+			if link:
+				self.links.add(link)
 
-	def getLinks(self):
+	def getLinks(self) -> set[str]:
 		return self.links
 
 
-def sort_repository_list(repositories: Iterator[ProductRepositoryInfo]) -> list[ProductRepositoryInfo]:
+def sort_repository_list(repositories: list[ProductRepositoryInfo]) -> list[ProductRepositoryInfo]:
 	depot_repos = []
 	online_repos = []
 	for repository in repositories:
@@ -122,13 +123,13 @@ class TransferSlotHeartbeat(threading.Thread):
 		self.slot_id = None
 
 	def acquire(self) -> dict[str, str | float]:
-		response = self.service_connection.depot_acquireTransferSlot(self.depot_id, self.host_id, self.slot_id, "opsi_package_updater")
+		response = self.service_connection.depot_acquireTransferSlot(self.depot_id, self.host_id, self.slot_id, "opsi_package_updater")  # type: ignore[attr-defined]
 		self.slot_id = response.get("slot_id")
 		logger.debug("Transfer slot Heartbeat %s, response: %s", self.slot_id, response)
 		return response
 
 	def release(self) -> None:
-		response = self.service_connection.depot_releaseTransferSlot(self.depot_id, self.host_id, self.slot_id, "opsi_package_updater")
+		response = self.service_connection.depot_releaseTransferSlot(self.depot_id, self.host_id, self.slot_id, "opsi_package_updater")  # type: ignore[attr-defined]
 		logger.debug("releaseTransferSlot response: %s", response)
 
 	def run(self) -> None:
@@ -138,7 +139,7 @@ class TransferSlotHeartbeat(threading.Thread):
 				if not response.get("retention"):
 					logger.error("TransferSlotHeartbeat lost transfer slot (and did not get new one)")
 					raise ConnectionError("TransferSlotHeartbeat lost transfer slot (and did not get new one)")
-				wait_time = max(response["retention"] - RETENTION_HEARTBEAT_INTERVAL_DIFF, MIN_HEARTBEAT_INTERVAL)
+				wait_time = max(float(response["retention"]) - RETENTION_HEARTBEAT_INTERVAL_DIFF, MIN_HEARTBEAT_INTERVAL)
 				logger.debug("Waiting %s seconds before reaquiring slot", wait_time)
 				end = datetime.now() + timedelta(seconds=wait_time)
 				while not self.should_stop and datetime.now() < end:
