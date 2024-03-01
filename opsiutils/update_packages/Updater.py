@@ -721,7 +721,7 @@ class OpsiPackageUpdater:
 	def is_install_needed(
 		self,
 		availablePackage: dict[str, str | ProductRepositoryInfo | None],
-		product: ProductOnDepot,
+		product: ProductOnDepot | None,
 	) -> bool:
 		repository = availablePackage["repository"]
 		assert isinstance(repository, ProductRepositoryInfo)
@@ -798,8 +798,6 @@ class OpsiPackageUpdater:
 					try:
 						# This ís called to keep the logs consistent
 						product = self.get_installed_package(availablePackage, installedProducts)
-						if not product:
-							continue
 						if not all_packages and not self.is_install_needed(availablePackage, product):
 							continue
 

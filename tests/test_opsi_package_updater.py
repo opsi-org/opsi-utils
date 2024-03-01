@@ -4,27 +4,25 @@ opsi-utils
 tests for opsi-package-updater
 """
 
-from dataclasses import dataclass
 import json
 import shutil
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Generator
 from unittest import mock
 
 import pytest
-from pyzsync import create_zsync_file
-
+from opsicommon.objects import OpsiDepotserver
 from opsicommon.package.associated_files import md5sum
 from opsicommon.package.repo_meta import RepoMetaPackageCollection
 from opsicommon.testing.helpers import http_test_server
-from opsicommon.objects import OpsiDepotserver
+from pyzsync import create_zsync_file
 
-from opsiutils.update_packages.Updater import OpsiPackageUpdater
+from opsiutils import __version__
+from opsiutils.opsipackageupdater import patch_repo_files
 from opsiutils.update_packages.Config import DEFAULT_CONFIG
 from opsiutils.update_packages.Notifier import DummyNotifier
-from opsiutils.opsipackageupdater import patch_repo_files
-from opsiutils import __version__
-
+from opsiutils.update_packages.Updater import OpsiPackageUpdater
 
 ORIGINAL_REPO = """; This is a testcomment
 [repository_uib_linux_experimental]
