@@ -4,7 +4,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "opsi-utils"
-version = "4.3.3.0"
+version = "4.3.3.1"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
@@ -25,9 +25,6 @@ priority = "supplemental"
 
 [tool.ruff]
 line-length = 140
-
-[tool.ruff.format]
-indent-style = "tab"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
@@ -51,6 +48,9 @@ opsi-setup = "opsiutils.opsisetup:main"
 opsi-python = "opsiutils.opsipython:main"
 opsi-wakeup-clients = "opsiutils.opsiwakeupclients:main"
 opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
+
+[tool.ruff.format]
+indent-style = "tab"
 
 [tool.poetry.dependencies.distro]
 platform = "linux"
