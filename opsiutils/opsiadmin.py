@@ -24,10 +24,10 @@ import stat
 import subprocess
 import sys
 import time
-from contextlib import closing, contextmanager
+from contextlib import closing
 from pathlib import Path
 from types import FrameType
-from typing import Any, Generator
+from typing import Any
 
 from OPSI import __version__ as python_opsi_version  # type: ignore
 from OPSI.System import (  # type: ignore[import]
@@ -436,10 +436,11 @@ def shell_main() -> None:
 				raise err
 		else:
 			raise RuntimeError("Not running in interactive mode and no commandline arguments given.")
+
 	finally:
 		if service_client:
 			try:
-				service_client.disconnect()
+				service_client.stop()
 			except Exception:
 				pass
 
@@ -553,12 +554,14 @@ class Shell:
 	def exitScreen(self) -> None:
 		if not self.screen:
 			return
+		logger.info("Exit screen")
 		curses.nocbreak()
 		self.screen.keypad(False)
 		curses.echo()
 		curses.endwin()
 
 	def sigint(self) -> None:
+		logger.info("Received SIGINT (exit_on_sigint: %r)", self.exit_on_sigint)
 		if self.exit_on_sigint:
 			sys.exit(0)
 		self.pos = 0
@@ -600,6 +603,7 @@ class Shell:
 					logger.error("Failed to delete log-file '%s': %s", logFile, err)
 
 		try:
+			logger.info("Write history file")
 			if not self.userConfigDir:
 				raise ValueError("User config dir not set")
 			historyFilePath = os.path.join(self.userConfigDir, "history")
@@ -667,12 +671,12 @@ class Shell:
 					color = curses.color_pair(5)
 
 			try:
-				if color is not None:
-					self.screen.addstr(shellLine, int(color))
-				else:
+				try:
+					self.screen.addstr(shellLine, int(color))  # type: ignore[arg-type]
+				except ValueError:
 					self.screen.addstr(shellLine)
 			except Exception as err:
-				logger.error("Failed to add string '%s': %s", shellLine, err)
+				logger.error("Failed to add string '%s': %s", shellLine, err, exc_info=True)
 
 		moveY = self.yMax - height + int((len(self.prompt + " ") + self.pos) / self.xMax)
 		moveX = (len(self.prompt + " ") + self.pos) % self.xMax
@@ -836,7 +840,7 @@ class Shell:
 		if interactive:
 			self.screen.move(self.yMax - 1, 0)
 			self.screen.clrtoeol()
-			self.screen.addstr(question + " (n/y)")
+			self.screen.addstr(question + " (n/y): ")
 			self.screen.refresh()
 			char = None
 			while True:
@@ -1430,7 +1434,7 @@ class CommandHelp(Command):
 	def execute(self, shell: Shell, params: list[str]) -> None:
 		shell.appendLine("\r" + _("Commands are:") + "\n", refresh=False)
 		for cmd in shell.commands:
-			shell.appendLine(f"\r\t{(cmd.getName() + ':'):<20)}{cmd.getDescription()}\n", refresh=False)
+			shell.appendLine(f"\r\t{(cmd.getName() + ':'):<20}{cmd.getDescription()}\n", refresh=False)
 		shell.display()
 
 
@@ -1760,17 +1764,6 @@ class CommandTask(Command):
 
 
 def main() -> None:
-	@contextmanager
-	def shellExit() -> Generator[None, None, None]:
-		try:
-			yield
-		finally:
-			if global_shell:
-				try:
-					global_shell.exit()
-				except Exception:
-					pass
-
 	try:
 		locale.setlocale(locale.LC_ALL, "")
 	except Exception:
@@ -1783,8 +1776,7 @@ def main() -> None:
 		signal(SIGQUIT, signalHandler)
 
 	try:
-		with shellExit():
-			shell_main()
+		shell_main()
 		exitCode = 0
 	except ErrorInResultException as error:
 		logger.warning("Error in result: %s", error)
