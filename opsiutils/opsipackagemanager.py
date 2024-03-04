@@ -421,15 +421,13 @@ class UserInterface(SubjectsObserver):
 		logger.info("UserInterface initialized")
 
 	def resized(self, signo: int, stackFrame: FrameType | None) -> None:
-		assert self.mainWindow
-		assert self.loggerHeaderWindow
-		assert self.loggerWindow
 		try:
+			assert self.mainWindow
 			self.mainWindow.resize()
 			self.infoWindow.resize(height=1, width=self.mainWindow.width, x=0, y=0)
 			self.progressWindow.resize(height=self.mainWindow.height - self.loggerWindowHeight - 2, width=self.mainWindow.width, x=0, y=1)
 
-			if self.loggerWindowHeight > 0:
+			if self.loggerWindow and self.loggerHeaderWindow and self.loggerWindowHeight > 0:
 				self.loggerHeaderWindow.resize(
 					height=1, width=self.mainWindow.width, x=0, y=self.mainWindow.height - self.loggerWindowHeight - 1
 				)
@@ -453,14 +451,13 @@ class UserInterface(SubjectsObserver):
 		self.showProgress()
 
 	def messageChanged(self, subject: Subject, message: str) -> None:
-		assert self.loggerWindow
 		if not message:
 			logger.warning("Message deleted: %s %s", subject.getType(), subject.getId())
 
 		if self.__lock.locked():
 			return
 
-		if subject.getType() == "Logger":
+		if subject.getType() == "Logger" and self.loggerWindow:
 			with self.__lock:
 				# Do not log anything to avoid log loops !!!
 				params = []
