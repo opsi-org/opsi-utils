@@ -342,6 +342,7 @@ def shell_main() -> None:
 			password=password,
 			session_cookie=session_cookie,
 			no_check_certificate=options.no_check_certificate,
+			client_cert_auth=username == opsiconf.get("host", "id"),
 		)
 
 		session_cookie = service_client.session_cookie

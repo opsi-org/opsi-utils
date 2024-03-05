@@ -692,6 +692,7 @@ class OpsiPackageManager:
 				username=depotId,
 				password=depot.opsiHostKey,
 				user_agent=USER_AGENT,
+				client_cert_auth=True,
 			)
 			self.depotConnections[depotId] = connection
 

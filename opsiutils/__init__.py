@@ -51,12 +51,14 @@ def get_opsiconfd_config() -> dict[str, str]:
 
 def get_service_client(
 	address: str | None = None,
+	*,
 	username: str | None = None,
 	password: str | None = None,
 	session_cookie: str | None = None,
 	user_agent: str | None = None,
 	proxy_url: str | None = None,
 	no_check_certificate: bool = False,
+	client_cert_auth: bool | None = None,
 ) -> ServiceClient:
 	opsiconf = OpsiConfig()
 
@@ -68,6 +70,10 @@ def get_service_client(
 	if not username:
 		username = opsiconf.get("host", "id")
 		password = opsiconf.get("host", "key")
+		if client_cert_auth is None:
+			client_cert_auth = True
+
+	if client_cert_auth:
 		cfg = get_opsiconfd_config()
 		if (
 			cfg["ssl-server-key"]
