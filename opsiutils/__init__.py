@@ -3,12 +3,14 @@
 """
 opsiutils
 """
+
+import json
 import os
-from pathlib import Path
 
 from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags
 from opsicommon.config import OpsiConfig
-from opsicommon.logging import logger
+from opsicommon.logging import logger, secret_filter
+from opsicommon.utils import execute
 
 __version__ = "4.3.2.9"
 
@@ -17,35 +19,16 @@ OPSICONFD_CONF = "/etc/opsi/opsiconfd.conf"
 
 
 def get_opsiconfd_config() -> dict[str, str]:
-	config = {
-		"ssl-server-cert": "",
-		"ssl-server-key": "",
-		"ssl-server-key-passphrase": "",
-	}
-	opsiconfd_conf = Path(OPSICONFD_CONF)
-	if not opsiconfd_conf.exists():
-		logger.info("opsiconfd config file not found at '%s'", opsiconfd_conf)
-		return config
+	config = {}
 	try:
-		for line in opsiconfd_conf.read_text(encoding="utf-8").splitlines():
-			line = line.strip()
-			if not line or line.startswith("#") or "=" not in line:
-				continue
-			attr, value = line.split("=", 1)
-			attr = attr.strip()
-			if attr in config:
-				config[attr] = value.strip()
-				logger.info("Using opsiconfd config '%s' from '%s'", attr, opsiconfd_conf)
+		proc = execute(["opsiconfd", "get-config"])
+		for attr, value in json.loads(proc.stdout).items():
+			if attr in ("ssl_server_key", "ssl_server_cert", "ssl_server_key_passphrase"):
+				config[attr] = value
+				if attr == "ssl_server_key_passphrase":
+					secret_filter.add_secrets(value)
 	except Exception as err:
-		logger.error("Failed to read opsiconfd config '%s': %s", opsiconfd_conf, err)
-		return config
-
-	for key in config:
-		env_key = f"OPSICONFD_{key.upper().replace('-', '_')}"
-		if env_val := os.environ.get(env_key):
-			logger.info("Using opsiconfd config '%s' from environment", env_key)
-			config[key] = env_val
-
+		logger.debug("Failed to get opsiconfd config %s", err)
 	return config
 
 
@@ -75,17 +58,18 @@ def get_service_client(
 
 	if client_cert_auth:
 		cfg = get_opsiconfd_config()
+		logger.debug("opsiconfd config: %r", cfg)
 		if (
-			cfg["ssl-server-key"]
-			and os.path.exists(cfg["ssl-server-key"])
-			and cfg["ssl-server-cert"]
-			and os.path.exists(cfg["ssl-server-cert"])
+			cfg["ssl_server_key"]
+			and os.path.exists(cfg["ssl_server_key"])
+			and cfg["ssl_server_cert"]
+			and os.path.exists(cfg["ssl_server_cert"])
 		):
-			client_cert_file = cfg["ssl-server-cert"]
-			client_key_file = cfg["ssl-server-key"]
-			client_key_password = cfg["ssl-server-key-passphrase"]
+			client_cert_file = cfg["ssl_server_cert"]
+			client_key_file = cfg["ssl_server_key"]
+			client_key_password = cfg["ssl_server_key_passphrase"]
 
-	logger.debug("Creating service connection to '%s' as user '%s'", address, username)
+	logger.debug("Creating service connection to '%s' as user '%s' (client_cert_file=%s)", address, username, client_cert_file)
 	service_client = ServiceClient(
 		address=address,
 		username=username,
