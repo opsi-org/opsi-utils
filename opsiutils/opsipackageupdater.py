@@ -8,6 +8,7 @@ opsi-package-updater
 This tool can be used to update the packages on an opsi server
 through a remote repository.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -388,7 +389,6 @@ def updater_main() -> int:
 	init_logging(stderr_level=args.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 	if args.mode == "list" and args.logLevel < 4:
 		logging_config(stderr_level=4)
-	logger.debug("Running in %s mode", args.mode)
 
 	if not args.noPatchRepoFiles:
 		patch_repo_files(Path(str(DEFAULT_CONFIG["repositoryConfigDir"])))
@@ -418,6 +418,7 @@ def updater_main() -> int:
 	ensure_not_already_running("opsi-package-updater")
 
 	with OpsiPackageUpdaterClient(config) as opu:
+		logger.info("Running in %s mode", args.mode)
 		if args.mode in ("install", "update"):
 			opu.processUpdates()
 		elif args.mode == "download":
