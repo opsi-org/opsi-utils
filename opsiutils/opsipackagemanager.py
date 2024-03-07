@@ -1577,9 +1577,9 @@ class OpsiPackageManagerControl:
 		self.setCommandlineConfig()
 
 		logging_config(
-			log_file=str(self.config["logFile"]),
-			file_level=int(self.config["fileLogLevel"]),  # type: ignore[arg-type]
-			stderr_level=int(self.config["consoleLogLevel"]),  # type: ignore[arg-type]
+			log_file=str(self.config["logFile"]) if self.config["logFile"] else None,
+			file_level=int(self.config["fileLogLevel"]) if self.config["fileLogLevel"] else None,  # type: ignore[arg-type]
+			stderr_level=int(self.config["consoleLogLevel"]) if self.config["consoleLogLevel"] else None,  # type: ignore[arg-type]
 			stderr_format=DEFAULT_COLORED_FORMAT,
 		)
 
