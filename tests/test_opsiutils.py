@@ -19,16 +19,19 @@ def test_get_opsiconfd_config() -> None:
 			}
 		)
 
-	with patch("opsiutils.execute", lambda *args: Proc()):
+	def execute1(*args: Any, **kwargs: Any) -> Proc:
+		return Proc()
+
+	with patch("opsiutils.subprocess.run", execute1):
 		conf = get_opsiconfd_config()
 		assert conf["ssl_server_cert"] == "/etc/opsi/env-ssl-server-cert.pem"
 		assert conf["ssl_server_key"] == "/etc/opsi/ssl-server-key.pem"
 		assert conf["ssl_server_key_passphrase"] == "passphrase"
 
-	def execute(*args: Any, **kwargs: Any) -> None:
+	def execute2(*args: Any, **kwargs: Any) -> None:
 		raise FileNotFoundError("opsiconfd not found")
 
-	with patch("opsiutils.execute", execute):
+	with patch("opsiutils.subprocess.run", execute2):
 		conf = get_opsiconfd_config()
 		assert conf["ssl_server_cert"] == ""
 		assert conf["ssl_server_key"] == ""
