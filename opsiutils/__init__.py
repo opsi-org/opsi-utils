@@ -19,11 +19,11 @@ OPSICONFD_CONF = "/etc/opsi/opsiconfd.conf"
 
 
 def get_opsiconfd_config() -> dict[str, str]:
-	config = {}
+	config = {"ssl_server_key": "", "ssl_server_cert": "", "ssl_server_key_passphrase": ""}
 	try:
 		proc = execute(["opsiconfd", "get-config"])
 		for attr, value in json.loads(proc.stdout).items():
-			if attr in ("ssl_server_key", "ssl_server_cert", "ssl_server_key_passphrase"):
+			if attr in config.keys() and value is not None:
 				config[attr] = value
 				if attr == "ssl_server_key_passphrase":
 					secret_filter.add_secrets(value)
