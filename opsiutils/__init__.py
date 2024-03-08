@@ -6,11 +6,11 @@ opsiutils
 
 import json
 import os
+import subprocess
 
 from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import logger, secret_filter
-from opsicommon.utils import execute
 
 __version__ = "4.3.2.9"
 
@@ -21,7 +21,7 @@ OPSICONFD_CONF = "/etc/opsi/opsiconfd.conf"
 def get_opsiconfd_config() -> dict[str, str]:
 	config = {"ssl_server_key": "", "ssl_server_cert": "", "ssl_server_key_passphrase": ""}
 	try:
-		proc = execute(["opsiconfd", "get-config"])
+		proc = subprocess.run(["opsiconfd", "get-config"], shell=False, check=True, capture_output=True, text=True, encoding="utf-8")
 		for attr, value in json.loads(proc.stdout).items():
 			if attr in config.keys() and value is not None:
 				config[attr] = value
