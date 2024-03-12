@@ -5,6 +5,7 @@
 """
 opsi-makepackage - create opsi-packages for deployment.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -344,6 +345,13 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 		opsi_package_tmp.parse_control_file_legacy(packageControlFilePath.with_suffix(""))
 		if compareVersions(opsi_package_tmp.product.version, ">", opsi_package.product.version):
 			raise ValueError("control is newer than control.toml - Please update control.toml instead.")
+
+	if newPackageVersion or newProductVersion:
+		if newPackageVersion:
+			opsi_package.product.setPackageVersion(newPackageVersion)
+		if newProductVersion:
+			opsi_package.product.setProductVersion(newProductVersion)
+		opsi_package.generate_control_file(packageControlFilePath)
 
 	destination_dir = Path.cwd()
 	archive = destination_dir / opsi_package.package_archive_name()
