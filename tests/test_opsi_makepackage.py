@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 from opsicommon.package import OpsiPackage
+
 from opsiutils.opsimakepackage import makepackage_main
 
 from .utils import temp_context
@@ -44,6 +45,17 @@ def test_makepackage_old(args: list[str]) -> None:
 			assert (opsi_dir / "control.toml").exists()
 		else:
 			assert not (opsi_dir / "control.toml").exists()
+
+
+@pytest.mark.parametrize(("prod_ver", "pack_ver"), (("1.0", "1"), ("2.0", "1"), ("1.0", "2"), ("2.0", "2")))
+def test_makepackage_explicite_version(prod_ver: str, pack_ver: str) -> None:
+	args = ["--no-set-rights", "--no-md5", "--no-zsync", "--product-version", prod_ver, "--package-version", pack_ver]
+	with temp_context() as orig_path:
+		opsi_dir = Path("OPSI")
+		opsi_dir.mkdir()
+		shutil.copy(orig_path / "tests" / "data" / "control.toml", opsi_dir / "control.toml")
+		makepackage_main(args)
+		assert Path(f"prod-1750_{prod_ver}-{pack_ver}.opsi").exists()
 
 
 def test_error_on_control_to_toml_present() -> None:
