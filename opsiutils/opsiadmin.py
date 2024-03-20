@@ -45,6 +45,7 @@ from OPSI.Util import (  # type: ignore[import]
 	toJson,
 )
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc  # type: ignore[import]
+from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.config import OpsiConfig
 from opsicommon.exceptions import OpsiRpcError
 from opsicommon.logging import (
@@ -99,10 +100,10 @@ COLORS_AVAILABLE = [
 ]
 
 logger = get_logger()
-service_client = None
+service_client: ServiceClient | None = None
 exitZero = False
-global_shell = None
-logFile = None
+global_shell: Shell | None = None
+logFile: str | None = None
 interactive = False
 
 outEncoding = sys.stdout.encoding
@@ -674,7 +675,7 @@ class Shell:
 			try:
 				try:
 					self.screen.addstr(shellLine, int(color))  # type: ignore[arg-type]
-				except ValueError:
+				except (ValueError, TypeError):
 					self.screen.addstr(shellLine)
 			except Exception as err:
 				logger.error("Failed to add string '%s': %s", shellLine, err, exc_info=True)
