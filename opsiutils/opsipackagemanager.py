@@ -986,7 +986,8 @@ class OpsiPackageManager:
 
 			subject.setMessage(_("Starting upload"))
 			try:
-				if self.config["deltaUpload"] and oldPackages:
+				# Do not use delta upload for local depot, because full upload is faster
+				if self.config["deltaUpload"] and oldPackages and depotId != self.config["localDepotId"]:
 					deltaFile = None
 					try:
 						oldPackage = oldPackages[0]
@@ -1805,7 +1806,7 @@ class OpsiPackageManagerControl:
 		assert self.service_client
 		depotIds = forceStringList(self.config["depotIds"])
 		productOnDepots = self.service_client.jsonrpc(
-			"productOnDepot_getObjects", [[], {"depotId": depotIds, "productId": self.config["productIds"]}]
+			"productOnDepot_getObjects", [[], {"depotId": depotIds, "productId": self.config["productIds"]}]depotId
 		)
 
 		productIds = set()
