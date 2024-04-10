@@ -121,7 +121,7 @@ obs_ext:
     - tar -xvf opsi-dev-tools.tar.gz
     - mv opsi-dev-tool opsi-dev-cli
     - ./opsi-dev-cli -l info packaging obs update-package https://build.opensuse.org home:uibmz:opsi:4.3:development
-    - ./opsi-dev-tool -l info changelog from-git output/
+    - ./opsi-dev-cli -l info changelog from-git output/
     - ./opsi-dev-cli release-service register-package-version opsi-utils SERVER_PACKAGE --changelog-file output/changelog.md
     - ./opsi-dev-cli release-service push-repository-state opsi-utils SERVER_PACKAGE SERVER_PACKAGE-4.3-development
   rules:
