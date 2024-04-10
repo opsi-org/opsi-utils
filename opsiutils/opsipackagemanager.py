@@ -1806,7 +1806,7 @@ class OpsiPackageManagerControl:
 		assert self.service_client
 		depotIds = forceStringList(self.config["depotIds"])
 		productOnDepots = self.service_client.jsonrpc(
-			"productOnDepot_getObjects", [[], {"depotId": depotIds, "productId": self.config["productIds"]}]depotId
+			"productOnDepot_getObjects", [[], {"depotId": depotIds, "productId": self.config["productIds"]}]
 		)
 
 		productIds = set()
