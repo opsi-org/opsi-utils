@@ -119,11 +119,11 @@ def package_updater_class() -> Generator[type[OpsiPackageUpdater], None, None]:
 		yield cls
 
 
-def write_repo_conf(repo_conf: Path, base_url: str, proxy: str = "", dirs: str = "/") -> None:
+def write_repo_conf(repo_conf: Path, base_url: str, proxy: str = "", dirs: str = "/", excludes: list[str] | None = None) -> None:
 	repo_conf.write_text(
 		data=(
 			f"[repository_test]\nactive = true\nbaseUrl = {base_url}\ndirs = {dirs}\nproxy = {proxy}\n"
-			"autoInstall = true\nusername = user\npassword = pass\n"
+			f"autoInstall = true\nusername = user\npassword = pass\nexcludes={', '.join(excludes) if excludes else ''}\n"
 		),
 		encoding="utf-8",
 	)
@@ -159,7 +159,11 @@ def prepare_updater(base_dir: Path, copy_files: bool = True) -> UpdaterInfo:
 	)
 
 
-def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpdater]) -> None:  # pylint: disable=redefined-outer-name
+@pytest.mark.parametrize(
+	"excludes",
+	(None, ["hwaudit"], ["opsi-client-agent", "opsi-configed", "hwaudit"]),
+)
+def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], excludes: list[str] | None) -> None:  # pylint: disable=redefined-outer-name
 	updater_info = prepare_updater(tmp_path, copy_files=False)
 
 	server_package_file = updater_info.server_dir / "hwaudit_4.2.0.0-1.opsi"
@@ -172,7 +176,7 @@ def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpd
 
 	with http_test_server(serve_directory=updater_info.server_dir, log_file=str(updater_info.server_log)) as server:
 		base_url = f"http://localhost:{server.port}"
-		write_repo_conf(updater_info.test_repo_conf, base_url)
+		write_repo_conf(updater_info.test_repo_conf, base_url, excludes=excludes)
 		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
 
 		available_packages = package_updater.getDownloadablePackages()
@@ -181,6 +185,7 @@ def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpd
 			if available_package["productId"] == "hwaudit":
 				package = available_package
 				break
+
 		assert package is not None
 
 		assert package["version"] == "4.2.0.0-1"
@@ -189,11 +194,14 @@ def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpd
 		assert package["zsyncFile"] == f"{base_url}/{zsync_file.name}"
 
 		new_packages = package_updater.get_packages(DummyNotifier())  # type: ignore[no-untyped-call]
-		assert len(new_packages) == 1
-		for filename in ("hwaudit_4.2.0.0-1.opsi", "hwaudit_4.2.0.0-1.opsi.md5", "hwaudit_4.2.0.0-1.opsi.zsync"):
-			assert (updater_info.local_dir / filename).exists()
-			# set_rights only works as intended if running on opsi servers
-			# assert (updater_info.local_dir / filename).stat().st_uid != 0
+		if excludes:
+			assert not new_packages
+		else:
+			assert len(new_packages) == 1
+			for filename in ("hwaudit_4.2.0.0-1.opsi", "hwaudit_4.2.0.0-1.opsi.md5", "hwaudit_4.2.0.0-1.opsi.zsync"):
+				assert (updater_info.local_dir / filename).exists()
+				# set_rights only works as intended if running on opsi servers
+				# assert (updater_info.local_dir / filename).stat().st_uid != 0
 
 
 @pytest.mark.parametrize(

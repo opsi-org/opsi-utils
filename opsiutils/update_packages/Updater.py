@@ -198,10 +198,35 @@ class OpsiPackageUpdater:
 			self.depotBackend = get_service_client(address=self.depotServiceUrl)
 		return self.depotBackend
 
+	def filterPackages(
+		self, packages: list[dict[str, str | ProductRepositoryInfo | None]]
+	) -> list[dict[str, str | ProductRepositoryInfo | None]]:
+		filteredPackages: list[dict[str, str | ProductRepositoryInfo | None]] = []
+		for package in packages:
+			repository = package["repository"]
+			assert isinstance(repository, ProductRepositoryInfo)
+
+			if repository.includes:
+				if not any(include.search(package["productId"]) for include in repository.includes):
+					logger.info(
+						"Package '%s' is not included. Please check your includeProductIds-entry in configurationfile.",
+						package["productId"],
+					)
+					continue
+
+			if any(exclude.search(package["productId"]) for exclude in repository.excludes):
+				logger.info("Package '%s' excluded by regular expression", package["productId"])
+				continue
+
+			filteredPackages.append(package)
+
+		return filteredPackages
+
 	def get_new_packages_per_repository(
 		self,
 	) -> dict[ProductRepositoryInfo, list[dict[str, str | ProductRepositoryInfo | None]]]:
 		downloadablePackages = self.getDownloadablePackages()
+		downloadablePackages = self.filterPackages(downloadablePackages)
 		downloadablePackages = self.onlyNewestPackages(downloadablePackages)
 		downloadablePackages = self._filterProducts(downloadablePackages)
 		result: dict[ProductRepositoryInfo, list[dict[str, str | ProductRepositoryInfo | None]]] = {}
@@ -1254,18 +1279,6 @@ class OpsiPackageUpdater:
 							rlink = link[len(path) :].lstrip("/")
 							logger.info("Absolute link: '%s', relative link: '%s'", link, rlink)
 							link = rlink
-
-						if repository.includes:
-							if not any(include.search(link) for include in repository.includes):
-								logger.info(
-									"Package '%s' is not included. Please check your includeProductIds-entry in configurationfile.",
-									link,
-								)
-								continue
-
-						if any(exclude.search(link) for exclude in repository.excludes):
-							logger.info("Package '%s' excluded by regular expression", link)
-							continue
 
 						try:
 							productId, version = parseFilename(link)
