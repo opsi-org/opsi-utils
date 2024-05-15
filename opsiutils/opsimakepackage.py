@@ -217,7 +217,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
 		default=False,
 		help="Only package custom files and add custom name to base package.",
 	)
-	parser.add_argument("--temp-directory", "-t", dest="tempDir", help="temp dir", default="/tmp", metavar="directory")
+	parser.add_argument("--temp-directory", "-t", dest="tempDir", help="temp dir", default=None, metavar="directory")
 	parser.add_argument("--control-to-toml", action="store_true", default=False, help="Convert control file to toml format")
 	hashSumGroup = parser.add_mutually_exclusive_group()
 	hashSumGroup.add_argument(
@@ -300,7 +300,7 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 	logLevel = args.logLevel
 	compression = args.compression
 	quiet = args.quiet
-	tempDir = Path(forceFilename(args.tempDir))
+	tempDir = Path(forceFilename(args.tempDir)) if args.tempDir else None
 	packageSourceDir = args.packageSourceDir
 
 	if args.no_compression:
