@@ -357,7 +357,7 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 	archive = destination_dir / opsi_package.package_archive_name()
 	if customName:
 		archive = archive.parent / f"{archive.stem}~{customName}.opsi"
-	lockPackage(tempDir, opsi_package)
+	lockPackage(Path("/tmp"), opsi_package)
 	try:
 		while True:
 			if not quiet:
@@ -527,7 +527,7 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 	finally:
 		if not quiet:
 			print(_("Unlocking package"))
-		unlockPackage(tempDir, opsi_package)
+		unlockPackage(Path("/tmp"), opsi_package)
 		if not quiet:
 			print("")
 
