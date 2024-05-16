@@ -12,7 +12,7 @@ from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlag
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import logger, secret_filter
 
-__version__ = "4.3.2.9"
+__version__ = "4.3.4.1"
 
 SESSION_LIFETIME = 15
 OPSICONFD_CONF = "/etc/opsi/opsiconfd.conf"
