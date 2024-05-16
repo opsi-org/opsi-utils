@@ -64,11 +64,9 @@ pyinstaller-poetry:
     dpkg -l python3-newt >/dev/null 2>&1 || apt -y install python3-newt
     pyver1=$(ls -ld .venv/lib/python* | sed s'/.*python//')
     pyver2=$(echo $pyver1 | sed s'/\.//')
-    if [ -f /usr/lib/python3/dist-packages/_snack.cpython-*-aarch64-linux-gnu.so ]; then
+    src=$(ls /usr/lib/python3/dist-packages/_snack.cpython-*-x86_64-linux-gnu.so | head -n1)
+    if [ -z "$src" ]; then
       src=$(ls /usr/lib/python3/dist-packages/_snack.cpython-*-aarch64-linux-gnu.so | head -n1);
-    fi
-    if [ -f /usr/lib/python3/dist-packages/_snack.cpython-*-x86_64-linux-gnu.so ]; then
-      src=$(ls /usr/lib/python3/dist-packages/_snack.cpython-*-x86_64-linux-gnu.so | head -n1)
     fi
     dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}/g")
     cp $src $dst
