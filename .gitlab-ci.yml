@@ -79,10 +79,11 @@ linux-arm64-pyinstaller:
 
 integration_test:
   services:
-    - name: mysql:latest
+    - name: mysql:8.3
       command:
         - --max_connections=1000
-        - --mysql-native-password=ON
+        # - --mysql-native-password=ON
+        - --default-authentication-plugin=mysql_native_password
     - name: redislabs/redistimeseries:latest
       alias: redis
   variables:
