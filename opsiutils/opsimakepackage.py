@@ -471,27 +471,20 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 				progressSubject.attachObserver(ProgressNotifier())
 				print(_("Creating package file '%s'") % archive)
 			base_dir = Path(packageSourceDir)
-			use_dirs = [base_dir / "CLIENT_DATA", base_dir / "SERVER_DATA", base_dir / "OPSI"]
 			if customName:
-				found = False
-				for _dir in use_dirs.copy():
-					if (base_dir / f"{_dir.name}.{customName}").exists():
-						if customOnly:
-							use_dirs.remove(_dir)
-						use_dirs.append(base_dir / f"{_dir.name}.{customName}")
-						found = True
-				if not found:
-					raise RuntimeError(f"No custom dirs found for '{customName}'")
-				logger.info("Packing directories: %s", use_dirs)
 				with tempfile.TemporaryDirectory(dir=Path()) as local_tmp_dir:
 					created_archive = opsi_package.create_package_archive(
-						base_dir, compression=compression, dereference=args.dereference, use_dirs=use_dirs, destination=Path(local_tmp_dir)
+						base_dir,
+						compression=compression,
+						dereference=args.dereference,
+						custom_name=customName,
+						custom_only=bool(customOnly),
+						destination=Path(local_tmp_dir),
 					)
 					created_archive.rename(archive)
 			else:
-				created_archive = opsi_package.create_package_archive(
-					base_dir, compression=compression, dereference=args.dereference, use_dirs=use_dirs
-				)
+				created_archive = opsi_package.create_package_archive(base_dir, compression=compression, dereference=args.dereference)
+
 			if not args.no_set_rights:
 				try:
 					set_rights(archive)
