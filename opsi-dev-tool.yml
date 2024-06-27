@@ -160,6 +160,6 @@ pull-binaries:
     destination: .
     extract: true
     post-script:
-      - mv opsi-cli-linux.run opsi-cli
-    version: 4.3.6.0
+      - mv opsi-cli-linux-*.run opsi-cli
+    version: 4.3.6.1
     server-url: http://binaryindex.uib.gmbh
