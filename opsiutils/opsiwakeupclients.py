@@ -5,6 +5,7 @@
 """
 opsi-wakeup-clients - wakeup clients for deployment tasks
 """
+
 from __future__ import annotations
 
 import argparse
