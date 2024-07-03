@@ -43,7 +43,6 @@ def getUpdatablePackages(updater: OpsiPackageUpdater) -> dict[str, dict[str, str
 
 		for repository in sort_repository_list(list(pack_per_repo)):
 			for availablePackage in pack_per_repo[repository]:
-				repository = availablePackage["repository"]
 				assert isinstance(repository, ProductRepositoryInfo)
 				productId = str(availablePackage["productId"])
 				for product in installedProducts:
