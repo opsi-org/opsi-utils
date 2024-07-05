@@ -117,35 +117,35 @@ if not inEncoding or (inEncoding == "ascii"):
 	inEncoding = outEncoding
 
 UNCOLORED_LOGO = f"""\
-                                   .:.:::::.
-                                   ;      ::
-                                   ;      ;.
-                                   -:....::
-                                     . --
-                                  ;:........
-                                     -----  -
-                                      ..
-                                     .||.
-                                  .._|||=_..
-                               _=||++~~-~++||=,
-                            _=|>~-           ~+|;.
-                          .=|+-  _; ____=___.   +|;
-                         .||-. .=i`++++++++||=   -|=.
-           . ....        ||`. ..|>         =|+    -|=        . ....
-          = -----:.     =|; ...:|= . .   . ||;     =|;      ; -- --::
-         .:      ;.   ._||`.. . || . . .  .|+`     .||_,    =      :.
-          ;.    ::  -<||+|.. ...:|;__...._=|=  . . .||+|+-  ;.    .;
-          --::::-      -+|;.. . .-+||||||||+ .  .  :|;-      --:;::
-        ..              -|+ ... ...  --- .  . .. ..||     .. .
-         -:::::;:: .     =|=.._=;___:...:.:.____. =|`      --:;:;;::..
-                          ~||,-~+||||||||||||>~ _||`
-                           -=|=_...---~~-~--  _=i:
-                             -~||=__:.-..:__|||~ .
-                                -~+++||||++~--
-          opsi-admin {__version__}
+                       -++      =+-
+                       :##+:==:*##-
+                       .+########=.
+           ....       .##*=:  :=*##:       ...
+       .=*######*+-.  .##=      -##:  .-=*######*=.
+     .+##*=-:::-+####+=##=      -##=+####*=-::-=*##+.
+    .###-         .-+*###*=:  :-*####+-:         -###.
+    *##-              .-=#######*+-.              :##*
+    ###.             .-=*###*=-.  .:.              ###
+    *##:         .-+*###*=:     :+###*+-.         =##+
+    :###:      +####+-:            :=+###*=     .=##*
+     .*##*-:   ###.                    -##*  -+*###=
+       :+*##-  ###                     .##*  +*+=:
+           ..  ###                     .##*
+               ###                     .##*
+               ###                     .##*
+               ###                     .##*
+               ###:                    -##*
+               =*###+-.            .-+###*-
+                 .-+###*=.      :=*###+-.
+                     :=*###+--+###*=:
+                        .-*####*-.
+                           *##*.
+                            **.
+
+      opsi-admin {__version__}
 """.split("\n")
 
-LOGO = [{"color": COLOR_CYAN, "text": line} for line in UNCOLORED_LOGO]
+LOGO = [{"color": COLOR_MAGENTA, "text": line} for line in UNCOLORED_LOGO]
 
 try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -667,6 +667,8 @@ class Shell:
 					color = curses.A_BOLD
 				elif color == COLOR_YELLOW:
 					color = curses.color_pair(3)
+				elif color == COLOR_MAGENTA:
+					color = curses.color_pair(4)
 				elif color == COLOR_LIGHT_RED:
 					color = curses.color_pair(4)
 				elif color == COLOR_RED:
@@ -695,6 +697,8 @@ class Shell:
 				color = COLOR_GREEN
 			elif line.startswith(COLOR_CYAN):
 				color = COLOR_CYAN
+			elif line.startswith(COLOR_MAGENTA):
+				color = COLOR_MAGENTA
 			elif line.startswith(COLOR_LIGHT_WHITE):
 				color = COLOR_LIGHT_WHITE
 			elif line.startswith(COLOR_YELLOW):

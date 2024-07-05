@@ -13,7 +13,6 @@ from .Exceptions import NoActiveRepositoryError
 from .Repository import ProductRepositoryInfo, sort_repository_list
 from .Updater import OpsiPackageUpdater
 
-
 __all__ = ("getUpdatablePackages",)
 
 logger = get_logger("opsi.general")
