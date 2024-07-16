@@ -4,14 +4,13 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "opsi-utils"
-version = "4.3.6.1"
+version = "4.3.6.2"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
 maintainers = [ "uib GmbH <info@uib.de>",]
 authors = [ "uib GmbH <info@uib.de>",]
 include = [ "opsi-utils_data/**/*",]
-
 [[tool.poetry.packages]]
 include = "opsiutils"
 
@@ -23,6 +22,9 @@ priority = "primary"
 [[tool.poetry.source]]
 name = "PyPI"
 priority = "supplemental"
+
+[tool.ruff]
+line-length = 140
 
 [tool.poetry.scripts]
 opsi-admin = "opsiutils.opsiadmin:main"
@@ -37,12 +39,6 @@ opsi-python = "opsiutils.opsipython:main"
 opsi-wakeup-clients = "opsiutils.opsiwakeupclients:main"
 opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
 
-[tool.ruff]
-line-length = 140
-
-[tool.ruff.format]
-indent-style = "tab"
-
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
 python-opsi = ">=4.3,<4.4"
@@ -54,6 +50,9 @@ mysqlclient = ">=2.0,<2.2"
 paramiko = "^3.2"
 pydantic-core = "^2.18"
 pyzsync = "^1.2"
+
+[tool.ruff.format]
+indent-style = "tab"
 
 [tool.poetry.dependencies.distro]
 platform = "linux"
