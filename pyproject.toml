@@ -11,6 +11,7 @@ license = "AGPL-3.0"
 maintainers = [ "uib GmbH <info@uib.de>",]
 authors = [ "uib GmbH <info@uib.de>",]
 include = [ "opsi-utils_data/**/*",]
+
 [[tool.poetry.packages]]
 include = "opsiutils"
 
@@ -47,12 +48,12 @@ python = ">=3.11,<3.12"
 python-opsi = ">=4.3,<4.4"
 python-opsi-common = ">=4.3,<4.4"
 python-magic = "^0.4"
+annotated-types = "^0.7"
+configupdater = "^3.1"
 mysqlclient = ">=2.0,<2.2"
 paramiko = "^3.2"
-pyzsync = "^1.2"
-configupdater = "^3.1"
-annotated-types = "^0.6"
 pydantic-core = "^2.18"
+pyzsync = "^1.2"
 
 [tool.poetry.dependencies.distro]
 platform = "linux"
@@ -60,7 +61,7 @@ version = "^1.5"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.0"
+pyinstaller = "^6.5"
 pytest = "^8.1"
 pytest-cov = "^5.0"
-pyinstaller = "^6.5"
-ruff = "^0.4"
+ruff = "^0.5"
