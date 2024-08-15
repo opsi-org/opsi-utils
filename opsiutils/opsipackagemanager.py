@@ -1351,7 +1351,6 @@ class OpsiPackageManager:
 				)
 
 			else:
-				set_product_cache_outdated(depotId, self.service_client)
 				logger.notice("Installation of package '%s' on depot '%s' successful", depotPackageFile, depotId)
 				subject.setMessage(_("Installation of package %s successful") % packageFile, severity=4)
 
@@ -1493,8 +1492,6 @@ class OpsiPackageManager:
 			depotConnection.depot_uninstallPackage(  # type: ignore[attr-defined]
 				productId, force=self.config["forceUninstall"], deleteFiles=self.config["deleteFilesOnUninstall"]
 			)
-
-			set_product_cache_outdated(depotId, self.service_client)
 
 			logger.notice("Uninstall of package '%s' on depot '%s' finished", productId, depotId)
 			subject.setMessage(_("Uninstallation of package {0} successful").format(productId), severity=4)
@@ -2111,9 +2108,3 @@ def main() -> None:
 		logger.error(err, exc_info=True)
 		print(f"\nERROR: {err}\n", file=sys.stderr)
 		sys.exit(1)
-
-
-def set_product_cache_outdated(depotId: str, service_client: ServiceClient) -> None:
-	logger.debug("mark redis product cache as dirty for depot: %s", depotId)
-	config_id = f"opsiconfd.{depotId}.product.cache.outdated"
-	service_client.jsonrpc("config_createBool", [config_id, "", [True]])
