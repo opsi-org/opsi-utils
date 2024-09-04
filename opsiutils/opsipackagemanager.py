@@ -837,7 +837,8 @@ class OpsiPackageManager:
 			subject = self.getDepotSubject(depotId)
 			subject.setMessage(_("Purging product property states for product %s") % productId)
 			depotClientIds = [
-				clientToDepot.clientId for clientToDepot in self.service_client.jsonrpc("configState_getClientToDepotserver", [[depotId]])
+				clientToDepot["clientId"]
+				for clientToDepot in self.service_client.jsonrpc("configState_getClientToDepotserver", [[depotId]])
 			]
 
 			if not depotClientIds:
