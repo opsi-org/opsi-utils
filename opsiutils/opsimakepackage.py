@@ -354,9 +354,7 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 		opsi_package.generate_control_file(packageControlFilePath)
 
 	destination_dir = Path.cwd()
-	archive = destination_dir / opsi_package.package_archive_name()
-	if customName:
-		archive = archive.parent / f"{archive.stem}~{customName}.opsi"
+	archive = destination_dir / opsi_package.package_archive_name(customName)
 	lockPackage(Path("/tmp"), opsi_package)
 	try:
 		while True:
@@ -447,9 +445,7 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 						except Exception:
 							print(_("Bad package version: %s") % newVersion)
 
-				archive = destination_dir / opsi_package.package_archive_name()
-				if customName:
-					archive = archive.parent / f"{archive.stem}~{customName}.opsi"
+				archive = destination_dir / opsi_package.package_archive_name(customName)
 				if archive.exists():
 					continue
 
