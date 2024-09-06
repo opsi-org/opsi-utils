@@ -41,7 +41,7 @@ from OPSI.Util.Message import (  # type: ignore[import]
 	SubjectsObserver,
 )
 from OPSI.Util.Repository import getRepository  # type: ignore[import]
-from opsicommon.client.opsiservice import ServiceClient
+from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
@@ -63,7 +63,7 @@ from opsicommon.types import (
 	forceUnicode,
 )
 
-from opsiutils import __version__, get_service_client
+from opsiutils import __version__
 
 try:
 	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
@@ -694,6 +694,7 @@ class OpsiPackageManager:
 				password=depot.opsiHostKey,
 				user_agent=USER_AGENT,
 				client_cert_auth=True,
+				session_lifetime=30,
 			)
 			self.depotConnections[depotId] = connection
 
@@ -1585,7 +1586,7 @@ class OpsiPackageManagerControl:
 
 		self.service_client = None
 		if need_opsi_server:
-			self.service_client = get_service_client(user_agent=USER_AGENT)
+			self.service_client = get_service_client(user_agent=USER_AGENT, session_lifetime=30)
 
 			try:
 				if not self.config["depotIds"]:

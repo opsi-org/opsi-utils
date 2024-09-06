@@ -45,7 +45,7 @@ from OPSI.Util import (  # type: ignore[import]
 	toJson,
 )
 from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc  # type: ignore[import]
-from opsicommon.client.opsiservice import ServiceClient
+from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
 from opsicommon.config import OpsiConfig
 from opsicommon.exceptions import OpsiRpcError
 from opsicommon.logging import (
@@ -60,7 +60,7 @@ from opsicommon.logging import (
 )
 from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 
-from opsiutils import __version__, get_service_client
+from opsiutils import __version__
 
 COLOR_NORMAL = "\033[0;0;0m"
 COLOR_BLACK = "\033[0;30;40m"
@@ -342,8 +342,9 @@ def shell_main() -> None:
 			username=username,
 			password=password,
 			session_cookie=session_cookie,
-			no_check_certificate=options.no_check_certificate,
-			client_cert_auth=username == opsiconf.get("host", "id"),
+			verify=ServiceVerificationFlags.ACCEPT_ALL if options.no_check_certificate else ServiceVerificationFlags.STRICT_CHECK,
+			user_agent=f"opsi-admin/{__version__}",
+			session_lifetime=30,
 		)
 
 		session_cookie = service_client.session_cookie
@@ -550,7 +551,7 @@ class Shell:
 			curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
 			curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
 			curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-			curses.init_pair(4, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+			curses.init_pair(4, 198, curses.COLOR_BLACK)
 			curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
 
 	def exitScreen(self) -> None:

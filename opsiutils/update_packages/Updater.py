@@ -24,7 +24,7 @@ from urllib.parse import quote, urlparse
 from cryptography import x509
 from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[import]
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
-from opsicommon.client.opsiservice import ServiceClient
+from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config.opsi import OpsiConfig
 from opsicommon.logging import get_logger, secret_filter
 from opsicommon.objects import NetbootProduct, Product, ProductOnClient, ProductOnDepot
@@ -48,7 +48,6 @@ from pyzsync import (
 from requests import Response, Session  # type: ignore[import]
 from requests.packages import urllib3  # type: ignore[import,attr-defined]
 
-from opsiutils import get_service_client
 from opsiutils.update_packages.Config import DEFAULT_USER_AGENT, ConfigurationParser
 from opsiutils.update_packages.Notifier import (
 	BaseNotifier,
@@ -182,7 +181,10 @@ class OpsiPackageUpdater:
 
 	def getConfigBackend(self) -> ServiceClient:
 		if not self.configBackend:
-			self.configBackend = get_service_client(proxy_url=str(self.config["proxy"] or ""))
+			self.configBackend = get_service_client(
+				proxy_url=str(self.config["proxy"] or ""),
+				session_lifetime=30,
+			)
 			try:
 				ca_crt = x509.load_pem_x509_certificate(data=self.configBackend.getOpsiCACert().encode("utf-8"))  # type: ignore[attr-defined]
 				install_ca(ca_crt)
@@ -195,7 +197,10 @@ class OpsiPackageUpdater:
 			return self.getConfigBackend()
 
 		if not self.depotBackend:
-			self.depotBackend = get_service_client(address=self.depotServiceUrl)
+			self.depotBackend = get_service_client(
+				address=self.depotServiceUrl,
+				session_lifetime=30,
+			)
 		return self.depotBackend
 
 	def filterPackages(

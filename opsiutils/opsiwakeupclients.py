@@ -23,7 +23,7 @@ from typing import Generator
 from OPSI import __version__ as python_opsi_version  # type: ignore[import]
 from OPSI.Util.Ping import ping  # type: ignore[import]
 from opsicommon.client.jsonrpc import JSONRPCClient
-from opsicommon.client.opsiservice import ServiceClient
+from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_ERROR,
@@ -32,7 +32,7 @@ from opsicommon.logging import (
 	logging_config,
 )
 
-from opsiutils import __version__, get_service_client
+from opsiutils import __version__
 
 logger = get_logger("")
 try:
@@ -545,7 +545,7 @@ def opsiwakeupclients_main() -> None:
 		init_logging(log_file=options.logFile, file_level=options.fileLogLevel)
 
 	try:
-		service_client = get_service_client(user_agent=f"opsi-wakeup-clients/{__version__}")
+		service_client = get_service_client(user_agent=f"opsi-wakeup-clients/{__version__}", session_lifetime=30)
 		wakeClientsForUpdate(
 			service_client,
 			options.depotId,

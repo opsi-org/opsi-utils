@@ -42,7 +42,7 @@ opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
 python-opsi = ">=4.3,<4.4"
-python-opsi-common = ">=4.3,<4.4"
+python-opsi-common = ">=4.3.19.2,<4.4"
 python-magic = "^0.4"
 annotated-types = "^0.7"
 configupdater = "^3.1"
