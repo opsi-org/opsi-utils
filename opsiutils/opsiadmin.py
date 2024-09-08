@@ -105,6 +105,7 @@ exitZero = False
 global_shell: Shell | None = None
 logFile: str | None = None
 interactive = False
+opsiconf = OpsiConfig()
 
 outEncoding = sys.stdout.encoding
 inEncoding = sys.stdin.encoding
@@ -207,8 +208,8 @@ def shell_main() -> None:
 	parser.add_argument(
 		"--address",
 		"-a",
-		default="https://localhost:4447/rpc",
-		help=_("URL of opsiconfd (default: https://localhost:4447/rpc)"),
+		default=opsiconf.get("service", "url"),
+		help=_("URL of opsiconfd (default: %s)") % opsiconf.get("service", "url"),
 	)
 	parser.add_argument(
 		"--no-check-certificate",
@@ -289,7 +290,6 @@ def shell_main() -> None:
 		# Reading opsirc file.
 		# We should always prefer the settings from the commandline
 		opsircConfig = readOpsirc(options.opsirc)
-		opsiconf = OpsiConfig()
 		username = options.username or opsircConfig.get("username") or opsiconf.get("host", "id")
 		password = options.password or opsircConfig.get("password")
 		address = options.address or opsircConfig.get("address") or opsiconf.get("service", "url")
