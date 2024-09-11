@@ -93,14 +93,31 @@ proxy =
 """
 
 
+class InstallLog:
+	def __init__(self) -> None:
+		self.installed: list[str] = []
+
+	def append(self, filename: str) -> None:
+		self.installed.append(filename)
+
+
+install_log = InstallLog()
+
+
 class FakeService:
-	def host_getObjects(self, **kwargs: Any) -> list[OpsiDepotserver]:  # pylint: disable=invalid-name,unused-argument
+	def host_getObjects(self, **kwargs: Any) -> list[OpsiDepotserver]:
 		depot = OpsiDepotserver(id="depot.opsi.org")
 		depot.setDefaults()
 		return [depot]
 
-	def productOnDepot_getObjects(self, **kwargs: Any) -> list:  # pylint: disable=invalid-name,unused-argument
+	def productOnDepot_getObjects(self, **kwargs: Any) -> list:
 		return []
+
+	def productPropertyState_getObjects(self, **kwargs: Any) -> list:
+		return []
+
+	def depot_installPackage(self, **kwargs: Any) -> None:
+		install_log.append(kwargs["filename"])
 
 
 @dataclass
@@ -115,7 +132,10 @@ class UpdaterInfo:
 @pytest.fixture
 def package_updater_class() -> Generator[type[OpsiPackageUpdater], None, None]:
 	cls = OpsiPackageUpdater
-	with mock.patch.object(cls, "getConfigBackend", return_value=FakeService()):
+	with (
+		mock.patch.object(cls, "getConfigBackend", return_value=FakeService()),
+		mock.patch.object(cls, "getDepotBackend", return_value=FakeService()),
+	):
 		yield cls
 
 
@@ -129,7 +149,7 @@ def write_repo_conf(repo_conf: Path, base_url: str, proxy: str = "", dirs: str =
 	)
 
 
-def prepare_updater(base_dir: Path, copy_files: bool = True) -> UpdaterInfo:
+def prepare_updater(base_dir: Path, copy_files: bool = True, ignore_errors: bool = False) -> UpdaterInfo:
 	"""returns tuple of test_repo_conf and server_log"""
 	config_file = base_dir / "empty.conf"
 	config_file.touch()
@@ -146,6 +166,7 @@ def prepare_updater(base_dir: Path, copy_files: bool = True) -> UpdaterInfo:
 	config = DEFAULT_CONFIG.copy()
 	config["configFile"] = str(config_file)
 	config["packageDir"] = str(local_dir)
+	config["ignoreErrors"] = ignore_errors
 
 	config_file.write_text(
 		data=("[general]\n" f"packageDir = {str(local_dir)}\n" f"repositoryConfigDir = {str(repo_conf_path)}\n"), encoding="utf-8"
@@ -369,3 +390,22 @@ def test_patch_repo_files(tmp_path: Path, source: str, name: str, correct_result
 	for line in result.splitlines():
 		assert line.strip() in correct_result
 	assert "; This is a testcomment" in result.splitlines()
+
+
+def test_process_updates(tmp_path: Path, package_updater_class: type[OpsiPackageUpdater]) -> None:
+	updater_info = prepare_updater(tmp_path, ignore_errors=True)
+
+	rmpc = RepoMetaPackageCollection()
+	rmpc.scan_packages(updater_info.server_dir)
+	rmpc.write_metafile(updater_info.server_dir / "packages.json")
+
+	with http_test_server(serve_directory=updater_info.server_dir, log_file=str(updater_info.server_log)) as server:
+		base_url = f"http://localhost:{server.port}"
+		write_repo_conf(updater_info.test_repo_conf, base_url)
+
+		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
+		install_log.installed = []
+		package_updater.processUpdates()
+		assert len(install_log.installed) == 2
+		for entry in install_log.installed:
+			assert entry.endswith("localboot_new_42.0-1337.opsi") or entry.endswith("test-netboot_1.0-2.opsi")
