@@ -273,12 +273,7 @@ class OpsiPackageUpdater:
 				dpos = sequence.index(dependency)
 				logger.debug("Dependency %s has index %s", dependency, dpos)
 			except ValueError:
-				logger.error(
-					"Dependency %s of package %s not in sequence. Adding it.",
-					dependency,
-					productId,
-				)
-				sequence.insert(ppos, dependency)
+				logger.warning("Dependency %s of package %s not in sequence.", dependency, productId)
 			if ppos < dpos:
 				sequence.remove(dependency)
 				sequence.insert(ppos, dependency)
