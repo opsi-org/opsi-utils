@@ -272,11 +272,12 @@ class OpsiPackageUpdater:
 			try:
 				dpos = sequence.index(dependency)
 				logger.debug("Dependency %s has index %s", dependency, dpos)
+				if ppos < dpos:
+					sequence.remove(dependency)
+					sequence.insert(ppos, dependency)
+					logger.debug("Changing order of packages to fulfill dependency requirement")
 			except ValueError:
 				logger.warning("Dependency %s of package %s not in sequence.", dependency, productId)
-			if ppos < dpos:
-				sequence.remove(dependency)
-				sequence.insert(ppos, dependency)
 		except Exception as err:
 			logger.debug(
 				"While processing package '%s', product_dependency '%s': %s",
