@@ -22,7 +22,7 @@ from typing import Generator
 
 from OPSI import __version__ as python_opsi_version  # type: ignore[import]
 from OPSI.Util.Ping import ping  # type: ignore[import]
-from opsicommon.client.jsonrpc import JSONRPCClient
+from opsicommon.client.jsonrpc import JSONRPCClient  # TODO: replace by wrapper around opsi-cli client-action ...
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
