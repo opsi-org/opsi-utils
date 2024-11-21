@@ -31,7 +31,7 @@ def main() -> None:
 		return _main()
 	if name == "opsiconvert":
 		raise RuntimeError(
-			"opsiconvert not available with opsi 4.3. You can use `opsi-setup --file-to-mysql` to convert from FILE to MySQL backend."
+			"opsiconvert not available with opsi >=4.3. You can use `opsi-setup --file-to-mysql` to convert from FILE to MySQL backend."
 		)
 	if name == "opsimakepackage":
 		from opsiutils.opsimakepackage import main as _main

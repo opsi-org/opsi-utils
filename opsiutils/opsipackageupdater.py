@@ -332,7 +332,7 @@ def parse_args() -> argparse.Namespace:
 	return parser.parse_args()
 
 
-def patch_repo_files(base_path: Path) -> None:
+def patch_repo_files(base_path: Path) -> None:  # TODO: adapt for 4.4
 	"""
 	Patches the repo files to point to 4.3 repositories.
 	Old format example:
