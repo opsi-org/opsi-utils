@@ -22,7 +22,6 @@ from typing import Generator
 
 from OPSI import __version__ as python_opsi_version  # type: ignore[import]
 from OPSI.Util.Ping import ping  # type: ignore[import]
-from opsicommon.client.jsonrpc import JSONRPCClient  # TODO: replace by wrapper around opsi-cli client-action ...
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
@@ -343,7 +342,7 @@ class ClientMonitoringThread(threading.Thread):
 		threading.Thread.__init__(self)
 
 		self.service_client = service_client
-		self.opsiclientdbackend: JSONRPCClient | None = None
+		self.opsiclientdbackend: ServiceClient | None = None
 		self.clientId = clientId
 		self.hostKey = None
 
@@ -432,6 +431,7 @@ class ClientMonitoringThread(threading.Thread):
 			while not timeout_event.wait(start_timeout or retryTimeout):
 				start_timeout = 0
 				try:
+					# IDEA: Check messagebus connection instead?
 					logger.debug("Trying to connect to opsi-client-agent on client '%s'", self.clientId)
 					sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 					sock.settimeout(5)
@@ -440,15 +440,13 @@ class ClientMonitoringThread(threading.Thread):
 					if res != 0:
 						raise RuntimeError(f"Port {port} unreachable")
 
-					backend = JSONRPCClient(
+					backend = ServiceClient(
 						address=address,
 						username=self.clientId,
 						password=password,
-						connectTimeout=self.connectTimeout,
-						socketTimeout=self.connectTimeout,
+						connect_timeout=self.connectTimeout,
+						jsonrpc_create_methods=True,
 					)
-					if not backend.session:
-						continue
 
 					self.opsiclientdbackend = backend
 					logger.notice("Connection to client '%s' established", self.clientId)
