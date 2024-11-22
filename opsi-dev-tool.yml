@@ -35,7 +35,6 @@ pyinstaller-poetry:
       - distro
       - OPSI.Logger
       # make packages available in opsi-python
-      - crypt
       - paramiko
     windows: []
     linux: []
