@@ -135,22 +135,15 @@ package:
     # Distribution specific workarounds
     if [[ "$dist" =~ "SUSE Linux Enterprise Server 15 SP1" ]]; then
       # /bin/sh: /usr/lib/opsi-utils/libreadline.so.7: no version information available (required by /bin/sh)
-      cp /lib64/libreadline.so.7 /usr/lib/opsi-utils/libreadline.so.7
+      cp /lib64/libreadline.so.7 /usr/lib/opsi-utils/_internal/libreadline.so.7
     fi
 
     # Use pam_unix.so from system
     # Authentication failure (auth_type=auth-module)...
     # ARM64: ubuntu: /usr/lib/aarch64-linux-gnu, debian: /lib/aarch64-linux-gnu
     for libdir in /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu /lib64  /usr/lib/aarch64-linux-gnu /lib/aarch64-linux-gnu; do
-      [ -e ${libdir}/libpam.so.0 ] && cp ${libdir}/libpam.so.0 /usr/lib/opsi-utils/libpam.so.0
+      [ -e ${libdir}/libpam.so.0 ] && cp ${libdir}/libpam.so.0 /usr/lib/opsi-utils/_internal/libpam.so.0
     done
-
-    # Patch opsi-package-updater repo files
-    [ -e /etc/opsi/package-updater.repos.d/uib-linux.repo ]       && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-linux.repo
-    [ -e /etc/opsi/package-updater.repos.d/uib-local_image.repo ] && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-local_image.repo
-    [ -e /etc/opsi/package-updater.repos.d/uib-windows.repo ]     && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-windows.repo
-    [ -e /etc/opsi/package-updater.repos.d/testing.repo ]         && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/testing.repo
-    [ -e /etc/opsi/package-updater.repos.d/experimental.repo ]    && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/experimental.repo
 
 # os and architecture omitted -> defaulting to current machines values
 pull-binaries:

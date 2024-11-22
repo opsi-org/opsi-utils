@@ -445,7 +445,6 @@ class ClientMonitoringThread(threading.Thread):
 						username=self.clientId,
 						password=password,
 						connect_timeout=self.connectTimeout,
-						jsonrpc_create_methods=True,
 					)
 
 					self.opsiclientdbackend = backend
@@ -458,7 +457,7 @@ class ClientMonitoringThread(threading.Thread):
 		if not self.opsiclientdbackend:
 			raise RuntimeError(f"Connection to client '{self.clientId}' failed")
 		logger.info("Triggering reboot on client '%s' with a delay of %s seconds", self.clientId, self.rebootTimeout)
-		self.opsiclientdbackend.reboot(str(self.rebootTimeout))  # type: ignore[attr-defined]
+		self.opsiclientdbackend.jsonrpc("reboot", [str(self.rebootTimeout)])
 
 	def triggerEvent(self) -> None:
 		"""
@@ -480,15 +479,15 @@ class ClientMonitoringThread(threading.Thread):
 				if runs % 3 == 0:
 					logger.debug("Triggering event '%s' on '%s'", self.eventName, self.clientId)
 					try:
-						self.opsiclientdbackend.fireEvent(self.eventName)  # type: ignore[attr-defined]
+						self.opsiclientdbackend.jsonrpc("fireEvent", [self.eventName])
 					except Exception as exc:
 						logger.debug("Failed to trigger event on '%s': %s", self.clientId, exc)
 
 				try:
-					if self.opsiclientdbackend.isEventRunning(self.eventName):  # type: ignore[attr-defined]
+					if self.opsiclientdbackend.jsonrpc("isEventRunning", [self.eventName]):
 						logger.notice("Event '%s' is running on '%s'", self.eventName, self.clientId)
 						break
-					if self.opsiclientdbackend.isEventRunning(self.eventName + "{user_logged_in}"):  # type: ignore[attr-defined]
+					if self.opsiclientdbackend.jsonrpc("isEventRunning", [self.eventName + "{user_logged_in}"]):
 						logger.notice("Event '%s' is running on '%s'", self.eventName + "{user_logged_in}", self.clientId)
 						break
 				except Exception as exc:
