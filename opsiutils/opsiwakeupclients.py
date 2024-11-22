@@ -22,7 +22,7 @@ from typing import Generator
 
 from OPSI import __version__ as python_opsi_version  # type: ignore[import]
 from OPSI.Util.Ping import ping  # type: ignore[import]
-from opsicommon.client.opsiservice import ServiceClient
+from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags
 from opsicommon.logging import (
 	DEFAULT_COLORED_FORMAT,
 	LOG_ERROR,
@@ -445,6 +445,7 @@ class ClientMonitoringThread(threading.Thread):
 						username=self.clientId,
 						password=password,
 						connect_timeout=self.connectTimeout,
+						verify=ServiceVerificationFlags.ACCEPT_ALL,
 					)
 
 					self.opsiclientdbackend = backend
