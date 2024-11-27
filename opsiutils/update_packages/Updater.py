@@ -272,7 +272,7 @@ class OpsiPackageUpdater:
 					sequence.insert(ppos, dependency)
 					logger.debug("Changing order of packages to fulfill dependency requirement")
 			except ValueError:
-				logger.warning("Dependency %s of package %s not in sequence.", dependency, productId)
+				logger.info("Dependency %s of package %s not in sequence.", dependency, productId)
 
 		except Exception as err:
 			logger.debug(
