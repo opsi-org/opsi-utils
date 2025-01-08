@@ -158,13 +158,6 @@ package:
       [ -e ${libdir}/libpam.so.0 ] && cp ${libdir}/libpam.so.0 /usr/lib/opsi-utils/_internal/libpam.so.0
     done
 
-    # Patch opsi-package-updater repo files
-    [ -e /etc/opsi/package-updater.repos.d/uib-linux.repo ]       && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-linux.repo
-    [ -e /etc/opsi/package-updater.repos.d/uib-local_image.repo ] && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-local_image.repo
-    [ -e /etc/opsi/package-updater.repos.d/uib-windows.repo ]     && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/uib-windows.repo
-    [ -e /etc/opsi/package-updater.repos.d/testing.repo ]         && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/testing.repo
-    [ -e /etc/opsi/package-updater.repos.d/experimental.repo ]    && sed -i 's:opsi4.1/:opsi4.2/:g' /etc/opsi/package-updater.repos.d/experimental.repo
-
 # os and architecture omitted -> defaulting to current machines values
 pull-binaries:
   - name: opsi-cli
