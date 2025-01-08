@@ -4,4 +4,4 @@
 opsiutils
 """
 
-__version__ = "4.3.8.0"
+__version__ = "4.3.12.0"

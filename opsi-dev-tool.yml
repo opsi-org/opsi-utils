@@ -99,7 +99,7 @@ package:
     mkdir -p ${DST}/rootfs/usr/bin
     mkdir -p ${DST}/rootfs/usr/lib
     mkdir -p ${DST}/rootfs/usr/share/man/man1
-    mkdir -p ${DST}/rootfs/usr/share/opsi-utils/
+    mkdir -p ${DST}/rootfs/usr/share/opsi-utils
 
     for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients opsi-outdated-to-setup; do
        echo "#!/bin/sh"                            > ${DST}/rootfs/usr/bin/$i
@@ -126,6 +126,12 @@ package:
     done
 
   postinst_script: |
+    # Remove obsolete files
+    cd /usr/lib/opsi-utils
+    for file in /usr/lib/opsi-utils/*; do
+      [[ $file = */(_internal|opsi-admin|opsi-backup|opsi-convert|opsi-makepackage|opsi-newprod|opsi-outdated-to-setup|opsi-package-manager|opsi-package-updater|opsi-python|opsi-setup|opsi-wakeup-clients) ]] || rm -r $file || true
+    done
+
     dist=$(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)
 
     # Distribution specific workarounds

@@ -43,7 +43,8 @@ linux-amd64-pyinstaller:
     # Check if binary is working
     - opsi-utils-amd64/opsi-admin --version
     - ./opsi-dev-cli -l info binary pull
-    - mv opsi-cli opsi-utils-amd64
+    - mv opsi-cli opsi-utils-amd64/
+    - ls -l opsi-utils-amd64/
   artifacts:
     name: "opsi-utils-linux-pyinstaller"
     paths:
@@ -69,7 +70,8 @@ linux-arm64-pyinstaller:
     # Check if binary is working
     - OPSI_HOSTNAME=test.uib.local opsi-utils-arm64/opsi-admin --version
     - ./opsi-dev-cli -l info binary pull
-    - mv opsi-cli opsi-utils-arm64
+    - mv opsi-cli opsi-utils-arm64/
+    - ls -l opsi-utils-arm64/
   artifacts:
     name: "opsi-utils-arm64-pyinstaller"
     paths:
