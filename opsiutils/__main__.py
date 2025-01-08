@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -8,6 +6,7 @@ opsiutils.__main__
 
 import os
 import sys
+import traceback
 import warnings
 
 
@@ -66,3 +65,18 @@ def main() -> None:
 
 		return _main()
 	return None
+
+
+if __name__ == "__main__":
+	try:
+		main()
+	except SystemExit as err:
+		sys.exit(err.code)
+	except KeyboardInterrupt:
+		print("Interrupted", file=sys.stderr)
+		sys.exit(1)
+	except Exception:  # pylint: disable=broad-except
+		# Do not let pyinstaller handle exceptions and print:
+		# "Failed to execute script __main__"
+		traceback.print_exc()
+		sys.exit(1)

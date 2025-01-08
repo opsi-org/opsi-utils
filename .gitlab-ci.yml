@@ -1,4 +1,4 @@
-image: docker.uib.gmbh/opsi/dev/pybuilder:deb9-py3.11
+image: docker.uib.gmbh/opsi/dev/pybuilder:deb9-py3.13
 
 variables:
   SKIP_TESTS: "false"
@@ -8,7 +8,6 @@ stages:
   - build
   - integration_test
   - publish
-
 
 pytest-pylint:
   stage: test
@@ -21,7 +20,7 @@ pytest-pylint:
     - poetry run mypy opsiutils tests
     - poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"   # dont run on merge-requests
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" # dont run on merge-requests
       when: never
     - if: $SKIP_TESTS == "false"
 
@@ -46,7 +45,7 @@ linux-amd64-pyinstaller:
     - ./opsi-dev-cli -l info binary pull
     - mv opsi-cli opsi-utils-amd64
   artifacts:
-    name: 'opsi-utils-linux-pyinstaller'
+    name: "opsi-utils-linux-pyinstaller"
     paths:
       - opsi-utils-amd64
     expire_in: 2 days
@@ -72,7 +71,7 @@ linux-arm64-pyinstaller:
     - ./opsi-dev-cli -l info binary pull
     - mv opsi-cli opsi-utils-arm64
   artifacts:
-    name: 'opsi-utils-arm64-pyinstaller'
+    name: "opsi-utils-arm64-pyinstaller"
     paths:
       - opsi-utils-arm64
     expire_in: 2 days
@@ -106,12 +105,12 @@ integration_test:
   script:
     - bash /entrypoint.sh &
     - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
-    - source /entrypoint.sh set_environment_vars  # to set hosts for redis/grafana
+    - source /entrypoint.sh set_environment_vars # to set hosts for redis/grafana
     - apt update
     - apt -y install zstd
     - for file in integration_tests/*.sh; do echo "=== Running $file ==="; bash "$file"; done
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"   # dont run on merge-requests
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" # dont run on merge-requests
       when: never
     - if: $SKIP_TESTS == "false"
 
@@ -126,5 +125,4 @@ obs_ext:
     - ./opsi-dev-cli release-service register-package-version opsi-utils SERVER_PACKAGE --changelog-file output/changelog.md
     - ./opsi-dev-cli release-service push-repository-state opsi-utils SERVER_PACKAGE SERVER_PACKAGE-4.3-development
   rules:
-    - if: '$CI_COMMIT_TAG != null'
-
+    - if: "$CI_COMMIT_TAG != null"

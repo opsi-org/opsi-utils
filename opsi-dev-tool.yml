@@ -15,7 +15,7 @@ transifex:
         - de
         - fr
 
-pyinstaller-poetry:
+pyinstaller:
   one_file: no
   strip: yes
   hidden_imports:
@@ -44,7 +44,7 @@ pyinstaller-poetry:
     - import_hooks
   dirname: opsi-utils
   scripts:
-    - script: run-opsiutils
+    - script: opsiutils/__main__.py
       binaries:
         - opsi-admin
         - opsi-backup
@@ -74,15 +74,15 @@ pyinstaller-poetry:
   manpages_install: opsi-utils_data/manpages
   after_script:
     linux: |
-      find dist/opsi-utils -iname "*.c" -delete
-      find dist/opsi-utils -iname "*.h" -delete
-      find dist/opsi-utils -iname "*.so" -exec chmod -x "{}" \;
-      find dist/opsi-utils -iname "*.so.*" -exec chmod -x "{}" \;
+      find dist/opsi-utils/_internal -iname "*.c" -delete
+      find dist/opsi-utils/_internal -iname "*.h" -delete
+      find dist/opsi-utils/_internal -iname "*.so" -exec chmod -x "{}" \;
+      find dist/opsi-utils/_internal -iname "*.so.*" -exec chmod -x "{}" \;
     darwin: |
-      find dist/opsi-utils -iname "*.c" -delete
-      find dist/opsi-utils -iname "*.h" -delete
-      find dist/opsi-utils -iname "*.so" -exec chmod -x "{}" \;
-      find dist/opsi-utils -iname "*.so.*" -exec chmod -x "{}" \;
+      find dist/opsi-utils/_internal -iname "*.c" -delete
+      find dist/opsi-utils/_internal -iname "*.h" -delete
+      find dist/opsi-utils/_internal -iname "*.so" -exec chmod -x "{}" \;
+      find dist/opsi-utils/_internal -iname "*.so.*" -exec chmod -x "{}" \;
 
 package:
   name: opsi-utils
@@ -99,51 +99,47 @@ package:
   source_script: |
     mkdir -p ${DST}/rootfs/usr/bin
     mkdir -p ${DST}/rootfs/usr/lib
-    mkdir -p ${DST}/rootfs/usr/share/man
-    mkdir -p ${DST}/rootfs/usr/share/opsi-utils
-    if [ -d ${SRC}/opsi-utils ]; then
-      cp -a ${SRC}/opsi-utils ${DST}/rootfs/usr/lib/
-    fi;
-    if [ -d ${SRC}/opsi-utils-amd64 ]; then
-      mkdir -p ${DST}/rootfs-amd64/usr/lib ${DST}/rootfs-amd64/usr/bin
-      cp -a ${SRC}/opsi-utils-amd64 ${DST}/rootfs-amd64/usr/lib/opsi-utils
-      cp -a ${SRC}/opsi-utils-amd64/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
-      mv ${DST}/rootfs-amd64/usr/lib/opsi-utils/opsi-cli ${DST}/rootfs-amd64/usr/bin/opsi-cli
-    fi;
-    if [ -d ${SRC}/opsi-utils-arm64 ]; then
-      mkdir -p ${DST}/rootfs-arm64/usr/lib ${DST}/rootfs-arm64/usr/bin
-      cp -a ${SRC}/opsi-utils-arm64 ${DST}/rootfs-arm64/usr/lib/opsi-utils
-      cp -a ${SRC}/opsi-utils-arm64/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
-      mv ${DST}/rootfs-arm64/usr/lib/opsi-utils/opsi-cli ${DST}/rootfs-arm64/usr/bin/opsi-cli
-    fi;
+    mkdir -p ${DST}/rootfs/usr/share/man/man1
+    mkdir -p ${DST}/rootfs/usr/share/opsi-utils/
+
     for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients opsi-outdated-to-setup; do
        echo "#!/bin/sh"                            > ${DST}/rootfs/usr/bin/$i
        echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
        chmod 755 ${DST}/rootfs/usr/bin/$i
     done
+
     echo "#!/bin/sh"                                                  > ${DST}/rootfs/usr/bin/opsi-set-rights
     echo "[ \"\$(id -u)\" -eq 0 ] || exec sudo \$0 \"\$@\""          >> ${DST}/rootfs/usr/bin/opsi-set-rights
     echo "exec /usr/lib/opsi-utils/opsi-setup --set-rights \"\$@\""  >> ${DST}/rootfs/usr/bin/opsi-set-rights
-
     chmod 755 ${DST}/rootfs/usr/bin/opsi-set-rights
 
-    cp -a "${SRC}/opsi-utils_data/etc"  ${DST}/rootfs/etc
-    # mv ${DST}/rootfs/usr/lib/opsi-utils/opsi-utils_data/manpages ${DST}/rootfs/usr/share/man/man1
-    cp -a "${SRC}/opsi-utils_data/opsi-python-examples" "${DST}/rootfs/usr/share/opsi-utils/"
+    for arch in amd64 arm64; do
+      arch_src="${SRC}/opsi-utils-${arch}"
+      arch_dst="${DST}/rootfs-${arch}"
+
+      mkdir -p ${arch_dst}/usr/lib ${arch_dst}/usr/bin
+      cp -a ${arch_src} ${arch_dst}/usr/lib/opsi-utils
+      mv ${arch_dst}/usr/lib/opsi-utils/opsi-cli ${arch_dst}/usr/bin/opsi-cli
+
+      cp -a ${arch_src}/_internal/opsi-utils_data/manpages/* ${DST}/rootfs/usr/share/man/man1/
+      cp -a ${arch_src}/_internal/opsi-utils_data/etc ${DST}/rootfs/
+      cp -a ${arch_src}/_internal/opsi-utils_data/opsi-python-examples ${DST}/rootfs/usr/share/opsi-utils/
+    done
+
   postinst_script: |
     dist=$(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)
 
     # Distribution specific workarounds
     if [[ "$dist" =~ "SUSE Linux Enterprise Server 15 SP1" ]]; then
       # /bin/sh: /usr/lib/opsi-utils/libreadline.so.7: no version information available (required by /bin/sh)
-      cp /lib64/libreadline.so.7 /usr/lib/opsi-utils/libreadline.so.7
+      cp /lib64/libreadline.so.7 /usr/lib/opsi-utils/_internal/libreadline.so.7
     fi
 
     # Use pam_unix.so from system
     # Authentication failure (auth_type=auth-module)...
     # ARM64: ubuntu: /usr/lib/aarch64-linux-gnu, debian: /lib/aarch64-linux-gnu
     for libdir in /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu /lib64  /usr/lib/aarch64-linux-gnu /lib/aarch64-linux-gnu; do
-      [ -e ${libdir}/libpam.so.0 ] && cp ${libdir}/libpam.so.0 /usr/lib/opsi-utils/libpam.so.0
+      [ -e ${libdir}/libpam.so.0 ] && cp ${libdir}/libpam.so.0 /usr/lib/opsi-utils/_internal/libpam.so.0
     done
 
     # Patch opsi-package-updater repo files
