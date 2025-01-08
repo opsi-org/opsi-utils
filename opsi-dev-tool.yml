@@ -70,7 +70,7 @@ pyinstaller:
     dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}/g")
     cp $src $dst
     cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
-  manpages_install: opsi-utils_data/manpages
+  manpages_install: _internal/opsi-utils_data/manpages
   after_script:
     linux: |
       find dist/opsi-utils/_internal -iname "*.c" -delete
