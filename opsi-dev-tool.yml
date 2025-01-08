@@ -129,18 +129,18 @@ package:
     # Remove obsolete files
     cd /usr/lib/opsi-utils
     for file in /usr/lib/opsi-utils/*; do
-      [[ $f = */_internal ]] || \
-      [[ $f = */opsi-admin ]] || \
-      [[ $f = */opsi-backup ]] || \
-      [[ $f = */opsi-convert ]] || \
-      [[ $f = */opsi-makepackage ]] || \
-      [[ $f = */opsi-outdated-to-setup ]] || \
-      [[ $f = */opsi-package-manager ]] || \
-      [[ $f = */opsi-package-updater ]] || \
-      [[ $f = */opsi-python ]] || \
-      [[ $f = */opsi-setup ]] || \
-      [[ $f = */opsi-wakeup-clients ]] || \
-        rm -r "$f" || true
+      [[ $file = */_internal ]] || \
+      [[ $file = */opsi-admin ]] || \
+      [[ $file = */opsi-backup ]] || \
+      [[ $file = */opsi-convert ]] || \
+      [[ $file = */opsi-makepackage ]] || \
+      [[ $file = */opsi-outdated-to-setup ]] || \
+      [[ $file = */opsi-package-manager ]] || \
+      [[ $file = */opsi-package-updater ]] || \
+      [[ $file = */opsi-python ]] || \
+      [[ $file = */opsi-setup ]] || \
+      [[ $file = */opsi-wakeup-clients ]] || \
+        rm -r "$file" || true
     done
 
     dist=$(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)
