@@ -1,16 +1,16 @@
 [build-system]
-requires = ["poetry>=0.12"]
+requires = [ "poetry>=0.12",]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "opsi-utils"
-version = "4.3.11.2"
+version = "4.3.12.0"
 description = "Utilities for working with opsi"
 homepage = "https://www.opsi.org"
 license = "AGPL-3.0"
-maintainers = ["uib GmbH <info@uib.de>"]
-authors = ["uib GmbH <info@uib.de>"]
-include = ["opsi-utils_data/**/*"]
+maintainers = [ "uib GmbH <info@uib.de>",]
+authors = [ "uib GmbH <info@uib.de>",]
+include = [ "opsi-utils_data/**/*",]
 [[tool.poetry.packages]]
 include = "opsiutils"
 
