@@ -134,6 +134,7 @@ package:
       [[ $file = */opsi-backup ]] || \
       [[ $file = */opsi-convert ]] || \
       [[ $file = */opsi-makepackage ]] || \
+      [[ $file = */opsi-newprod ]] || \
       [[ $file = */opsi-outdated-to-setup ]] || \
       [[ $file = */opsi-package-manager ]] || \
       [[ $file = */opsi-package-updater ]] || \
