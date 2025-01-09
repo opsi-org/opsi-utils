@@ -101,7 +101,7 @@ package:
     mkdir -p ${DST}/rootfs/usr/share/man/man1
     mkdir -p ${DST}/rootfs/usr/share/opsi-utils
 
-    for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients opsi-outdated-to-setup; do
+    for i in opsi-admin opsi-backup opsi-convert opsi-makepackage opsi-newprod opsi-outdated-to-setup opsi-package-manager opsi-package-updater opsi-python opsi-setup opsi-wakeup-clients; do
        echo "#!/bin/sh"                            > ${DST}/rootfs/usr/bin/$i
        echo "exec /usr/lib/opsi-utils/$i \"\$@\"" >> ${DST}/rootfs/usr/bin/$i
        chmod 755 ${DST}/rootfs/usr/bin/$i
