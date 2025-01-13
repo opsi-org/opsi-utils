@@ -24,41 +24,26 @@ import stat
 import subprocess
 import sys
 import time
-from contextlib import closing
 from pathlib import Path
 from types import FrameType
 from typing import Any
 
 from OPSI import __version__ as python_opsi_version  # type: ignore
-from OPSI.System import (  # type: ignore[import]
-	CommandNotFoundException,  # type: ignore[import]
-	which,  # type: ignore[import]
-)
-from OPSI.System import execute as sys_execute  # type: ignore[import]
-from OPSI.Util import (  # type: ignore[import]
-	blowfishDecrypt,
-	deserialize,
-	fromJson,
-	objectToBash,
-	objectToBeautifiedText,
-	serialize,
-	toJson,
-)
-from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc  # type: ignore[import]
-from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
+from OPSI.Util import deserialize  # type: ignore[import]
+from OPSI.Util import (blowfishDecrypt, fromJson, objectToBash,
+                       objectToBeautifiedText, serialize, toJson)
+from OPSI.Util.File.Opsi.Opsirc import getOpsircPath  # type: ignore[import]
+from OPSI.Util.File.Opsi.Opsirc import readOpsirc
+from opsicommon.client.opsiservice import (ServiceClient,
+                                           ServiceVerificationFlags,
+                                           get_service_client)
 from opsicommon.config import OpsiConfig
 from opsicommon.exceptions import OpsiRpcError
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG,
-	LOG_ERROR,
-	LOG_NONE,
-	LOG_WARNING,
-	get_logger,
-	logging_config,
-	secret_filter,
-)
-from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
+from opsicommon.logging import (DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR,
+                                LOG_NONE, LOG_WARNING, get_logger,
+                                logging_config)
+from opsicommon.types import (forceBool, forceFilename, forceUnicode,
+                              forceUnicodeLower)
 
 from opsiutils import __version__
 
@@ -1043,8 +1028,7 @@ class Shell:
 						self.currentParam = ""
 
 					text = (
-						f"{self.prompt} {self.cmdline[:self.pos - len(self.currentParam or '')]}"
-						f"{match.strip()}{self.cmdline[self.pos:]}"
+						f"{self.prompt} {self.cmdline[: self.pos - len(self.currentParam or '')]}{match.strip()}{self.cmdline[self.pos :]}"
 					)
 					self.lines.append({"text": text, "color": ""})
 
@@ -1169,7 +1153,7 @@ class CommandMethod(Command):
 		return _("Execute a config-interface-method")
 
 	def help(self, shell: Shell) -> None:
-		shell.appendLine(f'\r{_("Methods are:")}\n')
+		shell.appendLine(f"\r{_('Methods are:')}\n")
 		assert service_client
 		for method in service_client.jsonrpc_interface:
 			logger.debug(method)
@@ -1685,86 +1669,7 @@ class CommandTask(Command):
 			shell.appendLine(cleartext)
 
 		elif params[0] == "setPcpatchPassword":
-			# if os.getuid() != 0:
-			# 	raise RuntimeError(_("You have to be root to change pcpatch password!"))
-
-			shell.exit_on_sigint = True
-
-			password = ""
-			if len(params) < 2:
-				password = shell.getPassword()
-			else:
-				password = params[1]
-
-			if not password:
-				raise ValueError("Can not use empty password!")
-			secret_filter.add_secrets(password)
-
-			service_client.jsonrpc("user_setCredentials", ["pcpatch", password])
-
-			try:
-				udm = which("univention-admin")
-				server_role = sys_execute("ucr get server/role")
-				if server_role in ("domaincontroller_master", "domaincontroller_backup"):
-					# We are on Univention Corporate Server (UCS)
-					dn = None
-					command = f'{udm} users/user list --filter "(uid=pcpatch)"'
-					logger.debug("Filtering for pcpatch: %s", command)
-					with closing(os.popen(command, "r")) as process:
-						for line in process.readlines():
-							if line.startswith("DN"):
-								dn = line.strip().split(" ")[1]
-								break
-
-					if not dn:
-						raise RuntimeError("Failed to get DN for user pcpatch")
-
-					command = (
-						f"{udm} users/user modify --dn {dn} "
-						f"--set password='{password}' "
-						"--set overridePWLength=1 --set overridePWHistory=1 "
-						"1>/dev/null 2>/dev/null"
-					)
-					logger.debug("Setting password with: %s", command)
-					sys_execute(command)
-					# Done with UCS
-					return
-				logger.warning("Did not change the password for 'pcpatch', please change it on the master server.")
-
-			except CommandNotFoundException:
-				# Not on UCS
-				pass
-
-			try:
-				pwd.getpwnam("pcpatch")
-			except KeyError as err:
-				raise KeyError("System user 'pcpatch' not found") from err
-
-			password_set = False
-			try:
-				# smbldap
-				smbldapCommand = f"{which('smbldap-passwd')} pcpatch"
-				sys_execute(smbldapCommand, stdin_data=f"{password}\n{password}\n".encode("utf8"))
-				password_set = True
-			except Exception as err:
-				logger.debug("Setting password through smbldap failed: %s", err)
-
-			if not password_set:
-				# unix
-				is_local_user = False
-				with open("/etc/passwd", "r", encoding="utf-8") as file:
-					for line in file.readlines():
-						if line.startswith("pcpatch:"):
-							is_local_user = True
-							break
-				if is_local_user:
-					chpasswdCommand = f"echo 'pcpatch:{password}' | {which('chpasswd')}"
-					sys_execute(chpasswdCommand)
-
-					smbpasswdCommand = f"{which('smbpasswd')} -a -s pcpatch"
-					sys_execute(smbpasswdCommand, stdin_data=f"{password}\n{password}\n".encode("utf8"))
-				else:
-					logger.warning("The user 'pcpatch' is not a local user, please change password also in Active Directory")
+			raise RuntimeError("Please run the command 'opsiconfd setup --set-depot-user-password' instead")
 
 		elif params[0] == "activateTOTP":
 			if len(params) < 2:
@@ -1774,6 +1679,15 @@ class CommandTask(Command):
 
 
 def main() -> None:
+	if "task" in sys.argv:
+		task = sys.argv[sys.argv.index("task") + 1 :]
+		if task[0] == "setPcpatchPassword":
+			print("Please run the command 'opsiconfd setup --set-depot-user-password' instead", file=sys.stderr)
+			cmd = ["opsiconfd", "setup", "--set-depot-user-password"]
+			if len(task) > 1:
+				cmd.append(task[1])
+			os.execvp(cmd[0], cmd)
+
 	try:
 		locale.setlocale(locale.LC_ALL, "")
 	except Exception:
@@ -1791,6 +1705,15 @@ def main() -> None:
 	except ErrorInResultException as error:
 		logger.warning("Error in result: %s", error)
 		exitCode = 2
+	except Exception as err:
+		logging_config(stderr_level=LOG_ERROR)
+		logger.error("Error during execution: %s", err, exc_info=True)
+		exitCode = 1
+
+	if exitZero:
+		exitCode = 0
+
+	sys.exit(exitCode)
 	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
 		logger.error("Error during execution: %s", err, exc_info=True)
