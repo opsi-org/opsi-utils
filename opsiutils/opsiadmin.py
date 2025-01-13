@@ -29,17 +29,17 @@ from types import FrameType
 from typing import Any
 
 from OPSI import __version__ as python_opsi_version  # type: ignore
-from OPSI.Util import (
+from OPSI.Util import (  # type: ignore[import]
 	blowfishDecrypt,
-	deserialize,  # type: ignore[import]
+	deserialize,
 	fromJson,
 	objectToBash,
 	objectToBeautifiedText,
 	serialize,
 	toJson,
 )
-from OPSI.Util.File.Opsi.Opsirc import (
-	getOpsircPath,  # type: ignore[import]
+from OPSI.Util.File.Opsi.Opsirc import (  # type: ignore[import]
+	getOpsircPath,
 	readOpsirc,
 )
 from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
