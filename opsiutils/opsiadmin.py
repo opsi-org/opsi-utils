@@ -29,21 +29,24 @@ from types import FrameType
 from typing import Any
 
 from OPSI import __version__ as python_opsi_version  # type: ignore
-from OPSI.Util import deserialize  # type: ignore[import]
-from OPSI.Util import (blowfishDecrypt, fromJson, objectToBash,
-                       objectToBeautifiedText, serialize, toJson)
-from OPSI.Util.File.Opsi.Opsirc import getOpsircPath  # type: ignore[import]
-from OPSI.Util.File.Opsi.Opsirc import readOpsirc
-from opsicommon.client.opsiservice import (ServiceClient,
-                                           ServiceVerificationFlags,
-                                           get_service_client)
+from OPSI.Util import (
+	blowfishDecrypt,
+	deserialize,  # type: ignore[import]
+	fromJson,
+	objectToBash,
+	objectToBeautifiedText,
+	serialize,
+	toJson,
+)
+from OPSI.Util.File.Opsi.Opsirc import (
+	getOpsircPath,  # type: ignore[import]
+	readOpsirc,
+)
+from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
 from opsicommon.config import OpsiConfig
 from opsicommon.exceptions import OpsiRpcError
-from opsicommon.logging import (DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR,
-                                LOG_NONE, LOG_WARNING, get_logger,
-                                logging_config)
-from opsicommon.types import (forceBool, forceFilename, forceUnicode,
-                              forceUnicodeLower)
+from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, get_logger, logging_config
+from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 
 from opsiutils import __version__
 
@@ -846,36 +849,6 @@ class Shell:
 					if chr(char) == "n":
 						return False
 		return False
-
-	def getPassword(self) -> str:
-		assert self.screen
-		password1 = ""
-		password2 = ""
-		while not password1 or (password1 != password2):
-			if interactive:
-				self.screen.move(self.yMax - 1, 0)
-				self.screen.clrtoeol()
-				self.screen.addstr(_("Please type password:"))
-				self.screen.refresh()
-				password1 = self.screen.getstr().decode("utf-8")
-
-				self.screen.move(self.yMax - 1, 0)
-				self.screen.clrtoeol()
-				self.screen.addstr(_("Please retype password:"))
-				self.screen.refresh()
-				password2 = self.screen.getstr().decode("utf-8")
-
-				if password1 != password2:
-					self.screen.move(self.yMax - 1, 0)
-					self.screen.clrtoeol()
-					self.screen.addstr(_("Supplied passwords do not match"))
-					self.screen.refresh()
-					time.sleep(2)
-			else:
-				password1 = password2 = getpass.getpass()
-
-		logger.confidential("Got password '%s'", password1)
-		return password1
 
 	def getCommand(self) -> None:
 		assert self.screen
@@ -1705,15 +1678,6 @@ def main() -> None:
 	except ErrorInResultException as error:
 		logger.warning("Error in result: %s", error)
 		exitCode = 2
-	except Exception as err:
-		logging_config(stderr_level=LOG_ERROR)
-		logger.error("Error during execution: %s", err, exc_info=True)
-		exitCode = 1
-
-	if exitZero:
-		exitCode = 0
-
-	sys.exit(exitCode)
 	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
 		logger.error("Error during execution: %s", err, exc_info=True)
