@@ -1655,7 +1655,7 @@ def main() -> None:
 	if "task" in sys.argv:
 		task = sys.argv[sys.argv.index("task") + 1 :]
 		if task[0] == "setPcpatchPassword":
-			print("Please run the command 'opsiconfd setup --set-depot-user-password' instead", file=sys.stderr)
+			print("Please run the command 'opsiconfd setup --set-depot-user-password' instead!", file=sys.stderr)
 			cmd = ["opsiconfd", "setup", "--set-depot-user-password"]
 			if len(task) > 1:
 				cmd.append(task[1])
