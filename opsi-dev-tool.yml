@@ -144,7 +144,8 @@ package:
         rm -r "$file" || true
     done
 
-    dist=$(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)
+    dist="unknown"
+    [ -f /etc/os-release ] && dist=$(grep PRETTY_NAME /etc/os-release | cut -d'"' -f2)
 
     # Distribution specific workarounds
     if [[ "$dist" =~ "SUSE Linux Enterprise Server 15 SP1" ]]; then
