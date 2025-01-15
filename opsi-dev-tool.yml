@@ -160,6 +160,8 @@ package:
       [ -e ${libdir}/libpam.so.0 ] && cp ${libdir}/libpam.so.0 /usr/lib/opsi-utils/_internal/libpam.so.0
     done
 
+    exit 0
+
 # os and architecture omitted -> defaulting to current machines values
 pull-binaries:
   - name: opsi-cli
