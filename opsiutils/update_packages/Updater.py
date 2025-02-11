@@ -22,7 +22,11 @@ from typing import BinaryIO, Generator
 from urllib.parse import quote, urlparse
 
 from cryptography import x509
-from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[import]
+from OPSI.Util import (
+	compareVersions,
+	formatFileSize,  # type: ignore[import]
+	md5sum,
+)
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config.opsi import OpsiConfig
@@ -49,11 +53,7 @@ from requests import Response, Session  # type: ignore[import]
 from requests.packages import urllib3  # type: ignore[import,attr-defined]
 
 from opsiutils.update_packages.Config import DEFAULT_USER_AGENT, ConfigurationParser
-from opsiutils.update_packages.Notifier import (
-	BaseNotifier,
-	DummyNotifier,
-	EmailNotifier,
-)
+from opsiutils.update_packages.Notifier import BaseNotifier, DummyNotifier, EmailNotifier
 from opsiutils.update_packages.Repository import LinksExtractor, ProductRepositoryInfo, TransferSlotHeartbeat, sort_repository_list
 
 urllib3.disable_warnings()
@@ -556,7 +556,7 @@ class OpsiPackageUpdater:
 						backend.productOnClient_updateObjects(productOnClients)  # type: ignore[attr-defined]
 						notifier.appendLine(
 							(
-								f"Product {package['productId']} set to 'setup' on clients: " ", ".join(
+								f"Product {package['productId']} set to 'setup' on clients: , ".join(
 									sorted(poc.clientId for poc in productOnClients)
 								)
 							)
@@ -1230,7 +1230,7 @@ class OpsiPackageUpdater:
 	def fetch_repository_metafile(self, session: Session, url: str) -> bytes | None:
 		if url not in self.metafile_cache:
 			logger.info("Trying to fetch repository metafile: %s", url)
-			response = session.get(url)
+			response = session.get(url, headers=self.httpHeaders)
 			if response.status_code == 200:
 				logger.notice("Repository metafile successfully fetched: %s", url)
 				self.metafile_cache[url] = response.content
