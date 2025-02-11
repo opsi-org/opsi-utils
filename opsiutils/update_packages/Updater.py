@@ -22,11 +22,8 @@ from typing import BinaryIO, Generator
 from urllib.parse import quote, urlparse
 
 from cryptography import x509
-from OPSI.Util import (
-	compareVersions,
-	formatFileSize,  # type: ignore[import]
-	md5sum,
-)
+from OPSI.Util import formatFileSize  # type: ignore[import]
+from OPSI.Util import compareVersions, md5sum
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config.opsi import OpsiConfig
@@ -259,7 +256,7 @@ class OpsiPackageUpdater:
 			logger.info("Cannot use zsync, no zsync file on server found")
 			return False
 
-		response = session.head(str(availablePackage["packageFile"]))
+		response = session.head(str(availablePackage["packageFile"]), headers=self.httpHeaders)
 		if response.headers.get("Accept-Ranges") != "bytes":
 			logger.info("Cannot use zsync, server or proxy does not accept byte ranges")
 			return False
@@ -1318,7 +1315,7 @@ class OpsiPackageUpdater:
 							for i, package in enumerate(packages):
 								if package.get("filename") == filename:
 									if isMd5:
-										response = session.get(f"{url.rstrip('/')}/{link.lstrip('/')}")
+										response = session.get(f"{url.rstrip('/')}/{link.lstrip('/')}", headers=self.httpHeaders)
 										match = re.search(
 											r"([a-z\d]{32})",
 											response.content.decode("utf-8"),
