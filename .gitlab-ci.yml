@@ -14,7 +14,6 @@ pytest-pylint:
   script:
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
-    - poetry lock --no-update --no-cache
     - poetry install
     - poetry run ruff check opsiutils tests
     - poetry run mypy opsiutils tests
@@ -34,7 +33,6 @@ linux-amd64-pyinstaller:
     - curl -o opsi-dev-tools.tar.gz "$OPSIDEVTOOLS_URL_LINUX_X64"
     - tar -xvf opsi-dev-tools.tar.gz
     - mv opsi-dev-tool opsi-dev-cli
-    - poetry lock --no-update --no-cache
     - poetry install
     - poetry run ./opsi-dev-cli -l info pyinstaller build
     - '[ "$CI_COMMIT_TAG" = "" ] && poetry run ./opsi-dev-cli -l info binary push dist/opsi-utils --prerelease="$CI_JOB_ID"'
@@ -63,7 +61,6 @@ linux-arm64-pyinstaller:
     - curl -o opsi-dev-tools.tar.gz "$OPSIDEVTOOLS_URL_LINUX_ARM64"
     - tar -xvf opsi-dev-tools.tar.gz
     - mv opsi-dev-tool opsi-dev-cli
-    - poetry lock --no-update --no-cache
     - poetry install
     - poetry run ./opsi-dev-cli -l info pyinstaller build
     - mv dist/opsi-utils ./opsi-utils-arm64
