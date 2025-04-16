@@ -22,15 +22,8 @@ from typing import Generator
 
 from OPSI import __version__ as python_opsi_version  # type: ignore[import]
 from OPSI.Util.Ping import ping  # type: ignore[import]
-from opsicommon.client.jsonrpc import JSONRPCClient
 from opsicommon.client.opsiservice import ServiceClient, get_service_client
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_ERROR,
-	get_logger,
-	init_logging,
-	logging_config,
-)
+from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, get_logger, init_logging, logging_config
 
 from opsiutils import __version__
 
@@ -343,7 +336,7 @@ class ClientMonitoringThread(threading.Thread):
 		threading.Thread.__init__(self)
 
 		self.service_client = service_client
-		self.opsiclientdbackend: JSONRPCClient | None = None
+		self.opsiclientd_service: ServiceClient | None = None
 		self.clientId = clientId
 		self.hostKey = None
 
@@ -440,34 +433,32 @@ class ClientMonitoringThread(threading.Thread):
 					if res != 0:
 						raise RuntimeError(f"Port {port} unreachable")
 
-					backend = JSONRPCClient(
+					opsiclientd_service = ServiceClient(
 						address=address,
 						username=self.clientId,
 						password=password,
-						connectTimeout=self.connectTimeout,
-						socketTimeout=self.connectTimeout,
+						connect_timeout=self.connectTimeout,
+						jsonrpc_create_methods=True,
 					)
-					if not backend.session:
-						continue
-
-					self.opsiclientdbackend = backend
+					opsiclientd_service.connect()
+					self.opsiclientd_service = opsiclientd_service
 					logger.notice("Connection to client '%s' established", self.clientId)
 					break
 				except Exception as err:
 					logger.debug("Failed to connect to client '%s': %s", self.clientId, err)
 
 	def triggerReboot(self) -> None:
-		if not self.opsiclientdbackend:
+		if not self.opsiclientd_service:
 			raise RuntimeError(f"Connection to client '{self.clientId}' failed")
 		logger.info("Triggering reboot on client '%s' with a delay of %s seconds", self.clientId, self.rebootTimeout)
-		self.opsiclientdbackend.reboot(str(self.rebootTimeout))  # type: ignore[attr-defined]
+		self.opsiclientd_service.reboot(str(self.rebootTimeout))  # type: ignore[attr-defined]
 
 	def triggerEvent(self) -> None:
 		"""
 		Trigger an event and wait for it to run.
 		"""
 		logger.notice("Triggering event '%s' on '%s'", self.eventName, self.clientId)
-		assert self.opsiclientdbackend
+		assert self.opsiclientd_service
 		timeout_event = threading.Event()
 		retryTimeout = 5
 
@@ -482,15 +473,15 @@ class ClientMonitoringThread(threading.Thread):
 				if runs % 3 == 0:
 					logger.debug("Triggering event '%s' on '%s'", self.eventName, self.clientId)
 					try:
-						self.opsiclientdbackend.fireEvent(self.eventName)  # type: ignore[attr-defined]
+						self.opsiclientd_service.fireEvent(self.eventName)  # type: ignore[attr-defined]
 					except Exception as exc:
 						logger.debug("Failed to trigger event on '%s': %s", self.clientId, exc)
 
 				try:
-					if self.opsiclientdbackend.isEventRunning(self.eventName):  # type: ignore[attr-defined]
+					if self.opsiclientd_service.isEventRunning(self.eventName):  # type: ignore[attr-defined]
 						logger.notice("Event '%s' is running on '%s'", self.eventName, self.clientId)
 						break
-					if self.opsiclientdbackend.isEventRunning(self.eventName + "{user_logged_in}"):  # type: ignore[attr-defined]
+					if self.opsiclientd_service.isEventRunning(self.eventName + "{user_logged_in}"):  # type: ignore[attr-defined]
 						logger.notice("Event '%s' is running on '%s'", self.eventName + "{user_logged_in}", self.clientId)
 						break
 				except Exception as exc:
