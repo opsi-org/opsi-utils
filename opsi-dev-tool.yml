@@ -161,7 +161,7 @@ package:
     done
 
     # Remove obsolete files
-    for file in "/etc/logrotate.d/opsi-product-updater /etc/logrotate.d/opsi-backup /var/log/opsi/opsi-backup"; do
+    for file in "/etc/logrotate.d/opsi-product-updater" "/etc/logrotate.d/opsi-backup"; do
       if [ -e $file ]; then
         rm -f $file
       fi
