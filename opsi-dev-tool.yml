@@ -160,6 +160,14 @@ package:
       [ -e ${libdir}/libpam.so.0 ] && cp ${libdir}/libpam.so.0 /usr/lib/opsi-utils/_internal/libpam.so.0
     done
 
+    # Remove obsolete files
+    for file in "/etc/logrotate.d/opsi-product-updater" "/etc/logrotate.d/opsi-backup"; do
+      if [ -e $file ]; then
+        rm -f $file
+      fi
+    done
+
+
     exit 0
 
 # os and architecture omitted -> defaulting to current machines values
