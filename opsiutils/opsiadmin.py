@@ -38,10 +38,7 @@ from OPSI.Util import (  # type: ignore[import]
 	serialize,
 	toJson,
 )
-from OPSI.Util.File.Opsi.Opsirc import (  # type: ignore[import]
-	getOpsircPath,
-	readOpsirc,
-)
+from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
 from opsicommon.config import OpsiConfig
 from opsicommon.exceptions import OpsiRpcError
@@ -1217,6 +1214,10 @@ class CommandMethod(Command):
 		logger.info("Executing:  %s(%s)", methodName, pString)
 		shell.setInfoline(f"Executing:  {methodName}({pString})")
 		start = time.time()
+
+		if methodInterface.get("deprecated"):
+			logger.warning("Method %r is deprecated and will be removed in future versions", methodName)
+			shell.setInfoline(f"Method {methodName!r} is deprecated and will be removed in future versions")
 
 		# This needs ServiceClient with "jsonrpc_create_methods=True"
 		method = getattr(service_client, methodName)
