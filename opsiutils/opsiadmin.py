@@ -1211,13 +1211,12 @@ class CommandMethod(Command):
 
 		result = None
 
+		if methodInterface.get("deprecated"):
+			logger.warning("Method %r is deprecated and will be removed in future versions", methodName)
+
 		logger.info("Executing:  %s(%s)", methodName, pString)
 		shell.setInfoline(f"Executing:  {methodName}({pString})")
 		start = time.time()
-
-		if methodInterface.get("deprecated"):
-			logger.warning("Method %r is deprecated and will be removed in future versions", methodName)
-			shell.setInfoline(f"Method {methodName!r} is deprecated and will be removed in future versions")
 
 		# This needs ServiceClient with "jsonrpc_create_methods=True"
 		method = getattr(service_client, methodName)
@@ -1229,6 +1228,10 @@ class CommandMethod(Command):
 		duration = time.time() - start
 		logger.debug("Took %0.3f seconds to process: %s(%s)", duration, methodName, pString)
 		shell.setInfoline(_("Took %0.3f seconds to process: %s(%s)") % (duration, methodName, pString))
+
+		if methodInterface.get("deprecated"):
+			shell.setInfoline(f"Method {methodName!r} is deprecated and will be removed in future versions")
+
 		result = serialize(result)
 		logger.trace("Serialized result: '%s'", result)
 
