@@ -1765,7 +1765,6 @@ class OpsiPackageManagerControl:
 			for productId in productIds:
 				productOnDepot = values[productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
-				assert product.name
 				print(
 					"%s%*s %*s %*s"
 					% (
@@ -1775,7 +1774,7 @@ class OpsiPackageManagerControl:
 						-1 * versionWidth,
 						product.version,
 						-1 * nameWidth,
-						product.name.replace("\n", "")[:nameWidth],
+						(product.name or "").replace("\n", "")[:nameWidth],
 					)
 				)
 			print("")
