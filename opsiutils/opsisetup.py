@@ -13,14 +13,7 @@ import os
 import sys
 
 from opsicommon import __version__ as python_opsi_common_version
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG,
-	LOG_NOTICE,
-	init_logging,
-	logger,
-	logging_config,
-)
+from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_NOTICE, init_logging, logger, logging_config
 from opsicommon.server.rights import set_rights
 from opsicommon.types import forceFilename
 
@@ -29,7 +22,7 @@ from opsiutils import __version__
 init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
 
-def usage():
+def usage() -> None:
 	print(f"\nUsage: {os.path.basename(sys.argv[0])} [options]")
 	print("")
 	print("Options:")
@@ -42,7 +35,7 @@ def usage():
 	print("")
 
 
-def opsisetup_main():
+def opsisetup_main() -> None:
 	try:
 		(opts, args) = getopt.getopt(
 			sys.argv[1:],
@@ -167,7 +160,7 @@ def opsisetup_main():
 		set_rights(path)
 
 
-def main():
+def main() -> None:
 	try:
 		opsisetup_main()
 	except SystemExit as err:

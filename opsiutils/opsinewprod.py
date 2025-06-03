@@ -433,7 +433,7 @@ def collectProductDependencies(ui: UI, product: Product) -> list[ProductDependen
 
 
 def collectProductProperties(ui: UI, product: Product) -> list[ProductProperty]:
-	productProperties = []
+	productProperties: list[ProductProperty] = []
 	helpText = _(
 		"Property name: Name of the property.\n"
 		"Property description: Usage description.\n"

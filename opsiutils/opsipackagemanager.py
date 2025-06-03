@@ -34,34 +34,14 @@ from OPSI import __version__ as python_opsi_version  # type: ignore
 from OPSI.UI import SnackUI  # type: ignore[import]
 from OPSI.Util import md5sum  # type: ignore[import]
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
-from OPSI.Util.Message import (  # type: ignore[import]
-	MessageSubject,
-	ProgressSubject,
-	Subject,
-	SubjectsObserver,
-)
+from OPSI.Util.Message import MessageSubject, ProgressSubject, Subject, SubjectsObserver  # type: ignore[import]
 from OPSI.Util.Repository import getRepository  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config import OpsiConfig
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_NONE,
-	LOG_WARNING,
-	get_logger,
-	logging_config,
-)
+from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_NONE, LOG_WARNING, get_logger, logging_config
 from opsicommon.objects import Product, ProductOnDepot, ProductProperty
 from opsicommon.package import OpsiPackage
-from opsicommon.types import (
-	forceActionRequest,
-	forceBool,
-	forceHostId,
-	forceInt,
-	forceList,
-	forceProductId,
-	forceStringList,
-	forceUnicode,
-)
+from opsicommon.types import forceActionRequest, forceBool, forceHostId, forceInt, forceList, forceProductId, forceStringList, forceUnicode
 
 from opsiutils import __version__
 
@@ -1090,7 +1070,7 @@ class OpsiPackageManager:
 				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)  # type: ignore[attr-defined]
 				if localChecksum != remoteChecksum:
 					raise ValueError(
-						f"MD5sum of source '{localChecksum}' and destination '{remoteChecksum}'" f"differ after upload to depot '{depotId}'"
+						f"MD5sum of source '{localChecksum}' and destination '{remoteChecksum}'differ after upload to depot '{depotId}'"
 					)
 
 				if info["usage"] >= 0.9:
@@ -1785,6 +1765,7 @@ class OpsiPackageManagerControl:
 			for productId in productIds:
 				productOnDepot = values[productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
+				assert product.name
 				print(
 					"%s%*s %*s %*s"
 					% (
@@ -1810,10 +1791,10 @@ class OpsiPackageManagerControl:
 		)
 
 		productIds = set()
-		productOnDepotInfo: dict[str, dict[str, dict[str, ProductOnDepot]]] = {depotId: {} for depotId in depotIds}
-		for productOnDepot in productOnDepots:
-			productIds.add(productOnDepot.productId)
-			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
+		productOnDepotInfo: dict[str, dict[str, ProductOnDepot]] = {depotId: {} for depotId in depotIds}
+		for pod in productOnDepots:
+			productIds.add(pod.productId)
+			productOnDepotInfo[pod.depotId][pod.productId] = pod
 
 		maxWidth = max(len(depotId) for depotId in depotIds)
 
