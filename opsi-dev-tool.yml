@@ -9,7 +9,7 @@ transifex:
     - organization: opsi-org
       project: opsiorg
       resource_name: opsi-utils.pot
-      install_dir: opsi-utils_data/locale
+      install_dir: opsiutils_data/locale
       min_review_rate: $TRANSIFEX_MIN_REVIEW_RATE
       languages:
         - de
@@ -57,8 +57,8 @@ pyinstaller:
         - opsi-wakeup-clients
         - opsi-outdated-to-setup
   data_files:
-    - src: opsi-utils_data/**/*
-      dst: opsi-utils_data
+    - src: opsiutils_data/**/*
+      dst: opsiutils_data
   before_script: |
     dpkg -l python3-newt >/dev/null 2>&1 || apt -y install python3-newt
     pyver1=$(ls -ld .venv/lib/python* | sed s'/.*python//')
@@ -70,7 +70,7 @@ pyinstaller:
     dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}/g")
     cp $src $dst
     cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
-  manpages_install: _internal/opsi-utils_data/manpages
+  manpages_install: _internal/opsiutils_data/manpages
   after_script:
     linux: |
       find dist/opsi-utils/_internal -iname "*.c" -delete
@@ -120,9 +120,9 @@ package:
       cp -a ${arch_src} ${arch_dst}/usr/lib/opsi-utils
       mv ${arch_dst}/usr/lib/opsi-utils/opsi-cli ${arch_dst}/usr/bin/opsi-cli
 
-      cp -a ${arch_src}/_internal/opsi-utils_data/manpages/* ${DST}/rootfs/usr/share/man/man1/
-      cp -a ${arch_src}/_internal/opsi-utils_data/etc ${DST}/rootfs/
-      cp -a ${arch_src}/_internal/opsi-utils_data/opsi-python-examples ${DST}/rootfs/usr/share/opsi-utils/
+      cp -a ${arch_src}/_internal/opsiutils_data/manpages/* ${DST}/rootfs/usr/share/man/man1/
+      cp -a ${arch_src}/_internal/opsiutils_data/etc ${DST}/rootfs/
+      cp -a ${arch_src}/_internal/opsiutils_data/opsi-python-examples ${DST}/rootfs/usr/share/opsi-utils/
     done
 
   postinst_script: |
