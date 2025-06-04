@@ -34,7 +34,10 @@ from OPSI import __version__ as python_opsi_version  # type: ignore
 from OPSI.UI import SnackUI  # type: ignore[import]
 from OPSI.Util import md5sum  # type: ignore[import]
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
-from OPSI.Util.Message import MessageSubject, ProgressSubject, Subject, SubjectsObserver  # type: ignore[import]
+from OPSI.Util.Message import MessageSubject  # type: ignore[import]
+from OPSI.Util.Message import ProgressSubject  # type: ignore[import]
+from OPSI.Util.Message import Subject  # type: ignore[import]
+from OPSI.Util.Message import SubjectsObserver  # type: ignore[import]
 from OPSI.Util.Repository import getRepository  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config import OpsiConfig
@@ -255,7 +258,10 @@ class CursesMainWindow(CursesWindow):
 		curses.nocbreak()
 		self.win.keypad(False)
 		curses.echo()
-		curses.endwin()
+		try:
+			curses.endwin()
+		except Exception as err:
+			logger.debug(err)
 
 	def resize(self) -> None:  # type: ignore[override]
 		return
