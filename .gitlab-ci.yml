@@ -9,8 +9,10 @@ stages:
   - integration_test
   - publish
 
-pytest-pylint:
+test-and-lint:
   stage: test
+  tags:
+    - docker-x64
   script:
     - export UV_PYTHON_PREFERENCE="only-managed"
     - export UV_PYTHON="3.13"
@@ -25,8 +27,10 @@ pytest-pylint:
       when: never
     - if: $SKIP_TESTS == "false"
 
-linux-amd64-pyinstaller:
+build:linux-x64:
   stage: build
+  tags:
+    - docker-x64
   script:
     - export UV_PYTHON_PREFERENCE="only-managed"
     - export UV_PYTHON="3.13"
@@ -51,10 +55,10 @@ linux-amd64-pyinstaller:
       - opsi-utils-amd64
     expire_in: 2 days
 
-linux-arm64-pyinstaller:
+build:linux-arm64:
   stage: build
   tags:
-    - linux-arm64
+    - docker-arm64
   script:
     - export UV_PYTHON_PREFERENCE="only-managed"
     - export UV_PYTHON="3.13"
@@ -78,6 +82,8 @@ linux-arm64-pyinstaller:
     expire_in: 2 days
 
 integration_test:
+  tags:
+    - docker-x64
   services:
     - name: mysql:8.3
       command:
@@ -116,6 +122,8 @@ integration_test:
     - if: $SKIP_TESTS == "false"
 
 obs_ext:
+  tags:
+    - docker-x64
   stage: publish
   script:
     - curl -sS "${OPSIDEVTOOLS_INSTALLER_URL_LINUX_X64}" | sh
