@@ -328,9 +328,8 @@ def test_server_repo_meta(  # pylint: disable=redefined-outer-name,too-many-loca
 		available_packages = package_updater.getDownloadablePackages()
 		assert len(available_packages) == 4
 		requests = [json.loads(line) for line in updater_info.server_log.read_text(encoding="utf-8").rstrip().split("\n")]
-		print(requests)
 		assert len(requests) == num_requests
-		assert requests[num_requests - 2]["path"] == f"/{metafile}"
+		assert requests[num_requests - 2]["path"] == f"/{metafile}"  # head, get meta 0, get meta 1, ... , head
 
 
 def test_server_repo_meta_multiurl(  # pylint: disable=redefined-outer-name,too-many-locals
