@@ -599,7 +599,7 @@ wheels = [
 
 [[package]]
 name = "opsi-utils"
-version = "4.3.15.1"
+version = "4.3.16.0"
 source = { editable = "." }
 dependencies = [
     { name = "annotated-types" },

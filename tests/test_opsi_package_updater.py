@@ -169,7 +169,7 @@ def prepare_updater(base_dir: Path, copy_files: bool = True, ignore_errors: bool
 	config["ignoreErrors"] = ignore_errors
 
 	config_file.write_text(
-		data=("[general]\n" f"packageDir = {str(local_dir)}\n" f"repositoryConfigDir = {str(repo_conf_path)}\n"), encoding="utf-8"
+		data=(f"[general]\npackageDir = {str(local_dir)}\nrepositoryConfigDir = {str(repo_conf_path)}\n"), encoding="utf-8"
 	)
 	return UpdaterInfo(
 		test_repo_conf=repo_conf_path / "test.repo",
@@ -305,7 +305,7 @@ def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-lo
 
 
 @pytest.mark.parametrize(
-	"metafile, num_requests", (("packages.msgpack.zstd", 1), ("packages.json", 2), ("packages.msgpack", 3), ("packages.json.zstd", 4))
+	"metafile, num_requests", (("packages.msgpack.zstd", 3), ("packages.json", 4), ("packages.msgpack", 5), ("packages.json.zstd", 6))
 )
 def test_server_repo_meta(  # pylint: disable=redefined-outer-name,too-many-locals
 	tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], metafile: str, num_requests: int
@@ -329,7 +329,7 @@ def test_server_repo_meta(  # pylint: disable=redefined-outer-name,too-many-loca
 		assert len(available_packages) == 4
 		requests = [json.loads(line) for line in updater_info.server_log.read_text(encoding="utf-8").rstrip().split("\n")]
 		assert len(requests) == num_requests
-		assert requests[num_requests - 1]["path"] == f"/{metafile}"
+		assert requests[num_requests - 2]["path"] == f"/{metafile}"  # head, get meta 0, get meta 1, ... , head
 
 
 def test_server_repo_meta_multiurl(  # pylint: disable=redefined-outer-name,too-many-locals
