@@ -22,9 +22,9 @@ from typing import BinaryIO, Generator
 from urllib.parse import quote, urlparse
 
 from cryptography import x509
-from OPSI.Util import (
+from OPSI.Util import (  # type: ignore[import]
 	compareVersions,
-	formatFileSize,  # type: ignore[import]
+	formatFileSize,
 	md5sum,
 )
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
