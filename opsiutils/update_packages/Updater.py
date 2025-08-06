@@ -1383,7 +1383,7 @@ class OpsiPackageUpdater:
 			session.auth = (repository.username, repository.password)
 			logger.debug("Initiating session with verify=%s", repository.verifyCert)
 			result = session.head(repository.baseUrl)
-			if result.status_code < 200 or result.status_code > 299:
+			if result.status_code < 200 or result.status_code > 399:
 				logger.error(
 					"Failed to connect to repository %s: %s - %s",
 					repository.name,
