@@ -439,7 +439,7 @@ class ClientMonitoringThread(threading.Thread):
 						password=password,
 						connect_timeout=self.connectTimeout,
 						jsonrpc_create_methods=True,
-						verify=ServiceVerificationFalgs.ACCEPT_ALL,
+						verify=ServiceVerificationFlags.ACCEPT_ALL,
 					)
 					opsiclientd_service.connect()
 					self.opsiclientd_service = opsiclientd_service
