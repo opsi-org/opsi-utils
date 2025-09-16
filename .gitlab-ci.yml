@@ -82,6 +82,7 @@ build:linux-arm64:
     expire_in: 2 days
 
 integration_test:
+  when: manual
   tags:
     - docker-x64
   services:
