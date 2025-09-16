@@ -10,8 +10,8 @@ tar -xvf hwaudit_all_all_4.2.0.2-1.tar.gz
 client=$(./opsi-admin method host_getObjects '[]' '{"id": "*1*"}' | grep '"id"' | head -n 1 | sed -e 's/^.*: "\([^"]*\)".*$/\1/')
 ./opsi-admin task setActionRequestWithDependencies "setup" "hwaudit" $client
 
-echo patching repositoryRemoteUrl to webdavs://test.uib.gmbh:4447/repository
-./opsi-admin -r method host_getObjects [] '{"type": "OpsiConfigserver"}' | sed -e 's#"repositoryRemoteUrl":"[^"]*"#"repositoryRemoteUrl":"webdavs://test.uib.gmbh:4447/repository"#' | ./opsi-admin method host_updateObjects
+echo patching repositoryRemoteUrl to webdavs://localhost:4447/repository
+./opsi-admin -r method host_getObjects [] '{"type": "OpsiConfigserver"}' | sed -e 's#"repositoryRemoteUrl":"[^"]*"#"repositoryRemoteUrl":"webdavs://localhost:4447/repository"#' | ./opsi-admin method host_updateObjects
 ./opsi-admin method host_getObjects [] '{"type": "OpsiConfigserver"}'
 
 ./opsi-package-manager -vvvv -r hwaudit
