@@ -156,11 +156,11 @@ def prepare_updater(base_dir: Path, copy_files: bool = True, ignore_errors: bool
 	local_dir = base_dir / "local_packages"
 	local_dir.mkdir()
 	server_dir = base_dir / "server_packages"
-	(server_dir / "otherdir").mkdir()
 	if copy_files:
 		shutil.copytree("tests/data/package-repo", server_dir)
 	else:
 		server_dir.mkdir()
+	(server_dir / "otherdir").mkdir()
 	repo_conf_path = base_dir / "repos.d"
 	repo_conf_path.mkdir()
 
