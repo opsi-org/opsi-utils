@@ -22,11 +22,7 @@ from typing import BinaryIO, Generator
 from urllib.parse import quote, urlparse
 
 from cryptography import x509
-from OPSI.Util import (  # type: ignore[import]
-	compareVersions,
-	formatFileSize,
-	md5sum,
-)
+from OPSI.Util import compareVersions, formatFileSize, md5sum  # type: ignore[import]
 from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
 from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config.opsi import OpsiConfig
@@ -1383,7 +1379,7 @@ class OpsiPackageUpdater:
 			session.auth = (repository.username, repository.password)
 			logger.debug("Initiating session with verify=%s", repository.verifyCert)
 			check_path = f"{repository.baseUrl}/{repository.dirs[0] if repository.dirs else ''}"
-			result = session.head(check_path)
+			result = session.head(check_path, headers=self.httpHeaders)
 			if result.status_code < 200 or result.status_code > 399:
 				logger.error(
 					"Failed to connect to repository %s: %s - %s",
