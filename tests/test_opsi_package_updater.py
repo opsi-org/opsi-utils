@@ -300,7 +300,7 @@ def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-lo
 		assert request["headers"].get("Authorization") == "Basic dXNlcjpwYXNz"
 		assert request["headers"]["Accept-Encoding"] == "identity"
 		if server_accept_ranges:
-			assert request["headers"]["Range"] == "bytes=18432-40959, 59392-81919, 100352-102399"
+			assert request["headers"]["Range"] == "bytes=18432-40959,59392-81919,100352-102399"
 		else:
 			assert "Range" not in request["headers"]
 
