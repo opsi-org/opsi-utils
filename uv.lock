@@ -599,7 +599,7 @@ wheels = [
 
 [[package]]
 name = "opsi-utils"
-version = "4.3.19.0"
+version = "4.3.19.1"
 source = { editable = "." }
 dependencies = [
     { name = "annotated-types" },
@@ -1121,18 +1121,15 @@ wheels = [
 
 [[package]]
 name = "pyzsync"
-version = "1.3.2"
+version = "1.4.20"
 source = { registry = "https://pypi.uib.gmbh/simple" }
-sdist = { url = "https://pypi.uib.gmbh/packages/pyzsync-1.3.2.tar.gz", hash = "sha256:a646da7cbb6abbec8e614d32f55ed8733d073ffd43f0dba45d6143037a8f031a" }
+sdist = { url = "https://pypi.uib.gmbh/packages/pyzsync-1.4.20.tar.gz", hash = "sha256:e5e6d428510f4cbb5465ed2711715b3c78852de22e7215e6d9738f90d132c36d" }
 wheels = [
-    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.3.2-cp311-cp311-macosx_10_7_x86_64.whl", hash = "sha256:78599b6c1cf2165003542a3306519893d11376952138805449eafbdbf7ff56a5" },
-    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.3.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e0e19550f7beade4178145a7d5eedff217997c35166e46cb2c3400ffc2c5a5b8" },
-    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.3.2-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:5c06e24efd1d591bc6ff9d88fb9f3f19878c87c4a60fa9060063585a46ca2fd2" },
-    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.3.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7e7837a5e8e2e29fcc07bcf34d1551172f85a6dcc1e06c9fb80673137825704a" },
-    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.3.2-cp312-cp312-manylinux_2_24_x86_64.whl", hash = "sha256:dd5769263f54d075c98feec951fa287800d6600c21546808f71fa78159e17af0" },
-    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.3.2-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:05bd7726f566af6fec6d9dbdc21695f2982f98d3e9500aaadd32c15934e038d3" },
-    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.3.2-cp313-cp313-manylinux_2_24_x86_64.whl", hash = "sha256:9b1caeef613aad12d41350e8e7b56752dca558b18b25ac5ad22ff5594081c644" },
-    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.3.2-cp313-none-win32.whl", hash = "sha256:42f2ab607de77b47cb9830c0a9345904a86e1ada4afadab620814f2aae416cc0" },
+    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.4.20-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:d2d049d477020049e9b4805ac03a792d3410029911bd598a8053798617e3e75b" },
+    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.4.20-cp311-cp311-manylinux_2_24_x86_64.whl", hash = "sha256:11ee6f2f7acb5e3dba9d7a1c853b2fd5b21e69d1b9010b1fe3a38e69f7bf03e9" },
+    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.4.20-cp312-cp312-manylinux_2_24_x86_64.whl", hash = "sha256:5bc6e91734332d53b165f73173fef3117a2dcb1894c17ad8fb9023b9440fa37d" },
+    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.4.20-cp313-cp313-manylinux_2_24_x86_64.whl", hash = "sha256:841e6ec8cf84f6583d1a1d45302a25f2bd770e859375a2d4e990f8049700a8f7" },
+    { url = "https://pypi.uib.gmbh/packages/pyzsync-1.4.20-cp314-cp314-manylinux_2_24_x86_64.whl", hash = "sha256:c01590d6017d03855e7f1cf23d1c0da7e6ab6a558aee79ce0f5387da4319d7ef" },
 ]
 
 [[package]]
