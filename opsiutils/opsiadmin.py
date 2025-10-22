@@ -444,7 +444,7 @@ class Shell:
 		self.color = forceBool(color)
 		self.output = forceUnicode(output)
 		self.running = False
-		self.screen: curses._CursesWindow | None = None
+		self.screen: curses.window | None = None
 		self.cmdBufferSize = 1024
 		self.userConfigDir = None
 		self.prompt = forceUnicode(prompt)
@@ -861,7 +861,7 @@ class Shell:
 			char = self.screen.getch()
 			textInput = False
 
-			if not char or char < 0:
+			if not char or int(char) < 0:
 				continue
 
 			if char == curses.KEY_RESIZE:
