@@ -139,11 +139,19 @@ def package_updater_class() -> Generator[type[OpsiPackageUpdater], None, None]:
 		yield cls
 
 
-def write_repo_conf(repo_conf: Path, base_url: str, proxy: str = "", dirs: str = "/", excludes: list[str] | None = None) -> None:
+def write_repo_conf(
+	repo_conf: Path,
+	base_url: str,
+	proxy: str = "",
+	dirs: str = "/",
+	excludes: list[str] | None = None,
+	customVersions: list[str] | None = None,
+) -> None:
 	repo_conf.write_text(
 		data=(
 			f"[repository_test]\nactive = true\nbaseUrl = {base_url}\ndirs = {dirs}\nproxy = {proxy}\n"
-			f"autoInstall = true\nusername = user\npassword = pass\nexcludes={', '.join(excludes) if excludes else ''}\n"
+			f"autoInstall = true\nusername = user\npassword = pass\nexcludes = {', '.join(excludes) if excludes else ''}\n"
+			f"customVersions = {', '.join(customVersions) if customVersions else ''}\n"
 		),
 		encoding="utf-8",
 	)
@@ -410,3 +418,39 @@ def test_process_updates(tmp_path: Path, package_updater_class: type[OpsiPackage
 		assert len(install_log.installed) == 2
 		for entry in install_log.installed:
 			assert entry.endswith("localboot_new_42.0-1337.opsi") or entry.endswith("test-netboot_1.0-2.opsi")
+
+
+@pytest.mark.parametrize(
+	"custom_versions, expected_version",
+	(
+		(None, "42.0-1337"),
+		([".*~en"], "42.0-1337~en"),
+		([".*~en", "localboot_new~ita"], "42.0-1337~ita"),
+		([".*~other", "localboot_new~foo"], "42.0-1337"),
+	),
+)
+def test_prefer_custom_versions(
+	tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], custom_versions: list[str] | None, expected_version: str
+) -> None:
+	updater_info = prepare_updater(tmp_path, ignore_errors=True)
+
+	rmpc = RepoMetaPackageCollection()
+	rmpc.scan_packages(updater_info.server_dir)
+	rmpc.write_metafile(updater_info.server_dir / "packages.json")
+
+	with http_test_server(serve_directory=updater_info.server_dir, log_file=str(updater_info.server_log)) as server:
+		base_url = f"http://localhost:{server.port}"
+		write_repo_conf(
+			updater_info.test_repo_conf,
+			base_url,
+			excludes=[],
+			customVersions=custom_versions,
+		)
+
+		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
+		available_packages = package_updater.getDownloadablePackages()
+		localboot_new_versions = sorted(str(pkg["version"]) for pkg in available_packages if pkg["productId"] == "localboot_new")
+		assert localboot_new_versions == ["1.0-1", "2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"]
+		newest_packages = package_updater.onlyNewestPackages(available_packages)
+		localboot_new_versions = sorted(str(pkg["version"]) for pkg in newest_packages if pkg["productId"] == "localboot_new")
+		assert localboot_new_versions == [expected_version]

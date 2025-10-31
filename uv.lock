@@ -127,7 +127,7 @@ name = "cffi"
 version = "2.0.0"
 source = { registry = "https://pypi.uib.gmbh/simple" }
 dependencies = [
-    { name = "pycparser", marker = "implementation_name != 'PyPy'" },
+    { name = "pycparser", marker = "implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/eb/56/b1ba7935a17738ae8453301356628e8147c79dbb825bcbc73dc7401f9846/cffi-2.0.0.tar.gz", hash = "sha256:44d1b5909021139fe36001ae048dbdde8214afa20200eda0f64c068cac5d5529", size = 523588, upload-time = "2025-09-08T23:24:04.541Z" }
 wheels = [
@@ -759,7 +759,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/a6/91/86a6eac449ddfae23
 
 [[package]]
 name = "opsi-utils"
-version = "4.3.19.2"
+version = "4.3.19.3"
 source = { editable = "." }
 dependencies = [
     { name = "annotated-types" },
@@ -1224,7 +1224,7 @@ wheels = [
 
 [[package]]
 name = "python-opsi-common"
-version = "4.3.41.1"
+version = "4.3.42.0"
 source = { registry = "https://pypi.uib.gmbh/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -1255,9 +1255,9 @@ dependencies = [
     { name = "wmi", marker = "sys_platform == 'win32'" },
     { name = "zstandard" },
 ]
-sdist = { url = "https://pypi.uib.gmbh/packages/python_opsi_common-4.3.41.1.tar.gz", hash = "sha256:1c943dc2d091b48f2f383698501a62d97752a711ce6ab1e01fb5e56eeff1ff08" }
+sdist = { url = "https://pypi.uib.gmbh/packages/python_opsi_common-4.3.42.0.tar.gz", hash = "sha256:9344af35db5120204da95e1798bf564aae235c4c7d51d74c5c044c393b925f2e" }
 wheels = [
-    { url = "https://pypi.uib.gmbh/packages/python_opsi_common-4.3.41.1-py3-none-any.whl", hash = "sha256:b4dd14d0113d9a184d02de1ea98a47a533da0a18b30234547276071b4283f805" },
+    { url = "https://pypi.uib.gmbh/packages/python_opsi_common-4.3.42.0-py3-none-any.whl", hash = "sha256:a0760a945fb4879f2cec707871a479801dce038a7d8bd88b4a279b41bb1a83ce" },
 ]
 
 [[package]]

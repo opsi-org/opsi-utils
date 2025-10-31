@@ -18,6 +18,9 @@ includeProductIds =
 ; Comma separated list of regular expressions
 ; If a product package file matches one of these regular expressions it will not be downloaded
 excludes = ^test.*
+; Comma separated list of <product-pattern>~<custom-version> pairs to prefer custom versions for certain products
+; The product pattern supports regular expressions
+customVersions = .*~en, thunderbird~ita
 ; Username for connection to repository
 username =
 ; Password for connection to repository

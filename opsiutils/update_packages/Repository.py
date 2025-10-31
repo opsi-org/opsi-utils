@@ -39,6 +39,7 @@ class ProductRepositoryInfo:
 		proxy: str | None = None,
 		excludes: list[re.Pattern] | None = None,
 		includes: list[re.Pattern] | None = None,
+		customVersions: dict[re.Pattern, str] | None = None,
 		active: bool = False,
 		autoSetupExcludes: list[re.Pattern] | None = None,
 		verifyCert: bool = False,
@@ -48,6 +49,7 @@ class ProductRepositoryInfo:
 		self.dirs = forceStringList(dirs or [])
 		self.excludes = excludes or []
 		self.includes = includes or []
+		self.customVersions = customVersions or {}
 		self.username = forceUnicode(username)
 		self.password = forceUnicode(password)
 		self.authcertfile = forceUnicode(authcertfile)

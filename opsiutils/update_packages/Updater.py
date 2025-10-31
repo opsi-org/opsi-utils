@@ -1138,21 +1138,67 @@ class OpsiPackageUpdater:
 		self, packages: list[dict[str, str | ProductRepositoryInfo | None]]
 	) -> list[dict[str, str | ProductRepositoryInfo | None]]:
 		newestPackages: list[dict[str, str | ProductRepositoryInfo | None]] = []
+
+		preferred_custom_versions: dict[str, str] = {}
 		for package in packages:
-			found = None
-			for i, newPackage in enumerate(newestPackages):
-				if newPackage["productId"] == package["productId"]:
-					found = i
-					if compareVersions(package["version"], ">", newestPackages[i]["version"]):
-						logger.debug(
-							"Package version '%s' is newer than version '%s'",
-							package["version"],
-							newestPackages[i]["version"],
-						)
-						newestPackages[i] = package
+			if package["productId"] in preferred_custom_versions:
+				continue
+			repo = package["repository"]
+			if not isinstance(repo, ProductRepositoryInfo) or not repo.customVersions:
+				continue
+
+			patterns = sorted(repo.customVersions, key=lambda x: len(x.pattern), reverse=True)
+			for pattern in patterns:
+				custom_version = repo.customVersions[pattern]
+				if pattern.match(str(package["productId"])):
+					logger.info(
+						"Preferring custom version '%s' for product '%s' from repository '%s'",
+						custom_version,
+						package["productId"],
+						repo.name,
+					)
+					preferred_custom_versions[str(package["productId"])] = custom_version
 					break
 
-			if found is None:
+		for package in packages:
+			found = False
+			repo = package["repository"]
+			package_version = str(package["version"])
+			preferred_custom_version = preferred_custom_versions.get(str(package["productId"]), "")
+			custom_version = ""
+			if "~" in package_version:
+				package_version, custom_version = package_version.split("~", 1)
+
+			for i, newPackage in enumerate(newestPackages):
+				if newPackage["productId"] != package["productId"]:
+					continue
+
+				found = True
+				newest_package_version = str(newestPackages[i]["version"]).split("~", 1)[0]
+
+				if compareVersions(package_version, ">", newest_package_version):
+					logger.debug(
+						"Package version '%s' is newer than version '%s'",
+						package_version,
+						newest_package_version,
+					)
+					newestPackages[i] = package
+					break
+
+				if (
+					preferred_custom_version
+					and custom_version == preferred_custom_version
+					and compareVersions(package_version, "==", newest_package_version)
+				):
+					logger.debug(
+						"Package version '%s' matches preferred custom version '%s'",
+						package_version,
+						preferred_custom_version,
+					)
+					newestPackages[i] = package
+					break
+
+			if not found:
 				newestPackages.append(package)
 
 		return newestPackages

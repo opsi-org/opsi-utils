@@ -32,11 +32,7 @@ from opsicommon.types import (
 	forceUrl,
 )
 
-from .Exceptions import (
-	ConfigurationError,
-	MissingConfigurationValueError,
-	RequiringBackendError,
-)
+from .Exceptions import ConfigurationError, MissingConfigurationValueError, RequiringBackendError
 from .Repository import ProductRepositoryInfo
 
 __all__ = ("DEFAULT_CONFIG", "DEFAULT_USER_AGENT", "ConfigurationParser")
@@ -354,6 +350,17 @@ class ConfigurationParser:
 				repository.dirs = [forceFilename(directory) for directory in splitAndStrip(value, ",")]
 			elif option.lower() == "excludes":
 				repository.excludes = [re.compile(exclude) for exclude in splitAndStrip(value, ",")]
+			elif option.lower() == "customversions":
+				customVersions: dict[re.Pattern, str] = {}
+				for item in splitAndStrip(value, ","):
+					try:
+						patternStr, versionStr = item.split("~", 1)
+						pattern = re.compile(patternStr.strip())
+						version = versionStr.strip()
+						customVersions[pattern] = version
+					except ValueError:
+						logger.error("Invalid custom version entry '%s' in repository '%s'", item, repository.name)
+				repository.customVersions = customVersions
 			elif option.lower() == "includeproductids":
 				repository.includes = [re.compile(include) for include in splitAndStrip(value, ",")]
 			elif option.lower() == "autosetupexcludes":
