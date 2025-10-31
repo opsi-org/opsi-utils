@@ -1167,10 +1167,10 @@ class OpsiPackageUpdater:
 			preferred_custom_version = preferred_custom_versions.get(str(package["productId"]), "")
 			custom_version = ""
 			if "~" in package_version:
-				if not preferred_custom_version:
+				package_version, custom_version = package_version.split("~", 1)
+				if not preferred_custom_version or custom_version != preferred_custom_version:
 					# Do not consider custom version if no preferred custom version is set
 					continue
-				package_version, custom_version = package_version.split("~", 1)
 
 			for i, newPackage in enumerate(newestPackages):
 				if newPackage["productId"] != package["productId"]:

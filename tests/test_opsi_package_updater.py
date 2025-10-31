@@ -449,11 +449,13 @@ def test_prefer_custom_versions(
 
 		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
 		available_packages = package_updater.getDownloadablePackages()
-		localboot_new_versions = sorted(str(pkg["version"]) for pkg in available_packages if pkg["productId"] == "localboot_new")
-		print("localboot_new_versions:", localboot_new_versions)
-		assert localboot_new_versions == ["1.0-1", "2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"]
-		newest_packages = package_updater.onlyNewestPackages(available_packages)
-		latest_localboot_new_versions = sorted(str(pkg["version"]) for pkg in newest_packages if pkg["productId"] == "localboot_new")
-		print("latest_localboot_new_versions:", latest_localboot_new_versions)
-		print("expected_version:", expected_version)
-		assert latest_localboot_new_versions == [expected_version]
+		for reverse_sort in (False, True):
+			available_packages.sort(key=lambda pkg: pkg["version"], reverse=reverse_sort)
+			localboot_new_versions = sorted(str(pkg["version"]) for pkg in available_packages if pkg["productId"] == "localboot_new")
+			print("localboot_new_versions:", localboot_new_versions)
+			assert localboot_new_versions == ["1.0-1", "2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"]
+			newest_packages = package_updater.onlyNewestPackages(available_packages)
+			latest_localboot_new_versions = sorted(str(pkg["version"]) for pkg in newest_packages if pkg["productId"] == "localboot_new")
+			print("latest_localboot_new_versions:", latest_localboot_new_versions)
+			print("expected_version:", expected_version)
+			assert latest_localboot_new_versions == [expected_version]
