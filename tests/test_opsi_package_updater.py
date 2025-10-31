@@ -363,7 +363,7 @@ def test_server_repo_meta_multiurl(  # pylint: disable=redefined-outer-name,too-
 		write_repo_conf(updater_info.test_repo_conf, base_url)  # no filter
 		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
 		available_packages = package_updater.getDownloadablePackages()
-		assert len(available_packages) == 4
+		assert len(available_packages) == 6
 		for package in available_packages:
 			if package["version"] != "1.0-1":
 				continue
