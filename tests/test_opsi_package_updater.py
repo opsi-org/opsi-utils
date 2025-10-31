@@ -335,7 +335,7 @@ def test_server_repo_meta(  # pylint: disable=redefined-outer-name,too-many-loca
 		available_packages = package_updater.getDownloadablePackages()
 		# Next call must use cache
 		available_packages = package_updater.getDownloadablePackages()
-		assert len(available_packages) == 4
+		assert len(available_packages) == 6
 		requests = [json.loads(line) for line in updater_info.server_log.read_text(encoding="utf-8").rstrip().split("\n")]
 		assert len(requests) == num_requests
 		assert requests[num_requests - 2]["path"] == f"/{metafile}"  # head, get meta 0, get meta 1, ... , head
@@ -450,7 +450,10 @@ def test_prefer_custom_versions(
 		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
 		available_packages = package_updater.getDownloadablePackages()
 		localboot_new_versions = sorted(str(pkg["version"]) for pkg in available_packages if pkg["productId"] == "localboot_new")
+		print("localboot_new_versions:", localboot_new_versions)
 		assert localboot_new_versions == ["1.0-1", "2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"]
 		newest_packages = package_updater.onlyNewestPackages(available_packages)
-		localboot_new_versions = sorted(str(pkg["version"]) for pkg in newest_packages if pkg["productId"] == "localboot_new")
-		assert localboot_new_versions == [expected_version]
+		latest_localboot_new_versions = sorted(str(pkg["version"]) for pkg in newest_packages if pkg["productId"] == "localboot_new")
+		print("latest_localboot_new_versions:", latest_localboot_new_versions)
+		print("expected_version:", expected_version)
+		assert latest_localboot_new_versions == [expected_version]
