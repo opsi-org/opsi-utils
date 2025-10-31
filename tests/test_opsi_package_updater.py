@@ -421,16 +421,22 @@ def test_process_updates(tmp_path: Path, package_updater_class: type[OpsiPackage
 
 
 @pytest.mark.parametrize(
-	"custom_versions, expected_version",
+	"available_versions, custom_versions, expected_version",
 	(
-		(None, "42.0-1337"),
-		([".*~en"], "42.0-1337~en"),
-		([".*~en", "localboot_new~ita"], "42.0-1337~ita"),
-		([".*~other", "localboot_new~foo"], "42.0-1337"),
+		(["2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"], None, "42.0-1337"),
+		(["2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"], [".*~en"], "42.0-1337~en"),
+		(["2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"], [".*~en", "localboot_new~ita"], "42.0-1337~ita"),
+		(["2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"], [".*~other", "localboot_new~foo"], "42.0-1337"),
+		(["2.0-1", "42.0-1337~ita"], None, "2.0-1"),
+		(["42.0-1337~ita"], None, "42.0-1337~ita"),
 	),
 )
 def test_prefer_custom_versions(
-	tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], custom_versions: list[str] | None, expected_version: str
+	tmp_path: Path,
+	package_updater_class: type[OpsiPackageUpdater],
+	available_versions: list[str],
+	custom_versions: list[str] | None,
+	expected_version: str,
 ) -> None:
 	updater_info = prepare_updater(tmp_path, ignore_errors=True)
 
@@ -448,12 +454,16 @@ def test_prefer_custom_versions(
 		)
 
 		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
-		available_packages = package_updater.getDownloadablePackages()
+		available_packages = [
+			p
+			for p in package_updater.getDownloadablePackages()
+			if p["productId"] == "localboot_new" and str(p["version"]) in available_versions
+		]
 		for reverse_sort in (False, True):
 			available_packages.sort(key=lambda pkg: str(pkg["version"]), reverse=reverse_sort)
 			localboot_new_versions = sorted(str(pkg["version"]) for pkg in available_packages if pkg["productId"] == "localboot_new")
 			print("localboot_new_versions:", localboot_new_versions)
-			assert localboot_new_versions == ["1.0-1", "2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"]
+			assert localboot_new_versions == available_versions
 			newest_packages = package_updater.onlyNewestPackages(available_packages)
 			latest_localboot_new_versions = sorted(str(pkg["version"]) for pkg in newest_packages if pkg["productId"] == "localboot_new")
 			print("latest_localboot_new_versions:", latest_localboot_new_versions)

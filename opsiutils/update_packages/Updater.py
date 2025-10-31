@@ -1140,8 +1140,13 @@ class OpsiPackageUpdater:
 		newestPackages: list[dict[str, str | ProductRepositoryInfo | None]] = []
 
 		preferred_custom_versions: dict[str, str] = {}
+		package_versions: dict[str, list[str]] = {}
 		for package in packages:
-			if package["productId"] in preferred_custom_versions:
+			product_id = str(package["productId"])
+			if product_id not in package_versions:
+				package_versions[product_id] = []
+			package_versions[product_id].append(str(package["version"]))
+			if product_id in preferred_custom_versions:
 				continue
 			repo = package["repository"]
 			if not isinstance(repo, ProductRepositoryInfo) or not repo.customVersions:
@@ -1150,30 +1155,33 @@ class OpsiPackageUpdater:
 			patterns = sorted(repo.customVersions, key=lambda x: len(x.pattern), reverse=True)
 			for pattern in patterns:
 				custom_version = repo.customVersions[pattern]
-				if pattern.match(str(package["productId"])):
+				if pattern.match(product_id):
 					logger.info(
 						"Preferring custom version '%s' for product '%s' from repository '%s'",
 						custom_version,
-						package["productId"],
+						product_id,
 						repo.name,
 					)
-					preferred_custom_versions[str(package["productId"])] = custom_version
+					preferred_custom_versions[product_id] = custom_version
 					break
 
 		for package in packages:
 			found = False
 			repo = package["repository"]
+			product_id = str(package["productId"])
 			package_version = str(package["version"])
-			preferred_custom_version = preferred_custom_versions.get(str(package["productId"]), "")
+			preferred_custom_version = preferred_custom_versions.get(product_id, "")
 			custom_version = ""
 			if "~" in package_version:
 				package_version, custom_version = package_version.split("~", 1)
-				if not preferred_custom_version or custom_version != preferred_custom_version:
-					# Do not consider custom version if no preferred custom version is set
+				if (not preferred_custom_version or custom_version != preferred_custom_version) and len(
+					package_versions.get(product_id, [])
+				) > 1:
+					# Do not consider custom version if no preferred custom version is set and more than one version is available
 					continue
 
 			for i, newPackage in enumerate(newestPackages):
-				if newPackage["productId"] != package["productId"]:
+				if newPackage["productId"] != product_id:
 					continue
 
 				found = True
