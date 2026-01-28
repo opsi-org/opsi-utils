@@ -223,7 +223,7 @@ def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpd
 		assert package.filename == server_package_file.name
 		assert package.zsync_file == f"{base_url}/{zsync_file.name}"
 
-		new_packages = package_updater.get_packages(DummyNotifier())  # type: ignore[no-untyped-call]
+		new_packages = package_updater.get_packages(DummyNotifier())
 		if excludes:
 			assert not new_packages
 		else:
@@ -270,7 +270,7 @@ def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-lo
 
 		write_repo_conf(updater_info.test_repo_conf, base_url, proxy)
 
-		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
+		package_updater = package_updater_class(updater_info.config)
 
 		available_packages = package_updater.getDownloadablePackages()
 		package = None
@@ -284,20 +284,20 @@ def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-lo
 		assert package.package_file == f"{base_url}/hwaudit_4.2.0.0-1.opsi"
 		assert package.filename == server_package_file.name
 		assert package.zsync_file == f"{base_url}/{zsync_file.name}"
-		with package_updater.makeSession(package.repository) as session:  # type: ignore[arg-type,var-annotated]
+		with package_updater.makeSession(package.repository) as session:
 			assert (
 				# pylint: disable=protected-access
 				package_updater._useZsync(
 					session,
 					package,
-					local_package=get_local_package_info(product_id="hwaudit", package_file=local_package_file),  # type: ignore[arg-type]
+					local_package=get_local_package_info(product_id="hwaudit", package_directory=updater_info.local_dir),
 				)
 				== server_accept_ranges
 			)
 
 		if "localhost" in base_url:
 			updater_info.server_log.unlink()
-		new_packages = package_updater.get_packages(DummyNotifier())  # type: ignore[no-untyped-call]
+		new_packages = package_updater.get_packages(DummyNotifier())
 		assert len(new_packages) == 1
 
 		# for line in server_log.read_text(encoding="utf-8").rstrip().split("\n"):
@@ -334,7 +334,7 @@ def test_server_repo_meta(  # pylint: disable=redefined-outer-name,too-many-loca
 
 		write_repo_conf(updater_info.test_repo_conf, base_url, proxy)
 
-		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
+		package_updater = package_updater_class(updater_info.config)
 		available_packages = package_updater.getDownloadablePackages()
 		# Next call must use cache
 		available_packages = package_updater.getDownloadablePackages()
@@ -364,7 +364,7 @@ def test_server_repo_meta_multiurl(  # pylint: disable=redefined-outer-name,too-
 		base_url = f"http://localhost:{server.port}"
 
 		write_repo_conf(updater_info.test_repo_conf, base_url)  # no filter
-		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
+		package_updater = package_updater_class(updater_info.config)
 		available_packages = package_updater.getDownloadablePackages()
 		assert len(available_packages) == 6
 		for package in available_packages:
@@ -374,7 +374,7 @@ def test_server_repo_meta_multiurl(  # pylint: disable=redefined-outer-name,too-
 			assert package.zsync_file == f"{base_url}/localboot_new_1.0-1.opsi.zsync"
 
 		write_repo_conf(updater_info.test_repo_conf, base_url, dirs="otherdir/")
-		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
+		package_updater = package_updater_class(updater_info.config)
 		available_packages = package_updater.getDownloadablePackages()
 		assert len(available_packages) == 1
 		assert available_packages[0].package_file == f"{base_url}/otherdir/localboot_new_1.0-1.opsi"
@@ -415,7 +415,7 @@ def test_process_updates(tmp_path: Path, package_updater_class: type[OpsiPackage
 		base_url = f"http://localhost:{server.port}"
 		write_repo_conf(updater_info.test_repo_conf, base_url)
 
-		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
+		package_updater = package_updater_class(updater_info.config)
 		install_log.installed = []
 		package_updater.processUpdates()
 		assert len(install_log.installed) == 2
@@ -456,7 +456,7 @@ def test_prefer_custom_versions(
 			customVersions=custom_versions,
 		)
 
-		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
+		package_updater = package_updater_class(updater_info.config)
 		available_packages = [
 			p for p in package_updater.getDownloadablePackages() if p.product_id == "localboot_new" and str(p.version) in available_versions
 		]
