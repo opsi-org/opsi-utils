@@ -446,7 +446,7 @@ class OpsiPackageUpdater:
 						propertyDefaultValues=property_default_values,
 						tempDir=self.config.get("tempdir", "/tmp"),
 					)
-					productOnDepots = backend.productOnDepot_getObjects(depotId=self.depotId, productId=package["productId"])  # type: ignore[attr-defined]
+					productOnDepots = backend.productOnDepot_getObjects(depotId=self.depotId, productId=package.product_id)  # type: ignore[attr-defined]
 					if not productOnDepots:
 						raise ValueError(f"Product {package.product_id!r} not found on depot '{self.depotId}' after installation")
 					package.product = backend.product_getObjects(  # type: ignore[attr-defined]
