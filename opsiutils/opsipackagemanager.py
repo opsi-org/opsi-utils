@@ -30,15 +30,12 @@ from types import FrameType
 from typing import Any, Callable, Generator
 from urllib.parse import urlparse
 
-from OPSI import __version__ as python_opsi_version  # type: ignore
-from OPSI.UI import SnackUI  # type: ignore[import]
-from OPSI.Util import md5sum  # type: ignore[import]
-from OPSI.Util.File.Opsi import parseFilename  # type: ignore[import]
-from OPSI.Util.Message import MessageSubject  # type: ignore[import]
-from OPSI.Util.Message import ProgressSubject  # type: ignore[import]
-from OPSI.Util.Message import Subject  # type: ignore[import]
-from OPSI.Util.Message import SubjectsObserver  # type: ignore[import]
-from OPSI.Util.Repository import getRepository  # type: ignore[import]
+from OPSI import __version__ as python_opsi_version
+from OPSI.UI import SnackUI
+from OPSI.Util import md5sum
+from OPSI.Util.File.Opsi import parseFilename
+from OPSI.Util.Message import MessageSubject, ProgressSubject, Subject, SubjectsObserver
+from OPSI.Util.Repository import getRepository
 from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_NONE, LOG_WARNING, get_logger, logging_config
@@ -49,9 +46,9 @@ from opsicommon.types import forceActionRequest, forceBool, forceHostId, forceIn
 from opsiutils import __version__
 
 try:
-	from OPSI.Util.Sync import librsyncDeltaFile  # type: ignore[import]
+	from OPSI.Util.Sync import librsyncDeltaFile
 except ImportError:
-	librsyncDeltaFile = None
+	librsyncDeltaFile = None  # type: ignore[assignment]
 
 
 logger = get_logger("opsi-package-manager")
@@ -431,13 +428,13 @@ class UserInterface(SubjectsObserver):
 
 	def subjectsChanged(self, subjects: list[Subject]) -> None:
 		for subject in subjects:
-			if subject.getMessage():
+			if isinstance(subject, MessageSubject) and subject.getMessage():
 				self.messageChanged(subject, subject.getMessage())
 
 	def progressChanged(self, subject: Subject, state: int, percent: float, timeSpend: float, timeLeft: float, speed: float) -> None:
 		self.showProgress()
 
-	def messageChanged(self, subject: Subject, message: str) -> None:
+	def messageChanged(self, subject: MessageSubject, message: str) -> None:
 		if not message:
 			logger.warning("Message deleted: %s %s", subject.getType(), subject.getId())
 
@@ -782,7 +779,7 @@ class OpsiPackageManager:
 		try:
 			subject = self.getDepotSubject(depotId)
 			subject.setMessage(_("Setting action setup for product %s where installed") % productId)
-			actionRequest = forceActionRequest(actionRequest)
+			actionRequest = forceActionRequest(actionRequest) or "setup"
 			clientIds = []
 			for clientToDepot in self.service_client.jsonrpc("configState_getClientToDepotserver", [[depotId]]):
 				clientIds.append(clientToDepot["clientId"])

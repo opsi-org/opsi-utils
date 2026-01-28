@@ -12,19 +12,14 @@ through a remote repository.
 from __future__ import annotations
 
 import argparse
-import operator
 import sys
 from pathlib import Path
+from types import TracebackType
 
 from configupdater import ConfigUpdater
-from OPSI import __version__ as python_opsi_version  # type: ignore[import,attr-defined]
-from OPSI.Util import compareVersions  # type: ignore[import]
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	get_logger,
-	init_logging,
-	logging_config,
-)
+from OPSI import __version__ as python_opsi_version
+from OPSI.Util import compareVersions
+from opsicommon.logging import DEFAULT_COLORED_FORMAT, get_logger, init_logging, logging_config
 from opsicommon.system import ensure_not_already_running
 from opsicommon.types import forceProductId
 
@@ -50,6 +45,9 @@ OFFICIAL_REPO_FILES = [
 class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 	def __enter__(self) -> OpsiPackageUpdaterClient:
 		return self
+
+	def __exit__(self, type_: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None) -> bool | None:
+		pass
 
 	def listActiveRepos(self) -> None:
 		logger.notice("Active repositories:")
@@ -79,9 +77,9 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 		data: dict[str, dict[str, str]] = {}
 		for repository in self.getActiveRepositories():
 			for package in self.getDownloadablePackagesFromRepository(repository):
-				name = str(package.get("productId"))
-				if name not in data or compareVersions(package.get("version"), ">", data[name].get("version")):
-					data[name] = {"version": str(package.get("version")), "repository": repository.name}
+				name = package.product_id
+				if name not in data or compareVersions(package.version, ">", data[name]["version"]):
+					data[name] = {"version": package.version, "repository": repository.name}
 
 		for name in sorted(data.keys()):
 			print(f"\t{name} (Version {data[name].get('version')} in {data[name].get('repository')})")
@@ -104,29 +102,29 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
 		for repository in self.getActiveRepositories():
 			logger.notice("Packages in %s:", repository.name)
-			packages = sorted(self.getDownloadablePackagesFromRepository(repository), key=operator.itemgetter("productId"))
+			packages = sorted(self.getDownloadablePackagesFromRepository(repository), key=lambda entry: entry.product_id)
 
 			if productId:
 				logger.debug("Filtering for product IDs matching %s...", productId)
 				productId = forceProductId(productId)
-				packages = [package for package in packages if productId in str(package["productId"])]
+				packages = [package for package in packages if productId in package.product_id]
 
 			for package in packages:
 				if withLocalInstallationStatus:
 					try:
-						localProduct = local_products_dict[str(package["productId"])]
+						localProduct = local_products_dict[package.product_id]
 					except KeyError as kerr:
 						logger.debug(kerr)
-						print(f"\t{package.get('productId')} (Version {package.get('version')}, not installed)")
+						print(f"\t{package.product_id} (Version {package.version}, not installed)")
 						continue
 
 					localVersion = f"{localProduct.productVersion}-{localProduct.packageVersion}"
-					if compareVersions(package["version"], "==", localVersion):
-						print(f"\t{package.get('productId')} (Version {package.get('version')}, installed)")
+					if compareVersions(package.version, "==", localVersion):
+						print(f"\t{package.product_id} (Version {package.version}, installed)")
 					else:
-						print(f"\t{package.get('productId')} (Version {package.get('version')}, installed {localVersion})")
+						print(f"\t{package.product_id} (Version {package.version}, installed {localVersion})")
 				else:
-					print(f"\t{package.get('productId')} (Version {package.get('version')})")
+					print(f"\t{package.product_id} (Version {package.version})")
 
 	def listProductsWithVersionDifference(self) -> None:
 		"""
@@ -143,17 +141,17 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 			packages = sorted(self.getDownloadablePackagesFromRepository(repository), key=lambda entry: str(entry["productId"]))
 			for package in packages:
 				try:
-					localProduct = localProducts[str(package["productId"])]
+					localProduct = localProducts[package.product_id]
 				except KeyError:
 					continue  # Not installed locally
 
 				localVersion = f"{localProduct.productVersion}-{localProduct.packageVersion}"
-				if not compareVersions(package["version"], "==", localVersion):
+				if not compareVersions(package.version, "==", localVersion):
 					if not repoMessageShown:
 						print(f"Packages in {repository.name}:")
 						repoMessageShown = True
 
-					print(f"\t{package['productId']} (Version {package['version']}, installed {localVersion})")
+					print(f"\t{package.product_id} (Version {package.version}, installed {localVersion})")
 
 	def listUpdatableProducts(self) -> None:
 		try:

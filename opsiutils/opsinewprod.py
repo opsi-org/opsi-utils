@@ -15,10 +15,10 @@ import time
 from pathlib import Path
 from typing import Generator, cast
 
-from OPSI import __version__ as python_opsi_version  # type: ignore
-from OPSI.System import copy  # type: ignore[import]
-from OPSI.UI import UI, UIFactory  # type: ignore[import]
-from OPSI.Util.File import ChangelogFile  # type: ignore[import]
+from OPSI import __version__ as python_opsi_version
+from OPSI.System import copy
+from OPSI.UI import UI, UIFactory
+from OPSI.Util.File import ChangelogFile
 from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, logger, logging_config
 from opsicommon.objects import (
 	BoolProductProperty,

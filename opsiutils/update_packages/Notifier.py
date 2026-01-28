@@ -98,7 +98,7 @@ class EmailNotifier(BaseNotifier):
 	def notify(self) -> None:
 		logger.notice("Sending mail notification")
 		mail = f"From: {self.sender}\n"
-		mail += f'To: {",".join(self.receivers)}\n'
+		mail += f"To: {','.join(self.receivers)}\n"
 		mail += f"Date: {email.utils.formatdate(localtime=True)}\n"
 		mail += f"Subject: {self.subject}\n"
 		mail += "\n"

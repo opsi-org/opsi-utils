@@ -10,16 +10,9 @@ import argparse
 import os
 import sys
 
-from OPSI import __version__ as python_opsi_version  # type: ignore[import]
-from OPSI.Util.Task.Backup import OpsiBackup  # type: ignore[import]
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_NOTICE,
-	LOG_WARNING,
-	init_logging,
-	logger,
-	logging_config,
-)
+from OPSI import __version__ as python_opsi_version
+from OPSI.Util.Task.Backup import OpsiBackup
+from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_NOTICE, LOG_WARNING, init_logging, logger, logging_config
 
 from opsiutils import __version__
 from opsiutils.opsimakepackage import raw_tty

@@ -6,7 +6,7 @@
 Utility functions for package updates.
 """
 
-from OPSI.Util import compareVersions  # type: ignore[import]
+from OPSI.Util import compareVersions
 from opsicommon.logging import get_logger
 
 from .Exceptions import NoActiveRepositoryError
@@ -18,7 +18,7 @@ __all__ = ("getUpdatablePackages",)
 logger = get_logger("opsi.general")
 
 
-def getUpdatablePackages(updater: OpsiPackageUpdater) -> dict[str, dict[str, str | ProductRepositoryInfo | None]]:
+def getUpdatablePackages(updater: OpsiPackageUpdater) -> dict[str, dict[str, str]]:
 	"""
 	Returns information about updatable packages from the given `updater`.
 
@@ -32,36 +32,36 @@ def getUpdatablePackages(updater: OpsiPackageUpdater) -> dict[str, dict[str, str
 	if not any(updater.getActiveRepositories()):
 		raise NoActiveRepositoryError("No active repository configured.")
 
-	updates: dict[str, dict[str, str | ProductRepositoryInfo | None]] = {}
+	updates: dict[str, dict[str, str]] = {}
 	try:
-		installedProducts = updater.getInstalledProducts()
+		installed_products = updater.getInstalledProducts()
 		pack_per_repo = updater.get_new_packages_per_repository()
 
 		if not any(pack_per_repo.values()):
 			return updates
 
 		for repository in sort_repository_list(list(pack_per_repo)):
-			for availablePackage in pack_per_repo[repository]:
+			for available_package in pack_per_repo[repository]:
 				assert isinstance(repository, ProductRepositoryInfo)
-				productId = str(availablePackage["productId"])
-				for product in installedProducts:
-					if product.productId == productId:
-						logger.debug("Product '%s' is installed", productId)
+				product_id = available_package.product_id
+				for product in installed_products:
+					if product.productId == product_id:
+						logger.debug("Product '%s' is installed", product_id)
 						logger.debug(
 							"Available product version is '%s' (on %s), installed product version is '%s-%s'",
 							repository.name,
-							availablePackage["version"],
+							available_package.version,
 							product.productVersion,
 							product.packageVersion,
 						)
 						updateAvailable = compareVersions(
-							availablePackage["version"], ">", f"{product.productVersion}-{product.packageVersion}"
+							available_package.version, ">", f"{product.productVersion}-{product.packageVersion}"
 						)
 
 						if updateAvailable:
-							updates[productId] = {
-								"productId": productId,
-								"newVersion": f"{availablePackage['version']}",
+							updates[product_id] = {
+								"productId": product_id,
+								"newVersion": f"{available_package.version}",
 								"oldVersion": f"{product.productVersion}-{product.packageVersion}",
 								"repository": repository.name,
 							}

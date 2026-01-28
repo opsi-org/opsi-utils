@@ -22,7 +22,7 @@ from opsiutils import __version__
 from opsiutils.opsipackageupdater import patch_repo_files
 from opsiutils.update_packages.Config import DEFAULT_CONFIG
 from opsiutils.update_packages.Notifier import DummyNotifier
-from opsiutils.update_packages.Updater import OpsiPackageUpdater
+from opsiutils.update_packages.Updater import OpsiPackageUpdater, get_local_package_info
 
 ORIGINAL_REPO = """; This is a testcomment
 [repository_uib_linux_experimental]
@@ -207,21 +207,21 @@ def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpd
 	with http_test_server(serve_directory=updater_info.server_dir, log_file=str(updater_info.server_log)) as server:
 		base_url = f"http://localhost:{server.port}"
 		write_repo_conf(updater_info.test_repo_conf, base_url, excludes=excludes)
-		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
+		package_updater = package_updater_class(updater_info.config)
 
 		available_packages = package_updater.getDownloadablePackages()
 		package = None
 		for available_package in available_packages:
-			if available_package["productId"] == "hwaudit":
+			if available_package.product_id == "hwaudit":
 				package = available_package
 				break
 
 		assert package is not None
 
-		assert package["version"] == "4.2.0.0-1"
-		assert package["packageFile"] == f"{base_url}/hwaudit_4.2.0.0-1.opsi"
-		assert package["filename"] == server_package_file.name
-		assert package["zsyncFile"] == f"{base_url}/{zsync_file.name}"
+		assert package.version == "4.2.0.0-1"
+		assert package.package_file == f"{base_url}/hwaudit_4.2.0.0-1.opsi"
+		assert package.filename == server_package_file.name
+		assert package.zsync_file == f"{base_url}/{zsync_file.name}"
 
 		new_packages = package_updater.get_packages(DummyNotifier())  # type: ignore[no-untyped-call]
 		if excludes:
@@ -275,21 +275,24 @@ def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-lo
 		available_packages = package_updater.getDownloadablePackages()
 		package = None
 		for available_package in available_packages:
-			if available_package["productId"] == "hwaudit":
+			if available_package.product_id == "hwaudit":
 				package = available_package
 				break
 		assert package is not None
 
-		local_packages = package_updater.getLocalPackages()
-
-		assert package["version"] == "4.2.0.0-1"
-		assert package["packageFile"] == f"{base_url}/hwaudit_4.2.0.0-1.opsi"
-		assert package["filename"] == server_package_file.name
-		assert package["zsyncFile"] == f"{base_url}/{zsync_file.name}"
-		with package_updater.makeSession(package["repository"]) as session:  # type: ignore[arg-type,var-annotated]
+		assert package.version == "4.2.0.0-1"
+		assert package.package_file == f"{base_url}/hwaudit_4.2.0.0-1.opsi"
+		assert package.filename == server_package_file.name
+		assert package.zsync_file == f"{base_url}/{zsync_file.name}"
+		with package_updater.makeSession(package.repository) as session:  # type: ignore[arg-type,var-annotated]
 			assert (
 				# pylint: disable=protected-access
-				package_updater._useZsync(session, package, local_packages[0]) == server_accept_ranges
+				package_updater._useZsync(
+					session,
+					package,
+					local_package=get_local_package_info(product_id="hwaudit", package_file=local_package_file),  # type: ignore[arg-type]
+				)
+				== server_accept_ranges
 			)
 
 		if "localhost" in base_url:
@@ -365,17 +368,17 @@ def test_server_repo_meta_multiurl(  # pylint: disable=redefined-outer-name,too-
 		available_packages = package_updater.getDownloadablePackages()
 		assert len(available_packages) == 6
 		for package in available_packages:
-			if package["version"] != "1.0-1":
+			if package.version != "1.0-1":
 				continue
-			assert package["packageFile"] == f"{base_url}/localboot_new_1.0-1.opsi"
-			assert package["zsyncFile"] == f"{base_url}/localboot_new_1.0-1.opsi.zsync"
+			assert package.package_file == f"{base_url}/localboot_new_1.0-1.opsi"
+			assert package.zsync_file == f"{base_url}/localboot_new_1.0-1.opsi.zsync"
 
 		write_repo_conf(updater_info.test_repo_conf, base_url, dirs="otherdir/")
 		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
 		available_packages = package_updater.getDownloadablePackages()
 		assert len(available_packages) == 1
-		assert available_packages[0]["packageFile"] == f"{base_url}/otherdir/localboot_new_1.0-1.opsi"
-		assert available_packages[0]["zsyncFile"] is None
+		assert available_packages[0].package_file == f"{base_url}/otherdir/localboot_new_1.0-1.opsi"
+		assert available_packages[0].zsync_file is None
 
 
 @pytest.mark.parametrize(
@@ -455,17 +458,15 @@ def test_prefer_custom_versions(
 
 		package_updater = package_updater_class(updater_info.config)  # type: ignore[arg-type]
 		available_packages = [
-			p
-			for p in package_updater.getDownloadablePackages()
-			if p["productId"] == "localboot_new" and str(p["version"]) in available_versions
+			p for p in package_updater.getDownloadablePackages() if p.product_id == "localboot_new" and str(p.version) in available_versions
 		]
 		for reverse_sort in (False, True):
-			available_packages.sort(key=lambda pkg: str(pkg["version"]), reverse=reverse_sort)
-			localboot_new_versions = sorted(str(pkg["version"]) for pkg in available_packages if pkg["productId"] == "localboot_new")
+			available_packages.sort(key=lambda pkg: str(pkg.version), reverse=reverse_sort)
+			localboot_new_versions = sorted(str(pkg.version) for pkg in available_packages if pkg.product_id == "localboot_new")
 			print("localboot_new_versions:", localboot_new_versions)
 			assert localboot_new_versions == available_versions
 			newest_packages = package_updater.onlyNewestPackages(available_packages)
-			latest_localboot_new_versions = sorted(str(pkg["version"]) for pkg in newest_packages if pkg["productId"] == "localboot_new")
+			latest_localboot_new_versions = sorted(str(pkg.version) for pkg in newest_packages if pkg.product_id == "localboot_new")
 			print("latest_localboot_new_versions:", latest_localboot_new_versions)
 			print("expected_version:", expected_version)
 			assert latest_localboot_new_versions == [expected_version]

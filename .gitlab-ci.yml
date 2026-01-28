@@ -20,7 +20,7 @@ test-and-lint:
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - uv sync --frozen
     - uv run ruff check opsiutils tests
-    - uv run mypy opsiutils tests
+    - uv run ty check opsiutils tests
     - uv run pytest -x --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov opsiutils --cov-report term --cov-report xml -v tests
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" # dont run on merge-requests

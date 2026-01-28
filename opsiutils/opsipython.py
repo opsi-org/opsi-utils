@@ -11,7 +11,7 @@ import os
 import sys
 import traceback
 
-import OPSI.Backend.Manager._Manager  # type: ignore[import]
+import OPSI.Backend.Manager._Manager
 import opsicommon.client.opsiservice
 
 # Replace BackendManager with compatibilty class

@@ -28,17 +28,9 @@ from pathlib import Path
 from types import FrameType
 from typing import Any
 
-from OPSI import __version__ as python_opsi_version  # type: ignore
-from OPSI.Util import (  # type: ignore[import]
-	blowfishDecrypt,
-	deserialize,
-	fromJson,
-	objectToBash,
-	objectToBeautifiedText,
-	serialize,
-	toJson,
-)
-from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc  # type: ignore[import]
+from OPSI import __version__ as python_opsi_version
+from OPSI.Util import blowfishDecrypt, deserialize, fromJson, objectToBash, objectToBeautifiedText, serialize, toJson
+from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
 from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
 from opsicommon.config import OpsiConfig
 from opsicommon.exceptions import OpsiRpcError
@@ -1190,7 +1182,7 @@ class CommandMethod(Command):
 				if not isinstance(params[-1], dict):
 					raise ValueError(f"kwargs param is not a dict: {params[-1]}")
 
-				for key, value in params.pop(-1).items():
+				for key, value in params.pop(-1).items():  # type: ignore[union-attr]
 					keywords[str(key)] = deserialize(value)
 
 		def createObjectOrString(obj: Any) -> str:

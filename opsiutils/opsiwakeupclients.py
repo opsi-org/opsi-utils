@@ -20,8 +20,8 @@ from contextlib import contextmanager
 from itertools import product
 from typing import Generator
 
-from OPSI import __version__ as python_opsi_version  # type: ignore[import]
-from OPSI.Util.Ping import ping  # type: ignore[import]
+from OPSI import __version__ as python_opsi_version
+from OPSI.Util.Ping import ping
 from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
 from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, get_logger, init_logging, logging_config
 

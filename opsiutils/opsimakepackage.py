@@ -21,22 +21,13 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
 
-from OPSI import __version__ as python_opsi_version  # type: ignore
-from OPSI.System import execute  # type: ignore[import]
-from OPSI.Types import forceFilename  # type: ignore[import]
-from OPSI.Util import compareVersions, md5sum  # type: ignore[import]
-from OPSI.Util.File import ZsyncFile  # type: ignore[import]
-from OPSI.Util.Message import ProgressObserver, ProgressSubject, Subject  # type: ignore[import]
-from opsicommon.logging import (
-	DEFAULT_COLORED_FORMAT,
-	LOG_DEBUG,
-	LOG_ERROR,
-	LOG_NONE,
-	LOG_WARNING,
-	get_logger,
-	init_logging,
-	logging_config,
-)
+from OPSI import __version__ as python_opsi_version
+from OPSI.System import execute
+from OPSI.Types import forceFilename
+from OPSI.Util import compareVersions, md5sum
+from OPSI.Util.File import ZsyncFile
+from OPSI.Util.Message import ProgressObserver, ProgressSubject, Subject
+from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, get_logger, init_logging, logging_config
 from opsicommon.objects import NetbootProduct, Product
 from opsicommon.package import OpsiPackage
 from opsicommon.server.rights import set_rights
@@ -76,7 +67,7 @@ class ProgressNotifier(ProgressObserver):
 		except Exception:
 			pass
 
-	def progressChanged(self, subject: Subject, state: int, percent: float, timeSpend: int, timeLeft: int, speed: float) -> None:
+	def progressChanged(self, subject: ProgressSubject, state: int, percent: float, timeSpend: int, timeLeft: int, speed: float) -> None:
 		if subject.getEnd() <= 0:
 			return
 
@@ -343,7 +334,7 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 	if packageControlFilePath.suffix == ".toml" and packageControlFilePath.with_suffix("").exists():
 		opsi_package_tmp = OpsiPackage(temp_dir=tempDir)
 		opsi_package_tmp.parse_control_file_legacy(packageControlFilePath.with_suffix(""))
-		if compareVersions(opsi_package_tmp.product.version, ">", opsi_package.product.version):
+		if compareVersions(opsi_package_tmp.product.version or "", ">", opsi_package.product.version or ""):
 			raise ValueError("control is newer than control.toml - Please update control.toml instead.")
 
 	if newPackageVersion or newProductVersion:
