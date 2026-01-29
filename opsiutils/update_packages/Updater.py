@@ -281,8 +281,12 @@ class OpsiPackageUpdater:
 			logger.info("Cannot use zsync, no zsync file on server found")
 			return False
 
+		logger.debug(
+			"Checking if server supports byte ranges for package '%s' with headers: %s", available_package.package_file, self.httpHeaders
+		)
 		response = session.head(available_package.package_file, headers=self.httpHeaders)
-		if response.headers.get("Accept-Ranges") != "bytes":
+		logger.debug("Headers for package '%s': %s", available_package.package_file, response.headers)
+		if "bytes" not in response.headers.get("Accept-Ranges", "").lower():
 			logger.info("Cannot use zsync, server or proxy does not accept byte ranges")
 			return False
 
@@ -1237,9 +1241,10 @@ class OpsiPackageUpdater:
 		return downloadable_packages
 
 	def read_repository_metafile(self, repository: ProductRepositoryInfo, data: bytes) -> list[RepositoryPackageInfo]:
+		logger.info("Reading repository metafile from repository: %s", repository.name)
+		logger.trace("Metafile data: %s", data)
 		packages: list[RepositoryPackageInfo] = []
 		filter_dirs = {PurePosixPath(d.lstrip("/").lstrip(".").rstrip("/")) for d in repository.dirs}
-		# is_relative_to
 		col = RepoMetaPackageCollection()
 		col.read_metafile_data(data)
 		for package in col.get_packages():

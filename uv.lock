@@ -814,7 +814,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/a6/91/86a6eac449ddfae23
 
 [[package]]
 name = "opsi-utils"
-version = "4.3.21.2"
+version = "4.3.22.0"
 source = { editable = "." }
 dependencies = [
     { name = "annotated-types" },
