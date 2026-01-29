@@ -284,7 +284,7 @@ class OpsiPackageUpdater:
 		logger.debug(
 			"Checking if server supports byte ranges for package '%s' with headers: %s", available_package.package_file, self.httpHeaders
 		)
-		response = session.head(available_package.package_file, headers=self.httpHeaders)
+		response = session.head(available_package.package_file, headers=self.httpHeaders, allow_redirects=True)
 		logger.debug("Headers for package '%s': %s", available_package.package_file, response.headers)
 		if "bytes" not in response.headers.get("Accept-Ranges", "").lower():
 			logger.info("Cannot use zsync, server or proxy does not accept byte ranges")
