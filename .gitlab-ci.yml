@@ -84,8 +84,12 @@ build:linux-arm64:
     expire_in: 2 days
 
 integration_test:
+  stage: integration_test
   tags:
     - docker-x64
+  image:
+    name: docker.uib.gmbh/opsi/opsi-server:4.3-development
+    entrypoint: [""]
   services:
     - name: mysql:8.3
       command:
@@ -108,10 +112,6 @@ integration_test:
     OPSICONFD_LOG_LEVEL: 6
     OPSICONFD_RESTORE_BACKUP_URL: "http://binaryindex.uib.gmbh/development/testbackup/all/all/testbackup_all_all_1.1.tar.gz"
     OPSICONFD_RESTORE_BACKUP_ARGS: "--server-id=local --no-hw-audit --no-sw-audit"
-  stage: integration_test
-  image:
-    name: docker.uib.gmbh/opsi/opsi-server:4.3-development
-    entrypoint: [""]
   script:
     - bash /entrypoint.sh &
     - while ! nc -v -z -w3 localhost 4447 > /dev/null 2>&1; do sleep 1; done
