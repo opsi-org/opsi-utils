@@ -107,6 +107,7 @@ integration_test:
     OPSI_TFTPBOOT: "false"
     OPSICONFD_LOG_LEVEL: 6
     OPSICONFD_RESTORE_BACKUP_URL: "http://binaryindex.uib.gmbh/development/testbackup/all/all/testbackup_all_all_1.1.tar.gz"
+    OPSICONFD_RESTORE_BACKUP_ARGS: "--server-id=local --no-hw-audit --no-sw-audit"
   stage: integration_test
   image:
     name: docker.uib.gmbh/opsi/opsi-server:4.3-development
