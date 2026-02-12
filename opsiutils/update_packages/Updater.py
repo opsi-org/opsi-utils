@@ -440,6 +440,8 @@ class OpsiPackageUpdater:
 						if productPropertyStates:
 							for pps in productPropertyStates:
 								property_default_values[pps.propertyId] = pps.values
+								if "password" in pps.propertyId or "passphrase" in pps.propertyId or "secret" in pps.propertyId:
+									secret_filter.add_secrets(*pps.values)
 						logger.notice("Using product property defaults: %s", property_default_values)
 					except Exception as err:
 						logger.warning("Failed to get product property defaults: %s", err)
