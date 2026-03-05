@@ -31,20 +31,20 @@ pyinstaller:
   strip: yes
   hidden_imports:
     all:
-      - OPSI.Backend.DHCPD
-      - OPSI.Backend.File
-      - OPSI.Backend.HostControl
-      - OPSI.Backend.HostControlSafe
-      - OPSI.Backend.JSONRPC
-      - OPSI.Backend.MySQL
-      - OPSI.Backend.OpsiPXEConfd
-      - OPSI.Backend.Replicator
-      - OPSI.Backend.SQLite
-      - OPSI.Util.Ping
-      - OPSI.Util.WIM
+      - opsi_legacy.Logger
+      - opsi_legacy.Backend.DHCPD
+      - opsi_legacy.Backend.File
+      - opsi_legacy.Backend.HostControl
+      - opsi_legacy.Backend.HostControlSafe
+      - opsi_legacy.Backend.JSONRPC
+      - opsi_legacy.Backend.MySQL
+      - opsi_legacy.Backend.OpsiPXEConfd
+      - opsi_legacy.Backend.Replicator
+      - opsi_legacy.Backend.SQLite
+      - opsi_legacy.Util.Ping
+      - opsi_legacy.Util.WIM
       - snack
       - distro
-      - OPSI.Logger
       # make packages available in opsi-python
       - paramiko
     windows: []
