@@ -17,8 +17,6 @@ import opsicommon.client.opsiservice
 # Replace BackendManager with compatibilty class
 opsi_legacy.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager  # type: ignore[attr-defined]
 
-OPSI = opsi_legacy
-
 
 def add_systempackages_to_path() -> None:
 	ver = sys.version_info
