@@ -17,8 +17,8 @@ from pathlib import Path
 from types import TracebackType
 
 from configupdater import ConfigUpdater
-from OPSI import __version__ as python_opsi_version
-from OPSI.Util import compareVersions
+from opsi_legacy import __version__ as python_opsi_version
+from opsi_legacy.Util import compareVersions
 from opsicommon.logging import DEFAULT_COLORED_FORMAT, get_logger, init_logging, logging_config
 from opsicommon.system import ensure_not_already_running
 from opsicommon.types import forceProductId
@@ -457,4 +457,5 @@ def main() -> None:
 		exitCode = 1
 
 	if exitCode:
+		sys.exit(exitCode)
 		sys.exit(exitCode)

@@ -30,12 +30,12 @@ from types import FrameType
 from typing import Any, Callable, Generator
 from urllib.parse import urlparse
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.UI import SnackUI
-from OPSI.Util import md5sum
-from OPSI.Util.File.Opsi import parseFilename
-from OPSI.Util.Message import MessageSubject, ProgressSubject, Subject, SubjectsObserver
-from OPSI.Util.Repository import getRepository
+from opsi_legacy import __version__ as python_opsi_version
+from opsi_legacy.UI import SnackUI
+from opsi_legacy.Util import md5sum
+from opsi_legacy.Util.File.Opsi import parseFilename
+from opsi_legacy.Util.Message import MessageSubject, ProgressSubject, Subject, SubjectsObserver
+from opsi_legacy.Util.Repository import getRepository
 from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config import OpsiConfig
 from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_NONE, LOG_WARNING, get_logger, logging_config
@@ -46,7 +46,7 @@ from opsicommon.types import forceActionRequest, forceBool, forceHostId, forceIn
 from opsiutils import __version__
 
 try:
-	from OPSI.Util.Sync import librsyncDeltaFile
+	from opsi_legacy.Util.Sync import librsyncDeltaFile
 except ImportError:
 	librsyncDeltaFile = None  # type: ignore[assignment]
 
@@ -2089,6 +2089,10 @@ def main() -> None:
 			OpsiPackageManagerControl()
 	except SystemExit as err:
 		sys.exit(err.code)
+	except Exception as err:
+		logger.error(err, exc_info=True)
+		print(f"\nERROR: {err}\n", file=sys.stderr)
+		sys.exit(1)
 	except Exception as err:
 		logger.error(err, exc_info=True)
 		print(f"\nERROR: {err}\n", file=sys.stderr)

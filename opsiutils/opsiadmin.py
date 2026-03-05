@@ -28,14 +28,21 @@ from pathlib import Path
 from types import FrameType
 from typing import Any
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.Util import blowfishDecrypt, deserialize, fromJson, objectToBash, objectToBeautifiedText, serialize, toJson
-from OPSI.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
-from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
+from opsi_legacy import __version__ as python_opsi_version
+from opsi_legacy.Util import (blowfishDecrypt, deserialize, fromJson,
+                              objectToBash, objectToBeautifiedText, serialize,
+                              toJson)
+from opsi_legacy.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
+from opsicommon.client.opsiservice import (ServiceClient,
+                                           ServiceVerificationFlags,
+                                           get_service_client)
 from opsicommon.config import OpsiConfig
 from opsicommon.exceptions import OpsiRpcError
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, get_logger, logging_config
-from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
+from opsicommon.logging import (DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR,
+                                LOG_NONE, LOG_WARNING, get_logger,
+                                logging_config)
+from opsicommon.types import (forceBool, forceFilename, forceUnicode,
+                              forceUnicodeLower)
 
 from opsiutils import __version__
 
@@ -1676,6 +1683,13 @@ def main() -> None:
 		exitCode = 2
 	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
+		logger.error("Error during execution: %s", err, exc_info=True)
+		exitCode = 1
+
+	if exitZero:
+		exitCode = 0
+
+	sys.exit(exitCode)
 		logger.error("Error during execution: %s", err, exc_info=True)
 		exitCode = 1
 

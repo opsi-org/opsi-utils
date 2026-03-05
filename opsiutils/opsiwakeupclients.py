@@ -20,8 +20,8 @@ from contextlib import contextmanager
 from itertools import product
 from typing import Generator
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.Util.Ping import ping
+from opsi_legacy import __version__ as python_opsi_version
+from opsi_legacy.Util.Ping import ping
 from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
 from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, get_logger, init_logging, logging_config
 
@@ -566,6 +566,9 @@ def main() -> None:
 		sys.exit(err.code)
 	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
+		logger.error(err, exc_info=True)
+		print(f"ERROR: {err}", file=sys.stderr)
+		sys.exit(1)
 		logger.error(err, exc_info=True)
 		print(f"ERROR: {err}", file=sys.stderr)
 		sys.exit(1)

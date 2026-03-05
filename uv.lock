@@ -623,18 +623,6 @@ wheels = [
 ]
 
 [[package]]
-name = "ldap3"
-version = "2.9.1"
-source = { registry = "https://pypi.uib.gmbh/simple" }
-dependencies = [
-    { name = "pyasn1" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/43/ac/96bd5464e3edbc61595d0d69989f5d9969ae411866427b2500a8e5b812c0/ldap3-2.9.1.tar.gz", hash = "sha256:f3e7fc4718e3f09dda568b57100095e0ce58633bcabbed8667ce3f8fbaa4229f", size = 398830, upload-time = "2021-07-18T06:34:21.786Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/4e/f6/71d6ec9f18da0b2201287ce9db6afb1a1f637dedb3f0703409558981c723/ldap3-2.9.1-py2.py3-none-any.whl", hash = "sha256:5869596fc4948797020d3f03b7939da938778a0f9e2009f7a072ccf92b8e8d70", size = 432192, upload-time = "2021-07-18T06:34:12.905Z" },
-]
-
-[[package]]
 name = "lz4"
 version = "4.4.5"
 source = { registry = "https://pypi.uib.gmbh/simple" }
@@ -814,7 +802,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/a6/91/86a6eac449ddfae23
 
 [[package]]
 name = "opsi-utils"
-version = "4.3.24.0"
+version = "4.3.24.2"
 source = { editable = "." }
 dependencies = [
     { name = "annotated-types" },
@@ -822,8 +810,8 @@ dependencies = [
     { name = "paramiko" },
     { name = "pydantic-core" },
     { name = "python-magic" },
-    { name = "python-opsi" },
     { name = "python-opsi-common" },
+    { name = "python-opsi-legacy" },
     { name = "pyzsync" },
 ]
 
@@ -845,8 +833,8 @@ requires-dist = [
     { name = "paramiko", specifier = ">=3.2" },
     { name = "pydantic-core", specifier = ">=2.18" },
     { name = "python-magic", specifier = ">=0.4" },
-    { name = "python-opsi", specifier = ">=4.3,<4.4" },
     { name = "python-opsi-common", specifier = ">=4.3.30.3,<4.4" },
+    { name = "python-opsi-legacy", specifier = ">=4.3,<4.4" },
     { name = "pyzsync", specifier = ">=1.2" },
 ]
 
@@ -1249,40 +1237,6 @@ wheels = [
 ]
 
 [[package]]
-name = "python-opsi"
-version = "4.3.9.8"
-source = { registry = "https://pypi.uib.gmbh/simple" }
-dependencies = [
-    { name = "attrs" },
-    { name = "colorlog" },
-    { name = "distro", marker = "sys_platform == 'linux'" },
-    { name = "ldap3" },
-    { name = "lz4" },
-    { name = "msgpack" },
-    { name = "packaging" },
-    { name = "pefile" },
-    { name = "pexpect" },
-    { name = "psutil" },
-    { name = "pyasn1" },
-    { name = "pycryptodome" },
-    { name = "python-opsi-common" },
-    { name = "python-pam" },
-    { name = "pywin32", marker = "sys_platform == 'win32'" },
-    { name = "pyzsync" },
-    { name = "ruyaml" },
-    { name = "service-identity" },
-    { name = "six" },
-    { name = "sqlalchemy" },
-    { name = "tomlkit" },
-    { name = "typing-extensions" },
-    { name = "wmi", marker = "sys_platform == 'win32'" },
-]
-sdist = { url = "https://pypi.uib.gmbh/packages/python_opsi-4.3.9.8.tar.gz", hash = "sha256:671303b451c81d6c8f65870f8bbd84914192cc076e9e7230b5af42a579ace903" }
-wheels = [
-    { url = "https://pypi.uib.gmbh/packages/python_opsi-4.3.9.8-py3-none-any.whl", hash = "sha256:1aca17c7dbb162a91ef582db7b4b5c6bfa4cab4ee467eedfcdbb47f28f27d879" },
-]
-
-[[package]]
 name = "python-opsi-common"
 version = "4.3.55.1"
 source = { registry = "https://pypi.uib.gmbh/simple" }
@@ -1318,6 +1272,39 @@ dependencies = [
 sdist = { url = "https://pypi.uib.gmbh/packages/python_opsi_common-4.3.55.1.tar.gz", hash = "sha256:7af67fd1eeb8679a79defc35606dfd223270f05f4d86ec537f0a51c4e4b20153" }
 wheels = [
     { url = "https://pypi.uib.gmbh/packages/python_opsi_common-4.3.55.1-py3-none-any.whl", hash = "sha256:585f771b24a3b4c7bd027bd388267df3282a4179f083bd8777cf00aa55289b21" },
+]
+
+[[package]]
+name = "python-opsi-legacy"
+version = "4.3.11.0"
+source = { registry = "https://pypi.uib.gmbh/simple" }
+dependencies = [
+    { name = "colorlog" },
+    { name = "cryptography" },
+    { name = "distro" },
+    { name = "lz4" },
+    { name = "msgpack" },
+    { name = "packaging" },
+    { name = "pefile" },
+    { name = "pexpect" },
+    { name = "psutil" },
+    { name = "pyasn1" },
+    { name = "pycryptodome" },
+    { name = "python-opsi-common" },
+    { name = "python-pam" },
+    { name = "pywin32", marker = "sys_platform == 'win32'" },
+    { name = "pyzsync" },
+    { name = "ruyaml" },
+    { name = "service-identity" },
+    { name = "six" },
+    { name = "sqlalchemy" },
+    { name = "tomlkit" },
+    { name = "typing-extensions" },
+    { name = "wmi", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://pypi.uib.gmbh/packages/python_opsi_legacy-4.3.11.0.tar.gz", hash = "sha256:e9e175f07362be77fc666e32e7bbfeadd93d347dc373b3b4fdd3087d3e6d3ffc" }
+wheels = [
+    { url = "https://pypi.uib.gmbh/packages/python_opsi_legacy-4.3.11.0-py3-none-any.whl", hash = "sha256:c5fea68235356754ee7e33eaf43944c561d8bf7e22c4a5e286a5e1bf71042375" },
 ]
 
 [[package]]

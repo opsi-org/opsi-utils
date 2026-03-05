@@ -23,8 +23,8 @@ from urllib.parse import quote, urlparse
 
 from attr import dataclass
 from cryptography import x509
-from OPSI.Util import compareVersions, formatFileSize
-from OPSI.Util.File.Opsi import parseFilename
+from opsi_legacy.Util import compareVersions, formatFileSize
+from opsi_legacy.Util.File.Opsi import parseFilename
 from opsicommon.client.opsiservice import ServiceClient, get_service_client
 from opsicommon.config.opsi import OpsiConfig
 from opsicommon.logging import get_logger, secret_filter

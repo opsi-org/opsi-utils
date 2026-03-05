@@ -21,12 +21,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.System import execute
-from OPSI.Types import forceFilename
-from OPSI.Util import compareVersions, md5sum
-from OPSI.Util.File import ZsyncFile
-from OPSI.Util.Message import ProgressObserver, ProgressSubject, Subject
+from opsi_legacy import __version__ as python_opsi_version
+from opsi_legacy.System import execute
+from opsi_legacy.Types import forceFilename
+from opsi_legacy.Util import compareVersions, md5sum
+from opsi_legacy.Util.File import ZsyncFile
+from opsi_legacy.Util.Message import ProgressObserver, ProgressSubject, Subject
 from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, get_logger, init_logging, logging_config
 from opsicommon.objects import NetbootProduct, Product
 from opsicommon.package import OpsiPackage
@@ -551,5 +551,7 @@ def main() -> None:
 	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
 		logger.error(err, exc_info=True)
+		print(f"ERROR: {err}", file=sys.stderr)
+		sys.exit(1)
 		print(f"ERROR: {err}", file=sys.stderr)
 		sys.exit(1)

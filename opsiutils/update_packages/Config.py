@@ -15,8 +15,8 @@ import socket
 from configparser import ConfigParser
 from typing import Any, Generator
 
-from OPSI import __version__
-from OPSI.Util.File import IniFile
+from opsi_legacy import __version__
+from opsi_legacy.Util.File import IniFile
 from opsicommon.client.opsiservice import ServiceClient
 from opsicommon.logging import get_logger, logging_config, secret_filter
 from opsicommon.types import (

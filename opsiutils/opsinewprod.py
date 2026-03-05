@@ -15,10 +15,10 @@ import time
 from pathlib import Path
 from typing import Generator, cast
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.System import copy
-from OPSI.UI import UI, UIFactory
-from OPSI.Util.File import ChangelogFile
+from opsi_legacy import __version__ as python_opsi_version
+from opsi_legacy.System import copy
+from opsi_legacy.UI import UI, UIFactory
+from opsi_legacy.Util.File import ChangelogFile
 from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, logger, logging_config
 from opsicommon.objects import (
 	BoolProductProperty,
@@ -322,7 +322,7 @@ def createActionScripts(product: Product, clientDataDirectory: str) -> None:
 	Create a file for all the scripts set at `product` in `clientDataDirectory`.
 
 	:param product: The product for which the scripts should be created.
-	:type product: OPSI.Object.Product
+	:type product: opsicommon.objects.Product
 	:param clientDataDirectory: The path in which the scripts should be created. Usually the `CLIENT_DATA` directory of a product.
 	:type clientDataDirectory: str
 	"""

@@ -10,8 +10,8 @@ import argparse
 import os
 import sys
 
-from OPSI import __version__ as python_opsi_version
-from OPSI.Util.Task.Backup import OpsiBackup
+from opsi_legacy import __version__ as python_opsi_version
+from opsi_legacy.Util.Task.Backup import OpsiBackup
 from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_NOTICE, LOG_WARNING, init_logging, logger, logging_config
 
 from opsiutils import __version__
@@ -173,5 +173,7 @@ def main() -> None:
 		logger.info(err, exc_info=True)
 		print(f"\nERROR: {err}\n", file=sys.stderr)
 		returnCode = 1
+
+	sys.exit(returnCode)
 
 	sys.exit(returnCode)

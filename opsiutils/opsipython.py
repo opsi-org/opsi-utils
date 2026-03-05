@@ -11,11 +11,13 @@ import os
 import sys
 import traceback
 
-import OPSI.Backend.Manager._Manager
+import opsi_legacy.Backend.Manager._Manager
 import opsicommon.client.opsiservice
 
 # Replace BackendManager with compatibilty class
-OPSI.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager  # type: ignore[attr-defined]
+opsi_legacy.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager  # type: ignore[attr-defined]
+
+OPSI = opsi_legacy
 
 
 def add_systempackages_to_path() -> None:
