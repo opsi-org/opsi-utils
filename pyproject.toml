@@ -1,6 +1,6 @@
 [project]
 name = "opsi-utils"
-version = "4.3.26.2"
+version = "4.3.26.3"
 description = "Utilities for working with opsi"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -59,6 +59,9 @@ opsi-outdated-to-setup = "opsiutils.opsioutdatedtosetup:main"
 extra-index-url = ["https://pypi.uib.gmbh/simple"]
 index-strategy = "unsafe-best-match"
 package = true
+
+[tool.ty.environment]
+python = ".venv/bin/python"
 
 [tool.ruff]
 line-length = 140
