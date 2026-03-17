@@ -973,7 +973,7 @@ class OpsiPackageManager:
 			subject.setMessage(_("Starting upload"))
 			try:
 				# Do not use delta upload for local depot, because full upload is faster
-				if self.config["deltaUpload"] and oldPackages and depotId != self.config["localDepotId"]:
+				if self.config["deltaUpload"] and oldPackages and depotId != self.config["localDepotId"] and librsyncDeltaFile:
 					deltaFile = None
 					try:
 						oldPackage = oldPackages[0]
@@ -1000,7 +1000,7 @@ class OpsiPackageManager:
 								i += 1
 							deltaFilename = newDeltaFilename
 
-						deltaFile = os.path.join("/tmp", deltaFilename)
+						deltaFile = os.path.join(self.config["tempDir"], deltaFilename)
 
 						librsyncDeltaFile(packageFile, sig, deltaFile)
 
