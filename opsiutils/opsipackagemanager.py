@@ -1000,7 +1000,7 @@ class OpsiPackageManager:
 								i += 1
 							deltaFilename = newDeltaFilename
 
-						deltaFile = os.path.join(self.config["tempDir"], deltaFilename)
+						deltaFile = os.path.join(self.config.get("tempDir", "/tmp"), deltaFilename)
 
 						librsyncDeltaFile(packageFile, sig, deltaFile)
 
