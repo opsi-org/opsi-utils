@@ -162,7 +162,7 @@ class ConfigurationParser:
 							config["smtpuser"] = forceUnicode(value.strip())
 						elif option.lower() == "smtppassword":
 							config["smtppassword"] = forceUnicode(value.strip())
-							secret_filter.add_secrets(str(config["smtppassword"]))
+							secret_filter.add_secrets(str(config["smtppassword"]))  # ty: ignore[unresolved-attribute]
 						elif option.lower() == "subject":
 							config["subject"] = forceUnicode(value.strip())
 						elif option.lower() == "use_starttls":
@@ -170,14 +170,14 @@ class ConfigurationParser:
 						elif option.lower() == "sender":
 							config["sender"] = forceEmailAddress(value.strip())
 						elif option.lower() == "receivers":
-							config["receivers"] = [forceEmailAddress(receiver) for receiver in splitAndStrip(str(value), ",")]  # type: ignore[misc]
+							config["receivers"] = [forceEmailAddress(receiver) for receiver in splitAndStrip(str(value), ",")]  # ty: ignore[invalid-assignment]
 
 				elif section.lower() == "wol":
 					for option, value in configIni.items(section):
 						if option.lower() == "active":
 							config["wolAction"] = forceBool(value.strip())
 						elif option.lower() == "excludeproductids":
-							config["wolActionExcludeProductIds"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]  # type: ignore[misc]
+							config["wolActionExcludeProductIds"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]  # ty: ignore[invalid-assignment]
 						elif option.lower() == "shutdownwanted":
 							config["wolShutdownWanted"] = forceBool(value.strip())
 						elif option.lower() == "startgap":
@@ -198,7 +198,7 @@ class ConfigurationParser:
 								raise ValueError(f"End time '{value.strip()}' not in needed format 'HH:MM'")
 							config["installationWindowEndTime"] = value.strip()
 						elif option.lower() == "exceptproductids":
-							config["installationWindowExceptions"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]  # type: ignore[misc]
+							config["installationWindowExceptions"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]  # ty: ignore[invalid-assignment]
 				elif section.lower().startswith("repository"):
 					try:
 						repository = self._getRepository(
@@ -296,7 +296,7 @@ class ConfigurationParser:
 			if not self.backend:
 				raise RequiringBackendError(f"Repository section '{section}' supplied an depot ID but we have no backend to check.")
 
-			depots = self.backend.host_getObjects(type="OpsiDepotserver", id=opsiDepotId)  # type: ignore[attr-defined]
+			depots = self.backend.host_getObjects(type="OpsiDepotserver", id=opsiDepotId)  # ty: ignore[unresolved-attribute]
 			if not depots:
 				raise ConfigurationError(f"Depot '{opsiDepotId}' not found in backend")
 			if not depots[0].repositoryRemoteUrl:
@@ -327,7 +327,7 @@ class ConfigurationParser:
 			elif option.lower() == "password":
 				repository.password = forceUnicode(value.strip())
 				if repository.password:
-					secret_filter.add_secrets(repository.password)
+					secret_filter.add_secrets(repository.password)  # ty: ignore[unresolved-attribute]
 			elif option.lower() == "authcertfile":
 				repository.authcertfile = forceFilename(value.strip())
 			elif option.lower() == "authkeyfile":

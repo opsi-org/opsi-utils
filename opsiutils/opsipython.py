@@ -17,11 +17,11 @@ import opsicommon.client.opsiservice
 
 sys.modules["OPSI"] = opsi_legacy
 
-import OPSI.Backend.Manager._Manager  # type: ignore[unresolved-import] # noqa
+import OPSI.Backend.Manager._Manager  # ty: ignore[unresolved-import] # noqa
 
 # Replace BackendManager with compatibility class
 OPSI.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager
-opsi_legacy.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager  # type: ignore[invalid-assignment]
+opsi_legacy.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager  # ty: ignore[invalid-assignment]
 
 
 def add_systempackages_to_path() -> None:

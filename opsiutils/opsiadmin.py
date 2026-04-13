@@ -185,8 +185,8 @@ def shell_main() -> None:
 	parser.add_argument(
 		"--address",
 		"-a",
-		default=opsiconf.get("service", "url"),
-		help=_("URL of opsiconfd (default: %s)") % opsiconf.get("service", "url"),
+		default=opsiconf.get("service", "url"),  # ty: ignore[unresolved-attribute]
+		help=_("URL of opsiconfd (default: %s)") % opsiconf.get("service", "url"),  # ty: ignore[unresolved-attribute]
 	)
 	parser.add_argument(
 		"--no-check-certificate",
@@ -267,9 +267,9 @@ def shell_main() -> None:
 		# Reading opsirc file.
 		# We should always prefer the settings from the commandline
 		opsircConfig = readOpsirc(options.opsirc)
-		username = options.username or opsircConfig.get("username") or opsiconf.get("host", "id")
+		username = options.username or opsircConfig.get("username") or opsiconf.get("host", "id")  # ty: ignore[unresolved-attribute]
 		password = options.password or opsircConfig.get("password")
-		address = options.address or opsircConfig.get("address") or opsiconf.get("service", "url")
+		address = options.address or opsircConfig.get("address") or opsiconf.get("service", "url")  # ty: ignore[unresolved-attribute]
 		if not username:
 			try:
 				username = forceUnicode(pwd.getpwuid(os.getuid())[0])
@@ -278,8 +278,8 @@ def shell_main() -> None:
 				raise
 		if not password:
 			# Use host key if username is host id
-			if username == opsiconf.get("host", "id"):
-				password = opsiconf.get("host", "key")
+			if username == opsiconf.get("host", "id"):  # ty: ignore[unresolved-attribute]
+				password = opsiconf.get("host", "key")  # ty: ignore[unresolved-attribute]
 			# otherwise prompt for password
 			else:
 				try:
@@ -657,7 +657,7 @@ class Shell:
 
 			try:
 				try:
-					self.screen.addstr(shellLine, int(color))  # type: ignore[arg-type]
+					self.screen.addstr(shellLine, int(color))  # ty: ignore[invalid-argument-type]
 				except (ValueError, TypeError):
 					self.screen.addstr(shellLine)
 			except Exception as err:
@@ -1182,7 +1182,7 @@ class CommandMethod(Command):
 				if not isinstance(params[-1], dict):
 					raise ValueError(f"kwargs param is not a dict: {params[-1]}")
 
-				for key, value in params.pop(-1).items():  # type: ignore[union-attr]
+				for key, value in params.pop(-1).items():  # ty: ignore[unresolved-attribute]
 					keywords[str(key)] = deserialize(value)
 
 		def createObjectOrString(obj: Any) -> str:
@@ -1643,7 +1643,7 @@ class CommandTask(Command):
 		elif params[0] == "activateTOTP":
 			if len(params) < 2:
 				raise ValueError(_("Missing argument"))
-			for line in service_client.user_updateMultiFactorAuth(userId=params[1], type="totp", returnType="qrcode").split("\n"):  # type: ignore[attr-defined]
+			for line in service_client.user_updateMultiFactorAuth(userId=params[1], type="totp", returnType="qrcode").split("\n"):  # ty: ignore[unresolved-attribute]
 				shell.appendLine(line)
 
 

@@ -452,7 +452,7 @@ class ClientMonitoringThread(threading.Thread):
 		if not self.opsiclientd_service:
 			raise RuntimeError(f"Connection to client '{self.clientId}' failed")
 		logger.info("Triggering reboot on client '%s' with a delay of %s seconds", self.clientId, self.rebootTimeout)
-		self.opsiclientd_service.reboot(str(self.rebootTimeout))  # type: ignore[attr-defined]
+		self.opsiclientd_service.reboot(str(self.rebootTimeout))  # ty: ignore[unresolved-attribute]
 
 	def triggerEvent(self) -> None:
 		"""
@@ -474,15 +474,15 @@ class ClientMonitoringThread(threading.Thread):
 				if runs % 3 == 0:
 					logger.debug("Triggering event '%s' on '%s'", self.eventName, self.clientId)
 					try:
-						self.opsiclientd_service.fireEvent(self.eventName)  # type: ignore[attr-defined]
+						self.opsiclientd_service.fireEvent(self.eventName)  # ty: ignore[unresolved-attribute]
 					except Exception as exc:
 						logger.debug("Failed to trigger event on '%s': %s", self.clientId, exc)
 
 				try:
-					if self.opsiclientd_service.isEventRunning(self.eventName):  # type: ignore[attr-defined]
+					if self.opsiclientd_service.isEventRunning(self.eventName):  # ty: ignore[unresolved-attribute]
 						logger.notice("Event '%s' is running on '%s'", self.eventName, self.clientId)
 						break
-					if self.opsiclientd_service.isEventRunning(self.eventName + "{user_logged_in}"):  # type: ignore[attr-defined]
+					if self.opsiclientd_service.isEventRunning(self.eventName + "{user_logged_in}"):  # ty: ignore[unresolved-attribute]
 						logger.notice("Event '%s' is running on '%s'", self.eventName + "{user_logged_in}", self.clientId)
 						break
 				except Exception as exc:

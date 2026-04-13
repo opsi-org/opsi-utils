@@ -33,7 +33,7 @@ class BaseNotifier:
 		"""
 		now = time.strftime("%b %d %H:%M:%S", time.localtime())
 		filtered_line = line
-		for _secret in secret_filter.secrets:
+		for _secret in secret_filter.secrets:  # ty: ignore[unresolved-attribute]
 			filtered_line = filtered_line.replace(_secret, SECRET_REPLACEMENT_STRING)
 
 		self.message += f"{pre}{now} {filtered_line}\n"

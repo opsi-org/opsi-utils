@@ -48,7 +48,7 @@ from pyzsync import (
 	read_zsync_file,
 )
 from requests import Response, Session
-from requests.packages import urllib3  # type: ignore[import,attr-defined]
+from requests.packages import urllib3  # ty: ignore[unresolved-import]
 
 from opsiutils.update_packages.Config import DEFAULT_USER_AGENT, ConfigurationParser
 from opsiutils.update_packages.Notifier import BaseNotifier, DummyNotifier, EmailNotifier
@@ -131,16 +131,16 @@ class OpsiPackageUpdater:
 		self.httpHeaders = {"User-Agent": str(self.config.get("userAgent", DEFAULT_USER_AGENT))}
 		self.configBackend: ServiceClient | None = None
 		self.depotBackend: ServiceClient | None = None
-		self.depotId = OpsiConfig().get("host", "id")
+		self.depotId = OpsiConfig().get("host", "id")  # ty: ignore[unresolved-attribute]
 		self.depotServiceUrl = ""
-		self.isConfigServer = OpsiConfig().get("host", "server-role") == "configserver"
+		self.isConfigServer = OpsiConfig().get("host", "server-role") == "configserver"  # ty: ignore[unresolved-attribute]
 		self.errors: list[Exception] = []
 		self.metafile_cache: dict[str, bytes | None] = {}
 
 		# Proxy is needed for getConfigBackend which is needed for ConfigurationParser.parse
 		self.config["proxy"] = ConfigurationParser.get_proxy(str(self.config["configFile"]))
 
-		depots = self.getConfigBackend().host_getObjects(type="OpsiDepotserver", id=self.depotId)  # type: ignore[attr-defined]
+		depots = self.getConfigBackend().host_getObjects(type="OpsiDepotserver", id=self.depotId)  # ty: ignore[unresolved-attribute]
 		if not self.isConfigServer:
 			url = urlparse(depots[0].repositoryRemoteUrl)
 			self.depotServiceUrl = f"https://localhost:{url.port or 4447}"
@@ -151,7 +151,7 @@ class OpsiPackageUpdater:
 
 		if not self.depotKey:
 			raise ValueError(f"Opsi host key for depot '{self.depotId}' not found in backend")
-		secret_filter.add_secrets(self.depotKey)
+		secret_filter.add_secrets(self.depotKey)  # ty: ignore[unresolved-attribute]
 
 		self.readConfigFile()
 
@@ -161,7 +161,7 @@ class OpsiPackageUpdater:
 	def __exit__(self, type_: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None) -> bool | None:
 		try:
 			if self.configBackend:
-				self.configBackend.backend_exit()  # type: ignore[attr-defined]
+				self.configBackend.backend_exit()  # ty: ignore[unresolved-attribute]
 		except Exception:
 			pass
 
@@ -212,7 +212,7 @@ class OpsiPackageUpdater:
 				session_lifetime=30,
 			)
 			try:
-				ca_crt = x509.load_pem_x509_certificate(data=self.configBackend.getOpsiCACert().encode("utf-8"))  # type: ignore[attr-defined]
+				ca_crt = x509.load_pem_x509_certificate(data=self.configBackend.getOpsiCACert().encode("utf-8"))  # ty: ignore[unresolved-attribute]
 				install_ca(ca_crt)
 			except Exception as err:
 				logger.info("Failed to update opsi CA: %s", err)
@@ -428,12 +428,12 @@ class OpsiPackageUpdater:
 					try:
 						if repository.inheritProductProperties and repository.opsiDepotId:
 							logger.info("Trying to get product property defaults from repository")
-							productPropertyStates = backend.productPropertyState_getObjects(  # type: ignore[attr-defined]
+							productPropertyStates = backend.productPropertyState_getObjects(  # ty: ignore[unresolved-attribute]
 								productId=package.product_id,
 								objectId=repository.opsiDepotId,
 							)
 						else:
-							productPropertyStates = backend.productPropertyState_getObjects(  # type: ignore[attr-defined]
+							productPropertyStates = backend.productPropertyState_getObjects(  # ty: ignore[unresolved-attribute]
 								productId=package.product_id,
 								objectId=self.depotId,
 							)
@@ -441,21 +441,21 @@ class OpsiPackageUpdater:
 							for pps in productPropertyStates:
 								property_default_values[pps.propertyId] = pps.values
 								if "password" in pps.propertyId or "passphrase" in pps.propertyId or "secret" in pps.propertyId:
-									secret_filter.add_secrets(*pps.values)
+									secret_filter.add_secrets(*pps.values)  # ty: ignore[unresolved-attribute]
 						logger.notice("Using product property defaults: %s", property_default_values)
 					except Exception as err:
 						logger.warning("Failed to get product property defaults: %s", err)
 
 					logger.info("Installing package '%s'", package_file)
-					depot_backend.depot_installPackage(  # type: ignore[attr-defined]
+					depot_backend.depot_installPackage(  # ty: ignore[unresolved-attribute]
 						filename=package_file,
 						propertyDefaultValues=property_default_values,
 						tempDir=self.config.get("tempdir", "/tmp"),
 					)
-					productOnDepots = backend.productOnDepot_getObjects(depotId=self.depotId, productId=package.product_id)  # type: ignore[attr-defined]
+					productOnDepots = backend.productOnDepot_getObjects(depotId=self.depotId, productId=package.product_id)  # ty: ignore[unresolved-attribute]
 					if not productOnDepots:
 						raise ValueError(f"Product {package.product_id!r} not found on depot '{self.depotId}' after installation")
-					package.product = backend.product_getObjects(  # type: ignore[attr-defined]
+					package.product = backend.product_getObjects(  # ty: ignore[unresolved-attribute]
 						id=productOnDepots[0].productId,
 						productVersion=productOnDepots[0].productVersion,
 						packageVersion=productOnDepots[0].packageVersion,
@@ -482,12 +482,12 @@ class OpsiPackageUpdater:
 
 			logger.debug("Mark redis product cache as dirty for depot: %s", self.depotId)
 			config_id = f"opsiconfd.{self.depotId}.product.cache.outdated"
-			backend.config_createBool(id=config_id, description="", defaultValues=[True])  # type: ignore[attr-defined]
+			backend.config_createBool(id=config_id, description="", defaultValues=[True])  # ty: ignore[unresolved-attribute]
 
 			shutdownProduct = None
 			if self.config["wolAction"] and self.config["wolShutdownWanted"]:
 				try:
-					shutdownProduct = backend.productOnDepot_getObjects(depotId=self.depotId, productId="shutdownwanted")[0]  # type: ignore[attr-defined]
+					shutdownProduct = backend.productOnDepot_getObjects(depotId=self.depotId, productId="shutdownwanted")[0]  # ty: ignore[unresolved-attribute]
 					logger.info(
 						"Found 'shutdownwanted' product on depot '%s': %s",
 						self.depotId,
@@ -557,11 +557,11 @@ class OpsiPackageUpdater:
 					)
 					continue
 
-				clientToDepotserver = backend.configState_getClientToDepotserver(depotIds=[self.depotId])  # type: ignore[attr-defined]
+				clientToDepotserver = backend.configState_getClientToDepotserver(depotIds=[self.depotId])  # ty: ignore[unresolved-attribute]
 				clientIds = set(ctd["clientId"] for ctd in clientToDepotserver if ctd["clientId"])
 
 				if clientIds:
-					productOnClients = backend.productOnClient_getObjects(  # type: ignore[attr-defined]
+					productOnClients = backend.productOnClient_getObjects(  # ty: ignore[unresolved-attribute]
 						attributes=["installationStatus"],
 						productId=package.product_id,
 						productType="LocalbootProduct",
@@ -577,7 +577,7 @@ class OpsiPackageUpdater:
 							if wolEnabled and package.product_id not in excludedWolProducts:
 								wakeOnLanClients.add(poc.clientId)
 
-						backend.productOnClient_updateObjects(productOnClients)  # type: ignore[attr-defined]
+						backend.productOnClient_updateObjects(productOnClients)  # ty: ignore[unresolved-attribute]
 						notifier.appendLine(
 							(
 								f"Product {package.product_id} set to 'setup' on clients: , ".join(
@@ -599,7 +599,7 @@ class OpsiPackageUpdater:
 								clientId,
 							)
 
-							backend.productOnClient_updateObjects(  # type: ignore[attr-defined]
+							backend.productOnClient_updateObjects(  # ty: ignore[unresolved-attribute]
 								[
 									ProductOnClient(
 										productId=shutdownProduct.productId,
@@ -611,7 +611,7 @@ class OpsiPackageUpdater:
 									)
 								]
 							)
-						backend.hostControl_start([clientId])  # type: ignore[attr-defined]
+						backend.hostControl_start([clientId])  # ty: ignore[unresolved-attribute]
 						time.sleep(int(str(self.config["wolStartGap"])))
 					except Exception as err:
 						logger.error("Failed to power on client '%s': %s", clientId, err)
@@ -1002,7 +1002,7 @@ class OpsiPackageUpdater:
 			def __init__(self) -> None:
 				self.last_completed = 0
 
-			def progress_changed(  # type: ignore[invaild-method-override]
+			def progress_changed(  # ty: ignore[invalid-method-override]
 				self,
 				patcher: RequestsHTTPPatcher,
 				position: int,
@@ -1220,7 +1220,7 @@ class OpsiPackageUpdater:
 		logger.info("Getting installed products")
 		products = []
 		configBackend = self.getConfigBackend()
-		for product in configBackend.productOnDepot_getObjects(depotId=self.depotId):  # type: ignore[attr-defined]
+		for product in configBackend.productOnDepot_getObjects(depotId=self.depotId):  # ty: ignore[unresolved-attribute]
 			logger.info(
 				"Found installed product '%s_%s-%s'",
 				product.productId,

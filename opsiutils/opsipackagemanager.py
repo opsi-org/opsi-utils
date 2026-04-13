@@ -48,7 +48,7 @@ from opsiutils import __version__
 try:
 	from opsi_legacy.Util.Sync import librsyncDeltaFile
 except ImportError:
-	librsyncDeltaFile = None  # type: ignore[assignment]
+	librsyncDeltaFile = None  # ty: ignore[invalid-assignment]
 
 
 logger = get_logger("opsi-package-manager")
@@ -260,7 +260,7 @@ class CursesMainWindow(CursesWindow):
 		except Exception as err:
 			logger.debug(err)
 
-	def resize(self) -> None:  # type: ignore[override]
+	def resize(self) -> None:  # ty: ignore[invalid-method-override]
 		return
 
 
@@ -931,7 +931,7 @@ class OpsiPackageManager:
 							# Sizes match => check md5sum
 							logger.info("Size of source and destination matches on depot '%s'", depotId)
 							depotConnection = self.getDepotConnection(depotId)
-							remoteChecksum = depotConnection.depot_getMD5Sum(depotRepositoryPath + "/" + destination)  # type: ignore[attr-defined]
+							remoteChecksum = depotConnection.depot_getMD5Sum(depotRepositoryPath + "/" + destination)  # ty: ignore[unresolved-attribute]
 							if localChecksum == remoteChecksum:
 								# md5sum match => do not overwrite
 								logger.info("MD5sum of source and destination matches on depot '%s'", depotId)
@@ -948,7 +948,7 @@ class OpsiPackageManager:
 					break
 
 			depotConnection = self.getDepotConnection(depotId)
-			info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)  # type: ignore[attr-defined]
+			info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)  # ty: ignore[unresolved-attribute]
 			if info["available"] < packageSize:
 				subject.setMessage(
 					_("Not enough disk space: %dMB needed, %dMB available")
@@ -982,7 +982,7 @@ class OpsiPackageManager:
 						logger.notice("Getting librsync signature of '%s' on depot '%s'", oldPackage, depotId)
 						subject.setMessage(_("Getting librsync signature of %s") % oldPackage)
 
-						sig = depotConnection.depot_librsyncSignature(depotRepositoryPath + "/" + oldPackage)  # type: ignore[attr-defined]
+						sig = depotConnection.depot_librsyncSignature(depotRepositoryPath + "/" + oldPackage)  # ty: ignore[unresolved-attribute]
 						if not isinstance(sig, bytes):
 							sig = sig.encode("ascii")
 						sig = base64.b64decode(sig)
@@ -1027,7 +1027,7 @@ class OpsiPackageManager:
 						logger.notice("Patching '%s'", oldPackage)
 						subject.setMessage(_("Patching %s") % oldPackage)
 
-						depotConnection.depot_librsyncPatchFile(  # type: ignore[attr-defined]
+						depotConnection.depot_librsyncPatchFile(  # ty: ignore[unresolved-attribute]
 							f"{depotRepositoryPath}/{oldPackage}",
 							f"{depotRepositoryPath}/{deltaFilename}",
 							f"{depotRepositoryPath}/{destination}",
@@ -1069,8 +1069,8 @@ class OpsiPackageManager:
 
 				remotePackageFile = f"{depotRepositoryPath}/{destination}"
 				depotConnection = self.getDepotConnection(depotId)
-				remoteChecksum = depotConnection.depot_getMD5Sum(remotePackageFile)  # type: ignore[attr-defined]
-				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)  # type: ignore[attr-defined]
+				remoteChecksum = depotConnection.depot_getMD5Sum(remotePackageFile)  # ty: ignore[unresolved-attribute]
+				info = depotConnection.depot_getDiskSpaceUsage(depotRepositoryPath)  # ty: ignore[unresolved-attribute]
 				if localChecksum != remoteChecksum:
 					raise ValueError(
 						f"MD5sum of source '{localChecksum}' and destination '{remoteChecksum}'differ after upload to depot '{depotId}'"
@@ -1085,13 +1085,13 @@ class OpsiPackageManager:
 
 				remotePackageMd5sumFile = remotePackageFile + ".md5"
 				try:
-					depotConnection.depot_createMd5SumFile(remotePackageFile, remotePackageMd5sumFile)  # type: ignore[attr-defined]
+					depotConnection.depot_createMd5SumFile(remotePackageFile, remotePackageMd5sumFile)  # ty: ignore[unresolved-attribute]
 				except Exception as err:
 					logger.warning("Failed to create md5sum file '%s': %s", remotePackageMd5sumFile, err)
 
 				remotePackageZsyncFile = remotePackageFile + ".zsync"
 				try:
-					depotConnection.depot_createZsyncFile(remotePackageFile, remotePackageZsyncFile)  # type: ignore[attr-defined]
+					depotConnection.depot_createZsyncFile(remotePackageFile, remotePackageZsyncFile)  # ty: ignore[unresolved-attribute]
 				except Exception as err:
 					logger.warning("Failed to create zsync file '%s': %s", remotePackageZsyncFile, err)
 			finally:
@@ -1322,7 +1322,7 @@ class OpsiPackageManager:
 				installationParameters["suppressPackageContentFileGeneration"] = self.config["suppressPackageContentFileGeneration"]
 
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)  # type: ignore[attr-defined]
+			depotConnection.depot_installPackage(depotPackageFile, **installationParameters)  # ty: ignore[unresolved-attribute]
 
 			if self.config["newProductId"]:
 				logger.notice(
@@ -1371,12 +1371,12 @@ class OpsiPackageManager:
 
 		# Remove all orphaned product on clients
 		for depot_id in self.config["depotIds"]:
-			client_ids = [c2d["clientId"] for c2d in self.service_client.configState_getClientToDepotserver(depotIds=[depot_id])]  # type: ignore[attr-defined]
+			client_ids = [c2d["clientId"] for c2d in self.service_client.configState_getClientToDepotserver(depotIds=[depot_id])]  # ty: ignore[unresolved-attribute]
 			if not client_ids:
 				continue
 			purge_product_ids = set(
 				p[0]
-				for p in self.service_client.productOnClient_getIdents(  # type: ignore[attr-defined]
+				for p in self.service_client.productOnClient_getIdents(  # ty: ignore[unresolved-attribute]
 					returnType="tuple", productId=list(self.config["productIds"]), clientId=client_ids
 				)
 			)
@@ -1384,26 +1384,26 @@ class OpsiPackageManager:
 				continue
 			installed_product_ids = set(
 				p[0]
-				for p in self.service_client.productOnDepot_getIdents(returnType="tuple", depotId=depot_id, productId=list())  # type: ignore[attr-defined]
+				for p in self.service_client.productOnDepot_getIdents(returnType="tuple", depotId=depot_id, productId=list())  # ty: ignore[unresolved-attribute]
 			)
 			purge_product_ids -= installed_product_ids
 			if not purge_product_ids:
 				continue
 			logger.debug("Purging products %r on depot %r and clients %r", purge_product_ids, depot_id, client_ids)
 			logger.notice("Purging products %r on depot %r", purge_product_ids, depot_id)
-			self.service_client.productOnClient_delete(productId=list(purge_product_ids), clientId=client_ids)  # type: ignore[attr-defined]
-			self.service_client.productPropertyState_delete(  # type: ignore[attr-defined]
+			self.service_client.productOnClient_delete(productId=list(purge_product_ids), clientId=client_ids)  # ty: ignore[unresolved-attribute]
+			self.service_client.productPropertyState_delete(  # ty: ignore[unresolved-attribute]
 				productId=list(purge_product_ids), propertyId=[], objectId=client_ids + [depot_id]
 			)
 
 		# Remove all orphaned products
 		purge_product_idents = set(
 			tuple(p)
-			for p in self.service_client.product_getIdents(returnType="tuple", id=list(self.config["productIds"]))  # type: ignore[attr-defined]
+			for p in self.service_client.product_getIdents(returnType="tuple", id=list(self.config["productIds"]))  # ty: ignore[unresolved-attribute]
 		)
 		installed_product_idents = set(
 			(p[0], p[2], p[3])
-			for p in self.service_client.productOnDepot_getIdents(returnType="tuple", productId=list(self.config["productIds"]))  # type: ignore[attr-defined]
+			for p in self.service_client.productOnDepot_getIdents(returnType="tuple", productId=list(self.config["productIds"]))  # ty: ignore[unresolved-attribute]
 		)
 		purge_product_idents -= installed_product_idents
 		if not purge_product_idents:
@@ -1411,7 +1411,7 @@ class OpsiPackageManager:
 
 		logger.notice("Purging products: %r", purge_product_idents)
 		purge_products = [{"id": p[0], "productVersion": p[1], "packageVersion": p[2]} for p in purge_product_idents]
-		self.service_client.product_deleteObjects(purge_products)  # type: ignore[attr-defined]
+		self.service_client.product_deleteObjects(purge_products)  # ty: ignore[unresolved-attribute]
 
 	def uninstallPackages(self, ignore_not_installed: bool = False) -> None:
 		for depotId in self.config["depotIds"]:
@@ -1474,7 +1474,7 @@ class OpsiPackageManager:
 				repository.delete(destination)
 
 			depotConnection = self.getDepotConnection(depotId)
-			depotConnection.depot_uninstallPackage(  # type: ignore[attr-defined]
+			depotConnection.depot_uninstallPackage(  # ty: ignore[unresolved-attribute]
 				productId, force=self.config["forceUninstall"], deleteFiles=self.config["deleteFilesOnUninstall"]
 			)
 
@@ -1562,8 +1562,8 @@ class OpsiPackageManagerControl:
 
 		logging_config(
 			log_file=str(self.config["logFile"]) if self.config["logFile"] else None,
-			file_level=int(self.config["fileLogLevel"]) if self.config["fileLogLevel"] else None,  # type: ignore[arg-type]
-			stderr_level=int(self.config["consoleLogLevel"]) if self.config["consoleLogLevel"] else None,  # type: ignore[arg-type]
+			file_level=int(self.config["fileLogLevel"]) if self.config["fileLogLevel"] else None,  # ty: ignore[invalid-argument-type]
+			stderr_level=int(self.config["consoleLogLevel"]) if self.config["consoleLogLevel"] else None,  # ty: ignore[invalid-argument-type]
 			stderr_format=DEFAULT_COLORED_FORMAT,
 		)
 
@@ -1910,7 +1910,7 @@ class OpsiPackageManagerControl:
 		}
 		if opsi_server:
 			self.config["deltaUpload"] = librsyncDeltaFile is not None
-			self.config["localDepotId"] = OpsiConfig(upgrade_config=False).get("host", "id")
+			self.config["localDepotId"] = OpsiConfig(upgrade_config=False).get("host", "id")  # ty: ignore[unresolved-attribute]
 			self.config["depotIds"] = None
 
 	def setCommandlineConfig(self) -> None:
