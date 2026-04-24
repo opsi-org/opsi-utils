@@ -141,6 +141,7 @@ package:
     cd /usr/lib/opsi-utils
     for file in /usr/lib/opsi-utils/*; do
       [[ $file = */_internal ]] || \
+      [[ $file = */sbom.cyclonedx.json ]] || \
       [[ $file = */opsi-admin ]] || \
       [[ $file = */opsi-backup ]] || \
       [[ $file = */opsi-convert ]] || \
