@@ -13,7 +13,7 @@ import os
 import sys
 
 from opsicommon import __version__ as python_opsi_common_version
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_NOTICE, init_logging, logger, logging_config
+from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_NOTICE, init_logging, logger, logging_config
 from opsicommon.server.rights import set_rights
 from opsicommon.types import forceFilename
 
@@ -30,8 +30,7 @@ def usage() -> None:
 	print("   -l             log-level 0..9")
 	print("   -V, --version  Show version info and exit.")
 	print("")
-	print("   --log-file <path>             path to log file")
-	print("   --set-rights [path]           set default rights on opsi files (in [path] only)")
+	print("   --set-rights [path]  set default rights on OPSI files (in [path] only)")
 	print("")
 
 
@@ -83,7 +82,7 @@ def opsisetup_main() -> None:
 
 	for opt, arg in opts:
 		if opt == "--log-file":
-			logging_config(log_file=arg, file_level=LOG_DEBUG)
+			logger.warning("The --log-file was removed.")
 		elif opt == "-l":
 			logging_config(stderr_level=int(arg))
 		elif opt == "--init-current-config":
