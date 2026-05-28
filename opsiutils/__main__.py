@@ -20,18 +20,19 @@ def configure_warnings() -> None:
 def main() -> None:
 	configure_warnings()
 	name = os.path.splitext(os.path.basename(sys.argv[0]))[0].lower().replace("-", "")
-	if name == "opsiadmin":
-		from opsiutils.opsiadmin import main as _main
-
-		return _main()
 	if name == "opsibackup":
-		from opsiutils.opsibackup import main as _main
+		raise RuntimeError("opsibackup is no longer available. Please use `opsiconfd backup`.")
 
-		return _main()
 	if name == "opsiconvert":
 		raise RuntimeError(
 			"opsiconvert not available with opsi 4.3. You can use `opsi-setup --file-to-mysql` to convert from FILE to MySQL backend."
 		)
+
+	if name == "opsiadmin":
+		from opsiutils.opsiadmin import main as _main
+
+		return _main()
+
 	if name == "opsimakepackage":
 		from opsiutils.opsimakepackage import main as _main
 
