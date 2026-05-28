@@ -71,16 +71,26 @@ pyinstaller:
     - src: opsiutils_data/**/*
       dst: opsiutils_data
   before_script: |
-    dpkg -l python3-newt >/dev/null 2>&1 || apt -y install python3-newt
+    rm -rf /tmp/python-newt
+    mkdir -p /tmp/python-newt
+    cd /tmp/python-newt
+    arch=x86_64
+    url=http://de.archive.ubuntu.com/ubuntu/pool/main/n/newt/python3-newt_0.52.25-1ubuntu3_amd64.deb
+    if [ "$(uname -m)" = "aarch64" ]; then
+      arch=arm64
+      url=https://ports.ubuntu.com/pool/main/n/newt/python3-newt_0.52.25-1ubuntu3_arm64.deb
+    fi
+    wget $url -O python3-newt.deb
+    ar x python3-newt.deb
+    zstdcat data.tar.zst | tar xv
+    cd -
     pyver1=$(ls -ld .venv/lib/python* | sed s'/.*python//')
     pyver2=$(echo $pyver1 | sed s'/\.//')
-    src=$(ls /usr/lib/python3/dist-packages/_snack.cpython-*-x86_64-linux-gnu.so | head -n1)
-    if [ -z "$src" ]; then
-      src=$(ls /usr/lib/python3/dist-packages/_snack.cpython-*-aarch64-linux-gnu.so | head -n1);
-    fi
+    src=/tmp/python-newt/usr/lib/python3/dist-packages/_snack.cpython-314-${arch}-linux-gnu.so
     dst=.venv/lib/python${pyver1}/site-packages/$(basename $src | sed -E s"/-[0-9]+m/-${pyver2}/g")
     cp $src $dst
-    cp /usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
+    cp /tmp/python-newt/usr/lib/python3/dist-packages/snack.py .venv/lib/python${pyver1}/site-packages/snack.py
+    rm -rf /tmp/python-newt
   manpages_install: _internal/opsiutils_data/manpages
   after_script:
     linux: |
