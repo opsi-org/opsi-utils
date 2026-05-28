@@ -1,36 +1,12 @@
 #! /usr/bin/opsi-python
-# -*- coding: utf-8 -*-
-
-# Copyright (C) 2021 uib GmbH <info@uib.de>
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-One sentence description here.
-
-You should write what it does here.
-You can use multiple lines.
-
-:license: GNU Affero General Public License version 3
-"""
 
 import argparse
 
-from OPSI.Backend.BackendManager import BackendManager
 from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_WARNING, logger, logging_config
-from OPSI.Object import OpsiClient
+from opsi.opsi.service.client import get_service_client
+from opsi.opsi.service.model.object import OpsiClient
 
-__version__ = "1"
+__version__ = "1.0.0"
 
 
 def main():
@@ -38,17 +14,8 @@ def main():
 	if options.log_level:
 		logging_config(stderr_level=options.log_level, stderr_format=DEFAULT_COLORED_FORMAT)
 
-	backend_config = {
-		"dispatchConfigFile": "/etc/opsi/backendManager/dispatch.conf",
-		"backendConfigDir": "/etc/opsi/backends",
-		"extensionConfigDir": "/etc/opsi/backendManager/extend.d",
-		"depotBackend": True,
-		"hostControlBackend": True,
-		"hostControlSafeBackend": True,
-	}
-
-	with BackendManager(**backend_config) as backend:
-		do_something(backend)
+	with get_service_client() as service_client:
+		do_something(service_client)
 
 
 def parse_options():
@@ -69,23 +36,23 @@ def parse_options():
 	return args
 
 
-def do_something(backend):
+def do_something(service_client):
 	logger.info("logging with level 'info'")
-	print(backend.backend_info())
+	print(service_client.backend_info())
 
 	# create opsi clients 0-3
 	clients_to_create = []
 	for i in range(0, 4):
 		client_config = {"id": f"test-{i}.domain.local", "description": f"Test client {i}"}
 		clients_to_create.append(OpsiClient(**client_config))
-	backend.host_createObjects(clients_to_create)
+	service_client.host_createObjects(clients_to_create)
 
 	# Create Opsi clients 4 and 5
 	for i in range(4, 6):
-		backend.host_createObjects([{"id": f"test-{i}.domain.local", "description": f"Test client {i}", "type": "OpsiClient"}])
+		service_client.host_createObjects([{"id": f"test-{i}.domain.local", "description": f"Test client {i}", "type": "OpsiClient"}])
 
 	# list all opsi clients
-	clients = backend.host_getObjects(type="OpsiClient")
+	clients = service_client.host_getObjects(type="OpsiClient")
 	for client in clients:
 		print(client.id)
 		print(client.lastSeen)
