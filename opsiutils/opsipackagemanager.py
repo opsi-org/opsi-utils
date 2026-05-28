@@ -30,18 +30,28 @@ from types import FrameType
 from typing import Any, Callable, Generator
 from urllib.parse import urlparse
 
+from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_NONE, LOG_WARNING, get_logger, logging_config
+from opsi.opsi.package import OpsiPackage
+from opsi.opsi.service.client import ServiceClient, get_service_client
+from opsi.opsi.service.model.object import Product, ProductOnDepot, ProductProperty
+from opsi.opsi.service.model.type import (
+	to_action_request,
+	to_bool,
+	to_host_id,
+	to_int,
+	to_list,
+	to_product_id,
+	to_string,
+	to_string_list,
+)
+from opsi.opsi.service.server import OpsiConfig
+from opsi.process import run_command
 from opsi_legacy import __version__ as python_opsi_version
 from opsi_legacy.UI import SnackUI
 from opsi_legacy.Util import md5sum
 from opsi_legacy.Util.File.Opsi import parseFilename
 from opsi_legacy.Util.Message import MessageSubject, ProgressSubject, Subject, SubjectsObserver
 from opsi_legacy.Util.Repository import getRepository
-from opsicommon.client.opsiservice import ServiceClient, get_service_client
-from opsicommon.config import OpsiConfig
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_NONE, LOG_WARNING, get_logger, logging_config
-from opsicommon.objects import Product, ProductOnDepot, ProductProperty
-from opsicommon.package import OpsiPackage
-from opsicommon.types import forceActionRequest, forceBool, forceHostId, forceInt, forceList, forceProductId, forceStringList, forceUnicode
 
 from opsiutils import __version__
 
@@ -76,10 +86,10 @@ class TaskError(RuntimeError):
 
 class Task:
 	def __init__(self, name: str, opsiPackageManager: OpsiPackageManager, method: Callable, params: list[Any]):
-		self.name = forceUnicode(name)
+		self.name = to_string(name)
 		self.opsiPackageManager = opsiPackageManager
 		self.method = method
-		self.params = forceList(params)
+		self.params = to_list(params)
 		self.started = False
 		self.ended = False
 		self.exception: Exception | None = None
@@ -131,12 +141,12 @@ class UninstallTask(Task):
 
 class CursesWindow:
 	def __init__(self, height: int, width: int, y: int, x: int, title: str = "", border: bool = False) -> None:
-		self.height = forceInt(height)
-		self.width = forceInt(width)
-		self.y = forceInt(y)
-		self.x = forceInt(x)
-		self.title = forceUnicode(title)
-		self.border = forceBool(border)
+		self.height = to_int(height)
+		self.width = to_int(width)
+		self.y = to_int(y)
+		self.x = to_int(x)
+		self.title = to_string(title)
+		self.border = to_bool(border)
 		self.color: int | None = None
 		self.win = curses.newwin(self.height, self.width, self.y, self.x)
 		if self.border:
@@ -145,10 +155,10 @@ class CursesWindow:
 		self.refresh()
 
 	def resize(self, height: int, width: int, y: int, x: int) -> None:
-		self.height = forceInt(height)
-		self.width = forceInt(width)
-		self.y = forceInt(y)
-		self.x = forceInt(x)
+		self.height = to_int(height)
+		self.width = to_int(width)
+		self.y = to_int(y)
+		self.x = to_int(x)
 		try:
 			self.win.resize(height, width)
 			self.win.mvwin(y, x)
@@ -158,7 +168,7 @@ class CursesWindow:
 			pass
 
 	def setTitle(self, title: str) -> None:
-		self.title = forceUnicode(title)
+		self.title = to_string(title)
 		if not self.title:
 			return
 		if len(self.title) > self.width - 4:
@@ -191,9 +201,9 @@ class CursesWindow:
 	def addstr(self, _str: str, attr: int | None = None) -> None:
 		try:
 			if attr:
-				self.win.addstr(forceUnicode(_str), attr)
+				self.win.addstr(to_string(_str), attr)
 			else:
-				self.win.addstr(forceUnicode(_str))
+				self.win.addstr(to_string(_str))
 		except Exception:
 			pass
 
@@ -271,7 +281,7 @@ class CursesTextWindow(CursesWindow):
 		self._lock = threading.Lock()
 
 	def addLine(self, line: str, *params: int) -> None:
-		line = forceUnicode(line)
+		line = to_string(line)
 		with self._lock:
 			if len(line) > self.width:
 				line = line[: self.width - 1]
@@ -279,7 +289,7 @@ class CursesTextWindow(CursesWindow):
 			self.build()
 
 	def addLines(self, lines: list[str], *params: int) -> None:
-		lines = forceStringList(lines)
+		lines = to_string_list(lines)
 		with self._lock:
 			for line in lines:
 				if len(line) > self.width:
@@ -288,7 +298,7 @@ class CursesTextWindow(CursesWindow):
 			self.build()
 
 	def setLines(self, lines: list[str], *params: int) -> None:
-		lines = forceStringList(lines)
+		lines = to_string_list(lines)
 		with self._lock:
 			self.lines = []
 			for line in lines:
@@ -554,7 +564,7 @@ class UserInterface(SubjectsObserver):
 class TaskQueue(threading.Thread):
 	def __init__(self, name: str) -> None:
 		threading.Thread.__init__(self)
-		self.name = forceUnicode(name)
+		self.name = to_string(name)
 		self.tasks: list[Task] = []
 		self.started = False
 		self.ended = False
@@ -779,7 +789,7 @@ class OpsiPackageManager:
 		try:
 			subject = self.getDepotSubject(depotId)
 			subject.setMessage(_("Setting action setup for product %s where installed") % productId)
-			actionRequest = forceActionRequest(actionRequest) or "setup"
+			actionRequest = to_action_request(actionRequest) or "setup"
 			clientIds = []
 			for clientToDepot in self.service_client.jsonrpc("configState_getClientToDepotserver", [[depotId]]):
 				clientIds.append(clientToDepot["clientId"])
@@ -1317,7 +1327,7 @@ class OpsiPackageManager:
 				"propertyDefaultValues": propertyDefaultValues,
 			}
 			if self.config["newProductId"]:
-				installationParameters["forceProductId"] = self.config["newProductId"]
+				installationParameters["to_product_id"] = self.config["newProductId"]
 			if self.config["suppressPackageContentFileGeneration"]:
 				installationParameters["suppressPackageContentFileGeneration"] = self.config["suppressPackageContentFileGeneration"]
 
@@ -1582,19 +1592,19 @@ class OpsiPackageManagerControl:
 
 				knownDepotIds = set(self.service_client.jsonrpc("host_getIdents", ["unicode", {"type": "OpsiDepotserver"}]))
 
-				if any(depotId.lower() == "all" for depotId in forceStringList(self.config["depotIds"])):
+				if any(depotId.lower() == "all" for depotId in to_string_list(self.config["depotIds"])):
 					self.config["depotIds"] = list(knownDepotIds)
 				else:
 					cleanedDepotIds = set()
-					for depotId in forceStringList(self.config["depotIds"]):
-						depotId = forceHostId(depotId)
+					for depotId in to_string_list(self.config["depotIds"]):
+						depotId = to_host_id(depotId)
 						if depotId not in knownDepotIds:
 							raise RuntimeError(f"Depot '{depotId}' not in list of known depots: {','.join(knownDepotIds)}")
 						cleanedDepotIds.add(depotId)
 
 					self.config["depotIds"] = list(cleanedDepotIds)
 
-				self.config["depotIds"] = sorted(forceStringList(self.config["depotIds"]))
+				self.config["depotIds"] = sorted(to_string_list(self.config["depotIds"]))
 			except Exception:
 				if self.service_client:
 					self.service_client.disconnect()
@@ -1618,7 +1628,7 @@ class OpsiPackageManagerControl:
 			elif self.config["command"] in ("list", "differences"):
 				if not self.config["productIds"]:
 					self.config["productIds"] = ["*"]
-				if self.config["command"] == "differences" and len(forceStringList(self.config["depotIds"])) <= 1:
+				if self.config["command"] == "differences" and len(to_string_list(self.config["depotIds"])) <= 1:
 					raise ValueError("More than one depot id needed to display differences")
 
 			elif self.config["command"] in ("remove", "repo_remove"):
@@ -1682,7 +1692,7 @@ class OpsiPackageManagerControl:
 		temp_dir = None
 		if self.config.get("tempDir"):
 			temp_dir = Path(str(self.config["tempDir"]))
-		for packageFile in forceStringList(self.config["packageFiles"]):
+		for packageFile in to_string_list(self.config["packageFiles"]):
 			opsi_package = OpsiPackage(Path(packageFile), temp_dir=temp_dir)
 
 			productId = opsi_package.product.id
@@ -1690,7 +1700,7 @@ class OpsiPackageManagerControl:
 				raise ValueError(f"Failed to extract source from package '{packageFile}': product id not found in meta data")
 			newProductId = None
 			if self.config["newProductId"]:
-				productId = forceProductId(self.config["newProductId"])
+				productId = to_product_id(self.config["newProductId"])
 				newProductId = productId
 			packageDestinationDir = os.path.join(destinationDir, productId)
 			if os.path.exists(packageDestinationDir):
@@ -1705,8 +1715,7 @@ class OpsiPackageManagerControl:
 		assert self.service_client
 		terminalWidth = 60
 		try:
-			with os.popen("tty") as fd:
-				tty = fd.readline().strip()
+			tty = run_command("tty").get_stdout_text().strip()
 			with open(tty, encoding="utf-8") as fd:
 				terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, b"1234"))[1]
 		except Exception:
@@ -1737,7 +1746,7 @@ class OpsiPackageManagerControl:
 		nameWidth = terminalWidth - len(indent) - idWidth - versionWidth - 4
 
 		productOnDepotInfo: dict[str, dict[str, ProductOnDepot]] = {}
-		for depotId in forceStringList(self.config["depotIds"]):
+		for depotId in to_string_list(self.config["depotIds"]):
 			productOnDepotInfo[depotId] = {}
 		for productOnDepot in productOnDepots:
 			productOnDepotInfo[productOnDepot.depotId][productOnDepot.productId] = productOnDepot
@@ -1787,7 +1796,7 @@ class OpsiPackageManagerControl:
 			return
 
 		assert self.service_client
-		depotIds = forceStringList(self.config["depotIds"])
+		depotIds = to_string_list(self.config["depotIds"])
 		productOnDepots = self.service_client.jsonrpc(
 			"productOnDepot_getObjects", [[], {"depotId": depotIds, "productId": self.config["productIds"]}]
 		)
@@ -1871,7 +1880,7 @@ class OpsiPackageManagerControl:
 
 	def processRepoRemoveCommand(self) -> None:
 		BASE_PATH = "/var/lib/opsi/repository"
-		for product in forceStringList(self.config["productIds"]):
+		for product in to_string_list(self.config["productIds"]):
 			path = os.path.join(BASE_PATH, f"{product}_*")
 			matches = glob.glob(path)
 			if not matches:
@@ -1910,7 +1919,7 @@ class OpsiPackageManagerControl:
 		}
 		if opsi_server:
 			self.config["deltaUpload"] = librsyncDeltaFile is not None
-			self.config["localDepotId"] = OpsiConfig(upgrade_config=False).get("host", "id")  # ty: ignore[unresolved-attribute]
+			self.config["localDepotId"] = OpsiConfig(upgrade_config=False).get("host", "id")
 			self.config["depotIds"] = None
 
 	def setCommandlineConfig(self) -> None:
@@ -1926,13 +1935,13 @@ class OpsiPackageManagerControl:
 		if self.opts.logFile:
 			self.config["logFile"] = self.opts.logFile
 		if self.opts.fileLogLevel:
-			self.config["fileLogLevel"] = forceInt(self.opts.fileLogLevel)
+			self.config["fileLogLevel"] = to_int(self.opts.fileLogLevel)
 		if self.opts.tempDir:
 			self.config["tempDir"] = str(self.opts.tempDir)
 		if self.opts.depots:
 			self.config["depotIds"] = self.opts.depots.split(",")
 		if self.opts.newProductId:
-			self.config["newProductId"] = forceProductId(self.opts.newProductId)
+			self.config["newProductId"] = to_product_id(self.opts.newProductId)
 		if self.opts.maxBandwidth:
 			self.config["maxBandwidth"] = self.opts.maxBandwidth
 		if self.opts.maxTransfers:

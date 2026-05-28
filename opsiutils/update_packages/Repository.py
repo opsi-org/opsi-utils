@@ -12,9 +12,9 @@ import time
 from datetime import datetime, timedelta
 from html.parser import HTMLParser
 
-from opsicommon.client.opsiservice import ServiceClient
-from opsicommon.logging import get_logger
-from opsicommon.types import forceBool, forceStringList, forceUnicode
+from opsi.logging import get_logger
+from opsi.opsi.service.client import ServiceClient
+from opsi.opsi.service.model.type import to_bool, to_string, to_string_list
 
 __all__ = ("LinksExtractor", "ProductRepositoryInfo", "sort_repository_list", "TransferSlotHeartbeat")
 logger = get_logger("opsi-package-updater")
@@ -44,16 +44,16 @@ class ProductRepositoryInfo:
 		autoSetupExcludes: list[re.Pattern] | None = None,
 		verifyCert: bool = False,
 	):
-		self.name = forceUnicode(name)
-		self.baseUrl = forceUnicode(baseUrl)
-		self.dirs = forceStringList(dirs or [])
+		self.name = to_string(name)
+		self.baseUrl = to_string(baseUrl)
+		self.dirs = to_string_list(dirs or [])
 		self.excludes = excludes or []
 		self.includes = includes or []
 		self.customVersions = customVersions or {}
-		self.username = forceUnicode(username)
-		self.password = forceUnicode(password)
-		self.authcertfile = forceUnicode(authcertfile)
-		self.authkeyfile = forceUnicode(authkeyfile)
+		self.username = to_string(username)
+		self.password = to_string(password)
+		self.authcertfile = to_string(authcertfile)
+		self.authkeyfile = to_string(authkeyfile)
 		self.autoInstall = autoInstall
 		self.autoUpdate = autoUpdate
 		self.autoSetup = autoSetup
@@ -62,8 +62,8 @@ class ProductRepositoryInfo:
 		self.onlyDownload = False
 		self.inheritProductProperties = False
 		self.description = ""
-		self.active = forceBool(active)
-		self.verifyCert = forceBool(verifyCert)
+		self.active = to_bool(active)
+		self.verifyCert = to_bool(verifyCert)
 
 		self.proxy = None
 		if proxy:

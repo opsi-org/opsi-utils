@@ -27,10 +27,10 @@ You can use multiple lines.
 import argparse
 
 from OPSI.Backend.BackendManager import BackendManager
+from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_WARNING, logger, logging_config
 from OPSI.Object import OpsiClient
-from opsicommon.logging import logger, logging_config, DEFAULT_COLORED_FORMAT, LOG_WARNING
 
-__version__ = '1'
+__version__ = "1"
 
 
 def main():
@@ -44,7 +44,7 @@ def main():
 		"extensionConfigDir": "/etc/opsi/backendManager/extend.d",
 		"depotBackend": True,
 		"hostControlBackend": True,
-		"hostControlSafeBackend": True
+		"hostControlSafeBackend": True,
 	}
 
 	with BackendManager(**backend_config) as backend:
@@ -53,12 +53,17 @@ def main():
 
 def parse_options():
 	parser = argparse.ArgumentParser(description="Some opsi script.")
-	parser.add_argument("--version", action='version', version=__version__)
-	parser.add_argument("--log-level", "-l", dest="log_level", type=int,
-						default=LOG_WARNING,
-						choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-						help="Set the desired loglevel.")
-	parser.add_argument("--filename", "-f",  help='Required file.')
+	parser.add_argument("--version", action="version", version=__version__)
+	parser.add_argument(
+		"--log-level",
+		"-l",
+		dest="log_level",
+		type=int,
+		default=LOG_WARNING,
+		choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		help="Set the desired loglevel.",
+	)
+	parser.add_argument("--filename", "-f", help="Required file.")
 	args = parser.parse_args()
 
 	return args
@@ -70,25 +75,14 @@ def do_something(backend):
 
 	# create opsi clients 0-3
 	clients_to_create = []
-	for i in range(0,4):
-		client_config = {
-			"id": f"test-{i}.domain.local",
-			"description": f"Test client {i}"
-		}
-		clients_to_create.append(
-			OpsiClient(**client_config)
-		)
+	for i in range(0, 4):
+		client_config = {"id": f"test-{i}.domain.local", "description": f"Test client {i}"}
+		clients_to_create.append(OpsiClient(**client_config))
 	backend.host_createObjects(clients_to_create)
 
 	# Create Opsi clients 4 and 5
-	for i in range(4,6):
-		backend.host_createObjects([
-			{
-				"id": f"test-{i}.domain.local",
-				"description": f"Test client {i}",
-				"type": "OpsiClient"
-			}
-		])
+	for i in range(4, 6):
+		backend.host_createObjects([{"id": f"test-{i}.domain.local", "description": f"Test client {i}", "type": "OpsiClient"}])
 
 	# list all opsi clients
 	clients = backend.host_getObjects(type="OpsiClient")
@@ -97,5 +91,5 @@ def do_something(backend):
 		print(client.lastSeen)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 	main()

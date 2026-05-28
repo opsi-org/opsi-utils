@@ -10,18 +10,48 @@ import argparse
 import os
 import sys
 import traceback
+import warnings
+from typing import Any
 
 import opsi_legacy
 import opsi_legacy.Backend.Manager._Manager
-import opsicommon.client.opsiservice
+from opsi.opsi.service.client import ServiceClient, ServiceVerificationFlags
+from opsi.opsi.service.server import OpsiConfig
+from opsi.opsi.service.server._config import OPSI_CA_CERT_FILE
+
+from opsiutils import __version__
 
 sys.modules["OPSI"] = opsi_legacy
 
 import OPSI.Backend.Manager._Manager  # ty: ignore[unresolved-import] # noqa
 
+
+class BackendManager(ServiceClient):
+	"""
+	For backwards compatibility
+	"""
+
+	def __init__(self, username: str | None = None, password: str | None = None, **kwargs: Any) -> None:
+		warnings.warn("BackendManager is deprecated, please use opsi.opsi.service.client.get_service_client()")
+		opsi_config = OpsiConfig(upgrade_config=False)
+		super().__init__(
+			address=opsi_config.get("service", "url"),
+			username=username or opsi_config.get("host", "id"),
+			password=password or opsi_config.get("host", "key"),
+			user_agent=f"opsi-python/{__version__}",
+			# BackendManager can only be used to connect to the local opsi service.
+			# Using local CA cert file read-only with strict verification and.
+			ca_cert_file=OPSI_CA_CERT_FILE,
+			verify=ServiceVerificationFlags.STRICT_CHECK,
+			jsonrpc_create_objects=True,
+			jsonrpc_create_methods=True,
+		)
+		self.connect()
+
+
 # Replace BackendManager with compatibility class
-OPSI.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager
-opsi_legacy.Backend.Manager._Manager.BackendManager = opsicommon.client.opsiservice.BackendManager  # ty: ignore[invalid-assignment]
+OPSI.Backend.Manager._Manager.BackendManager = BackendManager
+opsi_legacy.Backend.Manager._Manager.BackendManager = BackendManager  # ty: ignore[invalid-assignment]
 
 
 def add_systempackages_to_path() -> None:

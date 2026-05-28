@@ -10,8 +10,8 @@ import email.utils
 import smtplib
 import time
 
-from opsicommon.logging import SECRET_REPLACEMENT_STRING, get_logger, secret_filter
-from opsicommon.types import forceInt, forceStringList, forceUnicode
+from opsi.logging import SECRET_REPLACEMENT_STRING, get_logger, secret_filter
+from opsi.opsi.service.model.type import to_int, to_string, to_string_list
 
 __all__ = ("DummyNotifier", "EmailNotifier")
 
@@ -33,7 +33,7 @@ class BaseNotifier:
 		"""
 		now = time.strftime("%b %d %H:%M:%S", time.localtime())
 		filtered_line = line
-		for _secret in secret_filter.secrets:  # ty: ignore[unresolved-attribute]
+		for _secret in secret_filter.secrets:
 			filtered_line = filtered_line.replace(_secret, SECRET_REPLACEMENT_STRING)
 
 		self.message += f"{pre}{now} {filtered_line}\n"
@@ -80,20 +80,20 @@ class EmailNotifier(BaseNotifier):
 	) -> None:
 		super().__init__()
 
-		self.receivers = forceStringList(receivers or [])
+		self.receivers = to_string_list(receivers or [])
 		if not self.receivers:
 			raise ValueError("List of mail recipients empty")
-		self.smtphost = forceUnicode(smtphost)
-		self.smtpport = forceInt(smtpport)
-		self.sender = forceUnicode(sender)
-		self.subject = forceUnicode(subject)
+		self.smtphost = to_string(smtphost)
+		self.smtpport = to_int(smtpport)
+		self.sender = to_string(sender)
+		self.subject = to_string(subject)
 		self.username: str | None = None
 		self.password: str | None = None
 		self.useStarttls = False
 
 	def setSubject(self, new_subject: str) -> None:
 		logger.info("Setting new subject %s", new_subject)
-		self.subject = forceUnicode(new_subject)
+		self.subject = to_string(new_subject)
 
 	def notify(self) -> None:
 		logger.notice("Sending mail notification")

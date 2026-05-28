@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import argparse
 import curses
-import fcntl
 import getpass
 import gettext
 import json
@@ -21,21 +20,21 @@ import os.path
 import pwd
 import select
 import stat
-import subprocess
 import sys
 import time
 from pathlib import Path
 from types import FrameType
 from typing import Any
 
+from opsi.exception import OpsiRpcError
+from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, get_logger, logging_config
+from opsi.opsi.service.client import ServiceClient, ServiceVerificationFlags, get_service_client
+from opsi.opsi.service.model.type import to_bool, to_filename, to_string, to_string_lower
+from opsi.opsi.service.server import OpsiConfig
+from opsi.process import run_script
 from opsi_legacy import __version__ as python_opsi_version
 from opsi_legacy.Util import blowfishDecrypt, deserialize, fromJson, objectToBash, objectToBeautifiedText, serialize, toJson
 from opsi_legacy.Util.File.Opsi.Opsirc import getOpsircPath, readOpsirc
-from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
-from opsicommon.config import OpsiConfig
-from opsicommon.exceptions import OpsiRpcError
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, get_logger, logging_config
-from opsicommon.types import forceBool, forceFilename, forceUnicode, forceUnicodeLower
 
 from opsiutils import __version__
 
@@ -185,8 +184,8 @@ def shell_main() -> None:
 	parser.add_argument(
 		"--address",
 		"-a",
-		default=opsiconf.get("service", "url"),  # ty: ignore[unresolved-attribute]
-		help=_("URL of opsiconfd (default: %s)") % opsiconf.get("service", "url"),  # ty: ignore[unresolved-attribute]
+		default=opsiconf.get("service", "url"),
+		help=_("URL of opsiconfd (default: %s)") % opsiconf.get("service", "url"),
 	)
 	parser.add_argument(
 		"--no-check-certificate",
@@ -254,7 +253,7 @@ def shell_main() -> None:
 	exitZero = options.exitZero
 
 	if options.logFile:
-		logFile = forceFilename(options.logFile)
+		logFile = to_filename(options.logFile)
 		startLogFile(logFile, options.logLevel)
 
 	logging_config(stderr_level=LOG_NONE if interactive else options.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
@@ -267,19 +266,19 @@ def shell_main() -> None:
 		# Reading opsirc file.
 		# We should always prefer the settings from the commandline
 		opsircConfig = readOpsirc(options.opsirc)
-		username = options.username or opsircConfig.get("username") or opsiconf.get("host", "id")  # ty: ignore[unresolved-attribute]
+		username = options.username or opsircConfig.get("username") or opsiconf.get("host", "id")
 		password = options.password or opsircConfig.get("password")
-		address = options.address or opsircConfig.get("address") or opsiconf.get("service", "url")  # ty: ignore[unresolved-attribute]
+		address = options.address or opsircConfig.get("address") or opsiconf.get("service", "url")
 		if not username:
 			try:
-				username = forceUnicode(pwd.getpwuid(os.getuid())[0])
+				username = to_string(pwd.getpwuid(os.getuid())[0])
 			except Exception as error:
 				logger.error("Failed to get username: %s", error)
 				raise
 		if not password:
 			# Use host key if username is host id
-			if username == opsiconf.get("host", "id"):  # ty: ignore[unresolved-attribute]
-				password = opsiconf.get("host", "key")  # ty: ignore[unresolved-attribute]
+			if username == opsiconf.get("host", "id"):
+				password = opsiconf.get("host", "key")
 			# otherwise prompt for password
 			else:
 				try:
@@ -305,7 +304,7 @@ def shell_main() -> None:
 					for line in session:
 						line = line.strip()
 						if line:
-							session_cookie = forceUnicode(line)
+							session_cookie = to_string(line)
 							break
 			except IOError as err:
 				if err.errno != 2:  # 2 is No such file or directory
@@ -433,13 +432,13 @@ def startLogFile(log_file: str, logLevel: int) -> None:
 
 class Shell:
 	def __init__(self, prompt: str = "opsi-admin>", output: str = "JSON", color: bool = True, cmdline: str = "") -> None:
-		self.color = forceBool(color)
-		self.output = forceUnicode(output)
+		self.color = to_bool(color)
+		self.output = to_string(output)
 		self.running = False
 		self.screen: curses.window | None = None
 		self.cmdBufferSize = 1024
 		self.userConfigDir = None
-		self.prompt = forceUnicode(prompt)
+		self.prompt = to_string(prompt)
 		self.infoline = "opsi admin started"
 		self.yMax = 0
 		self.xMax = 0
@@ -452,7 +451,7 @@ class Shell:
 		self.currentParam: str | None = None
 		self.cmdListPos = 0
 		self.cmdList = []
-		self.cmdline = forceUnicode(cmdline)
+		self.cmdline = to_string(cmdline)
 		self.shellCommand = ""
 		self.reverseSearch: str | None = None
 		self.exit_on_sigint = False
@@ -473,7 +472,7 @@ class Shell:
 			home = os.path.expanduser("~")
 
 		if home:
-			self.userConfigDir = forceFilename(os.path.join(home, ".opsi.org"))
+			self.userConfigDir = to_filename(os.path.join(home, ".opsi.org"))
 			if not os.path.isdir(self.userConfigDir):
 				try:
 					os.mkdir(self.userConfigDir)
@@ -485,7 +484,7 @@ class Shell:
 		try:
 			if not self.userConfigDir:
 				raise ValueError("User config dir not set")
-			historyFile = forceFilename(os.path.join(self.userConfigDir, "history"))
+			historyFile = to_filename(os.path.join(self.userConfigDir, "history"))
 			with open(historyFile, "r", encoding="utf-8", errors="replace") as history:
 				for line in history:
 					if not line:
@@ -498,7 +497,7 @@ class Shell:
 			logger.error("Failed to read history file '%s': %s", historyFile, err)
 
 	def setColor(self, color: bool) -> None:
-		color = forceBool(color)
+		color = to_bool(color)
 		if color != self.color:
 			self.color = color
 			self.initScreen()
@@ -669,7 +668,7 @@ class Shell:
 		self.screen.refresh()
 
 	def appendLine(self, line: str, color: str | None = None, refresh: bool = True) -> None:
-		line = forceUnicode(line)
+		line = to_string(line)
 
 		if not color:
 			if line.startswith(COLOR_NORMAL):
@@ -701,12 +700,12 @@ class Shell:
 			self.display()
 
 	def setCmdline(self, cmdline: str, refresh: bool = True) -> None:
-		self.cmdline = forceUnicode(cmdline)
+		self.cmdline = to_string(cmdline)
 		if refresh:
 			self.display()
 
 	def setInfoline(self, infoline: str, refresh: bool = True) -> None:
-		self.infoline = forceUnicode(infoline)
+		self.infoline = to_string(infoline)
 		if refresh:
 			self.display()
 
@@ -823,7 +822,7 @@ class Shell:
 
 	def question(self, question: str) -> bool:
 		assert self.screen
-		question = forceUnicode(question)
+		question = to_string(question)
 		if interactive:
 			self.screen.move(self.yMax - 1, 0)
 			self.screen.clrtoeol()
@@ -1087,7 +1086,7 @@ class Shell:
 
 class Command:
 	def __init__(self, name: str) -> None:
-		self.name = forceUnicode(name)
+		self.name = to_string(name)
 
 	def getName(self) -> str:
 		return self.name
@@ -1191,7 +1190,7 @@ class CommandMethod(Command):
 				return fromJson(obj)
 			except Exception as err:
 				logger.debug("Not a json string '%s': %s", obj, err)
-				return forceUnicode(obj)
+				return to_string(obj)
 
 		params = [createObjectOrString(item) for item in params]
 
@@ -1247,79 +1246,28 @@ class CommandMethod(Command):
 				if isinstance(result, dict):
 					for key, value in result.items():
 						if isinstance(value, bool):
-							value = forceUnicodeLower(value)
+							value = to_string_lower(value)
 						lines.append(f"{key}={value}")
 				elif isinstance(result, (tuple, list, set)):
 					for resultElement in result:
 						if isinstance(resultElement, dict):
 							for key, value in resultElement.items():
 								if isinstance(value, bool):
-									value = forceUnicodeLower(value)
+									value = to_string_lower(value)
 								lines.append(f"{key}={value}")
 							lines.append("")
 						elif isinstance(resultElement, (tuple, list)):
 							raise ValueError("Simple output not possible for list of lists")
 						else:
-							lines.append(forceUnicode(resultElement))
+							lines.append(to_string(resultElement))
 				else:
-					lines.append(forceUnicode(result))
+					lines.append(to_string(result))
 			else:
-				lines.append(forceUnicode(result))
+				lines.append(to_string(result))
 
 			if shell.shellCommand:
 				logger.notice("Executing: '%s'", shell.shellCommand)
-
-				proc = subprocess.Popen(
-					shell.shellCommand,
-					shell=True,
-					stdin=subprocess.PIPE,
-					stdout=subprocess.PIPE,
-					stderr=subprocess.PIPE,
-				)
-				assert proc.stdout
-				assert proc.stderr
-				assert proc.stdin
-
-				flags = fcntl.fcntl(proc.stdout, fcntl.F_GETFL)
-				fcntl.fcntl(proc.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-
-				flags = fcntl.fcntl(proc.stderr, fcntl.F_GETFL)
-				fcntl.fcntl(proc.stderr, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-
-				exitCode = None
-				buf = b""
-				serr = b""
-
-				while exitCode is None:
-					exitCode = proc.poll()
-					if lines:
-						for line in lines:
-							proc.stdin.write(line.encode(outEncoding, "replace"))
-							proc.stdin.write(b"\n")
-						lines = []
-						proc.stdin.close()
-
-					try:
-						string = proc.stdout.read()
-						if len(string) > 0:
-							buf += string
-					except IOError as error:
-						if error.errno != 11:
-							raise
-
-					try:
-						string = proc.stderr.read()
-						if len(string) > 0:
-							serr += string
-					except IOError as error:
-						if error.errno != 11:
-							raise
-
-				if exitCode != 0:
-					nwl = "\n"
-					raise RuntimeError(f"Exitcode: {exitCode * -1}{nwl}{serr.decode(inEncoding, 'replace')}")
-
-				lines = buf.decode(inEncoding, "replace").split("\n")
+				lines = run_script(shell.shellCommand).get_stdout_lines()
 
 			for line in lines:
 				shell.appendLine(line, COLOR_GREEN)

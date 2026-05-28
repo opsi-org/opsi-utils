@@ -12,14 +12,16 @@ import getopt
 import os
 import sys
 
-from opsicommon import __version__ as python_opsi_common_version
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_NOTICE, init_logging, logger, logging_config
-from opsicommon.server.rights import set_rights
-from opsicommon.types import forceFilename
+from opsi import __version__ as python_opsi_version
+from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_NOTICE, get_logger, logging_config
+from opsi.opsi.service.model.type import to_filename
+from opsi.opsi.service.server import set_rights
 
 from opsiutils import __version__
 
-init_logging(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
+logger = get_logger()
+
+logging_config(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
 
 def usage() -> None:
@@ -74,7 +76,7 @@ def opsisetup_main() -> None:
 			usage()
 			return
 		if opt in ("-V", "--version"):
-			print(f"{__version__} [python-opsi-common={python_opsi_common_version}]")
+			print(f"{__version__} [python-opsi={python_opsi_version}]")
 			return
 
 	if os.geteuid() != 0:
@@ -150,7 +152,7 @@ def opsisetup_main() -> None:
 	if len(args) > 0:
 		logger.debug("Additional arguments are: %s", args)
 		if task == "set-rights" and len(args) == 1:
-			path = os.path.abspath(forceFilename(args[0]))
+			path = os.path.abspath(to_filename(args[0]))
 		else:
 			usage()
 			raise RuntimeError("Too many arguments")

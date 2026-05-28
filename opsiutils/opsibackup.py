@@ -10,9 +10,9 @@ import argparse
 import os
 import sys
 
+from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_NOTICE, LOG_WARNING, logger, logging_config
 from opsi_legacy import __version__ as python_opsi_version
 from opsi_legacy.Util.Task.Backup import OpsiBackup
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_NOTICE, LOG_WARNING, init_logging, logger, logging_config
 
 from opsiutils import __version__
 from opsiutils.opsimakepackage import raw_tty
@@ -65,7 +65,7 @@ class HelpFormatter(argparse.HelpFormatter):
 
 
 def backup_main() -> int:
-	init_logging(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
+	logging_config(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
 
 	parser = argparse.ArgumentParser(prog="opsi-backup", add_help=False, usage=USAGE, formatter_class=HelpFormatter)
 	parser.add_argument("-h", "--help", action="help")

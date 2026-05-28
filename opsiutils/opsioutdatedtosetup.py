@@ -8,20 +8,19 @@ opsi-outdated-to-setup - set action_requests where outdated.
 
 import sys
 from argparse import ArgumentParser, Namespace
-from subprocess import check_call
 
-from opsicommon import __version__ as python_opsi_common_version
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, get_logger, logging_config
-from opsicommon.utils import patch_popen
+from opsi.logging import DEFAULT_COLORED_FORMAT, get_logger, logging_config
+from opsi.process import CaptureOutputMode, run_command
 
 from opsiutils import __version__
+from opsiutils import __version__ as python_opsi_version
 
 logger = get_logger()
 
 
 def parse_args() -> Namespace:
 	parser = ArgumentParser(description="Set outdated localboot Products to setup.")
-	parser.add_argument("--version", "-V", action="version", version=f"{__version__} [python-opsi-common={python_opsi_common_version}]")
+	parser.add_argument("--version", "-V", action="version", version=f"{__version__} [python-opsi={python_opsi_version}]")
 	parser.add_argument("--log-level", "-l", default=5, type=int, choices=range(10), help="Set log-level (0..9)")
 	parser.add_argument("--clients", help="comma-separated list of clients or 'all'")
 	parser.add_argument("--dry-run", help="only simulate run", action="store_true")
@@ -75,9 +74,8 @@ def main() -> None:
 			opsi_cli_call.extend(["--setup-on-action", args.setup_on_action])
 
 		logging_config(stderr_level=args.log_level, stderr_format=DEFAULT_COLORED_FORMAT)
-		patch_popen()
 		logger.essential("Executing '%s'", " ".join(opsi_cli_call))
-		check_call(opsi_cli_call)
+		run_command(opsi_cli_call, capture_output=CaptureOutputMode.NONE)
 	except Exception as err:
 		logger.error(err)
 		sys.exit(1)

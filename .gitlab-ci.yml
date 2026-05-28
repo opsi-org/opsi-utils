@@ -1,4 +1,4 @@
-image: docker.uib.gmbh/opsi/dev/pybuilder:deb9-py3.13
+image: docker.uib.gmbh/opsi/dev/pybuilder:deb9
 
 variables:
   SKIP_TESTS: "false"
@@ -15,7 +15,7 @@ test-and-lint:
     - docker-x64
   script:
     - export UV_PYTHON_PREFERENCE="only-managed"
-    - export UV_PYTHON="3.13-x86_64"
+    - export UV_PYTHON="3.14-x86_64"
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - uv sync --frozen
@@ -33,7 +33,7 @@ build:linux-x64:
     - docker-x64
   script:
     - export UV_PYTHON_PREFERENCE="only-managed"
-    - export UV_PYTHON="3.13-x86_64"
+    - export UV_PYTHON="3.14-x86_64"
     - TRANSIFEX_MIN_REVIEW_RATE=0.0
     - '[ "$CI_COMMIT_TAG" = "" ] || TRANSIFEX_MIN_REVIEW_RATE=1.0'
     - apt update
@@ -62,7 +62,7 @@ build:linux-arm64:
     - docker-arm64
   script:
     - export UV_PYTHON_PREFERENCE="only-managed"
-    - export UV_PYTHON="3.13-aarch64"
+    - export UV_PYTHON="3.14-aarch64"
     - TRANSIFEX_MIN_REVIEW_RATE=0.0
     - '[ "$CI_COMMIT_TAG" = "" ] || TRANSIFEX_MIN_REVIEW_RATE=1.0'
     - apt update

@@ -12,10 +12,10 @@ from typing import Any, Generator
 from unittest import mock
 
 import pytest
-from opsicommon.objects import OpsiDepotserver
-from opsicommon.package.associated_files import md5sum
-from opsicommon.package.repo_meta import RepoMetaPackageCollection
-from opsicommon.testing.helpers import http_test_server
+from opsi.crypt.hash import FileHashAlgorithm, hash_file
+from opsi.opsi.package import RepoMetaPackageCollection
+from opsi.opsi.service.model.object import OpsiDepotserver
+from opsi.testing.helper import http_test_server
 from pyzsync import create_zsync_file
 
 from opsiutils import __version__
@@ -201,7 +201,7 @@ def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpd
 	zsync_file = updater_info.server_dir / "hwaudit_4.2.0.0-1.opsi.zsync"
 	server_package_file.write_bytes(b"a" * 2048 * 10)
 	create_zsync_file(server_package_file, zsync_file)
-	server_package_md5sum = md5sum(server_package_file)
+	server_package_md5sum = hash_file(server_package_file, FileHashAlgorithm.MD5)
 	md5sum_file.write_text(server_package_md5sum, encoding="ascii")
 
 	with http_test_server(serve_directory=updater_info.server_dir, log_file=str(updater_info.server_log)) as server:
@@ -257,7 +257,7 @@ def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-lo
 	local_old_zsync_tmp_file.write_bytes(parts[4])
 
 	create_zsync_file(server_package_file, zsync_file)
-	server_package_md5sum = md5sum(server_package_file)
+	server_package_md5sum = hash_file(server_package_file, FileHashAlgorithm.MD5)
 	md5sum_file.write_text(server_package_md5sum, encoding="ascii")
 
 	with http_test_server(
@@ -307,7 +307,7 @@ def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-lo
 		updater_info.server_log.unlink()
 		# print(request)
 
-		assert md5sum(updater_info.local_dir / server_package_file.name) == server_package_md5sum
+		assert hash_file(updater_info.local_dir / server_package_file.name, FileHashAlgorithm.MD5) == server_package_md5sum
 		assert request["headers"].get("Authorization") == "Basic dXNlcjpwYXNz"
 		assert request["headers"]["Accept-Encoding"] == "identity"
 		if server_accept_ranges:

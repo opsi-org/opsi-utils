@@ -8,7 +8,7 @@ import shutil
 from pathlib import Path
 
 import pytest
-from opsicommon.package import OpsiPackage
+from opsi.opsi.package import OpsiPackage
 
 from opsiutils.opsimakepackage import makepackage_main
 

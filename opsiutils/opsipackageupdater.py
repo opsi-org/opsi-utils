@@ -12,16 +12,17 @@ through a remote repository.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from types import TracebackType
 
+import psutil
 from configupdater import ConfigUpdater
+from opsi.logging import DEFAULT_COLORED_FORMAT, get_logger, logging_config
+from opsi.opsi.service.model.type import to_product_id
 from opsi_legacy import __version__ as python_opsi_version
 from opsi_legacy.Util import compareVersions
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, get_logger, init_logging, logging_config
-from opsicommon.system import ensure_not_already_running
-from opsicommon.types import forceProductId
 
 from opsiutils import __version__
 from opsiutils.update_packages.Config import DEFAULT_CONFIG
@@ -40,6 +41,44 @@ OFFICIAL_REPO_FILES = [
 	"testing.repo",
 	"experimental.repo",
 ]
+
+
+def ensure_not_already_running(process_name: str | None = None) -> None:
+	container_procs = ("containerd-shim", "lxc-start")
+	our_pid = os.getpid()
+	other_pid = None
+	try:
+		our_proc = psutil.Process(our_pid)
+		if not process_name:
+			process_name = our_proc.name()
+		exe_name = f"{process_name}.exe"
+		ignore_pids = [p.pid for p in our_proc.children(recursive=True)]
+		ignore_pids += [p.pid for p in our_proc.parents()]
+		for proc in psutil.process_iter():
+			# logger.debug("Found running process: %s", proc)
+			if proc.name() == process_name or proc.name() == exe_name:
+				logger.debug("Found running '%s' process: %s", process_name, proc)
+
+				running_in_container_pid = 0
+				for parent in proc.parents():
+					if parent.name() in container_procs:
+						running_in_container_pid = parent.pid
+						break
+				if running_in_container_pid:
+					logger.debug("Process is running in container %d, skipping", running_in_container_pid)
+					continue
+
+				if proc.pid != our_pid and proc.pid not in ignore_pids:
+					other_pid = proc.pid
+					break
+	except Exception as err:
+		logger.debug("Check for running processes failed: %s", err)
+
+	if other_pid:
+		raise RuntimeError(f"Another '{process_name}' process is running (pids: {other_pid} / {our_pid}).")
+
+	if other_pid:
+		raise RuntimeError(f"Another '{process_name}' process is running (pids: {other_pid} / {our_pid}).")
 
 
 class OpsiPackageUpdaterClient(OpsiPackageUpdater):
@@ -106,7 +145,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
 			if productId:
 				logger.debug("Filtering for product IDs matching %s...", productId)
-				productId = forceProductId(productId)
+				productId = to_product_id(productId)
 				packages = [package for package in packages if productId in package.product_id]
 
 			for package in packages:
@@ -384,9 +423,7 @@ def updater_main() -> int:
 	config: dict[str, str | int | bool | list[ProductRepositoryInfo] | None] = DEFAULT_CONFIG.copy()
 	args = parse_args()
 
-	init_logging(stderr_level=args.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
-	if args.mode == "list" and args.logLevel < 4:
-		logging_config(stderr_level=4)
+	logging_config(stderr_level=4 if args.logLevel < 4 else args.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 
 	if not args.noPatchRepoFiles:
 		patch_repo_files(Path(str(DEFAULT_CONFIG["repositoryConfigDir"])))

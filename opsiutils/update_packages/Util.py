@@ -6,8 +6,8 @@
 Utility functions for package updates.
 """
 
+from opsi.logging import get_logger
 from opsi_legacy.Util import compareVersions
-from opsicommon.logging import get_logger
 
 from .Exceptions import NoActiveRepositoryError
 from .Repository import ProductRepositoryInfo, sort_repository_list

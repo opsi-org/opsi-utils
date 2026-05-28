@@ -21,16 +21,16 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
 
+from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, get_logger, logging_config
+from opsi.opsi.package import OpsiPackage
+from opsi.opsi.service.model.object import NetbootProduct, Product
+from opsi.opsi.service.server import set_rights
+from opsi.process import run_command
 from opsi_legacy import __version__ as python_opsi_version
-from opsi_legacy.System import execute
 from opsi_legacy.Types import forceFilename
 from opsi_legacy.Util import compareVersions, md5sum
 from opsi_legacy.Util.File import ZsyncFile
 from opsi_legacy.Util.Message import ProgressObserver, ProgressSubject, Subject
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, get_logger, init_logging, logging_config
-from opsicommon.objects import NetbootProduct, Product
-from opsicommon.package import OpsiPackage
-from opsicommon.server.rights import set_rights
 
 from opsiutils import __version__
 
@@ -268,7 +268,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
 def makepackage_main(str_args: list[str] | None = None) -> None:
 	os.umask(0o022)
 
-	init_logging(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
+	logging_config(stderr_level=LOG_WARNING, stderr_format=DEFAULT_COLORED_FORMAT)
 
 	args = parse_args(str_args)
 
@@ -520,7 +520,7 @@ def lockPackage(tempDir: Path, opsiPackage: OpsiPackage) -> None:
 			pid = file.read().strip()
 
 		if pid:
-			for line in execute("ps -A"):
+			for line in run_command(["ps", "-A"]).get_stdout_lines():
 				line = line.strip()
 				if not line:
 					continue

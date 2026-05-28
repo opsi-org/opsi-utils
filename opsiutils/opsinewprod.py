@@ -15,12 +15,9 @@ import time
 from pathlib import Path
 from typing import Generator, cast
 
-from opsi_legacy import __version__ as python_opsi_version
-from opsi_legacy.System import copy
-from opsi_legacy.UI import UI, UIFactory
-from opsi_legacy.Util.File import ChangelogFile
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, logger, logging_config
-from opsicommon.objects import (
+from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, logger, logging_config
+from opsi.opsi.package import OpsiPackage
+from opsi.opsi.service.model.object import (
 	BoolProductProperty,
 	LocalbootProduct,
 	NetbootProduct,
@@ -29,9 +26,12 @@ from opsicommon.objects import (
 	ProductProperty,
 	UnicodeProductProperty,
 )
-from opsicommon.package import OpsiPackage
-from opsicommon.server.rights import set_rights
-from opsicommon.types import forceEmailAddress, forceFilename, forceUnicode
+from opsi.opsi.service.model.type import to_email_address, to_filename, to_string
+from opsi.opsi.service.server import set_rights
+from opsi_legacy import __version__ as python_opsi_version
+from opsi_legacy.System import copy
+from opsi_legacy.UI import UI, UIFactory
+from opsi_legacy.Util.File import ChangelogFile
 
 from opsiutils import __version__
 
@@ -75,7 +75,7 @@ def newprod_main() -> None:
 	options = parser.parse_args()
 
 	templateDirectory = options.templateDir
-	destDir = os.path.abspath(forceFilename(options.destination))
+	destDir = os.path.abspath(to_filename(options.destination))
 
 	if not os.path.exists(destDir):
 		raise OSError(f"Directory '{destDir}' does not exist!")
@@ -322,7 +322,7 @@ def createActionScripts(product: Product, clientDataDirectory: str) -> None:
 	Create a file for all the scripts set at `product` in `clientDataDirectory`.
 
 	:param product: The product for which the scripts should be created.
-	:type product: opsicommon.objects.Product
+	:type product: opsi.opsi.service.model.object.Product
 	:param clientDataDirectory: The path in which the scripts should be created. Usually the `CLIENT_DATA` directory of a product.
 	:type clientDataDirectory: str
 	"""
@@ -566,7 +566,7 @@ def writeMaintainerInfo(
 		try:
 			if not values[0].get("value"):
 				raise ValueError("Empty maintainer")
-			maintainer = forceUnicode(values[0].get("value"))
+			maintainer = to_string(values[0].get("value"))
 		except Exception:
 			if not error:
 				error = _("Please enter a valid maintainer name.")
@@ -574,7 +574,7 @@ def writeMaintainerInfo(
 		try:
 			if not values[1].get("value"):
 				raise ValueError("Empty maintainer e-mail")
-			maintainerEmail = forceEmailAddress(values[1].get("value"))
+			maintainerEmail = to_email_address(values[1].get("value"))
 		except Exception:
 			if not error:
 				error = _("Please enter a valid e-mail address.")

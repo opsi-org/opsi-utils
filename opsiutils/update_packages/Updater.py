@@ -23,19 +23,17 @@ from urllib.parse import quote, urlparse
 
 from attr import dataclass
 from cryptography import x509
+from opsi.crypt.hash import FileHashAlgorithm, hash_file
+from opsi.logging import get_logger, secret_filter
+from opsi.opsi.package import OpsiPackage, RepoMetaPackageCollection
+from opsi.opsi.service.client import ServiceClient, get_service_client
+from opsi.opsi.service.model.object import NetbootProduct, Product, ProductOnClient, ProductOnDepot
+from opsi.opsi.service.model.type import to_list, to_product_id, to_product_id_list, to_string_list
+from opsi.opsi.service.server import OpsiConfig, set_rights
+from opsi.system.certificate_store import install_ca
+from opsi.system.network import prepare_proxy_environment
 from opsi_legacy.Util import compareVersions, formatFileSize
 from opsi_legacy.Util.File.Opsi import parseFilename
-from opsicommon.client.opsiservice import ServiceClient, get_service_client
-from opsicommon.config.opsi import OpsiConfig
-from opsicommon.logging import get_logger, secret_filter
-from opsicommon.objects import NetbootProduct, Product, ProductOnClient, ProductOnDepot
-from opsicommon.package import OpsiPackage
-from opsicommon.package.repo_meta import RepoMetaPackageCollection
-from opsicommon.server.rights import set_rights
-from opsicommon.ssl import install_ca
-from opsicommon.types import forceList, forceProductId, forceProductIdList, forceStringList
-from opsicommon.utils import prepare_proxy_environment
-from opsicommon.utils.hashing import compute_file_hash
 from pyzsync import (
 	SOURCE_REMOTE,
 	CaseInsensitiveDict,
@@ -69,11 +67,11 @@ class LocalPackageInfo:
 
 	@cached_property
 	def md5_hash(self) -> str:
-		return compute_file_hash(self.package_file, algorithm="md5")
+		return hash_file(self.package_file, algorithm=FileHashAlgorithm.MD5)
 
 	@cached_property
 	def blake3_hash(self) -> str:
-		return compute_file_hash(self.package_file, algorithm="blake3")
+		return hash_file(self.package_file, algorithm=FileHashAlgorithm.BLAKE3)
 
 
 @dataclass(kw_only=True)
@@ -131,9 +129,9 @@ class OpsiPackageUpdater:
 		self.httpHeaders = {"User-Agent": str(self.config.get("userAgent", DEFAULT_USER_AGENT))}
 		self.configBackend: ServiceClient | None = None
 		self.depotBackend: ServiceClient | None = None
-		self.depotId = OpsiConfig().get("host", "id")  # ty: ignore[unresolved-attribute]
+		self.depotId = OpsiConfig().get("host", "id")
 		self.depotServiceUrl = ""
-		self.isConfigServer = OpsiConfig().get("host", "server-role") == "configserver"  # ty: ignore[unresolved-attribute]
+		self.isConfigServer = OpsiConfig().get("host", "server-role") == "configserver"
 		self.errors: list[Exception] = []
 		self.metafile_cache: dict[str, bytes | None] = {}
 
@@ -151,7 +149,7 @@ class OpsiPackageUpdater:
 
 		if not self.depotKey:
 			raise ValueError(f"Opsi host key for depot '{self.depotId}' not found in backend")
-		secret_filter.add_secrets(self.depotKey)  # ty: ignore[unresolved-attribute]
+		secret_filter.add_secrets(self.depotKey)
 
 		self.readConfigFile()
 
@@ -190,7 +188,7 @@ class OpsiPackageUpdater:
 		"""
 		name = self.config.get("repositoryName", None)
 
-		for repo in forceList(self.config.get("repositories", [])):
+		for repo in to_list(self.config.get("repositories", [])):
 			if name and repo.name.strip().lower() != str(name).strip().lower():
 				continue
 
@@ -383,7 +381,7 @@ class OpsiPackageUpdater:
 
 			sequence = []
 			for package in new_packages:
-				if not insideInstallWindow and package.product_id not in forceStringList(self.config["installationWindowExceptions"]):
+				if not insideInstallWindow and package.product_id not in to_string_list(self.config["installationWindowExceptions"]):
 					continue
 				sequence.append(package.product_id)
 			for package in new_packages:
@@ -441,7 +439,7 @@ class OpsiPackageUpdater:
 							for pps in productPropertyStates:
 								property_default_values[pps.propertyId] = pps.values
 								if "password" in pps.propertyId or "passphrase" in pps.propertyId or "secret" in pps.propertyId:
-									secret_filter.add_secrets(*pps.values)  # ty: ignore[unresolved-attribute]
+									secret_filter.add_secrets(*pps.values)
 						logger.notice("Using product property defaults: %s", property_default_values)
 					except Exception as err:
 						logger.warning("Failed to get product property defaults: %s", err)
@@ -570,7 +568,7 @@ class OpsiPackageUpdater:
 					)
 					if productOnClients:
 						wolEnabled = self.config["wolAction"]
-						excludedWolProducts = set(forceProductIdList(self.config["wolActionExcludeProductIds"]))
+						excludedWolProducts = set(to_product_id_list(self.config["wolActionExcludeProductIds"]))
 
 						for poc in productOnClients:
 							poc.setActionRequest("setup")
@@ -632,7 +630,7 @@ class OpsiPackageUpdater:
 			smtphost=str(self.config["smtphost"]),
 			smtpport=int(str(self.config["smtpport"])),
 			sender=str(self.config["sender"]),
-			receivers=forceList(self.config["receivers"]),
+			receivers=to_list(self.config["receivers"]),
 			subject=str(self.config["subject"]),
 		)
 
@@ -651,7 +649,7 @@ class OpsiPackageUpdater:
 
 		# Checking if given productIds are available and process only these products
 		filtered_packages = []
-		for product in forceProductIdList(self.config["processProductIds"]):
+		for product in to_product_id_list(self.config["processProductIds"]):
 			matching_packages = [pac for pac in packages if product == pac.product_id]
 			if matching_packages:
 				filtered_packages.extend(matching_packages)
@@ -684,10 +682,10 @@ class OpsiPackageUpdater:
 			)
 			return True
 
-		hash_algorithm = "blake3" if available_package.blake3_hash else "md5"
-		expected_hash = available_package.blake3_hash if hash_algorithm == "blake3" else available_package.md5_hash
-		computed_hash = compute_file_hash(Path(packageFile), algorithm=hash_algorithm)
-		logger.debug("%s: computed %s hash: %s", available_package.product_id, hash_algorithm, computed_hash)
+		hash_algorithm = FileHashAlgorithm.BLAKE3 if available_package.blake3_hash else FileHashAlgorithm.MD5
+		expected_hash = available_package.blake3_hash if hash_algorithm == FileHashAlgorithm.BLAKE3 else available_package.md5_hash
+		computed_hash = hash_file(Path(packageFile), algorithm=hash_algorithm)
+		logger.debug("%s: computed %s hash: %s", available_package.product_id, hash_algorithm.name, computed_hash)
 
 		if computed_hash != expected_hash:
 			logger.info("%s: %s hash mismatch, package download failed", available_package.product_id, hash_algorithm)
@@ -942,6 +940,9 @@ class OpsiPackageUpdater:
 			raise FileNotFoundError(f"Package file {package_file} not found")
 
 		url = available_package.zsync_file
+		if not url:
+			raise ValueError("No zsync file URL provided for package")
+
 		logger.info("Fetching zsync file %s", url)
 		response = session.get(url, headers=self.httpHeaders, stream=True, timeout=1800)  # 30 minutes timeout
 		if response.status_code < 200 or response.status_code > 299:
@@ -1127,7 +1128,7 @@ class OpsiPackageUpdater:
 		logger.info("Creating md5sum file '%s'", md5sum_file)
 
 		with open(md5sum_file, mode="w", encoding="utf-8") as hashFile:
-			hashFile.write(compute_file_hash(Path(package_file), algorithm="md5"))
+			hashFile.write(hash_file(Path(package_file), algorithm=FileHashAlgorithm.MD5))
 		set_rights(md5sum_file)
 
 		zsync_file = f"{package_file}.zsync"
@@ -1337,7 +1338,7 @@ class OpsiPackageUpdater:
 							packageInfo = RepositoryPackageInfo(
 								repository=repository,
 								package_file=packageFile,
-								product_id=forceProductId(productId),
+								product_id=to_product_id(productId),
 								version=version,
 								filename=link,
 							)
@@ -1479,7 +1480,7 @@ class OpsiPackageUpdater:
 
 
 def get_local_package_info(product_id: str, package_directory: Path) -> LocalPackageInfo | None:
-	product_id = forceProductId(product_id)
+	product_id = to_product_id(product_id)
 	for package_file in package_directory.glob(f"{product_id}_*.opsi"):
 		logger.info("Found local package '%s'", package_file)
 		try:

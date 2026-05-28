@@ -20,10 +20,10 @@ from contextlib import contextmanager
 from itertools import product
 from typing import Generator
 
+from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, get_logger, logging_config
+from opsi.opsi.service.client import ServiceClient, ServiceVerificationFlags, get_service_client
 from opsi_legacy import __version__ as python_opsi_version
 from opsi_legacy.Util.Ping import ping
-from opsicommon.client.opsiservice import ServiceClient, ServiceVerificationFlags, get_service_client
-from opsicommon.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, get_logger, init_logging, logging_config
 
 from opsiutils import __version__
 
@@ -530,11 +530,11 @@ def opsiwakeupclients_main() -> None:
 	options = parseOptions()
 
 	if options.consoleLogLevel:
-		init_logging(stderr_level=options.consoleLogLevel, stderr_format=DEFAULT_COLORED_FORMAT)
+		logging_config(stderr_level=options.consoleLogLevel, stderr_format=DEFAULT_COLORED_FORMAT)
 	if options.fileLogLevel and options.logFile:
 		if os.path.exists(options.logFile):
 			os.remove(options.logFile)
-		init_logging(log_file=options.logFile, file_level=options.fileLogLevel)
+		logging_config(log_file=options.logFile, file_level=options.fileLogLevel)
 
 	try:
 		service_client = get_service_client(user_agent=f"opsi-wakeup-clients/{__version__}", session_lifetime=30)

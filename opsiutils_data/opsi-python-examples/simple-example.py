@@ -24,15 +24,15 @@ You can use multiple lines.
 :license: GNU Affero General Public License version 3
 """
 
-from OPSI.Backend.BackendManager import BackendManager
+from opsi.opsi.service.client import get_service_client
 
-with BackendManager() as backend:
-	print(backend.backend_info())
+with get_service_client() as client:
+	print(client.backend_info())
 
 	# Create Opsi clients
-	for i in range(0,4):
-		backend.host_createOpsiClient(id=f"test-client-{i}.domain.local", description=f"Test client {i}")
+	for i in range(0, 4):
+		client.host_createOpsiClient(id=f"test-client-{i}.domain.local", description=f"Test client {i}")
 
-	clients = backend.host_getObjects(type="OpsiClient")
+	clients = client.host_getObjects(type="OpsiClient")
 	for client in clients:
 		print(client.id)

@@ -15,22 +15,22 @@ import socket
 from configparser import ConfigParser
 from typing import Any, Generator
 
+from opsi.logging import get_logger, logging_config, secret_filter
+from opsi.opsi.service.client import ServiceClient
+from opsi.opsi.service.model.type import (
+	to_bool,
+	to_email_address,
+	to_filename,
+	to_host_address,
+	to_host_id,
+	to_int,
+	to_list,
+	to_product_id,
+	to_string,
+	to_url,
+)
 from opsi_legacy import __version__
 from opsi_legacy.Util.File import IniFile
-from opsicommon.client.opsiservice import ServiceClient
-from opsicommon.logging import get_logger, logging_config, secret_filter
-from opsicommon.types import (
-	forceBool,
-	forceEmailAddress,
-	forceFilename,
-	forceHostAddress,
-	forceHostId,
-	forceInt,
-	forceList,
-	forceProductId,
-	forceUnicode,
-	forceUrl,
-)
 
 from .Exceptions import ConfigurationError, MissingConfigurationValueError, RequiringBackendError
 from .Repository import ProductRepositoryInfo
@@ -130,12 +130,12 @@ class ConfigurationParser:
 				if section.lower() == "general":
 					for option, value in configIni.items(section):
 						if option.lower() == "packagedir":
-							config["packageDir"] = forceFilename(value.strip())
+							config["packageDir"] = to_filename(value.strip())
 						elif option.lower() == "logfile":
-							value = forceFilename(value.strip())
+							value = to_filename(value.strip())
 							logging_config(log_file=value)
 						elif option.lower() == "loglevel":
-							logging_config(file_level=forceInt(value.strip()))
+							logging_config(file_level=to_int(value.strip()))
 						elif option.lower() == "timeout":
 							# TODO: find a better way!
 							socket.setdefaulttimeout(float(value.strip()))
@@ -146,42 +146,42 @@ class ConfigurationParser:
 						elif option.lower() == "proxy" and value.strip():
 							config["proxy"] = value.strip()
 							if config["proxy"] != "system":
-								config["proxy"] = forceUrl(value.strip())
+								config["proxy"] = to_url(value.strip())
 						elif option.lower() == "ignoreerrors" and value.strip():
-							config["ignoreErrors"] = forceBool(value.strip())
+							config["ignoreErrors"] = to_bool(value.strip())
 
 				elif section.lower() == "notification":
 					for option, value in configIni.items(section):
 						if option.lower() == "active":
-							config["notification"] = forceBool(value)
+							config["notification"] = to_bool(value)
 						elif option.lower() == "smtphost":
-							config["smtphost"] = forceHostAddress(value.strip())
+							config["smtphost"] = to_host_address(value.strip())
 						elif option.lower() == "smtpport":
-							config["smtpport"] = forceInt(value.strip())
+							config["smtpport"] = to_int(value.strip())
 						elif option.lower() == "smtpuser":
-							config["smtpuser"] = forceUnicode(value.strip())
+							config["smtpuser"] = to_string(value.strip())
 						elif option.lower() == "smtppassword":
-							config["smtppassword"] = forceUnicode(value.strip())
-							secret_filter.add_secrets(str(config["smtppassword"]))  # ty: ignore[unresolved-attribute]
+							config["smtppassword"] = to_string(value.strip())
+							secret_filter.add_secrets(str(config["smtppassword"]))
 						elif option.lower() == "subject":
-							config["subject"] = forceUnicode(value.strip())
+							config["subject"] = to_string(value.strip())
 						elif option.lower() == "use_starttls":
-							config["use_starttls"] = forceBool(value.strip())
+							config["use_starttls"] = to_bool(value.strip())
 						elif option.lower() == "sender":
-							config["sender"] = forceEmailAddress(value.strip())
+							config["sender"] = to_email_address(value.strip())
 						elif option.lower() == "receivers":
-							config["receivers"] = [forceEmailAddress(receiver) for receiver in splitAndStrip(str(value), ",")]  # ty: ignore[invalid-assignment]
+							config["receivers"] = [to_email_address(receiver) for receiver in splitAndStrip(str(value), ",")]  # ty: ignore[invalid-assignment]
 
 				elif section.lower() == "wol":
 					for option, value in configIni.items(section):
 						if option.lower() == "active":
-							config["wolAction"] = forceBool(value.strip())
+							config["wolAction"] = to_bool(value.strip())
 						elif option.lower() == "excludeproductids":
-							config["wolActionExcludeProductIds"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]  # ty: ignore[invalid-assignment]
+							config["wolActionExcludeProductIds"] = [to_product_id(productId) for productId in splitAndStrip(value, ",")]  # ty: ignore[invalid-assignment]
 						elif option.lower() == "shutdownwanted":
-							config["wolShutdownWanted"] = forceBool(value.strip())
+							config["wolShutdownWanted"] = to_bool(value.strip())
 						elif option.lower() == "startgap":
-							config["wolStartGap"] = max(0, forceInt(value.strip()))
+							config["wolStartGap"] = max(0, to_int(value.strip()))
 
 				elif section.lower() == "installation":
 					for option, value in configIni.items(section):
@@ -198,7 +198,7 @@ class ConfigurationParser:
 								raise ValueError(f"End time '{value.strip()}' not in needed format 'HH:MM'")
 							config["installationWindowEndTime"] = value.strip()
 						elif option.lower() == "exceptproductids":
-							config["installationWindowExceptions"] = [forceProductId(productId) for productId in splitAndStrip(value, ",")]  # ty: ignore[invalid-assignment]
+							config["installationWindowExceptions"] = [to_product_id(productId) for productId in splitAndStrip(value, ",")]  # ty: ignore[invalid-assignment]
 				elif section.lower().startswith("repository"):
 					try:
 						repository = self._getRepository(
@@ -209,7 +209,7 @@ class ConfigurationParser:
 							installAllAvailable=bool(config["installAllAvailable"]),
 							proxy=str(config["proxy"]) if config["proxy"] else None,
 						)
-						config["repositories"] = forceList(config["repositories"]) + [repository]
+						config["repositories"] = to_list(config["repositories"]) + [repository]
 					except MissingConfigurationValueError as mcverr:
 						logger.debug("Configuration for %s incomplete: %s", section, mcverr)
 					except ConfigurationError as cerr:
@@ -239,7 +239,7 @@ class ConfigurationParser:
 							installAllAvailable=bool(config["installAllAvailable"]),
 							proxy=str(config["proxy"]) if config["proxy"] else None,
 						)
-						config["repositories"] = forceList(config["repositories"]) + [repository]
+						config["repositories"] = to_list(config["repositories"]) + [repository]
 					except MissingConfigurationValueError as err:
 						logger.debug("Configuration for %s in %s incomplete: %s", section, configFile, err)
 					except ConfigurationError as err:
@@ -268,19 +268,19 @@ class ConfigurationParser:
 			option = option.lower()
 			value = value.strip()
 			if option == "active":
-				active = forceBool(value)
+				active = to_bool(value)
 			elif option == "baseurl":
 				if value:
-					baseUrl = forceUrl(value)
+					baseUrl = to_url(value)
 			elif option == "opsidepotid":
 				if value:
-					opsiDepotId = forceHostId(value)
+					opsiDepotId = to_host_id(value)
 			elif option == "proxy" and value:
 				proxy = value
 				if value != "system":
-					proxy = forceUrl(value)
+					proxy = to_url(value)
 			elif option == "verifycert":
-				verifyCert = forceBool(value)
+				verifyCert = to_bool(value)
 
 		repoName = section.replace("repository_", "", 1)
 
@@ -323,31 +323,31 @@ class ConfigurationParser:
 
 		for option, value in config.items(section):
 			if option.lower() == "username":
-				repository.username = forceUnicode(value.strip())
+				repository.username = to_string(value.strip())
 			elif option.lower() == "password":
-				repository.password = forceUnicode(value.strip())
+				repository.password = to_string(value.strip())
 				if repository.password:
-					secret_filter.add_secrets(repository.password)  # ty: ignore[unresolved-attribute]
+					secret_filter.add_secrets(repository.password)
 			elif option.lower() == "authcertfile":
-				repository.authcertfile = forceFilename(value.strip())
+				repository.authcertfile = to_filename(value.strip())
 			elif option.lower() == "authkeyfile":
-				repository.authkeyfile = forceFilename(value.strip())
+				repository.authkeyfile = to_filename(value.strip())
 			elif option.lower() == "autoinstall":
-				repository.autoInstall = forceBool(value.strip())
+				repository.autoInstall = to_bool(value.strip())
 			elif option.lower() == "autoupdate":
-				repository.autoUpdate = forceBool(value.strip())
+				repository.autoUpdate = to_bool(value.strip())
 			elif option.lower() == "autosetup":
-				repository.autoSetup = forceBool(value.strip())
+				repository.autoSetup = to_bool(value.strip())
 			elif option.lower() == "onlydownload":
-				repository.onlyDownload = forceBool(value.strip())
+				repository.onlyDownload = to_bool(value.strip())
 			elif option.lower() == "inheritproductproperties":
 				if not opsiDepotId:
 					logger.warning("InheritProductProperties not possible with normal http ressource.")
 					repository.inheritProductProperties = False
 				else:
-					repository.inheritProductProperties = forceBool(value.strip())
+					repository.inheritProductProperties = to_bool(value.strip())
 			elif option.lower() == "dirs":
-				repository.dirs = [forceFilename(directory) for directory in splitAndStrip(value, ",")]
+				repository.dirs = [to_filename(directory) for directory in splitAndStrip(value, ",")]
 			elif option.lower() == "excludes":
 				repository.excludes = [re.compile(exclude) for exclude in splitAndStrip(value, ",")]
 			elif option.lower() == "customversions":
@@ -366,7 +366,7 @@ class ConfigurationParser:
 			elif option.lower() == "autosetupexcludes":
 				repository.autoSetupExcludes = [re.compile(exclude) for exclude in splitAndStrip(value, ",")]
 			elif option.lower() == "description":
-				repository.description = forceUnicode(value)
+				repository.description = to_string(value)
 
 		if installAllAvailable:
 			repository.autoInstall = True
