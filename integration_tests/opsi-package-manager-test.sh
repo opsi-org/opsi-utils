@@ -5,9 +5,9 @@ echo patching repositoryRemoteUrl to webdavs://localhost:4447/repository
 ./opsi-admin -r method host_getObjects [] '{"type": "OpsiConfigserver"}' | sed -e 's#"repositoryRemoteUrl":"[^"]*"#"repositoryRemoteUrl":"webdavs://localhost:4447/repository"#' | ./opsi-admin method host_updateObjects
 ./opsi-admin method host_getObjects [] '{"type": "OpsiConfigserver"}'
 
-wget -q http://opsipackages.uib.gmbh/development/hwaudit/all/all/hwaudit_all_all_4.3.1.0-2.tar.gz
-tar -xvf hwaudit_all_all_4.3.1.0-2.tar.gz
-./opsi-package-manager -vvvv -iS hwaudit-package/hwaudit_4.3.1.0-2.opsi
+wget -q http://opsipackages.uib.gmbh/development/hwaudit/all/all/hwaudit_all_all_4.3.2.4-1.tar.gz
+tar -xvf hwaudit_all_all_4.3.2.4-1.tar.gz
+./opsi-package-manager -vvvv -iS hwaudit-package/hwaudit_4.3.2.4-1.opsi
 
 # setActionRequestWithDependencies requires POD object. Test moved to opsi-package-manager
 ./opsi-admin method productOnDepot_getObjects
@@ -16,6 +16,6 @@ client=$(./opsi-admin method host_getObjects '[]' '{"id": "*1*"}' | grep '"id"' 
 
 
 ./opsi-package-manager -vvvv -r hwaudit
-./opsi-package-manager -vvvv -i hwaudit-package/hwaudit_4.3.1.0-2.opsi -d test.uib.gmbh
-./opsi-package-manager -vvvv -x hwaudit-package/hwaudit_4.3.1.0-2.opsi
+./opsi-package-manager -vvvv -i hwaudit-package/hwaudit_4.3.2.4-1.opsi -d test.uib.gmbh
+./opsi-package-manager -vvvv -x hwaudit-package/hwaudit_4.3.2.4-1.opsi
 rm -rf ./hwaudit*
