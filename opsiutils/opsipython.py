@@ -13,6 +13,7 @@ import traceback
 import warnings
 from typing import Any
 
+import opsi
 import opsi_legacy
 import opsi_legacy.Backend.Manager._Manager
 from opsi.opsi.service.client import ServiceClient, ServiceVerificationFlags
@@ -22,8 +23,11 @@ from opsi.opsi.service.server._config import OPSI_CA_CERT_FILE
 from opsiutils import __version__
 
 sys.modules["OPSI"] = opsi_legacy
+sys.modules["opsicommon"] = opsi
+
 
 import OPSI.Backend.Manager._Manager  # ty: ignore[unresolved-import] # noqa
+import opsicommon.opsi.service.client  # ty: ignore[unresolved-import] # noqa
 
 
 class BackendManager(ServiceClient):
@@ -52,6 +56,9 @@ class BackendManager(ServiceClient):
 # Replace BackendManager with compatibility class
 OPSI.Backend.Manager._Manager.BackendManager = BackendManager
 opsi_legacy.Backend.Manager._Manager.BackendManager = BackendManager  # ty: ignore[invalid-assignment]
+
+# For backwards compatibility
+opsicommon.client.opsiservice = opsicommon.opsi.service.client
 
 
 def add_systempackages_to_path() -> None:

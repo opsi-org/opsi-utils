@@ -59,9 +59,8 @@ class ProgressNotifier(ProgressObserver):
 	def __init__(self) -> None:
 		self.usedWidth = 60
 		try:
-			with os.popen("tty") as proc:
-				_tty = proc.readline().strip()
-			with open(_tty, "rb") as fd:
+			tty = run_command("tty").get_stdout_text().strip()
+			with open(tty, "rb") as fd:
 				terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, b"1234"))[1]
 			self.usedWidth = min(self.usedWidth, terminalWidth)
 		except Exception:
