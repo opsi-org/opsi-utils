@@ -58,6 +58,7 @@ OPSI.Backend.Manager._Manager.BackendManager = BackendManager
 opsi_legacy.Backend.Manager._Manager.BackendManager = BackendManager  # ty: ignore[invalid-assignment]
 
 # For backwards compatibility
+opsicommon.client = opsicommon.opsi.service
 opsicommon.client.opsiservice = opsicommon.opsi.service.client
 
 
