@@ -1327,7 +1327,7 @@ class OpsiPackageManager:
 				"propertyDefaultValues": propertyDefaultValues,
 			}
 			if self.config["newProductId"]:
-				installationParameters["to_product_id"] = self.config["newProductId"]
+				installationParameters["forceProductId"] = self.config["newProductId"]
 			if self.config["suppressPackageContentFileGeneration"]:
 				installationParameters["suppressPackageContentFileGeneration"] = self.config["suppressPackageContentFileGeneration"]
 
