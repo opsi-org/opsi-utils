@@ -177,7 +177,7 @@ class OpsiPackageUpdaterClient(OpsiPackageUpdater):
 
 		for repository in self.getActiveRepositories():
 			repoMessageShown = False
-			packages = sorted(self.getDownloadablePackagesFromRepository(repository), key=lambda entry: str(entry["productId"]))
+			packages = sorted(self.getDownloadablePackagesFromRepository(repository), key=lambda entry: str(entry.product_id))
 			for package in packages:
 				try:
 					localProduct = localProducts[package.product_id]

@@ -40,6 +40,9 @@ build:linux-x64:
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - curl -sS "${OPSIDEVTOOLS_INSTALLER_URL_LINUX_X64}" | sh
     - uv self update
+    - uv python install
+    # PBS release 20260718 added hardening flags to sysconfig CFLAGS which GCC 6 on deb9 does not support
+    - find "$(uv python dir)" -name "_sysconfigdata_*.py" -exec sed -i 's/-fstack-clash-protection//g' {} +
     - uv sync --frozen
     - uv run opsi-dev-cli -l info pyinstaller build
     - '[ "$CI_COMMIT_TAG" = "" ] && uv run opsi-dev-cli -l info binary push dist/opsi-utils --prerelease="$CI_JOB_ID"'
@@ -69,6 +72,9 @@ build:linux-arm64:
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - curl -sS "${OPSIDEVTOOLS_INSTALLER_URL_LINUX_ARM64}" | sh
     - uv self update
+    - uv python install
+    # PBS release 20260718 added hardening flags to sysconfig CFLAGS which GCC 6 on deb9 does not support
+    - find "$(uv python dir)" -name "_sysconfigdata_*.py" -exec sed -i 's/-fstack-clash-protection//g' {} +
     - uv sync --frozen
     - uv run opsi-dev-cli -l info pyinstaller build
     - mv dist/opsi-utils ./opsi-utils-arm64

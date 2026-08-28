@@ -200,5 +200,9 @@ pull-binaries:
     extract: true
     post-script:
       - mv opsi-cli-linux-*.run opsi-cli
+<<<<<<< HEAD
     version: 4.3.45.1
+=======
+    version: 4.3.44.7
+>>>>>>> df9f8d0c53a6a7896c8d24dbe825770544b554c9
     server-url: http://binaryindex.uib.gmbh
