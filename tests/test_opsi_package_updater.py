@@ -104,6 +104,20 @@ class InstallLog:
 install_log = InstallLog()
 
 
+def test_get_local_package_info(tmp_path: Path) -> None:
+	matching_package = tmp_path / "hwaudit_4.2.0.0-1.opsi"
+	non_matching_package = tmp_path / "hwaudit_extra_4.2.0.0-1.opsi"
+	matching_package.touch()
+	non_matching_package.touch()
+
+	package_info = get_local_package_info(product_id="hwaudit", package_directory=tmp_path)
+
+	assert package_info is not None
+	assert package_info.package_file == matching_package
+	assert package_info.product_id == "hwaudit"
+	assert package_info.version == "4.2.0.0-1"
+
+
 class FakeService:
 	def host_getObjects(self, **kwargs: Any) -> list[OpsiDepotserver]:
 		depot = OpsiDepotserver(id="depot.opsi.org")

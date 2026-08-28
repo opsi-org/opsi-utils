@@ -1481,7 +1481,9 @@ class OpsiPackageUpdater:
 
 def get_local_package_info(product_id: str, package_directory: Path) -> LocalPackageInfo | None:
 	product_id = to_product_id(product_id)
-	for package_file in package_directory.glob(f"{product_id}_*.opsi"):
+	for package_file in package_directory.iterdir():
+		if not re.fullmatch(f"{product_id}_[^_]*.opsi", package_file.name):
+			continue
 		logger.info("Found local package '%s'", package_file)
 		try:
 			product_id, version = parseFilename(package_file.name)
