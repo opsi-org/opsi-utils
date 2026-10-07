@@ -64,6 +64,7 @@ except ImportError:
 logger = get_logger("opsi-package-manager")
 
 USER_AGENT = f"opsi-package-manager/{__version__}"
+OPSI_TMP_DIR = "/var/lib/opsi/tmp"
 
 try:
 	sp = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -740,6 +741,8 @@ class OpsiPackageManager:
 
 	def openProductPackageFile(self, packageFile: Path) -> None:
 		temp_dir = None
+		if Path(OPSI_TMP_DIR).exists():
+			temp_dir = Path(OPSI_TMP_DIR)
 		if self.config.get("tempDir"):
 			temp_dir = Path(str(self.config["tempDir"]))
 		with self.productPackageFilesLock:
