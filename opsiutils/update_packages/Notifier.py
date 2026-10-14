@@ -9,6 +9,8 @@ E-Mail-Notifications for installed packages.
 import email.utils
 import smtplib
 import time
+from email.message import EmailMessage
+from email.policy import SMTP
 
 from opsi.logging import SECRET_REPLACEMENT_STRING, get_logger, secret_filter
 from opsi.opsi.service.model.type import to_int, to_string, to_string_list
@@ -97,13 +99,12 @@ class EmailNotifier(BaseNotifier):
 
 	def notify(self) -> None:
 		logger.notice("Sending mail notification")
-		mail = f"From: {self.sender}\n"
-		mail += f"To: {','.join(self.receivers)}\n"
-		mail += f"Date: {email.utils.formatdate(localtime=True)}\n"
-		mail += f"Subject: {self.subject}\n"
-		mail += "\n"
-		# mail += _("opsi product updater carried out the following actions:") + "\n"
-		mail += self.message
+		mail = EmailMessage(policy=SMTP)
+		mail["From"] = self.sender
+		mail["To"] = ", ".join(self.receivers)
+		mail["Date"] = email.utils.formatdate(localtime=True)
+		mail["Subject"] = self.subject
+		mail.set_content(self.message, charset="utf-8", cte="quoted-printable")
 		smtpObj = None
 		try:
 			smtpObj = smtplib.SMTP(self.smtphost, self.smtpport)
@@ -121,7 +122,7 @@ class EmailNotifier(BaseNotifier):
 				smtpObj.login(self.username, self.password)
 				smtpObj.ehlo_or_helo_if_needed()
 
-			smtpObj.sendmail(self.sender, self.receivers, mail)
+			smtpObj.send_message(mail, from_addr=self.sender, to_addrs=self.receivers)
 			logger.debug("SMTP-Host: '%s' SMTP-Port: '%s'", self.smtphost, self.smtpport)
 			logger.debug("Sender: '%s' Reveivers: '%s' Message: '%s'", self.sender, self.receivers, mail)
 			logger.notice("Email successfully sent")
