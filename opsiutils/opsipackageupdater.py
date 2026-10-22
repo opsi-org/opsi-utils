@@ -277,7 +277,7 @@ def parse_args() -> argparse.Namespace:
 		"--ignore-errors",
 		action="store_true",
 		dest="ignoreErrors",
-		help="Continue working even after download or installation of a package failed.",
+		help="Continue working even after a repository could not be accessed or download or installation of a package failed.",
 	)
 
 	parser.add_argument(

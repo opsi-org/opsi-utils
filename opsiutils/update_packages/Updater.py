@@ -251,8 +251,9 @@ class OpsiPackageUpdater:
 
 	def get_new_packages_per_repository(
 		self,
+		notifier: BaseNotifier | None = None,
 	) -> dict[ProductRepositoryInfo, list[RepositoryPackageInfo]]:
-		downloadable_packages = self.getDownloadablePackages()
+		downloadable_packages = self.getDownloadablePackages(notifier=notifier)
 		downloadable_packages = self.filterPackages(downloadable_packages)
 		downloadable_packages = self.onlyNewestPackages(downloadable_packages)
 		downloadable_packages = self._filterProducts(downloadable_packages)
@@ -812,7 +813,7 @@ class OpsiPackageUpdater:
 
 	def get_packages(self, notifier: BaseNotifier, all_packages: bool = False) -> list[RepositoryPackageInfo]:
 		installedProducts = self.getInstalledProducts()
-		pack_per_repo = self.get_new_packages_per_repository()
+		pack_per_repo = self.get_new_packages_per_repository(notifier=notifier)
 		new_packages: list[RepositoryPackageInfo] = []
 		if not any(pack_per_repo.values()):
 			logger.warning("No downloadable packages found")
@@ -821,59 +822,70 @@ class OpsiPackageUpdater:
 		for repository in sort_repository_list(list(pack_per_repo)):
 			downloadablePackages = pack_per_repo[repository]
 			logger.debug("Processing downloadable packages on repository %s", repository)
-			with self.makeSession(repository) as session:
-				for available_package in downloadablePackages:
-					logger.debug("Processing available package %s", available_package)
-					try:
-						# This ís called to keep the logs consistent
-						product = self.get_installed_package(available_package, installedProducts)
-						if not all_packages and not self.is_install_needed(available_package, product):
-							continue
+			try:
+				with self.makeSession(repository) as session:
+					for available_package in downloadablePackages:
+						logger.debug("Processing available package %s", available_package)
+						try:
+							# This ís called to keep the logs consistent
+							product = self.get_installed_package(available_package, installedProducts)
+							if not all_packages and not self.is_install_needed(available_package, product):
+								continue
 
-						local_package_found = get_local_package_info(
-							product_id=available_package.product_id, package_directory=Path(str(self.config["packageDir"]))
-						)
+							local_package_found = get_local_package_info(
+								product_id=available_package.product_id, package_directory=Path(str(self.config["packageDir"]))
+							)
 
-						zsync = self._useZsync(session, available_package, local_package_found)
-						if self.is_download_needed(local_package_found, available_package, notifier=notifier):
-							self.get_package(
-								available_package,
-								local_package_found,
-								session,
-								zsync=zsync,
-								notifier=notifier,
-							)
-						packageFile = os.path.join(str(self.config["packageDir"]), available_package.filename)
-						verified = self._verifyDownloadedPackage(packageFile, available_package)
-						if not verified and zsync:
-							logger.info(
-								"%s: zsync download has failed, trying full download",
-								available_package.product_id,
-							)
-							self.get_package(
-								available_package,
-								local_package_found,
-								session,
-								zsync=False,
-								notifier=notifier,
-							)
+							zsync = self._useZsync(session, available_package, local_package_found)
+							if self.is_download_needed(local_package_found, available_package, notifier=notifier):
+								self.get_package(
+									available_package,
+									local_package_found,
+									session,
+									zsync=zsync,
+									notifier=notifier,
+								)
+							packageFile = os.path.join(str(self.config["packageDir"]), available_package.filename)
 							verified = self._verifyDownloadedPackage(packageFile, available_package)
-						if not verified:
-							raise HashsumMissmatchError(f"{available_package.product_id}: md5sum mismatch")
-						self.cleanupPackages(available_package)
-						new_packages.append(available_package)
-					except Exception as exc:
-						if self.config.get("ignoreErrors"):
-							logger.error(
-								"Ignoring Error for package %s: %s",
-								available_package.product_id,
-								exc,
-								exc_info=True,
-							)
-							notifier.appendLine(f"Ignoring Error for package {available_package.product_id}: {exc}")
-						else:
-							raise exc
+							if not verified and zsync:
+								logger.info(
+									"%s: zsync download has failed, trying full download",
+									available_package.product_id,
+								)
+								self.get_package(
+									available_package,
+									local_package_found,
+									session,
+									zsync=False,
+									notifier=notifier,
+								)
+								verified = self._verifyDownloadedPackage(packageFile, available_package)
+							if not verified:
+								raise HashsumMissmatchError(f"{available_package.product_id}: md5sum mismatch")
+							self.cleanupPackages(available_package)
+							new_packages.append(available_package)
+						except Exception as exc:
+							if self.config.get("ignoreErrors"):
+								logger.error(
+									"Ignoring Error for package %s: %s",
+									available_package.product_id,
+									exc,
+									exc_info=True,
+								)
+								notifier.appendLine(f"Ignoring Error for package {available_package.product_id}: {exc}")
+							else:
+								raise exc
+			except Exception as err:
+				self._handle_repository_error(repository, err, notifier)
 		return new_packages
+
+	def _handle_repository_error(self, repository: ProductRepositoryInfo, err: Exception, notifier: BaseNotifier | None) -> None:
+		if not self.config.get("ignoreErrors"):
+			raise err
+		logger.error("Ignoring error for repository %s: %s", repository.name, err, exc_info=err)
+		self.errors.append(err)
+		if notifier is not None:
+			notifier.appendLine(f"Ignoring error for repository {repository.name}: {err}")
 
 	def get_package(
 		self,
@@ -1231,7 +1243,7 @@ class OpsiPackageUpdater:
 			products.append(product)
 		return products
 
-	def getDownloadablePackages(self) -> list[RepositoryPackageInfo]:
+	def getDownloadablePackages(self, notifier: BaseNotifier | None = None) -> list[RepositoryPackageInfo]:
 		downloadable_packages = []
 		for repository in self.getActiveRepositories():
 			logger.info(
@@ -1239,8 +1251,10 @@ class OpsiPackageUpdater:
 				repository.name,
 				repository.baseUrl,
 			)
-			for package in self.getDownloadablePackagesFromRepository(repository):
-				downloadable_packages.append(package)
+			try:
+				downloadable_packages.extend(self.getDownloadablePackagesFromRepository(repository))
+			except Exception as err:
+				self._handle_repository_error(repository, err, notifier)
 		return downloadable_packages
 
 	def read_repository_metafile(self, repository: ProductRepositoryInfo, data: bytes) -> list[RepositoryPackageInfo]:

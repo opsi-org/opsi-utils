@@ -12,6 +12,7 @@ from typing import Any, Generator
 from unittest import mock
 
 import pytest
+import requests
 from opsi.crypt.hash import FileHashAlgorithm, hash_file
 from opsi.opsi.package import RepoMetaPackageCollection
 from opsi.opsi.service.model.object import OpsiDepotserver
@@ -435,6 +436,35 @@ def test_process_updates(tmp_path: Path, package_updater_class: type[OpsiPackage
 		assert len(install_log.installed) == 2
 		for entry in install_log.installed:
 			assert entry.endswith("localboot_new_42.0-1337.opsi") or entry.endswith("test-netboot_1.0-2.opsi")
+
+
+@pytest.mark.parametrize("ignore_errors", (True, False))
+def test_process_updates_unreachable_repository(
+	tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], ignore_errors: bool
+) -> None:
+	updater_info = prepare_updater(tmp_path, ignore_errors=ignore_errors)
+
+	rmpc = RepoMetaPackageCollection()
+	rmpc.scan_packages(updater_info.server_dir)
+	rmpc.write_metafile(updater_info.server_dir / "packages.json")
+
+	with http_test_server(serve_directory=updater_info.server_dir, log_file=str(updater_info.server_log)) as server:
+		write_repo_conf(updater_info.test_repo_conf, f"http://localhost:{server.port}")
+		updater_info.test_repo_conf.with_name("unreachable.repo").write_text(
+			"[repository_unreachable]\nactive = true\nbaseUrl = http://localhost:1\ndirs = /\nproxy =\nautoInstall = true\n",
+			encoding="utf-8",
+		)
+
+		package_updater = package_updater_class(updater_info.config)
+		install_log.installed = []
+		if not ignore_errors:
+			with pytest.raises(requests.exceptions.ConnectionError):
+				package_updater.processUpdates()
+			return
+
+		package_updater.processUpdates()
+		assert package_updater.errors
+		assert len(install_log.installed) == 2
 
 
 @pytest.mark.parametrize(
