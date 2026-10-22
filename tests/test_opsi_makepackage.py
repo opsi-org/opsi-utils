@@ -73,10 +73,11 @@ def test_error_on_control_newer_than_toml() -> None:
 	with temp_context() as orig_path:
 		opsi_dir = Path("OPSI")
 		opsi_dir.mkdir()
-		with open(orig_path / "tests" / "data" / "control", "r", encoding="utf-8") as infile:
-			with open(opsi_dir / "control", "w", encoding="utf-8") as outfile:
-				for line in infile.readlines():
-					outfile.write(line if not line.startswith("version") else "version: 2\n")
+		with (
+			open(orig_path / "tests" / "data" / "control", "r", encoding="utf-8") as infile,
+			open(opsi_dir / "control", "w", encoding="utf-8") as outfile,
+		):
+			outfile.writelines(line if not line.startswith("version") else "version: 2\n" for line in infile)
 		shutil.copy(orig_path / "tests" / "data" / "control.toml", opsi_dir / "control.toml")
 		with pytest.raises(ValueError):
 			makepackage_main(["--no-set-rights", "--no-md5", "--no-zsync"])

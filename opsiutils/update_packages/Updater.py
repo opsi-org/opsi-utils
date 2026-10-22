@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -14,11 +12,12 @@ import os
 import os.path
 import re
 import time
-from contextlib import contextmanager
+from collections.abc import Generator
+from contextlib import contextmanager, suppress
 from functools import cached_property
 from pathlib import Path, PurePosixPath
 from types import TracebackType
-from typing import BinaryIO, Generator
+from typing import BinaryIO, Self
 from urllib.parse import quote, urlparse
 
 from attr import dataclass
@@ -153,15 +152,13 @@ class OpsiPackageUpdater:
 
 		self.readConfigFile()
 
-	def __enter__(self) -> OpsiPackageUpdater:
+	def __enter__(self) -> Self:
 		return self
 
 	def __exit__(self, type_: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None) -> bool | None:
-		try:
+		with suppress(Exception):
 			if self.configBackend:
 				self.configBackend.backend_exit()  # ty: ignore[unresolved-attribute]
-		except Exception:
-			pass
 
 	def getActiveRepositories(self) -> Generator[ProductRepositoryInfo, None, None]:
 		"""
@@ -233,13 +230,12 @@ class OpsiPackageUpdater:
 			repository = package.repository
 			assert isinstance(repository, ProductRepositoryInfo)
 
-			if repository.includes:
-				if not any(include.search(package.product_id) for include in repository.includes):
-					logger.info(
-						"Package '%s' is not included. Please check your includeProductIds-entry in configurationfile.",
-						package.product_id,
-					)
-					continue
+			if repository.includes and not any(include.search(package.product_id) for include in repository.includes):
+				logger.info(
+					"Package '%s' is not included. Please check your includeProductIds-entry in configurationfile.",
+					package.product_id,
+				)
+				continue
 
 			if any(exclude.search(package.product_id) for exclude in repository.excludes):
 				logger.info("Package '%s' excluded by regular expression", package.product_id)
@@ -468,12 +464,7 @@ class OpsiPackageUpdater:
 				except Exception as err:
 					if not self.config.get("ignoreErrors"):
 						raise
-					logger.error(
-						"Ignoring error for package %s: %s",
-						package.product_id,
-						err,
-						exc_info=True,
-					)
+					logger.exception("Ignoring error for package %s", package.product_id)
 					notifier.appendLine(f"Ignoring error for package {package.product_id}: {err}")
 			if not installed_packages:
 				logger.notice("No new packages installed")
@@ -557,7 +548,7 @@ class OpsiPackageUpdater:
 					continue
 
 				clientToDepotserver = backend.configState_getClientToDepotserver(depotIds=[self.depotId])  # ty: ignore[unresolved-attribute]
-				clientIds = set(ctd["clientId"] for ctd in clientToDepotserver if ctd["clientId"])
+				clientIds = {ctd["clientId"] for ctd in clientToDepotserver if ctd["clientId"]}
 
 				if clientIds:
 					productOnClients = backend.productOnClient_getObjects(  # ty: ignore[unresolved-attribute]
@@ -578,10 +569,8 @@ class OpsiPackageUpdater:
 
 						backend.productOnClient_updateObjects(productOnClients)  # ty: ignore[unresolved-attribute]
 						notifier.appendLine(
-							(
-								f"Product {package.product_id} set to 'setup' on clients: , ".join(
-									sorted(poc.clientId for poc in productOnClients)
-								)
+							f"Product {package.product_id} set to 'setup' on clients: , ".join(
+								sorted(poc.clientId for poc in productOnClients)
 							)
 						)
 
@@ -657,7 +646,7 @@ class OpsiPackageUpdater:
 				continue
 
 			logger.error("Product '%s' not found in repository!", product)
-			possible_product_ids = sorted(set(pac.product_id for pac in packages))
+			possible_product_ids = sorted({pac.product_id for pac in packages})
 			logger.notice("Possible products are: %s", ", ".join(possible_product_ids))
 			raise ValueError(f"You have searched for a product, which was not found in configured repository: '{product}'")
 
@@ -866,15 +855,10 @@ class OpsiPackageUpdater:
 							new_packages.append(available_package)
 						except Exception as exc:
 							if self.config.get("ignoreErrors"):
-								logger.error(
-									"Ignoring Error for package %s: %s",
-									available_package.product_id,
-									exc,
-									exc_info=True,
-								)
+								logger.exception("Ignoring Error for package %s", available_package.product_id)
 								notifier.appendLine(f"Ignoring Error for package {available_package.product_id}: {exc}")
 							else:
-								raise exc
+								raise
 			except Exception as err:
 				self._handle_repository_error(repository, err, notifier)
 		return new_packages
@@ -909,12 +893,7 @@ class OpsiPackageUpdater:
 				if str(err) == "Aborted by progress callback":
 					logger.info("Zsync aborted")
 				else:
-					logger.error(
-						"Zsync of %r failed: %s",
-						available_package.package_file,
-						err,
-						exc_info=True,
-					)
+					logger.exception("Zsync of %r failed", available_package.package_file)
 
 			if notifier and message:
 				notifier.appendLine(message)
@@ -1121,7 +1100,7 @@ class OpsiPackageUpdater:
 			path = os.path.join(str(self.config["packageDir"]), filename)
 			if not os.path.isfile(path):
 				continue
-			if path.endswith(".zs-old") or path.endswith(".zsync-download"):
+			if path.endswith((".zs-old", ".zsync-download")):
 				os.unlink(path)
 				continue
 
@@ -1200,7 +1179,7 @@ class OpsiPackageUpdater:
 					continue
 
 				found = True
-				newest_package_version = newest_packages[i].version.split("~", 1)[0]
+				newest_package_version = newPackage.version.split("~", 1)[0]
 
 				if compareVersions(package_version, ">", newest_package_version):
 					logger.debug(

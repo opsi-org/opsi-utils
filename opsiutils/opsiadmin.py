@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -22,6 +20,7 @@ import select
 import stat
 import sys
 import time
+from contextlib import suppress
 from pathlib import Path
 from types import FrameType
 from typing import Any
@@ -306,12 +305,12 @@ def shell_main() -> None:
 						if line:
 							session_cookie = to_string(line)
 							break
-			except IOError as err:
+			except OSError as err:
 				if err.errno != 2:  # 2 is No such file or directory
 					logger.error("Failed to read session file '%s': %s", sessionFile, err)
 			except Exception as err:
 				logger.error("Failed to read session file '%s': %s", sessionFile, err)
-				raise err
+				raise
 
 		service_client = get_service_client(
 			address=address,
@@ -377,8 +376,8 @@ def shell_main() -> None:
 				for line in welcomeMessage.split("\n"):
 					global_shell.appendLine(line, COLOR_NORMAL)
 				global_shell.run()
-			except Exception as error:
-				logger.error(error, exc_info=True)
+			except Exception:
+				logger.exception("Error in interactive shell")
 				raise
 		elif cmdline:
 
@@ -410,18 +409,16 @@ def shell_main() -> None:
 					searchForError(dict(resultAsJSON))
 				except (TypeError, ValueError) as error:
 					logger.trace("Conversion to dict failed: %s", error)
-			except Exception as err:
-				logger.error(err, exc_info=True)
-				raise err
+			except Exception:
+				logger.exception("Failed to execute command")
+				raise
 		else:
 			raise RuntimeError("Not running in interactive mode and no commandline arguments given.")
 
 	finally:
 		if service_client:
-			try:
+			with suppress(Exception):
 				service_client.stop()
-			except Exception:
-				pass
 
 
 def startLogFile(log_file: str, logLevel: int) -> None:
@@ -577,12 +574,11 @@ class Shell:
 			self.getCommand()
 
 	def exit(self) -> None:
-		if interactive and logFile and os.path.exists(logFile):
-			if self.question(_("Delete log-file '%s'?") % logFile):
-				try:
-					os.unlink(logFile)
-				except OSError as err:
-					logger.error("Failed to delete log-file '%s': %s", logFile, err)
+		if interactive and logFile and os.path.exists(logFile) and self.question(_("Delete log-file '%s'?") % logFile):
+			try:
+				os.unlink(logFile)
+			except OSError as err:
+				logger.error("Failed to delete log-file '%s': %s", logFile, err)
 
 		try:
 			logger.info("Write history file")
@@ -626,7 +622,7 @@ class Shell:
 		except Exception as err:
 			logger.error("Failed to add string '%s': %s", shellLine, err)
 
-		for idx in range(0, self.linesMax):
+		for idx in range(self.linesMax):
 			self.screen.move(self.linesMax - idx, 0)
 			self.screen.clrtoeol()
 			shellLine = ""
@@ -647,9 +643,7 @@ class Shell:
 					color = curses.A_BOLD
 				elif color == COLOR_YELLOW:
 					color = curses.color_pair(3)
-				elif color == COLOR_MAGENTA:
-					color = curses.color_pair(4)
-				elif color == COLOR_LIGHT_RED:
+				elif color == COLOR_MAGENTA or color == COLOR_LIGHT_RED:
 					color = curses.color_pair(4)
 				elif color == COLOR_RED:
 					color = curses.color_pair(5)
@@ -659,8 +653,8 @@ class Shell:
 					self.screen.addstr(shellLine, int(color))  # ty: ignore[invalid-argument-type]
 				except (ValueError, TypeError):
 					self.screen.addstr(shellLine)
-			except Exception as err:
-				logger.error("Failed to add string '%s': %s", shellLine, err, exc_info=True)
+			except Exception:
+				logger.exception("Failed to add string '%s'", shellLine)
 
 		moveY = self.yMax - height + int((len(self.prompt + " ") + self.pos) / self.xMax)
 		moveX = (len(self.prompt + " ") + self.pos) % self.xMax
@@ -813,7 +807,7 @@ class Shell:
 					command.execute(self, self.getParams()[1:])
 				except Exception as err:
 					message = f"Failed to execute {self.cmdline}: {err}"
-					logger.error(message, exc_info=True)
+					logger.exception(message)
 					raise RuntimeError(message) from err
 				break
 
@@ -904,8 +898,7 @@ class Shell:
 			elif char == curses.KEY_PPAGE:
 				if len(self.lines) > self.yMax - 2:
 					self.linesBack += 5
-					if self.linesBack > len(self.lines) - self.yMax + 2:
-						self.linesBack = len(self.lines) - self.yMax + 2
+					self.linesBack = min(self.linesBack, len(self.lines) - self.yMax + 2)
 
 					self.display()
 
@@ -972,8 +965,7 @@ class Shell:
 							if val != match[idx]:
 								match = match[:idx]
 								break
-						if len(comp) > longest:
-							longest = len(comp)
+						longest = max(longest, len(comp))
 
 					curLine = ""
 					i = 0
@@ -1063,10 +1055,9 @@ class Shell:
 				except Exception as err:
 					self.setInfoline(str(err))
 
-			if not textInput:
-				if self.reverseSearch is not None:
-					self.reverseSearch = None
-					self.setInfoline("")
+			if not textInput and self.reverseSearch is not None:
+				self.reverseSearch = None
+				self.setInfoline("")
 
 		self.cmdline = self.cmdline.strip()
 
@@ -1257,7 +1248,7 @@ class CommandMethod(Command):
 								lines.append(f"{key}={value}")
 							lines.append("")
 						elif isinstance(resultElement, (tuple, list)):
-							raise ValueError("Simple output not possible for list of lists")
+							raise TypeError("Simple output not possible for list of lists")
 						else:
 							lines.append(to_string(resultElement))
 				else:
@@ -1412,12 +1403,8 @@ class CommandLog(Command):
 	def completion(self, params: list[str], paramPos: int) -> list[str]:
 		completions = []
 
-		if paramPos == 0 or not params[0]:
+		if paramPos == 0 or not params[0] or (paramPos == 1 and "show".startswith(params[0])):
 			completions = ["show"]
-
-		elif paramPos == 1:
-			if "show".startswith(params[0]):
-				completions = ["show"]
 
 		return completions
 
@@ -1605,10 +1592,8 @@ def main() -> None:
 				cmd.append(task[1])
 			os.execvp(cmd[0], cmd)
 
-	try:
+	with suppress(Exception):
 		locale.setlocale(locale.LC_ALL, "")
-	except Exception:
-		pass
 
 	if os.name == "posix":
 		from signal import SIGINT, SIGQUIT, signal
@@ -1622,9 +1607,9 @@ def main() -> None:
 	except ErrorInResultException as error:
 		logger.warning("Error in result: %s", error)
 		exitCode = 2
-	except Exception as err:
+	except Exception:
 		logging_config(stderr_level=LOG_ERROR)
-		logger.error("Error during execution: %s", err, exc_info=True)
+		logger.exception("Error during execution")
 		exitCode = 1
 
 	if exitZero:

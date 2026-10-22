@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -17,9 +15,9 @@ import sys
 import tempfile
 import termios
 import tty
-from contextlib import contextmanager
+from collections.abc import Generator
+from contextlib import contextmanager, suppress
 from pathlib import Path
-from typing import Generator
 
 from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_DEBUG, LOG_ERROR, LOG_NONE, LOG_WARNING, get_logger, logging_config
 from opsi.opsi.package import OpsiPackage
@@ -58,13 +56,11 @@ class CancelledByUserError(Exception):
 class ProgressNotifier(ProgressObserver):
 	def __init__(self) -> None:
 		self.usedWidth = 60
-		try:
+		with suppress(Exception):
 			tty = run_command("tty").get_stdout_text().strip()
 			with open(tty, "rb") as fd:
 				terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, b"1234"))[1]
 			self.usedWidth = min(self.usedWidth, terminalWidth)
-		except Exception:
-			pass
 
 	def progressChanged(self, subject: ProgressSubject, state: int, percent: float, timeSpend: int, timeLeft: int, speed: float) -> None:
 		if subject.getEnd() <= 0:
@@ -98,53 +94,48 @@ def raw_tty() -> Generator[None, None, None]:
 
 
 def print_info(product: Product, customName: str, opsi_package: OpsiPackage) -> None:
-	print("")
+	print()
 	print(_("Package info"))
 	print("----------------------------------------------------------------------------")
-	print("   %-20s : %s" % ("version", product.packageVersion))
-	print("   %-20s : %s" % ("custom package name", customName))
-	print(
-		"   %-20s : %s"
-		% (
-			"package dependencies",
-			", ".join(f"{dep.package}({dep.condition}{dep.version})" for dep in opsi_package.package_dependencies),
-		)
-	)
+	print(f"   {'version':<20} : {product.packageVersion}")
+	print(f"   {'custom package name':<20} : {customName}")
+	package_dependencies = ", ".join(f"{dep.package}({dep.condition}{dep.version})" for dep in opsi_package.package_dependencies)
+	print(f"   {'package dependencies':<20} : {package_dependencies}")
 
-	print("")
+	print()
 	print(_("Product info"))
 	print("----------------------------------------------------------------------------")
-	print("   %-20s : %s" % ("product id", product.id))
+	print(f"   {'product id':<20} : {product.id}")
 
 	if product.getType() == "LocalbootProduct":
-		print("   %-20s : %s" % ("product type", "localboot"))
+		print(f"   {'product type':<20} : localboot")
 	elif product.getType() == "NetbootProduct":
-		print("   %-20s : %s" % ("product type", "netboot"))
+		print(f"   {'product type':<20} : netboot")
 
-	print("   %-20s : %s" % ("version", product.productVersion))
-	print("   %-20s : %s" % ("name", product.name))
-	print("   %-20s : %s" % ("description", product.description))
-	print("   %-20s : %s" % ("advice", product.advice))
-	print("   %-20s : %s" % ("priority", product.priority))
-	print("   %-20s : %s" % ("licenseRequired", product.licenseRequired))
-	print("   %-20s : %s" % ("product classes", ", ".join(product.productClassIds or [])))
-	print("   %-20s : %s" % ("windows software ids", ", ".join(product.windowsSoftwareIds or [])))
+	print(f"   {'version':<20} : {product.productVersion}")
+	print(f"   {'name':<20} : {product.name}")
+	print(f"   {'description':<20} : {product.description}")
+	print(f"   {'advice':<20} : {product.advice}")
+	print(f"   {'priority':<20} : {product.priority}")
+	print(f"   {'licenseRequired':<20} : {product.licenseRequired}")
+	print(f"   {'product classes':<20} : {', '.join(product.productClassIds or [])}")
+	print(f"   {'windows software ids':<20} : {', '.join(product.windowsSoftwareIds or [])}")
 
 	if isinstance(product, NetbootProduct):
-		print("   %-20s : %s" % ("pxe config template", product.pxeConfigTemplate))
+		print(f"   {'pxe config template':<20} : {product.pxeConfigTemplate}")
 
-	print("")
+	print()
 	print(_("Product scripts"))
 	print("----------------------------------------------------------------------------")
-	print("   %-20s : %s" % ("setup", product.setupScript))
-	print("   %-20s : %s" % ("uninstall", product.uninstallScript))
-	print("   %-20s : %s" % ("update", product.updateScript))
-	print("   %-20s : %s" % ("always", product.alwaysScript))
-	print("   %-20s : %s" % ("once", product.onceScript))
-	print("   %-20s : %s" % ("custom", product.customScript))
+	print(f"   {'setup':<20} : {product.setupScript}")
+	print(f"   {'uninstall':<20} : {product.uninstallScript}")
+	print(f"   {'update':<20} : {product.updateScript}")
+	print(f"   {'always':<20} : {product.alwaysScript}")
+	print(f"   {'once':<20} : {product.onceScript}")
+	print(f"   {'custom':<20} : {product.customScript}")
 	if product.getType() == "LocalbootProduct":
-		print("   %-20s : %s" % ("user login", product.userLoginScript))
-	print("")
+		print(f"   {'user login':<20} : {product.userLoginScript}")
+	print()
 
 
 def parse_args(args: list[str] | None = None) -> argparse.Namespace:
@@ -325,7 +316,7 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 			raise OSError(f"Control file '{packageControlFilePath}' not found")
 
 	if not quiet:
-		print("")
+		print()
 		print(_("Locking package"))
 	opsi_package = OpsiPackage(temp_dir=tempDir)
 	opsi_package.parse_control_file(packageControlFilePath)
@@ -385,8 +376,8 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 				if newVersion:
 					while True:
 						print(
-							"\r%s"
-							% _("Please specify new product version, press <ENTER> to keep current version (%s):")
+							"\r"
+							+ _("Please specify new product version, press <ENTER> to keep current version (%s):")
 							% opsi_package.product.productVersion,
 							end=" ",
 						)
@@ -411,8 +402,8 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 
 					while True:
 						print(
-							"\r%s"
-							% _("Please specify new package version, press <ENTER> to keep current version (%s):")
+							"\r"
+							+ _("Please specify new package version, press <ENTER> to keep current version (%s):")
 							% opsi_package.product.packageVersion,
 							end=" ",
 						)
@@ -508,7 +499,7 @@ def makepackage_main(str_args: list[str] | None = None) -> None:
 			print(_("Unlocking package"))
 		unlockPackage(Path("/tmp"), opsi_package)
 		if not quiet:
-			print("")
+			print()
 
 
 def lockPackage(tempDir: Path, opsiPackage: OpsiPackage) -> None:
@@ -528,7 +519,7 @@ def lockPackage(tempDir: Path, opsiPackage: OpsiPackage) -> None:
 					# process is running
 					raise RuntimeError(f"Product '{opsiPackage.product.id}' is currently locked by process {pName} ({pid}).")
 
-	except IOError:
+	except OSError:
 		pass
 
 	# Write lock-file
@@ -549,7 +540,7 @@ def main() -> None:
 		sys.exit(err.code)
 	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
-		logger.error(err, exc_info=True)
+		logger.exception("opsi-makepackage failed")
 		print(f"ERROR: {err}", file=sys.stderr)
 		sys.exit(1)
 		print(f"ERROR: {err}", file=sys.stderr)

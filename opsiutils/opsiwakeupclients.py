@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -16,9 +14,9 @@ import sys
 import threading
 import time
 from collections import defaultdict
+from collections.abc import Generator
 from contextlib import contextmanager
 from itertools import product
-from typing import Generator
 
 from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, get_logger, logging_config
 from opsi.opsi.service.client import ServiceClient, ServiceVerificationFlags, get_service_client
@@ -272,7 +270,7 @@ def getClientIDsFromFile(service_client: ServiceClient, inputFile: str) -> list[
 	knownIds = service_client.jsonrpc("host_getIdents", [[], {"type": "OpsiClient"}])
 	clientIds = []
 	with open(inputFile, "r", encoding="utf8") as file:
-		for line in file.readlines():
+		for line in file:
 			line = line.strip()
 			if not line or line.startswith("#"):
 				continue
@@ -566,9 +564,6 @@ def main() -> None:
 		sys.exit(err.code)
 	except Exception as err:
 		logging_config(stderr_level=LOG_ERROR)
-		logger.error(err, exc_info=True)
-		print(f"ERROR: {err}", file=sys.stderr)
-		sys.exit(1)
-		logger.error(err, exc_info=True)
+		logger.exception("opsi-wakeup-clients failed")
 		print(f"ERROR: {err}", file=sys.stderr)
 		sys.exit(1)

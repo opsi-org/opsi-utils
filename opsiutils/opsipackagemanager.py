@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -23,11 +21,12 @@ import termios
 import threading
 import time
 from argparse import ArgumentParser
-from contextlib import contextmanager
+from collections.abc import Callable, Generator
+from contextlib import contextmanager, suppress
 from pathlib import Path
 from signal import SIGINT, SIGTERM, SIGWINCH, signal
 from types import FrameType
-from typing import Any, Callable, Generator
+from typing import Any
 from urllib.parse import urlparse
 
 from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_NONE, LOG_WARNING, get_logger, logging_config
@@ -58,7 +57,7 @@ from opsiutils import __version__
 try:
 	from opsi_legacy.Util.Sync import librsyncDeltaFile
 except ImportError:
-	librsyncDeltaFile = None  # ty: ignore[invalid-assignment]
+	librsyncDeltaFile = None
 
 
 logger = get_logger("opsi-package-manager")
@@ -109,7 +108,7 @@ class Task:
 			logger.trace("Params: %s", self.params)
 			self.method(*self.params)
 		except Exception as err:
-			logger.error(err, exc_info=True)
+			logger.exception("Task failed")
 			self.exception = err
 			raise
 		finally:
@@ -160,13 +159,11 @@ class CursesWindow:
 		self.width = to_int(width)
 		self.y = to_int(y)
 		self.x = to_int(x)
-		try:
+		with suppress(Exception):
 			self.win.resize(height, width)
 			self.win.mvwin(y, x)
 			self.win.redrawwin()
 			self.win.refresh()
-		except Exception:
-			pass
 
 	def setTitle(self, title: str) -> None:
 		self.title = to_string(title)
@@ -178,10 +175,8 @@ class CursesWindow:
 		attr = curses.A_NORMAL
 		if self.color:
 			attr |= self.color
-		try:
+		with suppress(Exception):
 			self.win.addstr(0, int((self.width - len(self.title)) / 2), self.title, attr)
-		except Exception:
-			pass
 
 	def setColor(self, colorPair: int) -> None:
 		if not curses.has_colors():
@@ -200,13 +195,11 @@ class CursesWindow:
 		self.win.idlok(scrollable)
 
 	def addstr(self, _str: str, attr: int | None = None) -> None:
-		try:
+		with suppress(Exception):
 			if attr:
 				self.win.addstr(to_string(_str), attr)
 			else:
 				self.win.addstr(to_string(_str))
-		except Exception:
-			pass
 
 	def clrtoeol(self) -> None:
 		try:
@@ -432,10 +425,8 @@ class UserInterface(SubjectsObserver):
 		except Exception as err:
 			logger.trace(err)
 
-		try:
+		with suppress(Exception):
 			self.subjectsChanged(self.getSubjects())
-		except Exception:
-			pass
 
 	def subjectsChanged(self, subjects: list[Subject]) -> None:
 		for subject in subjects:
@@ -509,8 +500,7 @@ class UserInterface(SubjectsObserver):
 			ids.sort()
 			maxIdLength = max([len(currentID) for currentID in ids] or [0])
 
-			y = 0
-			for currentID in ids:
+			for y, currentID in enumerate(ids):
 				subject = subjects[currentID]
 				if y >= self.progressWindow.height:
 					# Screen full
@@ -557,7 +547,6 @@ class UserInterface(SubjectsObserver):
 					x += len(message)
 					self.progressWindow.move(y, x)
 					self.progressWindow.clrtoeol()
-				y += 1
 
 			self.progressWindow.refresh()
 
@@ -617,7 +606,7 @@ class TaskQueue(threading.Thread):
 
 	def addTask(self, task: Task) -> None:
 		if not isinstance(task, Task):
-			raise ValueError(f"Task wanted, '{task}' passed")
+			raise TypeError(f"Task wanted, '{task}' passed")
 		self.tasks.append(task)
 
 
@@ -720,9 +709,7 @@ class OpsiPackageManager:
 			self.transferSubject.setMessage(_("%d transfers running") % self.runningTransfers)
 
 	def maxTransfersReached(self) -> bool:
-		if self.config["maxTransfers"] and (self.getRunningTransfers() >= self.config["maxTransfers"]):
-			return True
-		return False
+		return bool(self.config["maxTransfers"] and self.getRunningTransfers() >= self.config["maxTransfers"])
 
 	def createDepotSubjects(self) -> None:
 		if self.depotSubjects and self.userInterface:
@@ -912,8 +899,7 @@ class OpsiPackageManager:
 			if not depot.repositoryLocalUrl.startswith("file://"):
 				raise ValueError(f"Repository local url '{depot.repositoryLocalUrl}' not supported")
 			depotRepositoryPath = depot.repositoryLocalUrl[7:]
-			if depotRepositoryPath.endswith("/"):
-				depotRepositoryPath = depotRepositoryPath[:-1]
+			depotRepositoryPath = depotRepositoryPath.removesuffix("/")
 			logger.info("Depot repository path is '%s'", depotRepositoryPath)
 			logger.info("Using '%s' as repository url", depot.repositoryRemoteUrl)
 
@@ -1119,8 +1105,8 @@ class OpsiPackageManager:
 				logger.debug("Closing repository connection")
 				try:
 					repository.disconnect()
-				except Exception as upload_error:
-					logger.error("Failed to disconnect from repository: %s", upload_error, exc_info=True)
+				except Exception:
+					logger.exception("Failed to disconnect from repository")
 
 	def installOnDepots(self) -> None:
 		sequence = [self.getOpsiPackage(packageFile).product.id for packageFile in self.config["packageFiles"]]
@@ -1283,8 +1269,7 @@ class OpsiPackageManager:
 				if not depot.repositoryLocalUrl.startswith("file://"):
 					raise ValueError(f"Repository local url '{depot.repositoryLocalUrl}' not supported")
 				depotPackageFile = depot.repositoryLocalUrl[7:]
-				if depotPackageFile.endswith("/"):
-					depotPackageFile = depotPackageFile[:-1]
+				depotPackageFile = depotPackageFile.removesuffix("/")
 				depotPackageFile += "/" + os.path.basename(packageFile)
 
 			if "~" in depotPackageFile and not os.path.exists(depotPackageFile):
@@ -1387,18 +1372,18 @@ class OpsiPackageManager:
 			client_ids = [c2d["clientId"] for c2d in self.service_client.configState_getClientToDepotserver(depotIds=[depot_id])]  # ty: ignore[unresolved-attribute]
 			if not client_ids:
 				continue
-			purge_product_ids = set(
+			purge_product_ids = {
 				p[0]
 				for p in self.service_client.productOnClient_getIdents(  # ty: ignore[unresolved-attribute]
 					returnType="tuple", productId=list(self.config["productIds"]), clientId=client_ids
 				)
-			)
+			}
 			if not purge_product_ids:
 				continue
-			installed_product_ids = set(
+			installed_product_ids = {
 				p[0]
-				for p in self.service_client.productOnDepot_getIdents(returnType="tuple", depotId=depot_id, productId=list())  # ty: ignore[unresolved-attribute]
-			)
+				for p in self.service_client.productOnDepot_getIdents(returnType="tuple", depotId=depot_id, productId=[])  # ty: ignore[unresolved-attribute]
+			}
 			purge_product_ids -= installed_product_ids
 			if not purge_product_ids:
 				continue
@@ -1410,14 +1395,14 @@ class OpsiPackageManager:
 			)
 
 		# Remove all orphaned products
-		purge_product_idents = set(
+		purge_product_idents = {
 			tuple(p)
 			for p in self.service_client.product_getIdents(returnType="tuple", id=list(self.config["productIds"]))  # ty: ignore[unresolved-attribute]
-		)
-		installed_product_idents = set(
+		}
+		installed_product_idents = {
 			(p[0], p[2], p[3])
 			for p in self.service_client.productOnDepot_getIdents(returnType="tuple", productId=list(self.config["productIds"]))  # ty: ignore[unresolved-attribute]
-		)
+		}
 		purge_product_idents -= installed_product_idents
 		if not purge_product_idents:
 			return
@@ -1434,7 +1419,7 @@ class OpsiPackageManager:
 			for product in self.config["productIds"]:
 				package = self.service_client.jsonrpc("productOnDepot_getObjects", [[], {"depotId": depotId, "productId": str(product)}])
 				if not package:
-					subject.setMessage(_(f"WARNING: Product {product} not installed on depot {depotId}."), severity=3)
+					subject.setMessage(_("WARNING: Product %s not installed on depot %s.") % (product, depotId), severity=3)
 					logger.warning("WARNING: Product %s not installed on depot %s.", product, depotId)
 					packageNotInstalled = True
 
@@ -1470,7 +1455,7 @@ class OpsiPackageManager:
 
 		try:
 			logger.notice("Uninstalling package '%s' on depot '%s'", productId, depotId)
-			subject.setMessage(_(f"Uninstalling package {productId}"))
+			subject.setMessage(_("Uninstalling package %s") % productId)
 
 			depot = self.service_client.jsonrpc("host_getObjects", [[], {"type": "OpsiDepotserver", "id": depotId}])[0]
 			logger.info("Using '%s' as repository url", depot.repositoryRemoteUrl)
@@ -1480,7 +1465,7 @@ class OpsiPackageManager:
 				if not fileInfo:
 					continue
 
-				if not fileInfo.productId == productId:
+				if fileInfo.productId != productId:
 					continue
 
 				logger.info("Deleting destination '%s' on depot '%s'", destination, depotId)
@@ -1625,9 +1610,8 @@ class OpsiPackageManagerControl:
 				if self.config["command"] == "extract" and self.config["newProductId"] and len(self.config["packageFiles"]) > 1:
 					raise ValueError("Cannot use new product id with multiple package files")
 
-				if self.config["command"] == "install" and self.config["newProductId"]:
-					if len(self.config["packageFiles"]) > 1:
-						raise ValueError("Too many opsi packages given. Please supply only one package if forcing a product ID.")
+				if self.config["command"] == "install" and self.config["newProductId"] and len(self.config["packageFiles"]) > 1:
+					raise ValueError("Too many opsi packages given. Please supply only one package if forcing a product ID.")
 			elif self.config["command"] in ("list", "differences"):
 				if not self.config["productIds"]:
 					self.config["productIds"] = ["*"]
@@ -1645,7 +1629,7 @@ class OpsiPackageManagerControl:
 		try:
 			self.processCommand()
 		except Exception as err:
-			logger.error(err, exc_info=True)
+			logger.exception("Failed to process command '%s'", self.config["command"])
 			raise RuntimeError(f"Failed to process command '{self.config['command']}': {err}") from err
 		finally:
 			if self.service_client:
@@ -1672,10 +1656,8 @@ class OpsiPackageManagerControl:
 				self.processExtractCommand()
 		finally:
 			for thread in threading.enumerate():
-				try:
+				with suppress(Exception):
 					thread.join(5)
-				except Exception:
-					pass
 
 		if self._opm:
 			errors = self._opm.getTaskQueueErrors()
@@ -1717,12 +1699,10 @@ class OpsiPackageManagerControl:
 	def processListCommand(self) -> None:
 		assert self.service_client
 		terminalWidth = 60
-		try:
+		with suppress(Exception):
 			tty = run_command("tty").get_stdout_text().strip()
 			with open(tty, encoding="utf-8") as fd:
 				terminalWidth = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, b"1234"))[1]
-		except Exception:
-			pass
 
 		indent = "   "
 		idWidth = versionWidth = int((terminalWidth - len(indent)) / 3)
@@ -1743,8 +1723,7 @@ class OpsiPackageManagerControl:
 
 			productInfo[product.id][product.productVersion][product.packageVersion] = product
 
-			if len(product.id) > idWidth:
-				idWidth = len(product.id)
+			idWidth = max(idWidth, len(product.id))
 
 		nameWidth = terminalWidth - len(indent) - idWidth - versionWidth - 4
 
@@ -1761,18 +1740,7 @@ class OpsiPackageManagerControl:
 			print("-" * (len(depotId) + 4))
 			print(f"- {depotId} -")
 			print("-" * (len(depotId) + 4))
-			print(
-				"%s%*s %*s %*s"
-				% (
-					indent,
-					-1 * idWidth,
-					"Product ID",
-					-1 * versionWidth,
-					"Version",
-					-1 * nameWidth,
-					"Name",
-				)
-			)
+			print(f"{indent}{'Product ID':<{idWidth}} {'Version':<{versionWidth}} {'Name':<{nameWidth}}")
 			print(f"{indent}{'=' * (terminalWidth - len(indent) - 2)}")
 			productIds = list(values.keys())
 			productIds.sort()
@@ -1780,19 +1748,9 @@ class OpsiPackageManagerControl:
 			for productId in productIds:
 				productOnDepot = values[productId]
 				product = productInfo[productOnDepot.productId][productOnDepot.productVersion][productOnDepot.packageVersion]
-				print(
-					"%s%*s %*s %*s"
-					% (
-						indent,
-						-1 * idWidth,
-						productId,
-						-1 * versionWidth,
-						product.version,
-						-1 * nameWidth,
-						(product.name or "").replace("\n", "")[:nameWidth],
-					)
-				)
-			print("")
+				name = (product.name or "").replace("\n", "")[:nameWidth]
+				print(f"{indent}{productId:<{idWidth}} {product.version:<{versionWidth}} {name:<{nameWidth}}")
+			print()
 
 	def processDifferencesCommand(self) -> None:
 		if self.config["quiet"]:
@@ -1843,7 +1801,7 @@ class OpsiPackageManagerControl:
 				depotsInSync = False
 				for line in lines:
 					print(line)
-				print("")
+				print()
 
 		if depotsInSync:
 			syncMessage = _("There are no differences between the depots")
@@ -2017,9 +1975,8 @@ class OpsiPackageManagerControl:
 		for thread in threading.enumerate():
 			logger.debug("Running thread before signal: %s", thread)
 
-		if signo in (SIGTERM, SIGINT):
-			if self._opm:
-				self._opm.abort()
+		if signo in (SIGTERM, SIGINT) and self._opm:
+			self._opm.abort()
 
 		if self.service_client:
 			self.service_client.disconnect()
@@ -2029,9 +1986,9 @@ class OpsiPackageManagerControl:
 
 	def usage(self) -> None:
 		print(f"\nUsage: {os.path.basename(sys.argv[0])} [options] <command>")
-		print("")
+		print()
 		print("Manage opsi packages")
-		print("")
+		print()
 		print("Commands:")
 		print("  -i, --install      <opsi-package> ...      install opsi packages")
 		print("  -u, --upload       <opsi-package> ...      upload opsi packages to repositories")
@@ -2045,7 +2002,7 @@ class OpsiPackageManagerControl:
 		print("  -x, --extract      <opsi-package> ...      extract opsi packages to local directory")
 		print("  -V, --version                              show program's version info and exit")
 		print("  -h, --help                                 show this help message and exit")
-		print("")
+		print()
 		print("Options:")
 		print("  -v, --verbose                           increase verbosity (can be used multiple times)")
 		print("  -q, --quiet                             do not display any messages")
@@ -2076,7 +2033,7 @@ class OpsiPackageManagerControl:
 		print("                                          set a specific product ID during installation.")
 		print("  --suppress-pcf-generation               Suppress the generation of a package content file during package")
 		print("                                          installation. Do not use with WAN extension!")
-		print("")
+		print()
 
 
 def main() -> None:
@@ -2102,10 +2059,6 @@ def main() -> None:
 	except SystemExit as err:
 		sys.exit(err.code)
 	except Exception as err:
-		logger.error(err, exc_info=True)
-		print(f"\nERROR: {err}\n", file=sys.stderr)
-		sys.exit(1)
-	except Exception as err:
-		logger.error(err, exc_info=True)
+		logger.exception("opsi-package-manager failed")
 		print(f"\nERROR: {err}\n", file=sys.stderr)
 		sys.exit(1)

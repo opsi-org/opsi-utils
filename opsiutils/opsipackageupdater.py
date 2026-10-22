@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -16,6 +14,7 @@ import os
 import sys
 from pathlib import Path
 from types import TracebackType
+from typing import Self
 
 import psutil
 from configupdater import ConfigUpdater
@@ -82,7 +81,7 @@ def ensure_not_already_running(process_name: str | None = None) -> None:
 
 
 class OpsiPackageUpdaterClient(OpsiPackageUpdater):
-	def __enter__(self) -> OpsiPackageUpdaterClient:
+	def __enter__(self) -> Self:
 		return self
 
 	def __exit__(self, type_: type[BaseException] | None, value: BaseException | None, traceback: TracebackType | None) -> bool | None:
@@ -387,7 +386,7 @@ def patch_repo_files(base_path: Path) -> None:
 		if (
 			content_lines[0].startswith("; This file has been patched by opsi-package-updater")
 			# correct patching problem introduced with 4.3.0.26  # my be removed at some point
-			and not content_lines[0] == ("; This file has been patched by opsi-package-updater 4.3.0.26")
+			and content_lines[0] != "; This file has been patched by opsi-package-updater 4.3.0.26"
 		):
 			continue
 		if content_lines[0].startswith("; This file has been patched by opsi-package-updater"):
@@ -423,7 +422,7 @@ def updater_main() -> int:
 	config: dict[str, str | int | bool | list[ProductRepositoryInfo] | None] = DEFAULT_CONFIG.copy()
 	args = parse_args()
 
-	logging_config(stderr_level=4 if args.logLevel < 4 else args.logLevel, stderr_format=DEFAULT_COLORED_FORMAT)
+	logging_config(stderr_level=max(args.logLevel, 4), stderr_format=DEFAULT_COLORED_FORMAT)
 
 	if not args.noPatchRepoFiles:
 		patch_repo_files(Path(str(DEFAULT_CONFIG["repositoryConfigDir"])))
@@ -489,7 +488,7 @@ def main() -> None:
 	except KeyboardInterrupt:
 		exitCode = 1
 	except Exception as exc:
-		logger.error(exc, exc_info=True)
+		logger.exception("opsi-package-updater failed")
 		print(f"ERROR: {exc}", file=sys.stderr)
 		exitCode = 1
 

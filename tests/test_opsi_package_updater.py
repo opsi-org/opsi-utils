@@ -6,9 +6,10 @@ tests for opsi-package-updater
 
 import json
 import shutil
+from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -192,9 +193,7 @@ def prepare_updater(base_dir: Path, copy_files: bool = True, ignore_errors: bool
 	config["packageDir"] = str(local_dir)
 	config["ignoreErrors"] = ignore_errors
 
-	config_file.write_text(
-		data=(f"[general]\npackageDir = {str(local_dir)}\nrepositoryConfigDir = {str(repo_conf_path)}\n"), encoding="utf-8"
-	)
+	config_file.write_text(data=(f"[general]\npackageDir = {local_dir!s}\nrepositoryConfigDir = {repo_conf_path!s}\n"), encoding="utf-8")
 	return UpdaterInfo(
 		test_repo_conf=repo_conf_path / "test.repo",
 		server_log=base_dir / "server.log",
@@ -435,7 +434,7 @@ def test_process_updates(tmp_path: Path, package_updater_class: type[OpsiPackage
 		package_updater.processUpdates()
 		assert len(install_log.installed) == 2
 		for entry in install_log.installed:
-			assert entry.endswith("localboot_new_42.0-1337.opsi") or entry.endswith("test-netboot_1.0-2.opsi")
+			assert entry.endswith(("localboot_new_42.0-1337.opsi", "test-netboot_1.0-2.opsi"))
 
 
 @pytest.mark.parametrize("ignore_errors", (True, False))

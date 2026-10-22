@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -12,8 +10,9 @@ import os
 import os.path
 import re
 import socket
+from collections.abc import Generator
 from configparser import ConfigParser
-from typing import Any, Generator
+from typing import Any
 
 from opsi.logging import get_logger, logging_config, secret_filter
 from opsi.opsi.service.client import ServiceClient

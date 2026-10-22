@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -12,8 +10,10 @@ import os
 import shutil
 import sys
 import time
+from collections.abc import Generator
+from contextlib import suppress
 from pathlib import Path
-from typing import Generator, cast
+from typing import cast
 
 from opsi.logging import DEFAULT_COLORED_FORMAT, LOG_ERROR, logger, logging_config
 from opsi.opsi.package import OpsiPackage
@@ -119,7 +119,7 @@ def newprod_main() -> None:
 				logger.warning("Failed to set rights: %s", err)
 
 			ui.showMessage(title=_("Done"), text=_("Package source directory '%s' created") % productSourceDir, width=70, height=3)
-		except Exception as exc:
+		except Exception:
 			errorMessage = _("Product creation failed. Removing directory {0}").format(productSourceDir)
 
 			logger.info(errorMessage)
@@ -127,12 +127,10 @@ def newprod_main() -> None:
 
 			shutil.rmtree(productSourceDir)
 
-			raise exc
+			raise
 	finally:
-		try:
+		with suppress(Exception):
 			ui.exit()
-		except Exception:
-			pass
 
 
 def getProduct(ui: UI) -> Product:
@@ -184,8 +182,7 @@ def getProduct(ui: UI) -> Product:
 		try:
 			product.setId(str(values[0].get("value") or ""))
 		except Exception:
-			if not error:
-				error = _("You have to specify a valid product id.")
+			error = _("You have to specify a valid product id.")
 		try:
 			product.setName(str(values[1].get("value") or ""))
 			if not product.name:
@@ -268,8 +265,7 @@ def getProduct(ui: UI) -> Product:
 		try:
 			product.setSetupScript(str(values[0].get("value") or ""))
 		except Exception:
-			if not error:
-				error = _("Setup script is not valid.")
+			error = _("Setup script is not valid.")
 		try:
 			product.setUninstallScript(str(values[1].get("value") or ""))
 		except Exception:
@@ -352,7 +348,7 @@ def collectProductDependencies(ui: UI, product: Product) -> list[ProductDependen
 		"Possible actions are: %s\n"
 		"Possible installation status are: %s\n"
 		"Possible requirement types are: %s"
-	) % (", ".join(["setup"]), ", ".join(["installed"]), ", ".join(["before", "after"]))
+	) % ("setup", "installed", "before, after")
 
 	while True:
 		if not ui.yesno(
@@ -391,8 +387,7 @@ def collectProductDependencies(ui: UI, product: Product) -> list[ProductDependen
 			try:
 				productDependency.setProductAction(str(values[0].get("value") or ""))
 			except Exception:
-				if not error:
-					error = _("You have to specify a valid product action.")
+				error = _("You have to specify a valid product action.")
 
 			try:
 				productDependency.setRequiredProductId(str(values[1].get("value") or ""))
@@ -486,8 +481,7 @@ def collectProductProperties(ui: UI, product: Product) -> list[ProductProperty]:
 			try:
 				productProperty.setPropertyId(str(values[0].get("value") or ""))
 			except Exception:
-				if not error:
-					error = _("Please specify a valid identifier")
+				error = _("Please specify a valid identifier")
 
 			try:
 				productProperty.setDescription(str(values[1].get("value") or ""))
@@ -568,8 +562,7 @@ def writeMaintainerInfo(
 				raise ValueError("Empty maintainer")
 			maintainer = to_string(values[0].get("value"))
 		except Exception:
-			if not error:
-				error = _("Please enter a valid maintainer name.")
+			error = _("Please enter a valid maintainer name.")
 
 		try:
 			if not values[1].get("value"):
@@ -636,8 +629,7 @@ def createTemplates(productDirectory: str, templateDirectory: str | None = None)
 		preinst.write("# preinst script\n")
 		preinst.write("# This script executes before that package will be unpacked from its archive file.\n")
 		preinst.write("#\n")
-		for line in getEnvVariableLines():
-			preinst.write(line)
+		preinst.writelines(getEnvVariableLines())
 		preinst.write("#\n")
 
 	# Create postinst template
@@ -648,8 +640,7 @@ def createTemplates(productDirectory: str, templateDirectory: str | None = None)
 		postinst.write("# postinst script\n")
 		postinst.write("# This script executes after unpacking files from that archive and registering the product at the depot.\n")
 		postinst.write("#\n")
-		for line in getEnvVariableLines():
-			postinst.write(line)
+		postinst.writelines(getEnvVariableLines())
 		postinst.write("#\n")
 
 	if templateDirectory:

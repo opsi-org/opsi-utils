@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -28,8 +26,8 @@ sys.modules["OPSI"] = opsi_legacy
 sys.modules["opsicommon"] = opsi
 
 
-import OPSI.Backend.Manager._Manager  # ty: ignore[unresolved-import] # noqa
-import opsicommon.opsi.service.client  # ty: ignore[unresolved-import] # noqa
+import OPSI.Backend.Manager._Manager  # ty: ignore[unresolved-import]
+import opsicommon.opsi.service.client  # ty: ignore[unresolved-import]
 
 opsicommon_client = types.ModuleType("opsicommon.client")
 opsicommon_client.__path__ = []
@@ -92,7 +90,7 @@ def run_script() -> None:
 		code = file.read()
 
 	add_systempackages_to_path()
-	exec(code, new_module.__dict__)
+	exec(code, new_module.__dict__)  # noqa: S102
 
 
 def run_interactive() -> None:
@@ -127,7 +125,7 @@ def main() -> None:
 
 		if args.c:
 			add_systempackages_to_path()
-			exec(args.c)
+			exec(args.c)  # noqa: S102
 			return
 
 		run_interactive()

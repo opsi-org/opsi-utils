@@ -42,7 +42,7 @@ def do_something(service_client):
 
 	# create opsi clients 0-3
 	clients_to_create = []
-	for i in range(0, 4):
+	for i in range(4):
 		client_config = {"id": f"test-{i}.domain.local", "description": f"Test client {i}"}
 		clients_to_create.append(OpsiClient(**client_config))
 	service_client.host_createObjects(clients_to_create)

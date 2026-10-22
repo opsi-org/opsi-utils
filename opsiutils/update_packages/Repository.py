@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -16,7 +14,7 @@ from opsi.logging import get_logger
 from opsi.opsi.service.client import ServiceClient
 from opsi.opsi.service.model.type import to_bool, to_string, to_string_list
 
-__all__ = ("LinksExtractor", "ProductRepositoryInfo", "sort_repository_list", "TransferSlotHeartbeat")
+__all__ = ("LinksExtractor", "ProductRepositoryInfo", "TransferSlotHeartbeat", "sort_repository_list")
 logger = get_logger("opsi-package-updater")
 RETENTION_HEARTBEAT_INTERVAL_DIFF = 10.0
 MIN_HEARTBEAT_INTERVAL = 1.0

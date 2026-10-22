@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (c) uib GmbH <info@uib.de>
 # License: AGPL-3.0
 """
@@ -26,14 +24,14 @@ logging_config(stderr_level=LOG_NOTICE, stderr_format=DEFAULT_COLORED_FORMAT)
 
 def usage() -> None:
 	print(f"\nUsage: {os.path.basename(sys.argv[0])} [options]")
-	print("")
+	print()
 	print("Options:")
 	print("   -h, --help     show this help")
 	print("   -l             log-level 0..9")
 	print("   -V, --version  Show version info and exit.")
-	print("")
+	print()
 	print("   --set-rights [path]  set default rights on OPSI files (in [path] only)")
-	print("")
+	print()
 
 
 def opsisetup_main() -> None:
@@ -105,18 +103,14 @@ def opsisetup_main() -> None:
 			return
 		elif opt == "--file-to-mysql":
 			logger.warning(
-				(
-					"file-to-mysql is deprecated. "
-					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
-				)
+				"file-to-mysql is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
 			)
 			return
 		elif opt == "--cleanup-backend":
 			logger.warning(
-				(
-					"cleanup-backend is deprecated. "
-					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
-				)
+				"cleanup-backend is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
 			)
 			return
 		elif opt == "--update-from":
@@ -124,27 +118,21 @@ def opsisetup_main() -> None:
 			return
 		elif opt == "--auto-configure-samba":
 			logger.warning(
-				(
-					"auto-configure-samba is deprecated. "
-					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
-				)
+				"auto-configure-samba is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
 			)
 			return
 		elif opt == "--auto-configure-dhcpd":
 			logger.warning(
-				(
-					"auto-configure-dhcp is deprecated. "
-					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'. "
-					"Please make sure that '\"enabled\": True' is set in /etc/opsi/backends/dhcpd.conf."
-				)
+				"auto-configure-dhcp is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'. "
+				"Please make sure that '\"enabled\": True' is set in /etc/opsi/backends/dhcpd.conf."
 			)
 			return
 		elif opt == "--patch-sudoers-file":
 			logger.warning(
-				(
-					"patch-sudoers-file is deprecated. "
-					"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
-				)
+				"patch-sudoers-file is deprecated. "
+				"The task is performed automatically at the start of opsiconfd or by running 'opsiconfd setup'."
 			)
 			return
 
@@ -167,6 +155,6 @@ def main() -> None:
 	except SystemExit as err:
 		sys.exit(err.code)
 	except Exception as err:
-		logger.error(err, exc_info=True)
+		logger.exception("opsi-setup failed")
 		print(f"\nERROR: {err}\n", file=sys.stderr)
 		sys.exit(1)
