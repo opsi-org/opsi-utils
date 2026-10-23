@@ -5,7 +5,9 @@ tests for opsi-package-updater
 """
 
 import json
+import random
 import shutil
+import tempfile
 from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,8 +17,9 @@ from unittest import mock
 import pytest
 import requests
 from opsi.crypt.hash import FileHashAlgorithm, hash_file
-from opsi.opsi.package import RepoMetaPackageCollection
+from opsi.opsi.package import OpsiPackage, RepoMetaPackageCollection
 from opsi.opsi.service.model.object import OpsiDepotserver
+from opsi.opsi.service.server import OpsiConfig
 from opsi.testing.helper import http_test_server
 from pyzsync import create_zsync_file
 
@@ -145,6 +148,16 @@ class UpdaterInfo:
 	config: dict[str, Any]
 
 
+@pytest.fixture(autouse=True)
+def opsi_config(tmp_path: Path) -> Generator[None, None, None]:
+	config_file = tmp_path / "opsi.conf"
+	config_file.write_text('[host]\nid = "depot.opsi.org"\nserver-role = "configserver"\n', encoding="utf-8")
+	OpsiConfig.reset_singleton()
+	with mock.patch.object(OpsiConfig, "config_file", str(config_file)):
+		yield
+	OpsiConfig.reset_singleton()
+
+
 @pytest.fixture
 def package_updater_class() -> Generator[type[OpsiPackageUpdater], None, None]:
 	cls = OpsiPackageUpdater
@@ -163,27 +176,53 @@ def write_repo_conf(
 	excludes: list[str] | None = None,
 	customVersions: list[str] | None = None,
 ) -> None:
-	repo_conf.write_text(
-		data=(
-			f"[repository_test]\nactive = true\nbaseUrl = {base_url}\ndirs = {dirs}\nproxy = {proxy}\n"
-			f"autoInstall = true\nusername = user\npassword = pass\nexcludes = {', '.join(excludes) if excludes else ''}\n"
-			f"customVersions = {', '.join(customVersions) if customVersions else ''}\n"
-		),
-		encoding="utf-8",
+	data = (
+		f"[repository_test]\nactive = true\nbaseUrl = {base_url}\ndirs = {dirs}\nproxy = {proxy}\n"
+		f"autoInstall = true\nusername = user\npassword = pass\nexcludes = {', '.join(excludes) if excludes else ''}\n"
+		f"customVersions = {', '.join(customVersions) if customVersions else ''}\n"
 	)
+	repo_conf.write_text(data, encoding="utf-8")
 
 
-def prepare_updater(base_dir: Path, copy_files: bool = True, ignore_errors: bool = False) -> UpdaterInfo:
+SERVER_PACKAGES = (
+	("localboot_new_1.0-1.opsi", "LocalbootProduct"),
+	("localboot_new_2.0-1.opsi", "LocalbootProduct"),
+	("localboot_new_42.0-1337.opsi", "LocalbootProduct"),
+	("localboot_new_42.0-1337~en.opsi", "LocalbootProduct"),
+	("localboot_new_42.0-1337~ita.opsi", "LocalbootProduct"),
+	("subdir/test-netboot_1.0-2.opsi", "NetbootProduct"),
+)
+
+
+def create_package(package_file: Path, product_type: str = "LocalbootProduct") -> None:
+	"""Create an opsi package, product id and version are taken from the file name (`<id>_<version>-<package_version>[~<custom>].opsi`)."""
+	product_id, version = package_file.name.removesuffix(".opsi").rsplit("_", 1)
+	product_version, package_version = version.split("~", 1)[0].rsplit("-", 1)
+	with tempfile.TemporaryDirectory() as temp_dir:
+		base_dir = Path(temp_dir)
+		opsi_dir = base_dir / "OPSI"
+		opsi_dir.mkdir()
+		(opsi_dir / "control.toml").write_text(
+			f'[Package]\nversion = "{package_version}"\ndepends = []\n\n'
+			f'[Product]\ntype = "{product_type}"\nid = "{product_id}"\nname = "{product_id}"\nversion = "{product_version}"\n',
+			encoding="utf-8",
+		)
+		package_archive = OpsiPackage().create_package_archive(base_dir, destination=base_dir)
+		package_file.parent.mkdir(parents=True, exist_ok=True)
+		shutil.move(package_archive, package_file)
+
+
+def prepare_updater(base_dir: Path, create_packages: bool = True, ignore_errors: bool = False) -> UpdaterInfo:
 	"""returns tuple of test_repo_conf and server_log"""
 	config_file = base_dir / "empty.conf"
 	config_file.touch()
 	local_dir = base_dir / "local_packages"
 	local_dir.mkdir()
 	server_dir = base_dir / "server_packages"
-	if copy_files:
-		shutil.copytree("tests/data/package-repo", server_dir)
-	else:
-		server_dir.mkdir()
+	server_dir.mkdir()
+	if create_packages:
+		for package_file, product_type in SERVER_PACKAGES:
+			create_package(server_dir / package_file, product_type)
 	(server_dir / "otherdir").mkdir()
 	repo_conf_path = base_dir / "repos.d"
 	repo_conf_path.mkdir()
@@ -208,7 +247,7 @@ def prepare_updater(base_dir: Path, copy_files: bool = True, ignore_errors: bool
 	(None, ["hwaudit"], ["opsi-client-agent", "opsi-configed", "hwaudit"]),
 )
 def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], excludes: list[str] | None) -> None:  # pylint: disable=redefined-outer-name
-	updater_info = prepare_updater(tmp_path, copy_files=False)
+	updater_info = prepare_updater(tmp_path, create_packages=False)
 
 	server_package_file = updater_info.server_dir / "hwaudit_4.2.0.0-1.opsi"
 	md5sum_file = updater_info.server_dir / "hwaudit_4.2.0.0-1.opsi.md5"
@@ -255,7 +294,7 @@ def test_get_packages(tmp_path: Path, package_updater_class: type[OpsiPackageUpd
 def test_get_packages_zsync(  # pylint: disable=redefined-outer-name,too-many-locals,too-many-statements
 	tmp_path: Path, package_updater_class: type[OpsiPackageUpdater], server_accept_ranges: bool
 ) -> None:
-	updater_info = prepare_updater(tmp_path, copy_files=False)
+	updater_info = prepare_updater(tmp_path, create_packages=False)
 
 	server_package_file = updater_info.server_dir / "hwaudit_4.2.0.0-1.opsi"
 	local_package_file = updater_info.local_dir / "hwaudit_4.1.0.0-1.opsi"
@@ -475,6 +514,8 @@ def test_process_updates_unreachable_repository(
 		(["2.0-1", "42.0-1337", "42.0-1337~en", "42.0-1337~ita"], [".*~other", "localboot_new~foo"], "42.0-1337"),
 		(["2.0-1", "42.0-1337~ita"], None, "2.0-1"),
 		(["42.0-1337~ita"], None, "42.0-1337~ita"),
+		(["153.5.1esror158.0.1-1", "153.5.0esror158.0-1", "153.5.1esror158.0.1-1~fra3264"], None, "153.5.1esror158.0.1-1"),
+		(["153.5.1esror158.0.1-1", "153.5.0esror158.0-1", "153.5.1esror158.0.1-1~fra3264"], [""], "153.5.1esror158.0.1-1"),
 	),
 )
 def test_prefer_custom_versions(
@@ -484,32 +525,41 @@ def test_prefer_custom_versions(
 	custom_versions: list[str] | None,
 	expected_version: str,
 ) -> None:
-	updater_info = prepare_updater(tmp_path, ignore_errors=True)
-
-	rmpc = RepoMetaPackageCollection()
-	rmpc.scan_packages(updater_info.server_dir)
-	rmpc.write_metafile(updater_info.server_dir / "packages.json")
-
+	updater_info = prepare_updater(tmp_path, create_packages=False, ignore_errors=True)
 	with http_test_server(serve_directory=updater_info.server_dir, log_file=str(updater_info.server_log)) as server:
-		base_url = f"http://localhost:{server.port}"
-		write_repo_conf(
-			updater_info.test_repo_conf,
-			base_url,
-			excludes=[],
-			customVersions=custom_versions,
-		)
+		for sub_dir in (None, "localboot_new", "other"):
+			for version in random.sample(available_versions, len(available_versions)):
+				# Build each package only once and copy it, as packages with identical versions must have identical hashes
+				package_file = updater_info.server_dir / f"localboot_new_{version}.opsi"
+				if not package_file.exists():
+					create_package(package_file)
+				if sub_dir:
+					(updater_info.server_dir / sub_dir).mkdir(exist_ok=True)
+					shutil.copy2(package_file, updater_info.server_dir / sub_dir / package_file.name)
 
-		package_updater = package_updater_class(updater_info.config)
-		available_packages = [
-			p for p in package_updater.getDownloadablePackages() if p.product_id == "localboot_new" and str(p.version) in available_versions
-		]
-		for reverse_sort in (False, True):
-			available_packages.sort(key=lambda pkg: str(pkg.version), reverse=reverse_sort)
-			localboot_new_versions = sorted(str(pkg.version) for pkg in available_packages if pkg.product_id == "localboot_new")
-			print("localboot_new_versions:", localboot_new_versions)
-			assert localboot_new_versions == available_versions
-			newest_packages = package_updater.onlyNewestPackages(available_packages)
-			latest_localboot_new_versions = sorted(str(pkg.version) for pkg in newest_packages if pkg.product_id == "localboot_new")
-			print("latest_localboot_new_versions:", latest_localboot_new_versions)
-			print("expected_version:", expected_version)
-			assert latest_localboot_new_versions == [expected_version]
+			meta_file = updater_info.server_dir / "packages.json"
+			meta_file.unlink(missing_ok=True)
+			rmpc = RepoMetaPackageCollection()
+			rmpc.scan_packages(updater_info.server_dir)
+			rmpc.write_metafile(meta_file)
+
+			base_url = f"http://localhost:{server.port}"
+			write_repo_conf(
+				updater_info.test_repo_conf,
+				base_url,
+				excludes=[],
+				customVersions=custom_versions,
+			)
+
+			package_updater = package_updater_class(updater_info.config)
+			available_packages = [p for p in package_updater.getDownloadablePackages() if p.product_id == "localboot_new"]
+			for reverse_sort in (False, True):
+				available_packages.sort(key=lambda pkg: str(pkg.version), reverse=reverse_sort)
+				localboot_new_versions = sorted(str(pkg.version) for pkg in available_packages if pkg.product_id == "localboot_new")
+				print("localboot_new_versions:", localboot_new_versions)
+				assert localboot_new_versions == sorted(available_versions)
+				newest_packages = package_updater.onlyNewestPackages(available_packages)
+				latest_localboot_new_versions = sorted(str(pkg.version) for pkg in newest_packages if pkg.product_id == "localboot_new")
+				print("latest_localboot_new_versions:", latest_localboot_new_versions)
+				print("expected_version:", expected_version)
+				assert latest_localboot_new_versions == [expected_version]
