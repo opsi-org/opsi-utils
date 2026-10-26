@@ -1725,7 +1725,7 @@ class OpsiPackageManagerControl:
 
 			idWidth = max(idWidth, len(product.id))
 
-		nameWidth = terminalWidth - len(indent) - idWidth - versionWidth - 4
+		nameWidth = max(terminalWidth - len(indent) - idWidth - versionWidth - 4, 0)
 
 		productOnDepotInfo: dict[str, dict[str, ProductOnDepot]] = {}
 		for depotId in to_string_list(self.config["depotIds"]):
