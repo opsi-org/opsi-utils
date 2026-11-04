@@ -13,6 +13,7 @@ import socket
 from collections.abc import Generator
 from configparser import ConfigParser
 from typing import Any
+from urllib.parse import urlparse
 
 from opsi.logging import get_logger, logging_config, secret_filter
 from opsi.opsi.service.client import ServiceClient
@@ -71,6 +72,30 @@ DEFAULT_CONFIG: dict[str, str | int | bool | list[ProductRepositoryInfo] | None]
 }
 
 logger = get_logger("opsi.general")
+
+SHUTDOWN_REPOSITORY_HOST = "download.uib.de"
+NEW_REPOSITORY_URL = "https://opsipackages.43.opsi.org"
+
+
+def is_shutdown_repository(base_url: str) -> bool:
+	"""Return True if the URL points to the discontinued host `download.uib.de`."""
+	return (urlparse(base_url).hostname or "").lower() == SHUTDOWN_REPOSITORY_HOST
+
+
+def log_shutdown_repository_error(repo_name: str, config_file: str, base_url: str) -> None:
+	"""Log an error explaining that packages are no longer hosted on `download.uib.de`."""
+	message = (
+		f"The repository '{repo_name}' defined in '{config_file}' uses the URL '{base_url}', which is no longer served. "
+		"The repository will be skipped.\n"
+		f"Packages are no longer hosted on {SHUTDOWN_REPOSITORY_HOST}. They are now available at {NEW_REPOSITORY_URL}."
+	)
+	if f"{SHUTDOWN_REPOSITORY_HOST}/abo" in base_url.lower():
+		message += (
+			f"\nAll subscription (abo) packages are now available at {NEW_REPOSITORY_URL}/abo, and your credentials remain unchanged. "
+			f"To use it, set 'baseUrl = {NEW_REPOSITORY_URL}/abo' and 'dirs = .' in your repository configuration."
+			"\nIf you have trouble accessing the subscription packages, please contact support@uib.de."
+		)
+	logger.error(message)
 
 
 def getRepoConfigs(repoDir: str) -> Generator[str, None, None]:
@@ -208,6 +233,9 @@ class ConfigurationParser:
 							installAllAvailable=bool(config["installAllAvailable"]),
 							proxy=str(config["proxy"]) if config["proxy"] else None,
 						)
+						if repository.active and is_shutdown_repository(repository.baseUrl):
+							log_shutdown_repository_error(repository.name, self.configFile, repository.baseUrl)
+							continue
 						config["repositories"] = to_list(config["repositories"]) + [repository]
 					except MissingConfigurationValueError as mcverr:
 						logger.debug("Configuration for %s incomplete: %s", section, mcverr)
@@ -238,6 +266,9 @@ class ConfigurationParser:
 							installAllAvailable=bool(config["installAllAvailable"]),
 							proxy=str(config["proxy"]) if config["proxy"] else None,
 						)
+						if repository.active and is_shutdown_repository(repository.baseUrl):
+							log_shutdown_repository_error(repository.name, configFile, repository.baseUrl)
+							continue
 						config["repositories"] = to_list(config["repositories"]) + [repository]
 					except MissingConfigurationValueError as err:
 						logger.debug("Configuration for %s in %s incomplete: %s", section, configFile, err)
