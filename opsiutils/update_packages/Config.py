@@ -82,14 +82,25 @@ def is_shutdown_repository(base_url: str) -> bool:
 	return (urlparse(base_url).hostname or "").lower() == SHUTDOWN_REPOSITORY_HOST
 
 
-def log_shutdown_repository_error(repo_name: str, config_file: str, base_url: str) -> None:
+def is_abo_repository(base_url: str, dirs: list[str]) -> bool:
+	"""Return True if the base URL or one of the dirs points to the subscription (abo) packages."""
+	if f"{SHUTDOWN_REPOSITORY_HOST}/abo" in base_url.lower():
+		return True
+	for directory in dirs:
+		path = directory.strip().lstrip("/").lower()
+		if path == "abo" or path.startswith("abo/"):
+			return True
+	return False
+
+
+def log_shutdown_repository_error(repo_name: str, config_file: str, base_url: str, dirs: list[str]) -> None:
 	"""Log an error explaining that packages are no longer hosted on `download.uib.de`."""
 	message = (
 		f"The repository '{repo_name}' defined in '{config_file}' uses the URL '{base_url}', which is no longer served. "
 		"The repository will be skipped.\n"
 		f"Packages are no longer hosted on {SHUTDOWN_REPOSITORY_HOST}. They are now available at {NEW_REPOSITORY_URL}."
 	)
-	if f"{SHUTDOWN_REPOSITORY_HOST}/abo" in base_url.lower():
+	if is_abo_repository(base_url, dirs):
 		message += (
 			f"\nAll subscription (abo) packages are now available at {NEW_REPOSITORY_URL}/abo, and your credentials remain unchanged. "
 			f"To use it, set 'baseUrl = {NEW_REPOSITORY_URL}/abo' and 'dirs = .' in your repository configuration."
@@ -234,7 +245,7 @@ class ConfigurationParser:
 							proxy=str(config["proxy"]) if config["proxy"] else None,
 						)
 						if repository.active and is_shutdown_repository(repository.baseUrl):
-							log_shutdown_repository_error(repository.name, self.configFile, repository.baseUrl)
+							log_shutdown_repository_error(repository.name, self.configFile, repository.baseUrl, repository.dirs)
 							continue
 						config["repositories"] = to_list(config["repositories"]) + [repository]
 					except MissingConfigurationValueError as mcverr:
@@ -267,7 +278,7 @@ class ConfigurationParser:
 							proxy=str(config["proxy"]) if config["proxy"] else None,
 						)
 						if repository.active and is_shutdown_repository(repository.baseUrl):
-							log_shutdown_repository_error(repository.name, configFile, repository.baseUrl)
+							log_shutdown_repository_error(repository.name, configFile, repository.baseUrl, repository.dirs)
 							continue
 						config["repositories"] = to_list(config["repositories"]) + [repository]
 					except MissingConfigurationValueError as err:
