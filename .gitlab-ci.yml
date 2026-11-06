@@ -20,6 +20,8 @@ test-and-lint:
     - uv python install
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
+    # PBS release 20260718 added hardening flags to sysconfig CFLAGS which GCC 6 on deb9 does not support
+    - find "$(uv python dir)" -name "_sysconfigdata_*.py" -exec sed -i 's/-fstack-clash-protection//g' {} +
     - uv sync --frozen
     - uv run ruff check opsiutils tests
     - uv run ty check opsiutils tests
