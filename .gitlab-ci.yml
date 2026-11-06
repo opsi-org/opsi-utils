@@ -16,6 +16,8 @@ test-and-lint:
   script:
     - export UV_PYTHON_PREFERENCE="only-managed"
     - export UV_PYTHON="3.14-x86_64"
+    - uv self update
+    - uv python install
     - apt update
     - apt -y install python3-newt gettext gzip asciidoc-base zstd
     - uv sync --frozen
@@ -34,6 +36,8 @@ build:linux-x64:
   script:
     - export UV_PYTHON_PREFERENCE="only-managed"
     - export UV_PYTHON="3.14-x86_64"
+    - uv self update
+    - uv python install
     - TRANSIFEX_MIN_REVIEW_RATE=0.0
     - '[ "$CI_COMMIT_TAG" = "" ] || TRANSIFEX_MIN_REVIEW_RATE=1.0'
     - apt update
@@ -66,6 +70,8 @@ build:linux-arm64:
   script:
     - export UV_PYTHON_PREFERENCE="only-managed"
     - export UV_PYTHON="3.14-aarch64"
+    - uv self update
+    - uv python install
     - TRANSIFEX_MIN_REVIEW_RATE=0.0
     - '[ "$CI_COMMIT_TAG" = "" ] || TRANSIFEX_MIN_REVIEW_RATE=1.0'
     - apt update
