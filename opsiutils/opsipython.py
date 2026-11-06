@@ -26,8 +26,8 @@ sys.modules["OPSI"] = opsi_legacy
 sys.modules["opsicommon"] = opsi
 
 
-import OPSI.Backend.Manager._Manager  # ty: ignore[unresolved-import]
-import opsicommon.opsi.service.client  # ty: ignore[unresolved-import]
+import OPSI.Backend.Manager._Manager  # ty: ignore[import-not-found]
+import opsicommon.opsi.service.client  # ty: ignore[import-not-found]
 
 opsicommon_client = types.ModuleType("opsicommon.client")
 opsicommon_client.__path__ = []

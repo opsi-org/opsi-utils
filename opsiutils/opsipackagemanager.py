@@ -1618,9 +1618,8 @@ class OpsiPackageManagerControl:
 				if self.config["command"] == "differences" and len(to_string_list(self.config["depotIds"])) <= 1:
 					raise ValueError("More than one depot id needed to display differences")
 
-			elif self.config["command"] in ("remove", "repo_remove"):
-				if not self.config["productIds"]:
-					raise ValueError("No opsi product id given")
+			elif self.config["command"] in ("remove", "repo_remove") and not self.config["productIds"]:
+				raise ValueError("No opsi product id given")
 		except Exception:
 			if self.service_client:
 				self.service_client.disconnect()

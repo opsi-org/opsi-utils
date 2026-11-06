@@ -45,7 +45,7 @@ from pyzsync import (
 	read_zsync_file,
 )
 from requests import Response, Session
-from requests.packages import urllib3  # ty: ignore[unresolved-import]
+from requests.packages import urllib3  # ty: ignore[import-not-found]
 
 from opsiutils.update_packages.Config import DEFAULT_USER_AGENT, ConfigurationParser
 from opsiutils.update_packages.Notifier import BaseNotifier, DummyNotifier, EmailNotifier
